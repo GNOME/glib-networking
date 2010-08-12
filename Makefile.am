@@ -4,3 +4,7 @@ include $(top_srcdir)/Makefile.decl
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 SUBDIRS =
+
+if HAVE_LIBPROXY
+SUBDIRS += proxy/libproxy
+endif
