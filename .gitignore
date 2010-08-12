@@ -1,0 +1,15 @@
+*.swp
+INSTALL
+README
+aclocal.m4
+autom4te.cache/
+config.guess
+config.h.in
+config.sub
+configure
+depcomp
+gtk-doc.make
+install-sh
+ltmain.sh
+m4/
+missing
