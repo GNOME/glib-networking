@@ -29,7 +29,7 @@
 #include "glibproxyresolver.h"
 
 #include <glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 struct _GLibProxyResolver {
   GObject parent_instance;

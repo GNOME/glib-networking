@@ -23,6 +23,17 @@ AS_IF([test "x$PKG_CONFIG" = "xno"],
 
 dnl Checks for libraries.
 
+dnl ****************************
+dnl *** Checks for intltool  ***
+dnl ****************************
+
+IT_PROG_INTLTOOL([0.35.0])
+GETTEXT_PACKAGE=glib-networking
+
+AC_SUBST([GETTEXT_PACKAGE])
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[The gettext domain name])
+AM_GLIB_GNU_GETTEXT
+
 dnl *****************************
 dnl *** Check GLib GIO        ***
 dnl *****************************
@@ -62,5 +73,6 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 dnl Checks for library functions.
 
 AC_CONFIG_FILES([Makefile
+                 po/Makefile.in po/Makefile
                  proxy/libproxy/Makefile])
 AC_OUTPUT
