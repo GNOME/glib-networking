@@ -9,7 +9,6 @@ AC_CONFIG_HEADERS([config.h])
 dnl Other initialization
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
-GTK_DOC_CHECK
 LT_INIT
 
 dnl Checks for programs.

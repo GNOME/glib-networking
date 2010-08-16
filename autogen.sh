@@ -32,14 +32,6 @@ if $have_libtool ; then : ; else
 	DIE=1
 fi
 
-(gtkdocize --version) < /dev/null > /dev/null 2>&1 || {
-	echo
-	echo "You must have gtk-doc installed to compile $PROJECT."
-	echo "Install the appropriate package for your distribution,"
-	echo "or get the source tarball at ftp://ftp.gnome.org/pub/GNOME/sources/gtk-doc/"
-	DIE=1
-}
-
 (autoconf --version) < /dev/null > /dev/null 2>&1 || {
 	echo
 	echo "You must have autoconf installed to compile $PROJECT."
@@ -95,7 +87,6 @@ $ACLOCAL $ACLOCAL_FLAGS || exit $?
 
 libtoolize --force || exit $?
 intltoolize --force --copy || exit $?
-gtkdocize || exit $?
 
 autoheader || exit $?
 
