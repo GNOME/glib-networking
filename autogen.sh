@@ -6,7 +6,7 @@ test -z "$srcdir" && srcdir=.
 
 ORIGDIR=`pwd`
 cd $srcdir
-PROJECT=gLib-networking
+PROJECT=glib-networking
 TEST_TYPE=-f
 FILE=proxy/libproxy/glibproxyresolver.h
 
