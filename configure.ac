@@ -9,6 +9,7 @@ AC_CONFIG_HEADERS([config.h])
 dnl Other initialization
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],)
 LT_INIT
 
 dnl Checks for programs.
