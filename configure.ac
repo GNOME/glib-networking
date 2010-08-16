@@ -16,11 +16,6 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
 
-dnl We need to get variables using pkg-config
-AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-AS_IF([test "x$PKG_CONFIG" = "xno"],
-      [AC_MSG_FAILURE(Can't find pkg-config tool.)])
-
 dnl Checks for libraries.
 
 dnl ****************************
