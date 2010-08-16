@@ -64,9 +64,6 @@ AM_CONDITIONAL(HAVE_LIBPROXY, [test "x$with_libproxy" = "xyes"])
 AC_SUBST(LIBPROXY_CFLAGS)
 AC_SUBST(LIBPROXY_LIBS)
 
-dnl Checks for header files.
-AC_CHECK_HEADERS([stdlib.h string.h])
-
 dnl Checks for typedefs, structures, and compiler characteristics.
 
 dnl Checks for library functions.
