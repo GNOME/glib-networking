@@ -33,7 +33,7 @@ dnl *****************************
 dnl *** Check GLib GIO        ***
 dnl *****************************
 
-PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.25.13])
+PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.25.15])
 AC_SUBST(GIO_CFLAGS)
 AC_SUBST(GIO_LIBS)
 
