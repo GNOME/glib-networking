@@ -1,0 +1,4 @@
+2.25.0
+======
+
+  * Initial release, with libproxy-based GProxyResolver

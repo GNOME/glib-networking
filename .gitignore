@@ -23,6 +23,5 @@ glib-zip
 gtk-doc.make
 
 INSTALL
-README
 ChangeLog
 m4
