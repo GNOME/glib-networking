@@ -8,3 +8,7 @@ SUBDIRS = po
 if HAVE_LIBPROXY
 SUBDIRS += proxy/libproxy
 endif
+
+if HAVE_GNUTLS
+SUBDIRS += tls/gnutls
+endif
