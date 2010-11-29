@@ -34,13 +34,11 @@
 #include "gtlsclientconnection-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
 
-static void gtls_gnutls_init (void);
 static void g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendGnutls, g_tls_backend_gnutls, G_TYPE_OBJECT, 0,
 				G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
-							       g_tls_backend_gnutls_interface_init);
-				gtls_gnutls_init ();)
+							       g_tls_backend_gnutls_interface_init);)
 
 #if defined(GCRY_THREAD_OPTION_PTHREAD_IMPL) && !defined(G_OS_WIN32)
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
@@ -94,8 +92,8 @@ static struct gcry_thread_cbs gtls_gcry_threads_win32 = {		 \
 
 #endif
 
-static void
-gtls_gnutls_init (void)
+static gpointer
+gtls_gnutls_init (gpointer data)
 {
 #if defined(GCRY_THREAD_OPTION_PTHREAD_IMPL) && !defined(G_OS_WIN32)
   gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
@@ -103,11 +101,25 @@ gtls_gnutls_init (void)
   gcry_control (GCRYCTL_SET_THREAD_CBS, &gtls_gcry_threads_win32);
 #endif
   gnutls_global_init ();
+
+  /* Leak the module to keep it from being unloaded. */
+  g_type_plugin_use (g_type_get_plugin (G_TYPE_TLS_BACKEND_GNUTLS));
+  return NULL;
 }
+
+static GOnce gnutls_inited = G_ONCE_INIT;
 
 static void
 g_tls_backend_gnutls_init (GTlsBackendGnutls *backend)
 {
+  /* Once we call gtls_gnutls_init(), we can't allow the module to be
+   * unloaded, since that would break the pointers to the mutex
+   * functions we set for gcrypt. So we initialize it from here rather
+   * than at class init time so that it doesn't happen unless the app
+   * is actually using TLS (as opposed to just calling
+   * g_io_modules_scan_all_in_directory()).
+   */
+  g_once (&gnutls_inited, gtls_gnutls_init, NULL);
 }
 
 static void
