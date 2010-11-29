@@ -12,3 +12,13 @@ endif
 if HAVE_GNUTLS
 SUBDIRS += tls/gnutls
 endif
+
+install-exec-hook:
+	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \
+		$(GIO_QUERYMODULES) $(GIO_MODULE_DIR) ;           \
+	fi
+
+uninstall-hook:
+	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \
+		$(GIO_QUERYMODULES) $(GIO_MODULE_DIR) ;           \
+	fi
