@@ -1,7 +1,7 @@
 AC_PREREQ(2.65)
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_INIT([glib-networking],[2.26.0],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network])
+AC_INIT([glib-networking],[2.27.4],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network])
 
 AC_CONFIG_SRCDIR([proxy/libproxy/glibproxyresolver.h])
 AC_CONFIG_HEADERS([config.h])
@@ -33,7 +33,7 @@ dnl *****************************
 dnl *** Check GLib GIO        ***
 dnl *****************************
 
-PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.27.3])
+PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.27.4])
 AC_SUBST(GIO_CFLAGS)
 AC_SUBST(GIO_LIBS)
 
