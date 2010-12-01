@@ -96,7 +96,8 @@ enum
   PROP_0,
   PROP_BASE_IO_STREAM,
   PROP_REQUIRE_CLOSE_NOTIFY,
-  PROP_REHANDSHAKE_MODE
+  PROP_REHANDSHAKE_MODE,
+  PROP_USE_SYSTEM_CERTDB
 };
 
 struct _GTlsConnectionGnutlsPrivate
@@ -110,6 +111,7 @@ struct _GTlsConnectionGnutlsPrivate
   gnutls_session session;
   gboolean require_close_notify;
   GTlsRehandshakeMode rehandshake_mode;
+  gboolean use_system_certdb;
   gboolean need_handshake, handshaking, ever_handshaked;
   gboolean closing;
 
@@ -148,6 +150,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");
   g_object_class_override_property (gobject_class, PROP_REQUIRE_CLOSE_NOTIFY, "require-close-notify");
   g_object_class_override_property (gobject_class, PROP_REHANDSHAKE_MODE, "rehandshake-mode");
+  g_object_class_override_property (gobject_class, PROP_USE_SYSTEM_CERTDB, "use-system-certdb");
 }
 
 static void
@@ -207,8 +210,6 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
 				       GError       **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
-  gnutls_x509_crt_t *cas;
-  int num_cas;
   int status;
 
   g_return_val_if_fail (gnutls->priv->base_istream != NULL &&
@@ -218,9 +219,6 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
    * already been initialized by a construct-time property setter).
    */
   g_tls_connection_gnutls_get_session (gnutls);
-
-  g_tls_backend_gnutls_get_system_ca_list_gnutls (&cas, &num_cas);
-  gnutls_certificate_set_x509_trust (gnutls->priv->creds, cas, num_cas);
 
   status = gnutls_credentials_set (gnutls->priv->session,
 				   GNUTLS_CRD_CERTIFICATE,
@@ -292,6 +290,10 @@ g_tls_connection_gnutls_get_property (GObject    *object,
       g_value_set_enum (value, gnutls->priv->rehandshake_mode);
       break;
 
+    case PROP_USE_SYSTEM_CERTDB:
+      g_value_set_boolean (value, gnutls->priv->use_system_certdb);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -337,6 +339,20 @@ g_tls_connection_gnutls_set_property (GObject      *object,
 
     case PROP_REHANDSHAKE_MODE:
       gnutls->priv->rehandshake_mode = g_value_get_enum (value);
+      break;
+
+    case PROP_USE_SYSTEM_CERTDB:
+      gnutls->priv->use_system_certdb = g_value_get_boolean (value);
+
+      gnutls_certificate_free_cas (gnutls->priv->creds);
+      if (gnutls->priv->use_system_certdb)
+	{
+	  gnutls_x509_crt_t *cas;
+	  int num_cas;
+
+	  g_tls_backend_gnutls_get_system_ca_list_gnutls (&cas, &num_cas);
+	  gnutls_certificate_set_x509_trust (gnutls->priv->creds, cas, num_cas);
+	}
       break;
 
     default:
