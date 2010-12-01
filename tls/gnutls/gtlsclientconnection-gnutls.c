@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "gtlsclientconnection-gnutls.h"
+#include "gtlscertificate-gnutls.h"
 #include <glib/gi18n-lib.h>
 
 enum
@@ -164,6 +165,7 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 					     GParamSpec   *pspec)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
+  const char *hostname;
 
   switch (prop_id)
     {
@@ -177,11 +179,16 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
       gnutls->priv->server_identity = g_value_dup_object (value);
 
       if (G_IS_NETWORK_ADDRESS (gnutls->priv->server_identity))
+	hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (gnutls->priv->server_identity));
+      else if (G_IS_NETWORK_SERVICE (gnutls->priv->server_identity))
+	hostname = g_network_service_get_domain (G_NETWORK_SERVICE (gnutls->priv->server_identity));
+      else
+	hostname = NULL;
+
+      if (hostname)
 	{
-	  const char *hostname;
 	  gnutls_session_t session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
 
-	  hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (gnutls->priv->server_identity));
 	  gnutls_server_name_set (session, GNUTLS_NAME_DNS,
 				  hostname, strlen (hostname));
 	}
@@ -233,41 +240,24 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
 static gboolean
 validate_handshake (GTlsClientConnectionGnutls *gnutls)
 {
+  GTlsCertificate *peer;
   GTlsCertificateFlags errors;
   gboolean accepted;
 
+  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (gnutls));
+
   errors = g_tls_connection_gnutls_validate_peer (G_TLS_CONNECTION_GNUTLS (gnutls));
 
-  /* FIXME: implement the full hostname/servicename/URI check
-   * according to draft-saintandre-tls-server-id-check
-   */
   if ((gnutls->priv->validation_flags & G_TLS_CERTIFICATE_BAD_IDENTITY) &&
-      gnutls->priv->server_identity &&
-      G_IS_NETWORK_ADDRESS (gnutls->priv->server_identity))
+      gnutls->priv->server_identity)
     {
-      gnutls_session session;
-      gnutls_x509_crt x509_cert;
-      const gnutls_datum_t *certs;
-      const char *hostname;
-      unsigned int num_certs;
-
-      session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
-      hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (gnutls->priv->server_identity));
-
-      gnutls_x509_crt_init (&x509_cert);
-      certs = gnutls_certificate_get_peers (session, &num_certs);
-      gnutls_x509_crt_import (x509_cert, &certs[0], GNUTLS_X509_FMT_DER);
-      if (!gnutls_x509_crt_check_hostname (x509_cert, hostname))
-	errors |= G_TLS_CERTIFICATE_BAD_IDENTITY;
-      gnutls_x509_crt_deinit (x509_cert);
+      errors |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (peer),
+							  gnutls->priv->server_identity);
     }
 
   errors &= gnutls->priv->validation_flags;
   if (errors)
-    {
-      GTlsCertificate *peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (gnutls));
-      accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls), peer, errors);
-    }
+    accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls), peer, errors);
   else
     accepted = TRUE;
 

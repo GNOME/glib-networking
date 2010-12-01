@@ -27,20 +27,7 @@
 #include "gtlscertificate-gnutls.h"
 #include <glib/gi18n-lib.h>
 
-static void g_tls_certificate_gnutls_get_property (GObject      *object,
-						   guint         prop_id,
-						   GValue       *value,
-						   GParamSpec   *pspec);
-static void g_tls_certificate_gnutls_set_property (GObject      *object,
-						   guint         prop_id,
-						   const GValue *value,
-						   GParamSpec   *pspec);
-static void g_tls_certificate_gnutls_finalize     (GObject      *object);
-
 static void     g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface);
-static gboolean g_tls_certificate_gnutls_initable_init       (GInitable       *initable,
-							      GCancellable    *cancellable,
-							      GError         **error);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G_TYPE_TLS_CERTIFICATE,
 			 G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
@@ -53,13 +40,16 @@ enum
   PROP_CERTIFICATE,
   PROP_CERTIFICATE_PEM,
   PROP_PRIVATE_KEY,
-  PROP_PRIVATE_KEY_PEM
+  PROP_PRIVATE_KEY_PEM,
+  PROP_ISSUER
 };
 
 struct _GTlsCertificateGnutlsPrivate
 {
   gnutls_x509_crt_t cert;
   gnutls_x509_privkey_t key;
+
+  GTlsCertificateGnutls *issuer;
 
   GError *construct_error;
 
@@ -68,29 +58,15 @@ struct _GTlsCertificateGnutlsPrivate
 };
 
 static void
-g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
-{
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (GTlsCertificateGnutlsPrivate));
-
-  gobject_class->get_property = g_tls_certificate_gnutls_get_property;
-  gobject_class->set_property = g_tls_certificate_gnutls_set_property;
-  gobject_class->finalize     = g_tls_certificate_gnutls_finalize;
-
-  g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
-  g_object_class_override_property (gobject_class, PROP_CERTIFICATE_PEM, "certificate-pem");
-  g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
-  g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
-}
-
-static void
 g_tls_certificate_gnutls_finalize (GObject *object)
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (object);
 
   gnutls_x509_crt_deinit (gnutls->priv->cert);
   gnutls_x509_privkey_deinit (gnutls->priv->key);
+
+  if (gnutls->priv->issuer)
+    g_object_unref (gnutls->priv->issuer);
 
   g_clear_error (&gnutls->priv->construct_error);
 
@@ -154,6 +130,10 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 	    }
 	}
       g_value_take_string (value, certificate_pem);
+      break;
+
+    case PROP_ISSUER:
+      g_value_set_object (value, gnutls->priv->issuer);
       break;
 
     default:
@@ -256,6 +236,10 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
 	}
       break;
 
+    case PROP_ISSUER:
+      gnutls->priv->issuer = g_value_dup_object (value);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -270,12 +254,6 @@ g_tls_certificate_gnutls_init (GTlsCertificateGnutls *gnutls)
 
   gnutls_x509_crt_init (&gnutls->priv->cert);
   gnutls_x509_privkey_init (&gnutls->priv->key);
-}
-
-static void
-g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface)
-{
-  iface->init = g_tls_certificate_gnutls_initable_init;
 }
 
 static gboolean
@@ -299,6 +277,82 @@ g_tls_certificate_gnutls_initable_init (GInitable       *initable,
     }
   else
     return TRUE;
+}
+
+static GTlsCertificateFlags
+g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
+				 GSocketConnectable  *identity,
+				 GTlsCertificate     *trusted_ca)
+{
+  GTlsCertificateGnutls *cert_gnutls;
+  int status;
+  guint gnutls_flags, num_certs, i, num_cas;
+  gnutls_x509_crt_t *chain, ca;
+  GTlsCertificateFlags gtls_flags;
+  
+  cert_gnutls = G_TLS_CERTIFICATE_GNUTLS (cert);
+  for (num_certs = 0; cert_gnutls; cert_gnutls = cert_gnutls->priv->issuer)
+    num_certs++;
+  chain = g_new (gnutls_x509_crt_t, num_certs);
+  cert_gnutls = G_TLS_CERTIFICATE_GNUTLS (cert);
+  for (i = 0; cert_gnutls; cert_gnutls = cert_gnutls->priv->issuer, i++)
+    chain[i] = cert_gnutls->priv->cert;
+
+  if (trusted_ca)
+    {
+      cert_gnutls = G_TLS_CERTIFICATE_GNUTLS (trusted_ca);
+      ca = cert_gnutls->priv->cert;
+      num_cas = 1;
+    }
+  else
+    {
+      ca = NULL;
+      num_cas = 0;
+    }
+
+  status = gnutls_x509_crt_list_verify (chain, num_certs,
+					&ca, num_cas,
+					NULL, 0,
+					GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
+					&gnutls_flags);
+  g_free (chain);
+
+  if (status != 0)
+    return G_TLS_CERTIFICATE_GENERIC_ERROR;
+
+  gtls_flags = g_tls_certificate_gnutls_convert_flags (gnutls_flags);
+
+  if (identity)
+    gtls_flags |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (cert), identity);
+
+  return gtls_flags;
+}
+
+static void
+g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
+{
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  GTlsCertificateClass *certificate_class = G_TLS_CERTIFICATE_CLASS (klass);
+
+  g_type_class_add_private (klass, sizeof (GTlsCertificateGnutlsPrivate));
+
+  gobject_class->get_property = g_tls_certificate_gnutls_get_property;
+  gobject_class->set_property = g_tls_certificate_gnutls_set_property;
+  gobject_class->finalize     = g_tls_certificate_gnutls_finalize;
+
+  certificate_class->verify = g_tls_certificate_gnutls_verify;
+
+  g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
+  g_object_class_override_property (gobject_class, PROP_CERTIFICATE_PEM, "certificate-pem");
+  g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
+  g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
+  g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
+}
+
+static void
+g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface)
+{
+  iface->init = g_tls_certificate_gnutls_initable_init;
 }
 
 GTlsCertificate *
@@ -359,4 +413,72 @@ g_tls_certificate_gnutls_copy_key  (GTlsCertificateGnutls *gnutls)
   gnutls_x509_privkey_init (&key);
   gnutls_x509_privkey_cpy (key, gnutls->priv->key);
   return key;
+}
+
+static const struct {
+  int gnutls_flag;
+  GTlsCertificateFlags gtls_flag;
+} flags_map[] = {
+  { GNUTLS_CERT_SIGNER_NOT_FOUND | GNUTLS_CERT_SIGNER_NOT_CA, G_TLS_CERTIFICATE_UNKNOWN_CA },
+  { GNUTLS_CERT_NOT_ACTIVATED, G_TLS_CERTIFICATE_NOT_ACTIVATED },
+  { GNUTLS_CERT_EXPIRED, G_TLS_CERTIFICATE_EXPIRED },
+  { GNUTLS_CERT_REVOKED, G_TLS_CERTIFICATE_REVOKED },
+  { GNUTLS_CERT_INSECURE_ALGORITHM, G_TLS_CERTIFICATE_INSECURE }
+};
+static const int flags_map_size = G_N_ELEMENTS (flags_map);
+
+GTlsCertificateFlags
+g_tls_certificate_gnutls_convert_flags (guint gnutls_flags)
+{
+  int i;
+  GTlsCertificateFlags gtls_flags;
+
+  /* Convert GNUTLS status to GTlsCertificateFlags. GNUTLS sets
+   * GNUTLS_CERT_INVALID if it sets any other flag, so we want to
+   * strip that out unless it's the only flag set. Then we convert
+   * specific flags we recognize, and if there are any flags left over
+   * at the end, we add G_TLS_CERTIFICATE_GENERIC_ERROR.
+   */
+  gtls_flags = 0;
+
+  if (gnutls_flags != GNUTLS_CERT_INVALID)
+    gnutls_flags = gnutls_flags & ~GNUTLS_CERT_INVALID;
+  for (i = 0; i < flags_map_size && gnutls_flags != 0; i++)
+    {
+      if (gnutls_flags & flags_map[i].gnutls_flag)
+	{
+	  gnutls_flags &= ~flags_map[i].gnutls_flag;
+	  gtls_flags |= flags_map[i].gtls_flag;
+	}
+    }
+  if (gnutls_flags)
+    gtls_flags |= G_TLS_CERTIFICATE_GENERIC_ERROR;
+
+  return gtls_flags;
+}
+
+GTlsCertificateFlags
+g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
+					  GSocketConnectable    *identity)
+{
+  const char *hostname;
+
+  if (G_IS_NETWORK_ADDRESS (identity))
+    hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (identity));
+  else if (G_IS_NETWORK_SERVICE (identity))
+    hostname = g_network_service_get_domain (G_NETWORK_SERVICE (identity));
+  else
+    hostname = NULL;
+
+  if (hostname)
+    {
+      if (gnutls_x509_crt_check_hostname (gnutls->priv->cert, hostname))
+	return 0;
+    }
+
+  /* FIXME: check sRVName and uniformResourceIdentifier
+   * subjectAltNames, if appropriate for @identity.
+   */
+
+  return G_TLS_CERTIFICATE_BAD_IDENTITY;
 }

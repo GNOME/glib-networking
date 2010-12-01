@@ -41,14 +41,20 @@ struct _GTlsCertificateGnutls
 
 GType g_tls_certificate_gnutls_get_type (void) G_GNUC_CONST;
 
-GTlsCertificate *            g_tls_certificate_gnutls_new       (const gnutls_datum    *datum,
-								 GTlsCertificate       *issuer);
+GTlsCertificate *            g_tls_certificate_gnutls_new             (const gnutls_datum    *datum,
+								       GTlsCertificate       *issuer);
 
-const gnutls_x509_crt_t      g_tls_certificate_gnutls_get_cert  (GTlsCertificateGnutls *gnutls);
-const gnutls_x509_privkey_t  g_tls_certificate_gnutls_get_key   (GTlsCertificateGnutls *gnutls);
+const gnutls_x509_crt_t      g_tls_certificate_gnutls_get_cert        (GTlsCertificateGnutls *gnutls);
+const gnutls_x509_privkey_t  g_tls_certificate_gnutls_get_key         (GTlsCertificateGnutls *gnutls);
 
-gnutls_x509_crt_t            g_tls_certificate_gnutls_copy_cert (GTlsCertificateGnutls *gnutls);
-gnutls_x509_privkey_t        g_tls_certificate_gnutls_copy_key  (GTlsCertificateGnutls *gnutls);
+gnutls_x509_crt_t            g_tls_certificate_gnutls_copy_cert       (GTlsCertificateGnutls *gnutls);
+gnutls_x509_privkey_t        g_tls_certificate_gnutls_copy_key        (GTlsCertificateGnutls *gnutls);
+
+GTlsCertificateFlags         g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
+								       GSocketConnectable    *identity);
+
+GTlsCertificateFlags         g_tls_certificate_gnutls_convert_flags   (guint                  gnutls_flags);
+
 
 G_END_DECLS
 

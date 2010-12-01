@@ -397,48 +397,13 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
     st->ncerts = 0;
 }
 
-static const struct {
-  int gnutls_flag;
-  GTlsCertificateFlags gtls_flag;
-} flags_map[] = {
-  { GNUTLS_CERT_SIGNER_NOT_FOUND | GNUTLS_CERT_SIGNER_NOT_CA, G_TLS_CERTIFICATE_UNKNOWN_CA },
-  { GNUTLS_CERT_NOT_ACTIVATED, G_TLS_CERTIFICATE_NOT_ACTIVATED },
-  { GNUTLS_CERT_EXPIRED, G_TLS_CERTIFICATE_EXPIRED },
-  { GNUTLS_CERT_REVOKED, G_TLS_CERTIFICATE_REVOKED },
-  { GNUTLS_CERT_INSECURE_ALGORITHM, G_TLS_CERTIFICATE_INSECURE }
-};
-static const int flags_map_size = G_N_ELEMENTS (flags_map);
-
 GTlsCertificateFlags
 g_tls_connection_gnutls_validate_peer (GTlsConnectionGnutls *gnutls)
 {
-  int status, i;
-  GTlsCertificateFlags gtls_errors;
+  int status;
 
   status = gnutls_certificate_verify_peers (gnutls->priv->session);
-
-  /* Convert GNUTLS status to GTlsCertificateFlags. GNUTLS sets
-   * GNUTLS_CERT_INVALID if it sets any other flag, so we want to
-   * strip that out unless it's the only flag set. Then we convert
-   * specific flags we recognize, and if there are any flags left over
-   * at the end, we add G_TLS_CERTIFICATE_GENERIC_ERROR.
-   */
-  gtls_errors = 0;
-
-  if (status != GNUTLS_CERT_INVALID)
-    status = status & ~GNUTLS_CERT_INVALID;
-  for (i = 0; i < flags_map_size && status != 0; i++)
-    {
-      if (status & flags_map[i].gnutls_flag)
-	{
-	  status &= ~flags_map[i].gnutls_flag;
-	  gtls_errors |= flags_map[i].gtls_flag;
-	}
-    }
-  if (status)
-    gtls_errors |= G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  return gtls_errors;
+  return g_tls_certificate_gnutls_convert_flags (status);
 }
 
 static void
