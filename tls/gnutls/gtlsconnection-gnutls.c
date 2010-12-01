@@ -290,7 +290,6 @@ g_tls_connection_gnutls_set_property (GObject      *object,
 				      GParamSpec   *pspec)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
-  GList *list, *copy, *c;
   GInputStream *istream;
   GOutputStream *ostream;
 
@@ -428,7 +427,7 @@ g_tls_connection_gnutls_validate_peer (GTlsConnectionGnutls *gnutls)
   return gtls_errors;
 }
 
-void
+static void
 begin_gnutls_io (GTlsConnectionGnutls  *gnutls,
 		 gboolean               blocking,
 		 GCancellable          *cancellable)
@@ -439,7 +438,7 @@ begin_gnutls_io (GTlsConnectionGnutls  *gnutls,
   g_clear_error (&gnutls->priv->error);
 }
 
-int
+static int
 end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 	       int                    status,
 	       const char            *generic_error,

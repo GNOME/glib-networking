@@ -110,6 +110,35 @@ if test "x$with_gnutls" = "xyes"; then
     fi
 fi
 
+dnl *************************************
+dnl *** Warnings to show if using GCC ***
+dnl *************************************
+
+AC_ARG_ENABLE(more-warnings,
+	      AS_HELP_STRING([--disable-more-warnings], [Inhibit compiler warnings]),
+	      set_more_warnings=no)
+
+if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
+	CFLAGS="$CFLAGS \
+		-Wall -Wstrict-prototypes -Wmissing-declarations \
+		-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
+		-Wdeclaration-after-statement -Wformat=2 -Winit-self \
+		-Waggregate-return -Wmissing-format-attribute"
+
+	for option in -Wmissing-include-dirs -Wundef; do
+		SAVE_CFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS $option"
+		AC_MSG_CHECKING([whether gcc understands $option])
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+				  [has_option=yes],
+				  [has_option=no])
+		AC_MSG_RESULT($has_option)
+		if test $has_option = no; then
+			CFLAGS="$SAVE_CFLAGS"
+		fi
+	done
+fi
+
 dnl *****************************
 dnl *** done                  ***
 dnl *****************************
