@@ -391,10 +391,6 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
   GTlsCertificate *cert;
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (gnutls));
-  if (cert)
-    g_object_ref (cert);
-  else
-    cert = g_tls_connection_emit_need_certificate (G_TLS_CONNECTION (gnutls));
 
   st->type = GNUTLS_CRT_X509;
   if (cert)
@@ -406,8 +402,6 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
       st->cert.x509[0] = g_tls_certificate_gnutls_copy_cert (gnutlscert);
       st->key.x509 = g_tls_certificate_gnutls_copy_key (gnutlscert);
       st->deinit_all = TRUE;
-
-      g_object_unref (cert);
     }
   else
     st->ncerts = 0;
