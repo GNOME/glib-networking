@@ -976,9 +976,6 @@ close_internal (GTlsConnectionGnutls  *gnutls,
 {
   int ret;
 
-  if (!gnutls->priv->require_close_notify)
-    return TRUE;
-
   /* If we haven't finished the initial handshake yet, there's no
    * reason to finish it just so we can close.
    */
