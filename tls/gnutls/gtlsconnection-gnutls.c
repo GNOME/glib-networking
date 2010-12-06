@@ -82,9 +82,13 @@ static gboolean g_tls_connection_gnutls_initable_init       (GInitable       *in
 							     GCancellable    *cancellable,
 							     GError         **error);
 
+static void g_tls_connection_gnutls_init_priorities (void);
+
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION,
 				  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-							 g_tls_connection_gnutls_initable_iface_init));
+							 g_tls_connection_gnutls_initable_iface_init);
+				  g_tls_connection_gnutls_init_priorities ();
+				  );
 
 
 enum
@@ -164,13 +168,45 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
   gnutls->priv->need_handshake = TRUE;
 }
 
+static gnutls_priority_t priorities[2][2];
+
+static void
+g_tls_connection_gnutls_init_priorities (void)
+{
+  /* First field is "ssl3 only", second is "allow unsafe rehandshaking" */
+
+  gnutls_priority_init (&priorities[FALSE][FALSE],
+			"NORMAL",
+			NULL);
+  gnutls_priority_init (&priorities[TRUE][FALSE],
+			"NORMAL:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0",
+			NULL);
+  gnutls_priority_init (&priorities[FALSE][TRUE],
+			"NORMAL:%UNSAFE_RENEGOTIATION",
+			NULL);
+  gnutls_priority_init (&priorities[TRUE][TRUE],
+			"NORMAL:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%UNSAFE_RENEGOTIATION",
+			NULL);
+}
+
+static void
+g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
+{
+  gboolean use_ssl3, unsafe_rehandshake;
+
+  if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+    use_ssl3 = g_tls_client_connection_get_use_ssl3 (G_TLS_CLIENT_CONNECTION (gnutls));
+  unsafe_rehandshake = (gnutls->priv->rehandshake_mode == G_TLS_REHANDSHAKE_UNSAFELY);
+  gnutls_priority_set (gnutls->priv->session,
+		       priorities[use_ssl3][unsafe_rehandshake]);
+}
+
 static gboolean
 g_tls_connection_gnutls_initable_init (GInitable     *initable,
 				       GCancellable  *cancellable,
 				       GError       **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
-  gboolean client, use_ssl3 = FALSE;
   gnutls_x509_crt_t *cas;
   int num_cas;
   int status;
@@ -182,28 +218,6 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
    * already been initialized by a construct-time property setter).
    */
   g_tls_connection_gnutls_get_session (gnutls);
-
-  client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
-  if (client)
-      g_object_get (G_OBJECT (gnutls), "use-ssl3", &use_ssl3, NULL);
-  if (use_ssl3)
-    {
-      status = gnutls_priority_set_direct (gnutls->priv->session,
-					   "NORMAL:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0",
-					   NULL);
-    }
-  else
-    {
-      status = gnutls_priority_set_direct (gnutls->priv->session,
-					   "NORMAL", NULL);
-    }
-  if (status != 0)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-		   _("Could not create TLS connection: %s"),
-		   gnutls_strerror (status));
-      return FALSE;
-    }
 
   g_tls_backend_gnutls_get_system_ca_list_gnutls (&cas, &num_cas);
   gnutls_certificate_set_x509_trust (gnutls->priv->creds, cas, num_cas);
@@ -476,6 +490,13 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     }
   else if (status == GNUTLS_E_REHANDSHAKE)
     {
+      if (gnutls->priv->rehandshake_mode == G_TLS_REHANDSHAKE_NEVER)
+	{
+	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+			       _("Peer requested illegal TLS rehandshake"));
+	  return GNUTLS_E_PULL_ERROR;
+	}
+
       gnutls->priv->need_handshake = TRUE;
       return status;
     }
@@ -750,6 +771,8 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
       if (ret != 0)
 	return FALSE;
     }
+
+  g_tls_connection_gnutls_set_handshake_priority (gnutls);
 
   gnutls->priv->handshaking = TRUE;
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
