@@ -256,8 +256,6 @@ g_tls_client_connection_gnutls_verify_peer (GTlsConnectionGnutls  *conn_gnutls,
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn_gnutls);
   gboolean accepted;
 
-  *errors = g_tls_connection_gnutls_validate_peer (conn_gnutls);
-
   if (gnutls->priv->server_identity)
     {
       *errors |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (peer_certificate),

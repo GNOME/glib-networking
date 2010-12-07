@@ -53,7 +53,6 @@ gnutls_certificate_credentials g_tls_connection_gnutls_get_credentials (GTlsConn
 gnutls_session                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
 void                           g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
 									 gnutls_retr_st       *st);
-GTlsCertificateFlags           g_tls_connection_gnutls_validate_peer   (GTlsConnectionGnutls *gnutls);
 
 gssize   g_tls_connection_gnutls_read          (GTlsConnectionGnutls  *gnutls,
 						void                  *buffer,

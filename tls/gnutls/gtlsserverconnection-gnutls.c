@@ -174,8 +174,6 @@ g_tls_server_connection_gnutls_verify_peer (GTlsConnectionGnutls  *gnutls,
 					    GTlsCertificate       *peer_certificate,
 					    GTlsCertificateFlags  *errors)
 {
-  *errors = g_tls_connection_gnutls_validate_peer (G_TLS_CONNECTION_GNUTLS (gnutls));
-
   return g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
 						   peer_certificate, *errors);
 }

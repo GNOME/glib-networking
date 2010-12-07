@@ -442,15 +442,6 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
     st->ncerts = 0;
 }
 
-GTlsCertificateFlags
-g_tls_connection_gnutls_validate_peer (GTlsConnectionGnutls *gnutls)
-{
-  int status;
-
-  status = gnutls_certificate_verify_peers (gnutls->priv->session);
-  return g_tls_certificate_gnutls_convert_flags (status);
-}
-
 static void
 begin_gnutls_io (GTlsConnectionGnutls  *gnutls,
 		 gboolean               blocking,
@@ -865,6 +856,20 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
   if (peer_certificate)
     {
+      int status;
+
+      status = gnutls_certificate_verify_peers (gnutls->priv->session);
+      peer_certificate_errors = g_tls_certificate_gnutls_convert_flags (status);
+      if (peer_certificate_errors)
+	{
+	  /* gnutls_certificate_verify_peers() bails out on the first
+	   * error, which may be G_TLS_CERTIFICATE_UNKNOWN_CA, but the
+	   * caller may be planning to check that part themselves. So
+	   * call g_tls_certificate_verify() to get any other errors.
+	   */
+	  peer_certificate_errors |= g_tls_certificate_verify (peer_certificate, NULL, NULL);
+	}
+
       if (!G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->verify_peer (gnutls, peer_certificate, &peer_certificate_errors))
 	{
 	  g_object_unref (peer_certificate);

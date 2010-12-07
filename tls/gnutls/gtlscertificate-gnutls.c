@@ -285,10 +285,10 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
 				 GTlsCertificate     *trusted_ca)
 {
   GTlsCertificateGnutls *cert_gnutls;
-  int status;
-  guint gnutls_flags, num_certs, i, num_cas;
-  gnutls_x509_crt_t *chain, ca;
+  guint num_certs, i;
+  gnutls_x509_crt_t *chain;
   GTlsCertificateFlags gtls_flags;
+  time_t t, now;
   
   cert_gnutls = G_TLS_CERTIFICATE_GNUTLS (cert);
   for (num_certs = 0; cert_gnutls; cert_gnutls = cert_gnutls->priv->issuer)
@@ -300,27 +300,41 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
 
   if (trusted_ca)
     {
-      cert_gnutls = G_TLS_CERTIFICATE_GNUTLS (trusted_ca);
-      ca = cert_gnutls->priv->cert;
-      num_cas = 1;
+      gnutls_x509_crt_t ca;
+      guint gnutls_flags;
+      int status;
+
+      ca = G_TLS_CERTIFICATE_GNUTLS (trusted_ca)->priv->cert;
+      status = gnutls_x509_crt_list_verify (chain, num_certs,
+					    &ca, 1,
+					    NULL, 0,
+					    GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
+					    &gnutls_flags);
+      if (status != 0)
+	{
+	  g_free (chain);
+	  return G_TLS_CERTIFICATE_GENERIC_ERROR;
+	}
+
+      gtls_flags = g_tls_certificate_gnutls_convert_flags (gnutls_flags);
     }
-  else
+
+  /* We have to check these ourselves since gnutls_x509_crt_list_verify
+   * won't bother if it gets an UNKNOWN_CA.
+   */
+  now = time (NULL);
+  for (i = 0; i < num_certs; i++)
     {
-      ca = NULL;
-      num_cas = 0;
+      t = gnutls_x509_crt_get_activation_time (chain[i]);
+      if (t == (time_t) -1 || t > now)
+	gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
+
+      t = gnutls_x509_crt_get_expiration_time (chain[i]);
+      if (t == (time_t) -1 || t < now)
+	gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
     }
 
-  status = gnutls_x509_crt_list_verify (chain, num_certs,
-					&ca, num_cas,
-					NULL, 0,
-					GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
-					&gnutls_flags);
   g_free (chain);
-
-  if (status != 0)
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  gtls_flags = g_tls_certificate_gnutls_convert_flags (gnutls_flags);
 
   if (identity)
     gtls_flags |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (cert), identity);
