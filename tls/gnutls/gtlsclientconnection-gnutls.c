@@ -50,8 +50,10 @@ static void g_tls_client_connection_gnutls_set_property (GObject      *object,
 static void g_tls_client_connection_gnutls_finalize     (GObject      *object);
 
 static void     g_tls_client_connection_gnutls_begin_handshake  (GTlsConnectionGnutls  *conn);
-static gboolean g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
-								 gboolean               success,
+static gboolean g_tls_client_connection_gnutls_verify_peer      (GTlsConnectionGnutls  *gnutls,
+								 GTlsCertificate       *peer_certificate,
+								 GTlsCertificateFlags  *errors);
+static void     g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
 								 GError               **inout_error);
 
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
@@ -89,7 +91,8 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
   gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
   gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
 
-  connection_gnutls_class->begin_handshake = g_tls_client_connection_gnutls_begin_handshake;
+  connection_gnutls_class->begin_handshake  = g_tls_client_connection_gnutls_begin_handshake;
+  connection_gnutls_class->verify_peer      = g_tls_client_connection_gnutls_verify_peer;
   connection_gnutls_class->finish_handshake = g_tls_client_connection_gnutls_finish_handshake;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
@@ -237,33 +240,6 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
   return 0;
 }
 
-static gboolean
-validate_handshake (GTlsClientConnectionGnutls *gnutls)
-{
-  GTlsCertificate *peer;
-  GTlsCertificateFlags errors;
-  gboolean accepted;
-
-  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (gnutls));
-
-  errors = g_tls_connection_gnutls_validate_peer (G_TLS_CONNECTION_GNUTLS (gnutls));
-
-  if ((gnutls->priv->validation_flags & G_TLS_CERTIFICATE_BAD_IDENTITY) &&
-      gnutls->priv->server_identity)
-    {
-      errors |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (peer),
-							  gnutls->priv->server_identity);
-    }
-
-  errors &= gnutls->priv->validation_flags;
-  if (errors)
-    accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls), peer, errors);
-  else
-    accepted = TRUE;
-
-  return accepted;
-}
-
 static void
 g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 {
@@ -273,21 +249,34 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 }
 
 static gboolean
+g_tls_client_connection_gnutls_verify_peer (GTlsConnectionGnutls  *conn_gnutls,
+					    GTlsCertificate       *peer_certificate,
+					    GTlsCertificateFlags  *errors)
+{
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn_gnutls);
+  gboolean accepted;
+
+  *errors = g_tls_connection_gnutls_validate_peer (conn_gnutls);
+
+  if (gnutls->priv->server_identity)
+    {
+      *errors |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (peer_certificate),
+							   gnutls->priv->server_identity);
+    }
+
+  if (*errors & gnutls->priv->validation_flags)
+    accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls), peer_certificate, *errors);
+  else
+    accepted = TRUE;
+
+  return accepted;
+}
+
+static void
 g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
-						 gboolean               success,
 						 GError               **inout_error)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
-
-  if (success)
-    {
-      if (validate_handshake (gnutls))
-	return TRUE;
-
-      g_set_error_literal (inout_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			   _("Unacceptable TLS certificate"));
-      return FALSE;
-    }
 
   if (g_error_matches (*inout_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS) &&
       gnutls->priv->cert_requested)
@@ -296,5 +285,4 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
       g_set_error_literal (inout_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
 			   _("Server required TLS certificate"));
     }
-  return FALSE;
 }

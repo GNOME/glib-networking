@@ -45,8 +45,10 @@ static void g_tls_server_connection_gnutls_set_property (GObject      *object,
 							 GParamSpec   *pspec);
 
 static void     g_tls_server_connection_gnutls_begin_handshake  (GTlsConnectionGnutls  *conn);
-static gboolean g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
-								 gboolean               success,
+static gboolean g_tls_server_connection_gnutls_verify_peer      (GTlsConnectionGnutls  *gnutls,
+								 GTlsCertificate       *peer_certificate,
+								 GTlsCertificateFlags  *errors);
+static void     g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
 								 GError               **inout_error);
 
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
@@ -74,7 +76,8 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 
-  connection_gnutls_class->begin_handshake = g_tls_server_connection_gnutls_begin_handshake;
+  connection_gnutls_class->begin_handshake  = g_tls_server_connection_gnutls_begin_handshake;
+  connection_gnutls_class->verify_peer      = g_tls_server_connection_gnutls_verify_peer;
   connection_gnutls_class->finish_handshake = g_tls_server_connection_gnutls_finish_handshake;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
@@ -167,27 +170,18 @@ g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 }
 
 static gboolean
+g_tls_server_connection_gnutls_verify_peer (GTlsConnectionGnutls  *gnutls,
+					    GTlsCertificate       *peer_certificate,
+					    GTlsCertificateFlags  *errors)
+{
+  *errors = g_tls_connection_gnutls_validate_peer (G_TLS_CONNECTION_GNUTLS (gnutls));
+
+  return g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
+						   peer_certificate, *errors);
+}
+
+static void
 g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
-						 gboolean               success,
 						 GError               **inout_error)
 {
-  GTlsCertificateFlags gtls_errors;
-  GTlsCertificate *peer;
-
-  if (!success)
-    return FALSE;
-
-  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (gnutls));
-  if (peer)
-    {
-      gtls_errors = g_tls_connection_gnutls_validate_peer (gnutls);
-      if (!g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls), peer, gtls_errors))
-	{
-	  g_set_error_literal (inout_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			       _("Unacceptable TLS certificate"));
-	  return FALSE;
-	}
-    }
-
-  return TRUE;
 }

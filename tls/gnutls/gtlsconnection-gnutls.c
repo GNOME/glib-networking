@@ -97,7 +97,10 @@ enum
   PROP_BASE_IO_STREAM,
   PROP_REQUIRE_CLOSE_NOTIFY,
   PROP_REHANDSHAKE_MODE,
-  PROP_USE_SYSTEM_CERTDB
+  PROP_USE_SYSTEM_CERTDB,
+  PROP_CERTIFICATE,
+  PROP_PEER_CERTIFICATE,
+  PROP_PEER_CERTIFICATE_ERRORS
 };
 
 struct _GTlsConnectionGnutlsPrivate
@@ -109,6 +112,9 @@ struct _GTlsConnectionGnutlsPrivate
   GList *ca_list;
   gnutls_certificate_credentials creds;
   gnutls_session session;
+
+  GTlsCertificate *certificate, *peer_certificate;
+  GTlsCertificateFlags peer_certificate_errors;
   gboolean require_close_notify;
   GTlsRehandshakeMode rehandshake_mode;
   gboolean use_system_certdb;
@@ -151,6 +157,9 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_REQUIRE_CLOSE_NOTIFY, "require-close-notify");
   g_object_class_override_property (gobject_class, PROP_REHANDSHAKE_MODE, "rehandshake-mode");
   g_object_class_override_property (gobject_class, PROP_USE_SYSTEM_CERTDB, "use-system-certdb");
+  g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
+  g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
+  g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
 }
 
 static void
@@ -264,6 +273,11 @@ g_tls_connection_gnutls_finalize (GObject *object)
   if (connection->priv->creds)
     gnutls_certificate_free_credentials (connection->priv->creds);
 
+  if (connection->priv->certificate)
+    g_object_unref (connection->priv->certificate);
+  if (connection->priv->peer_certificate)
+    g_object_unref (connection->priv->peer_certificate);
+
   if (connection->priv->error)
     g_error_free (connection->priv->error);
 
@@ -294,6 +308,18 @@ g_tls_connection_gnutls_get_property (GObject    *object,
 
     case PROP_USE_SYSTEM_CERTDB:
       g_value_set_boolean (value, gnutls->priv->use_system_certdb);
+      break;
+
+    case PROP_CERTIFICATE:
+      g_value_set_object (value, gnutls->priv->certificate);
+      break;
+
+    case PROP_PEER_CERTIFICATE:
+      g_value_set_object (value, gnutls->priv->peer_certificate);
+      break;
+
+    case PROP_PEER_CERTIFICATE_ERRORS:
+      g_value_set_flags (value, gnutls->priv->peer_certificate_errors);
       break;
 
     default:
@@ -355,6 +381,12 @@ g_tls_connection_gnutls_set_property (GObject      *object,
 	  g_tls_backend_gnutls_get_system_ca_list_gnutls (&cas, &num_cas);
 	  gnutls_certificate_set_x509_trust (gnutls->priv->creds, cas, num_cas);
 	}
+      break;
+
+    case PROP_CERTIFICATE:
+      if (gnutls->priv->certificate)
+	g_object_unref (gnutls->priv->certificate);
+      gnutls->priv->certificate = g_value_dup_object (value);
       break;
 
     default:
@@ -736,6 +768,8 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 		    GCancellable          *cancellable,
 		    GError               **error)
 {
+  GTlsCertificate *peer_certificate;
+  GTlsCertificateFlags peer_certificate_errors;
   int ret;
 
   if (G_IS_TLS_SERVER_CONNECTION_GNUTLS (gnutls) &&
@@ -749,10 +783,23 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 	return FALSE;
     }
 
-  g_tls_connection_gnutls_set_handshake_priority (gnutls);
+  if (!gnutls->priv->handshaking)
+    {
+      gnutls->priv->handshaking = TRUE;
 
-  gnutls->priv->handshaking = TRUE;
-  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
+      if (gnutls->priv->peer_certificate)
+	{
+	  g_object_unref (gnutls->priv->peer_certificate);
+	  gnutls->priv->peer_certificate = NULL;
+	  gnutls->priv->peer_certificate_errors = 0;
+
+	  g_object_notify (G_OBJECT (gnutls), "peer-certificate");
+	  g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
+	}
+
+      g_tls_connection_gnutls_set_handshake_priority (gnutls);
+      G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
+    }
 
   BEGIN_GNUTLS_IO (gnutls, blocking, cancellable);
   ret = gnutls_handshake (gnutls->priv->session);
@@ -784,12 +831,36 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 	    }
 	}
 
-      g_tls_connection_set_peer_certificate (G_TLS_CONNECTION (gnutls), chain);
+      peer_certificate = chain;
     }
   else
-    g_tls_connection_set_peer_certificate (G_TLS_CONNECTION (gnutls), NULL);
+    peer_certificate = NULL;
 
-  return G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, ret == 0, error);
+  if (peer_certificate)
+    {
+      if (!G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->verify_peer (gnutls, peer_certificate, &peer_certificate_errors))
+	{
+	  g_object_unref (peer_certificate);
+	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+			       _("Unacceptable TLS certificate"));
+	  return FALSE;
+	}
+    }
+
+  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, error);
+
+  if (ret == 0)
+    {
+      gnutls->priv->peer_certificate = peer_certificate;
+      gnutls->priv->peer_certificate_errors = peer_certificate_errors;
+
+      g_object_notify (G_OBJECT (gnutls), "peer-certificate");
+      g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
+
+      return TRUE;
+    }
+  else
+    return FALSE;
 }
 
 static gboolean

@@ -34,8 +34,10 @@ struct _GTlsConnectionGnutlsClass
   GTlsConnectionClass parent_class;
 
   void     (*begin_handshake)  (GTlsConnectionGnutls  *gnutls);
-  gboolean (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
-				gboolean               success,
+  gboolean (*verify_peer)      (GTlsConnectionGnutls  *gnutls,
+				GTlsCertificate       *peer_certificate,
+				GTlsCertificateFlags  *errors);
+  void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
 				GError               **inout_error);
 };
 
