@@ -32,10 +32,7 @@ AM_GLIB_GNU_GETTEXT
 dnl *****************************
 dnl *** Check GLib GIO        ***
 dnl *****************************
-
-PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.27.4])
-AC_SUBST(GIO_CFLAGS)
-AC_SUBST(GIO_LIBS)
+AM_PATH_GLIB_2_0(2.27.4,,,gio)
 
 GIO_MODULE_DIR=$($PKG_CONFIG --variable giomoduledir gio-2.0)
 AS_IF([test "x$GIO_MODULE_DIR" = "x"],

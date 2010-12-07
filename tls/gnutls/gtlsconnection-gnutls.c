@@ -31,6 +31,7 @@
 #include "gtlsinputstream-gnutls.h"
 #include "gtlsoutputstream-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
+#include "gnutls-marshal.h"
 #include <glib/gi18n-lib.h>
 
 static void g_tls_connection_gnutls_get_property (GObject    *object,
@@ -635,12 +636,38 @@ gnutls_source_finalize (GSource *source)
     g_source_unref (gnutls_source->child_source);
 }
 
+static gboolean
+g_tls_connection_gnutls_source_closure_callback (GObject  *stream,
+						 gpointer  data)
+{
+  GClosure *closure = data;
+
+  GValue param = { 0, };
+  GValue result_value = { 0, };
+  gboolean result;
+
+  g_value_init (&result_value, G_TYPE_BOOLEAN);
+
+  g_value_init (&param, G_TYPE_OBJECT);
+  g_value_set_object (&param, stream);
+
+  g_closure_invoke (closure, &result_value, 1, &param, NULL);
+
+  result = g_value_get_boolean (&result_value);
+  g_value_unset (&result_value);
+  g_value_unset (&param);
+
+  return result;
+}
+
 static GSourceFuncs gnutls_source_funcs =
 {
   gnutls_source_prepare,
   gnutls_source_check,
   gnutls_source_dispatch,
-  gnutls_source_finalize
+  gnutls_source_finalize,
+  (GSourceFunc)g_tls_connection_gnutls_source_closure_callback,
+  (GSourceDummyMarshal)_gnutls_marshal_BOOLEAN__VOID,
 };
 
 GSource *

@@ -15,13 +15,13 @@ libgiolibproxy_la_SOURCES = 		\
 
 libgiolibproxy_la_CFLAGS = \
 	-DG_LOG_DOMAIN=\"GLib-Net\"	\
-	$(GIO_CFLAGS)			\
+	$(GLIB_CFLAGS)			\
 	$(LIBPROXY_CFLAGS)		\
 	-DGIO_MODULE_DIR=\"$(GIO_MODULE_DIR)\"	\
 	-DG_DISABLE_DEPRECATED
 
 libgiolibproxy_la_LDFLAGS = $(module_flags)
 libgiolibproxy_la_LIBADD = \
-		$(GIO_LIBS) \
+		$(GLIB_LIBS) \
 		$(LIBPROXY_LIBS) \
 		$(NULL)
