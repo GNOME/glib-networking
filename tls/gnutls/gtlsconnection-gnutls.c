@@ -786,8 +786,8 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 		    GCancellable          *cancellable,
 		    GError               **error)
 {
-  GTlsCertificate *peer_certificate;
-  GTlsCertificateFlags peer_certificate_errors;
+  GTlsCertificate *peer_certificate = NULL;
+  GTlsCertificateFlags peer_certificate_errors = 0;
   int ret;
 
   if (G_IS_TLS_SERVER_CONNECTION_GNUTLS (gnutls) &&
@@ -851,8 +851,6 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
       peer_certificate = chain;
     }
-  else
-    peer_certificate = NULL;
 
   if (peer_certificate)
     {
