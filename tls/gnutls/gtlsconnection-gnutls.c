@@ -535,6 +535,9 @@ gboolean
 g_tls_connection_gnutls_check (GTlsConnectionGnutls  *gnutls,
 			       GIOCondition           condition)
 {
+  if (!gnutls->priv->internal_direction)
+    return TRUE;
+
   if (gnutls->priv->handshaking || gnutls->priv->closing)
     condition = gnutls->priv->internal_direction;
 
