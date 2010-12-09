@@ -554,7 +554,6 @@ typedef struct {
   GObject              *stream;
 
   GSource              *child_source;
-  GIOCondition          base_direction;
   GIOCondition          current_direction;
 } GTlsConnectionGnutlsSource;
 
@@ -572,15 +571,24 @@ gnutls_source_check (GSource *source)
   return FALSE;
 }
 
-static void
-gnutls_source_sync_child_source (GTlsConnectionGnutlsSource *gnutls_source,
-				 GIOCondition                direction)
+static gboolean
+gnutls_source_sync_child_source (GTlsConnectionGnutlsSource *gnutls_source)
 {
   GTlsConnectionGnutls *gnutls = gnutls_source->gnutls;
   GSource *source = (GSource *)gnutls_source;
+  GIOCondition direction;
+
+  if (gnutls->priv->handshaking || gnutls->priv->closing)
+    direction = gnutls->priv->internal_direction;
+  else if (!gnutls_source->stream)
+    return FALSE;
+  else if (G_IS_TLS_INPUT_STREAM_GNUTLS (gnutls_source->stream))
+    direction = G_IO_IN;
+  else
+    direction = G_IO_OUT;
 
   if (direction == gnutls_source->current_direction)
-    return;
+    return TRUE;
 
   if (gnutls_source->child_source)
     {
@@ -596,6 +604,7 @@ gnutls_source_sync_child_source (GTlsConnectionGnutlsSource *gnutls_source,
   g_source_set_dummy_callback (gnutls_source->child_source);
   g_source_add_child_source (source, gnutls_source->child_source);
   gnutls_source->current_direction = direction;
+  return TRUE;
 }
 
 static gboolean
@@ -605,16 +614,11 @@ gnutls_source_dispatch (GSource     *source,
 {
   GPollableSourceFunc func = (GPollableSourceFunc)callback;
   GTlsConnectionGnutlsSource *gnutls_source = (GTlsConnectionGnutlsSource *)source;
-  GTlsConnectionGnutls *gnutls = gnutls_source->gnutls;
   gboolean ret;
 
   ret = (*func) (gnutls_source->stream, user_data);
   if (ret)
-    {
-      GIOCondition direction = gnutls->priv->internal_direction ? gnutls->priv->internal_direction : gnutls_source->base_direction;
-
-      gnutls_source_sync_child_source (gnutls_source, direction);
-    }
+    ret = gnutls_source_sync_child_source (gnutls_source);
 
   return ret;
 }
@@ -676,17 +680,11 @@ g_tls_connection_gnutls_create_source (GTlsConnectionGnutls  *gnutls,
   g_source_set_name (source, "GTlsConnectionGnutlsSource");
   gnutls_source = (GTlsConnectionGnutlsSource *)source;
   gnutls_source->gnutls = g_object_ref (gnutls);
-  gnutls_source->base_direction = condition & (G_IO_IN | G_IO_OUT);
-  if (gnutls_source->base_direction == G_IO_IN)
+  if (condition & G_IO_IN)
     gnutls_source->stream = G_OBJECT (gnutls->priv->tls_istream);
-  else if (gnutls_source->base_direction == G_IO_OUT)
+  else if (condition & G_IO_OUT)
     gnutls_source->stream = G_OBJECT (gnutls->priv->tls_ostream);
-  else
-    {
-      gnutls_source->base_direction = gnutls->priv->internal_direction;
-      gnutls_source->stream = NULL;
-    }
-  gnutls_source_sync_child_source (gnutls_source, gnutls_source->base_direction);
+  gnutls_source_sync_child_source (gnutls_source);
 
   if (cancellable)
     {
