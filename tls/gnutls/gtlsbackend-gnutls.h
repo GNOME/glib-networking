@@ -45,6 +45,12 @@ const GList *g_tls_backend_gnutls_get_system_ca_list_gtls   (void) G_GNUC_CONST;
 void         g_tls_backend_gnutls_get_system_ca_list_gnutls (gnutls_x509_crt_t **cas,
 							     int                *num_cas);
 
+void         g_tls_backend_gnutls_cache_session_data        (const gchar *session_id,
+							     guchar      *session_data,
+							     gsize        session_data_length);
+void         g_tls_backend_gnutls_uncache_session_data      (const gchar *session_id);
+GByteArray  *g_tls_backend_gnutls_lookup_session_data       (const gchar *session_id);
+
 G_END_DECLS
 
 #endif /* __G_TLS_BACKEND_GNUTLS_H___ */

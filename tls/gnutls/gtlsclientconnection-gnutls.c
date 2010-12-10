@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "gtlsclientconnection-gnutls.h"
+#include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
 #include <glib/gi18n-lib.h>
 
@@ -47,6 +48,7 @@ static void g_tls_client_connection_gnutls_set_property (GObject      *object,
 							 guint         prop_id,
 							 const GValue *value,
 							 GParamSpec   *pspec);
+static void g_tls_client_connection_gnutls_constructed  (GObject      *object);
 static void g_tls_client_connection_gnutls_finalize     (GObject      *object);
 
 static void     g_tls_client_connection_gnutls_begin_handshake  (GTlsConnectionGnutls  *conn);
@@ -75,6 +77,8 @@ struct _GTlsClientConnectionGnutlsPrivate
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
 
+  char *session_id;
+
   gboolean cert_requested;
   char **accepted_cas;
 };
@@ -89,6 +93,7 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
 
   gobject_class->get_property = g_tls_client_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
+  gobject_class->constructed  = g_tls_client_connection_gnutls_constructed;
   gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
 
   connection_gnutls_class->begin_handshake  = g_tls_client_connection_gnutls_begin_handshake;
@@ -118,6 +123,47 @@ g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
 }
 
 static void
+g_tls_client_connection_gnutls_constructed (GObject *object)
+{
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
+  GSocketConnection *base_conn;
+  GSocketAddress *remote_addr;
+  GInetAddress *iaddr;
+  guint port;
+
+  /* We base the session ID on the IP address rather than on
+   * server-identity, because it's likely that different virtual
+   * servers on the same host will have access to the same session
+   * cache, whereas different hosts serving the same hostname/service
+   * likely won't. Note that session IDs are opaque, and transmitted
+   * in the clear anyway, so there are no security issues if we send
+   * one to the "wrong" server; we'll just fail to get a resumed
+   * session.
+   */
+  g_object_get (G_OBJECT (gnutls), "base-io-stream", &base_conn, NULL);
+  if (G_IS_SOCKET_CONNECTION (base_conn))
+    {
+      remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
+      if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
+	{
+	  GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
+	  gchar *addrstr;
+
+	  iaddr = g_inet_socket_address_get_address (isaddr);
+	  port = g_inet_socket_address_get_port (isaddr);
+
+	  addrstr = g_inet_address_to_string (iaddr);
+	  gnutls->priv->session_id = g_strdup_printf ("%s/%d", addrstr, port);
+	  g_free (addrstr);
+	}
+    }
+  g_object_unref (base_conn);
+
+  if (G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->constructed)
+    G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->constructed (object);
+}
+
+static void
 g_tls_client_connection_gnutls_finalize (GObject *object)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
@@ -126,6 +172,8 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
     g_object_unref (gnutls->priv->server_identity);
   if (gnutls->priv->accepted_cas)
     g_strfreev (gnutls->priv->accepted_cas);
+  if (gnutls->priv->session_id)
+    g_free (gnutls->priv->session_id);
 
   G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->finalize (object);
 }
@@ -245,6 +293,20 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
 
+  /* Try to get a cached session */
+  if (gnutls->priv->session_id)
+    {
+      GByteArray *session_data;
+
+      session_data = g_tls_backend_gnutls_lookup_session_data (gnutls->priv->session_id);
+      if (session_data)
+	{
+	  gnutls_session_set_data (g_tls_connection_gnutls_get_session (conn),
+				   session_data->data, session_data->len);
+	  g_byte_array_unref (session_data);
+	}
+    }
+
   gnutls->priv->cert_requested = FALSE;
 }
 
@@ -282,5 +344,22 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
       g_clear_error (inout_error);
       g_set_error_literal (inout_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
 			   _("Server required TLS certificate"));
+    }
+
+  if (gnutls->priv->session_id)
+    {
+      gnutls_datum session_data;
+
+      if (!*inout_error &&
+	  gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (conn),
+				    &session_data) == 0)
+	{
+	  g_tls_backend_gnutls_cache_session_data (gnutls->priv->session_id,
+						   session_data.data,
+						   session_data.size);
+	  gnutls_free (session_data.data);
+	}
+      else
+	g_tls_backend_gnutls_uncache_session_data (gnutls->priv->session_id);
     }
 }

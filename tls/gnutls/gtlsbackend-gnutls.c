@@ -211,6 +211,126 @@ g_tls_backend_gnutls_get_system_ca_list_gnutls (gnutls_x509_crt_t **cas,
 #endif
 }
 
+/* Session cache support; all the details are sort of arbitrary. Note
+ * that having session_cache_cleanup() be a little bit slow isn't the
+ * end of the world, since it will still be faster than the network
+ * is. (NSS uses a linked list for its cache...)
+ */
+
+G_LOCK_DEFINE_STATIC (session_cache_lock);
+GHashTable *session_cache;
+
+#define SESSION_CACHE_MAX_SIZE 50
+#define SESSION_CACHE_MAX_AGE (60 * 60) /* one hour */
+
+typedef struct {
+  gchar      *session_id;
+  GByteArray *session_data;
+  time_t      last_used;
+} GTlsBackendGnutlsCacheData;
+
+static void
+session_cache_cleanup (void)
+{
+  GHashTableIter iter;
+  gpointer key, value;
+  GTlsBackendGnutlsCacheData *cache_data;
+  time_t expired = time (NULL) - SESSION_CACHE_MAX_AGE;
+
+  g_hash_table_iter_init (&iter, session_cache);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      cache_data = value;
+      if (cache_data->last_used < expired)
+	g_hash_table_iter_remove (&iter);
+    }
+}
+
+static void
+cache_data_free (gpointer data)
+{
+  GTlsBackendGnutlsCacheData *cache_data = data;
+
+  g_free (cache_data->session_id);
+  g_byte_array_unref (cache_data->session_data);
+  g_slice_free (GTlsBackendGnutlsCacheData, cache_data);
+}
+
+void
+g_tls_backend_gnutls_cache_session_data (const gchar *session_id,
+					 guchar      *session_data,
+					 gsize        session_data_length)
+{
+  GTlsBackendGnutlsCacheData *cache_data;
+
+  G_LOCK (session_cache_lock);
+
+  if (!session_cache)
+    session_cache = g_hash_table_new_full (g_str_hash, g_str_equal,
+					   NULL, cache_data_free);
+
+  cache_data = g_hash_table_lookup (session_cache, session_id);
+  if (cache_data)
+    {
+      if (cache_data->session_data->len == session_data_length &&
+	  memcmp (cache_data->session_data->data,
+		  session_data, session_data_length) == 0)
+	{
+	  cache_data->last_used = time (NULL);
+	  G_UNLOCK (session_cache_lock);
+	  return;
+	}
+
+      g_byte_array_set_size (cache_data->session_data, 0);
+    }
+  else
+    {
+      if (g_hash_table_size (session_cache) >= SESSION_CACHE_MAX_SIZE)
+	session_cache_cleanup ();
+
+      cache_data = g_slice_new (GTlsBackendGnutlsCacheData);
+      cache_data->session_id = g_strdup (session_id);
+      cache_data->session_data = g_byte_array_sized_new (session_data_length);
+
+      g_hash_table_insert (session_cache, cache_data->session_id, cache_data);
+    }
+
+  g_byte_array_append (cache_data->session_data,
+		       session_data, session_data_length);
+  cache_data->last_used = time (NULL);
+  G_UNLOCK (session_cache_lock);
+}
+
+void
+g_tls_backend_gnutls_uncache_session_data (const gchar *session_id)
+{
+  G_LOCK (session_cache_lock);
+  if (session_cache)
+    g_hash_table_remove (session_cache, session_id);
+  G_UNLOCK (session_cache_lock);
+}
+
+GByteArray *
+g_tls_backend_gnutls_lookup_session_data (const gchar *session_id)
+{
+  GTlsBackendGnutlsCacheData *cache_data;
+  GByteArray *session_data = NULL;
+
+  G_LOCK (session_cache_lock);
+  if (session_cache)
+    {
+      cache_data = g_hash_table_lookup (session_cache, session_id);
+      if (cache_data)
+	{
+	  cache_data->last_used = time (NULL);
+	  session_data = g_byte_array_ref (cache_data->session_data);
+	}
+    }
+  G_UNLOCK (session_cache_lock);
+
+  return session_data;
+}
+
 void
 g_tls_backend_gnutls_register (GIOModule *module)
 {
