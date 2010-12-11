@@ -9,6 +9,10 @@ if HAVE_LIBPROXY
 SUBDIRS += proxy/libproxy
 endif
 
+if HAVE_GNOME_PROXY
+SUBDIRS += proxy/gnome
+endif
+
 if HAVE_GNUTLS
 SUBDIRS += tls/gnutls
 endif

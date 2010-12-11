@@ -43,9 +43,6 @@ AC_SUBST(GIO_MODULE_DIR)
 AC_PATH_PROG(GIO_QUERYMODULES, gio-querymodules)
 AC_SUBST(GIO_QUERYMODULES)
 
-proxy_support=no
-tls_support=no
-
 dnl *****************************
 dnl *** Checks for LibProxy   ***
 dnl *****************************
@@ -63,6 +60,22 @@ AS_IF([test "x$with_libproxy" != "xno"],
 AM_CONDITIONAL(HAVE_LIBPROXY, [test "x$with_libproxy" = "xyes"])
 AC_SUBST(LIBPROXY_CFLAGS)
 AC_SUBST(LIBPROXY_LIBS)
+
+dnl **************************************
+dnl *** Checks for GNOME proxy backend ***
+dnl **************************************
+AC_ARG_WITH(gnome-proxy,
+    [AC_HELP_STRING([--with-gnome-proxy],
+                    [support for GNOME proxy configuration @<:@default=check@:>@])]
+    [],
+    [with_gnome_proxy=check])
+AS_IF([test "x$with_gnome_proxy" != "xno"],
+    [PKG_CHECK_MODULES(GSETTINGS_DESKTOP_SCHEMAS, [gsettings-desktop-schemas],
+        [with_gnome_proxy=yes; proxy_support="gnome $proxy_support"],
+	[AS_IF([test "x$with_gnome_proxy" = "xyes"],
+               [AC_MSG_FAILURE("$GSETTINGS_DESKTOP_SCHEMAS_PKG_ERRORS")])])])
+AM_CONDITIONAL(HAVE_GNOME_PROXY, [test "x$with_gnome_proxy" = "xyes"])
+AC_SUBST(GSETTINGS_DESKTOP_SCHEMAS_CFLAGS)
 
 dnl *****************************
 dnl *** Checks for GNUTLS     ***
@@ -143,13 +156,14 @@ dnl *****************************
 AC_CONFIG_FILES([Makefile
                  po/Makefile.in po/Makefile
                  proxy/libproxy/Makefile
+                 proxy/gnome/Makefile
 		 tls/gnutls/Makefile
 		])
 AC_OUTPUT
 
 echo ""
-echo "  Proxy support: $proxy_support"
-echo "  TLS support:   $tls_support"
+echo "  Proxy support: ${proxy_support:-no}"
+echo "  TLS support:   ${tls_support:-no}"
 if test "$tls_support" != "no"; then
     echo "  TLS CA file:   ${with_ca_certificates:-(none)}"
     if test -n "$with_ca_certificates"; then
