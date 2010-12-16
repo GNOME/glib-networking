@@ -14,6 +14,7 @@
 #define __G_TLS_CERTIFICATE_GNUTLS_H__
 
 #include <gio/gio.h>
+#include <gnutls/gnutls.h>
 
 G_BEGIN_DECLS
 
