@@ -1,7 +1,7 @@
 AC_PREREQ(2.65)
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_INIT([glib-networking],[2.27.4],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network])
+AC_INIT([glib-networking],[2.27.5],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network])
 
 AC_CONFIG_SRCDIR([proxy/libproxy/glibproxyresolver.h])
 AC_CONFIG_HEADERS([config.h])
@@ -32,7 +32,7 @@ AM_GLIB_GNU_GETTEXT
 dnl *****************************
 dnl *** Check GLib GIO        ***
 dnl *****************************
-AM_PATH_GLIB_2_0(2.27.4,,,gio)
+AM_PATH_GLIB_2_0(2.27.5,,,gio)
 
 GIO_MODULE_DIR=$($PKG_CONFIG --variable giomoduledir gio-2.0)
 AS_IF([test "x$GIO_MODULE_DIR" = "x"],

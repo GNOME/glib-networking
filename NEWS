@@ -1,3 +1,14 @@
+2.27.5
+======
+  * gnutls: finish implementing GTlsRehandshakeMode, which was present
+    but non-functional in 2.27.4
+  * gnutls: updates for glib TLS API changes
+  * gnutls: fix some async bugs that caused the main loop to spin
+  * gnutls: implement a client-side session cache, to speed up
+    handshakes
+
+  * Compile with gcc warnings by default
+
 2.27.4
 ======
   * GNUTLS-based implementation of GTlsBackend
