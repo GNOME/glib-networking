@@ -80,7 +80,7 @@ struct _GTlsClientConnectionGnutlsPrivate
   char *session_id;
 
   gboolean cert_requested;
-  char **accepted_cas;
+  GPtrArray *accepted_cas;
 };
 
 static void
@@ -171,7 +171,7 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
   if (gnutls->priv->server_identity)
     g_object_unref (gnutls->priv->server_identity);
   if (gnutls->priv->accepted_cas)
-    g_strfreev (gnutls->priv->accepted_cas);
+    g_ptr_array_unref (gnutls->priv->accepted_cas);
   if (gnutls->priv->session_id)
     g_free (gnutls->priv->session_id);
 
@@ -185,6 +185,8 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
 					     GParamSpec *pspec)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
+  GList *accepted_cas;
+  gint i;
 
   switch (prop_id)
     {
@@ -201,7 +203,17 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
       break;
 
     case PROP_ACCEPTED_CAS:
-      g_value_set_boxed (value, gnutls->priv->accepted_cas);
+      accepted_cas = NULL;
+      if (gnutls->priv->accepted_cas)
+        {
+          for (i = 0; i < gnutls->priv->accepted_cas->len; ++i)
+            {
+              accepted_cas = g_list_prepend (accepted_cas, g_byte_array_ref (
+                                             gnutls->priv->accepted_cas->pdata[i]));
+            }
+          accepted_cas = g_list_reverse (accepted_cas);
+        }
+      g_value_set_pointer (value, accepted_cas);
       break;
 
     default:
@@ -264,25 +276,23 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
 {
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
   GPtrArray *accepted_cas;
+  GByteArray *dn;
   int i;
-  char *buf, dummy[1];
-  size_t size;
 
   gnutls->priv->cert_requested = TRUE;
 
-  accepted_cas = g_ptr_array_new ();
+  accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
   for (i = 0; i < nreqs; i++)
     {
-      size = sizeof (dummy);
-      gnutls_x509_rdn_get (&req_ca_rdn[i], dummy, &size);
-      buf = g_malloc (size);
-      gnutls_x509_rdn_get (&req_ca_rdn[i], buf, &size);
-      g_ptr_array_add (accepted_cas, buf);
+      dn = g_byte_array_new ();
+      g_byte_array_append (dn, req_ca_rdn[i].data, req_ca_rdn[i].size);
+      g_ptr_array_add (accepted_cas, dn);
     }
-  g_ptr_array_add (accepted_cas, NULL);
 
-  gnutls->priv->accepted_cas = (char **)accepted_cas->pdata;
-  g_ptr_array_free (accepted_cas, FALSE);
+  if (gnutls->priv->accepted_cas)
+    g_ptr_array_unref (gnutls->priv->accepted_cas);
+  gnutls->priv->accepted_cas = accepted_cas;
+  g_object_notify (G_OBJECT (gnutls), "accepted-cas");
 
   g_tls_connection_gnutls_get_certificate (G_TLS_CONNECTION_GNUTLS (gnutls), st);
   return 0;
