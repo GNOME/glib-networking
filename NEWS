@@ -1,3 +1,12 @@
+2.27.90
+=======
+  * Fixed configure script to actually error out if installed glib
+    version is too old (Emilio Pozuelo Monfort)
+
+  * gnutls: updated GTlsClientConnectionGnutls for :accepted-cas type
+    change (Stef Walter)
+  * gnutls: fixed an uninitialized variable (Dan Winship)
+
 2.27.5
 ======
   * gnutls: finish implementing GTlsRehandshakeMode, which was present
