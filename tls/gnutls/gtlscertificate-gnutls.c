@@ -318,6 +318,8 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
 
       gtls_flags = g_tls_certificate_gnutls_convert_flags (gnutls_flags);
     }
+  else
+    gtls_flags = 0;
 
   /* We have to check these ourselves since gnutls_x509_crt_list_verify
    * won't bother if it gets an UNKNOWN_CA.
