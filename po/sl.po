@@ -1,0 +1,102 @@
+# Slovenian translations for glib-networking.
+# Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+#
+# Ime priimek <email>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network\n"
+"POT-Creation-Date: 2011-01-20 12:51+0000\n"
+"PO-Revision-Date: 2011-01-21 20:47+0100\n"
+"Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
+"Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n%100==4 ? 3 : 0);\n"
+"X-Poedit-Country: SLOVENIA\n"
+"X-Poedit-Language: Slovenian\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:142
+#, fuzzy
+msgid "Proxy resolver internal error."
+msgstr "Notranja napaka %d pri pisanju v datoteko %s\n"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, fuzzy, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Ni mogoče razčleniti PGP sporočila"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, fuzzy, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Ni mogoče razčleniti PGP sporočila"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#, fuzzy, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Ni mogoče razčleniti opisa \"%s\" iz ključa GConf %s\n"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#, fuzzy, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Ni mogoče razčleniti opisa \"%s\" iz ključa GConf %s\n"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+#, fuzzy
+msgid "No certificate data provided"
+msgstr "Napaka med zaganjanjem podatkov potrdila: %s"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+#, fuzzy
+msgid "Server required TLS certificate"
+msgstr "Potrdilo (TLS) s TPM"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#, fuzzy, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Ni mogoče ustvariti navidezne povezave"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+msgid "Peer failed to perform TLS handshake"
+msgstr ""
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+msgid "Peer requested illegal TLS rehandshake"
+msgstr ""
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+#, fuzzy
+msgid "TLS connection closed unexpectedly"
+msgstr "Povezava z gostiteljem %s je prekinjena."
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:799
+#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#, fuzzy, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Napaka med izvajanjem opravil."
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+#, fuzzy
+msgid "Unacceptable TLS certificate"
+msgstr "Potrdilo (TLS) s TPM"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr ""
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr ""
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#, fuzzy, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Napaka med izvajanjem opravil."
+
