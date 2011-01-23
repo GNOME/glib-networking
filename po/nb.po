@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-18 12:38+0100\n"
-"PO-Revision-Date: 2011-01-18 12:41+0100\n"
+"POT-Creation-Date: 2011-01-23 11:34+0100\n"
+"PO-Revision-Date: 2011-01-23 11:36+0100\n"
 "Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
 "Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
 "Language: \n"
@@ -55,37 +55,37 @@ msgstr "Kunne ikke lage TLS-tilkobling: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:479
 msgid "Peer failed to perform TLS handshake"
-msgstr ""
+msgstr "Likemann feilet å utføre TLS-håndtrykk"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:497
 msgid "Peer requested illegal TLS rehandshake"
-msgstr ""
+msgstr "Likemann ba om ugyldig nytt TLS-håndtrykk"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:511
 msgid "TLS connection closed unexpectedly"
-msgstr ""
+msgstr "TLS-tilkobling ble lukket uventet"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:799
 #: ../tls/gnutls/gtlsconnection-gnutls.c:825
 #, c-format
 msgid "Error performing TLS handshake: %s"
-msgstr ""
+msgstr "Feil under utføring av TLS-håndtrykk: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:876
 msgid "Unacceptable TLS certificate"
-msgstr ""
+msgstr "Uakseptabelt TLS-sertifikat"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1023
 #, c-format
 msgid "Error reading data from TLS socket: %s"
-msgstr ""
+msgstr "Feil under lesing av data fra TLS-plugg: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1049
 #, c-format
 msgid "Error writing data to TLS socket: %s"
-msgstr ""
+msgstr "Feil under skriving av data til TLS-plugg: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1095
 #, c-format
 msgid "Error performing TLS close: %s"
-msgstr ""
+msgstr "Feil under utføring av lukking av TLS-tilkobling: %s"
