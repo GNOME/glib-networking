@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&component=network\n"
 "POT-Creation-Date: 2011-01-26 23:39+0000\n"
-"PO-Revision-Date: 2011-01-30 10:21+0200\n"
+"PO-Revision-Date: 2011-02-03 10:32+0200\n"
 "Last-Translator: Ivar Smolin <okul@linux.ee>\n"
 "Language-Team: Estonian <et@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -40,7 +40,7 @@ msgid "Could not parse PEM private key: %s"
 msgstr "PEM-vormingus salajast võtit pole võimalik analüüsida: %s"
 
 msgid "No certificate data provided"
-msgstr ""
+msgstr "Sertifikaadi andmed puuduvad"
 
 msgid "Server required TLS certificate"
 msgstr "Server nõudis TLS-sertifikaati"
@@ -50,10 +50,10 @@ msgid "Could not create TLS connection: %s"
 msgstr "TLS-ühendust pole võimalik luua: %s"
 
 msgid "Peer failed to perform TLS handshake"
-msgstr ""
+msgstr "Partneril ei õnnestunud TLS-kätlust läbi viia"
 
 msgid "Peer requested illegal TLS rehandshake"
-msgstr ""
+msgstr "Partneri nõudis lubamatut TLS-kätlust"
 
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-ühendus suleti ootamatult"
@@ -63,7 +63,7 @@ msgid "Error performing TLS handshake: %s"
 msgstr "Viga TLS-kätluse läbiviimisel: %s"
 
 msgid "Unacceptable TLS certificate"
-msgstr ""
+msgstr "Lubamatu TLS-sertifikaat"
 
 #, c-format
 msgid "Error reading data from TLS socket: %s"
