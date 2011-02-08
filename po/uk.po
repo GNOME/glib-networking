@@ -35,7 +35,7 @@ msgstr "Неможливо проаналізувати сертифікат PEM
 #: ../tls/gnutls/gtlscertificate-gnutls.c:214
 #, c-format
 msgid "Could not parse DER private key: %s"
-msgstr "Неможливо проаналізувати приватний ключ DER: %s"
+msgstr "Неможливо проаналізувати закритий ключ DER: %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:234
 #, c-format
@@ -57,11 +57,11 @@ msgstr "Неможливо створити з'єднання TLS: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:479
 msgid "Peer failed to perform TLS handshake"
-msgstr "Не вдалось виконати рівноправне рукостискання TLS"
+msgstr "Не вдалось виконати з'єднання TLS"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:497
 msgid "Peer requested illegal TLS rehandshake"
-msgstr "Сторона потребує нелегального повторного рукостискання TLS"
+msgstr "Вузол потребує нелегального перез'єднання TLS"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:511
 msgid "TLS connection closed unexpectedly"
@@ -71,7 +71,7 @@ msgstr "Раптово закрито з'єднання TLS"
 #: ../tls/gnutls/gtlsconnection-gnutls.c:825
 #, c-format
 msgid "Error performing TLS handshake: %s"
-msgstr "Помилка при виконанні рукостискання TLS: %s"
+msgstr "Помилка при виконанні з'єднання TLS: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:876
 msgid "Unacceptable TLS certificate"
