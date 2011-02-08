@@ -1,0 +1,95 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Aviary.pl
+# Jeśli masz jakiekolwiek uwagi odnoszące się do tłumaczenia lub chcesz
+# pomóc w jego rozwijaniu i pielęgnowaniu, napisz do nas:
+# gnomepl@aviary.pl
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2011-02-08 13:42+0000\n"
+"PO-Revision-Date: 2011-02-08 18:18+0100\n"
+"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"Language-Team: Polish <gnomepl@aviary.pl>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:142
+msgid "Proxy resolver internal error."
+msgstr "Wewnętrzny błąd rozwiązywania pośrednika."
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nie można przetworzyć certyfikatu DER: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nie można przetworzyć certyfikatu PEM: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nie można przetworzyć klucza prywatnego DER: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nie można przetworzyć klucza prywatnego PEM: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+msgid "No certificate data provided"
+msgstr "Nie podano danych certyfikatu"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+msgid "Server required TLS certificate"
+msgstr "Serwer wymaga certyfikatu TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Nie można utworzyć połączenia TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+msgid "Peer failed to perform TLS handshake"
+msgstr "Wykonanie powitania TLS przez partnera się nie powiodło"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Partner zażądał niedozwolonego ponownego powitania TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+msgid "TLS connection closed unexpectedly"
+msgstr "Połączenie TLS zostało nieoczekiwanie zamknięte"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:799
+#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Błąd podczas wykonywania powitania TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+msgid "Unacceptable TLS certificate"
+msgstr "Nieakceptowalny certyfikat TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Błąd podczas odczytywania danych z gniazda TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Błąd podczas zapisywania danych do gniazda TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Błąd podczas wykonywania zamknięcia TLS: %s"
