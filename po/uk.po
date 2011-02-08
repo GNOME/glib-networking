@@ -1,0 +1,93 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Korostil Daniel <ted.korostiled@gmail.com>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-02-08 03:03+0200\n"
+"PO-Revision-Date: 2011-02-08 05:11+0300\n"
+"Last-Translator: Korostil Daniel <ted.korostiled@gmail.com>\n"
+"Language-Team: translation@linux.org.ua\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Virtaal 0.6.1\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:142
+msgid "Proxy resolver internal error."
+msgstr "Внутрішня помилка розв'язника проксі."
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Неможливо проаналізувати сертифікат DER: %s "
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Неможливо проаналізувати сертифікат PEM: %s "
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Неможливо проаналізувати приватний ключ DER: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Неможливо проаналізувати приватний ключ PEM: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+msgid "No certificate data provided"
+msgstr "Не надано даних сертифіката"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+msgid "Server required TLS certificate"
+msgstr "Сервер потребує сертифікат TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Неможливо створити з'єднання TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+msgid "Peer failed to perform TLS handshake"
+msgstr "Не вдалось виконати рівноправне рукостискання TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Сторона потребує нелегального повторного рукостискання TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+msgid "TLS connection closed unexpectedly"
+msgstr "Раптово закрито з'єднання TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:799
+#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Помилка при виконанні рукостискання TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+msgid "Unacceptable TLS certificate"
+msgstr "Неприпустимий сертифікат TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Помилка зчитування даних з гнізда TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Помилка запису даних у гніздо TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Помилка закриття TLS: %s"
