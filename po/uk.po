@@ -40,7 +40,7 @@ msgstr "Неможливо проаналізувати закритий клю�
 #: ../tls/gnutls/gtlscertificate-gnutls.c:234
 #, c-format
 msgid "Could not parse PEM private key: %s"
-msgstr "Неможливо проаналізувати приватний ключ PEM: %s"
+msgstr "Неможливо проаналізувати закритий ключ PEM: %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:275
 msgid "No certificate data provided"
