@@ -1,0 +1,92 @@
+# Korean translation for glib-networking.
+# Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+#
+# Changwoo Ryu <cwryu@debian.org>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network\n"
+"POT-Creation-Date: 2011-02-11 21:19+0000\n"
+"PO-Revision-Date: 2011-02-13 04:41+0900\n"
+"Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
+"Language-Team: Korean <gnome-kr@googlegroups.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:142
+msgid "Proxy resolver internal error."
+msgstr "프록시 리졸버 내부 오류"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER 인증서를 파싱할 수 없습니다: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM 인증서를 파싱할 수 없습니다: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER 개인 키를 파싱할 수 없습니다: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM 개인 키를 파싱할 수 없습니다: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+msgid "No certificate data provided"
+msgstr "인증서 데이타를 제공하지 않았습니다"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+msgid "Server required TLS certificate"
+msgstr "서버에 TLS 인증서가 필요합니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS 연결을 만들 수 없습니다: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+msgid "Peer failed to perform TLS handshake"
+msgstr "상대편이 TLS 핸드셰이킹에 실패했습니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "상대편이 잘못된 TLS 핸드셰이킹을 요청했습니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS 연결이 예상치 못하게 닫혔습니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:799
+#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "TLS 핸드셰이킹에 오류가 발생했습니다: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+msgid "Unacceptable TLS certificate"
+msgstr "TLS 핸드셰이킹을 받아들일 수 없습니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "TLS 소켓에서 데이터를 읽는데 오류가 발생했습니다: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "TLS 소켓에 데이터를 쓰는데 오류가 발생했습니다: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "TLS를 닫는데 오류가 발생했습니다: %s"
