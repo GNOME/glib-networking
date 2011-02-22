@@ -1,3 +1,15 @@
+2.28.0
+======
+  * Fixed broken libtool check in autogen.sh that failed for libtool
+    2.4 (Dan Williams)
+
+  * New/updated translations:
+	Bengali (India), Catalan, Chinese (Simplified), Chinese
+	(Traditional), Czech, Dutch, Estonian, Galician, German,
+	Greek, Gujarati, Hebrew, Indonesian, Italian, Korean,
+	Norwegian (Bokmål), Polish, Punjabi, Slovenian, Spanish,
+	Swedish, Uyghur, Ukranian
+
 2.27.90
 =======
   * Fixed configure script to actually error out if installed glib
