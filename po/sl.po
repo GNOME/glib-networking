@@ -2,7 +2,7 @@
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
-# Ime priimek <email>, 2011.
+# Klemen Košir <klemen.nna@gmail.com>, 2011.
 #
 msgid ""
 msgstr ""
