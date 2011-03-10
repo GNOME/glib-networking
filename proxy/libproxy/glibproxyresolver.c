@@ -38,15 +38,24 @@ struct _GLibProxyResolver {
 
 static void g_libproxy_resolver_iface_init (GProxyResolverInterface *iface);
 
+#ifdef GLIBPROXY_MODULE
+static void
+g_libproxy_resolver_class_finalize (GLibProxyResolverClass *klass)
+{
+}
+
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GLibProxyResolver,
 				g_libproxy_resolver,
 				G_TYPE_OBJECT, 0,
 				G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
 							       g_libproxy_resolver_iface_init))
-
-static void  g_libproxy_resolver_class_finalize (GLibProxyResolverClass *klass)
-{
-}
+#else
+G_DEFINE_TYPE_EXTENDED (GLibProxyResolver,
+			g_libproxy_resolver,
+			G_TYPE_OBJECT, 0,
+			G_IMPLEMENT_INTERFACE (G_TYPE_PROXY_RESOLVER,
+					       g_libproxy_resolver_iface_init))
+#endif
 
 static void
 g_libproxy_resolver_finalize (GObject *object)
@@ -256,6 +265,7 @@ g_libproxy_resolver_iface_init (GProxyResolverInterface *iface)
   iface->lookup_finish = g_libproxy_resolver_lookup_finish;
 }
 
+#ifdef GLIBPROXY_MODULE
 void
 g_libproxy_resolver_register (GIOModule *module)
 {
@@ -265,3 +275,4 @@ g_libproxy_resolver_register (GIOModule *module)
 				  "libproxy",
 				  0);
 }
+#endif

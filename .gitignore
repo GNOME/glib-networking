@@ -22,7 +22,11 @@ install-sh
 glib-gettextize
 glib-zip
 gtk-doc.make
+compile
 
 INSTALL
 ChangeLog
 m4
+
+proxy/libproxy/glib-pacrunner
+proxy/libproxy/org.gtk.GLib.PACRunner.service
