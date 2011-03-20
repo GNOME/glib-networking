@@ -1,0 +1,92 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&k"
+"eywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2011-03-17 12:43+0000\n"
+"PO-Revision-Date: 2011-03-10 23:36+0200\n"
+"Last-Translator: Rudolfs <rudolfs.mazurs@gmail.com>\n"
+"Language-Team: Latvian <lata-l10n@googlegroups.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:151
+#: ../proxy/libproxy/glibproxyresolver.c:142
+msgid "Proxy resolver internal error."
+msgstr "Starpnieka risinātāja iekšēja kļūda."
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nevarēju noparsēt DER sertifikātu: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nevarēju noparsēt PEM sertifikātu: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nevarēju noparsēt DER privāto atslēgu: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nevarēju noparsēt PEM privāto atslēgu: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+msgid "No certificate data provided"
+msgstr "Nav norādīti sertifikāta dati"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+msgid "Server required TLS certificate"
+msgstr "Serveris pieprasa TLS sertifikātu"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Neizdevās izveidot TLS savienojumu: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+msgid "Peer failed to perform TLS handshake"
+msgstr "Dalībniekam neizdevās veikt TLS izaicinājumrokspiedienu"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Dalībnieks pieprasīja neatļautu TLS izaicinājumrokspiedienu"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS savienojums aizvērās negaidīti"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:799
+#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Kļūda, veicot TLS izaicinājumrokspiedienu: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+msgid "Unacceptable TLS certificate"
+msgstr "Nepieņemams TLS sertifikāts"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Kļūda lasot datus no TLS ligzdas: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Kļūda rakstot datus TLS ligzdā: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Kļūda, veicot TLS aizvēršanu: %s"
