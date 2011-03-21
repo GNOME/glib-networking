@@ -33,7 +33,7 @@
 #define GNOME_PROXY_IGNORE_HOSTS_KEY      "ignore-hosts"
 #define GNOME_PROXY_USE_SAME_PROXY_KEY    "use-same-proxy"
 
-#define GNOME_PROXY_HTTP_SETTINGS_SCHEMA  "org.gnome.system.proxy.http"
+#define GNOME_PROXY_HTTP_CHILD_SCHEMA     "http"
 #define GNOME_PROXY_HTTP_ENABLED_KEY      "enabled"
 #define GNOME_PROXY_HTTP_HOST_KEY         "host"
 #define GNOME_PROXY_HTTP_PORT_KEY         "port"
@@ -41,15 +41,15 @@
 #define GNOME_PROXY_HTTP_USER_KEY         "authentication-user"
 #define GNOME_PROXY_HTTP_PASSWORD_KEY     "authentication-password"
 
-#define GNOME_PROXY_HTTPS_SETTINGS_SCHEMA "org.gnome.system.proxy.https"
+#define GNOME_PROXY_HTTPS_CHILD_SCHEMA    "https"
 #define GNOME_PROXY_HTTPS_HOST_KEY        "host"
 #define GNOME_PROXY_HTTPS_PORT_KEY        "port"
 
-#define GNOME_PROXY_FTP_SETTINGS_SCHEMA   "org.gnome.system.proxy.ftp"
+#define GNOME_PROXY_FTP_CHILD_SCHEMA      "ftp"
 #define GNOME_PROXY_FTP_HOST_KEY          "host"
 #define GNOME_PROXY_FTP_PORT_KEY          "port"
 
-#define GNOME_PROXY_SOCKS_SETTINGS_SCHEMA "org.gnome.system.proxy.socks"
+#define GNOME_PROXY_SOCKS_CHILD_SCHEMA    "socks"
 #define GNOME_PROXY_SOCKS_HOST_KEY        "host"
 #define GNOME_PROXY_SOCKS_PORT_KEY        "port"
 
@@ -172,16 +172,20 @@ g_proxy_resolver_gnome_init (GProxyResolverGnome *resolver)
   resolver->proxy_settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
   g_signal_connect (resolver->proxy_settings, "changed",
 		    G_CALLBACK (gsettings_changed), resolver);
-  resolver->http_settings = g_settings_new (GNOME_PROXY_HTTP_SETTINGS_SCHEMA);
+  resolver->http_settings = g_settings_get_child (resolver->proxy_settings,
+                                                  GNOME_PROXY_HTTP_CHILD_SCHEMA);
   g_signal_connect (resolver->http_settings, "changed",
 		    G_CALLBACK (gsettings_changed), resolver);
-  resolver->https_settings = g_settings_new (GNOME_PROXY_HTTPS_SETTINGS_SCHEMA);
+  resolver->https_settings = g_settings_get_child (resolver->proxy_settings,
+                                                   GNOME_PROXY_HTTPS_CHILD_SCHEMA);
   g_signal_connect (resolver->https_settings, "changed",
 		    G_CALLBACK (gsettings_changed), resolver);
-  resolver->ftp_settings = g_settings_new (GNOME_PROXY_FTP_SETTINGS_SCHEMA);
+  resolver->ftp_settings = g_settings_get_child (resolver->proxy_settings,
+                                                 GNOME_PROXY_FTP_CHILD_SCHEMA);
   g_signal_connect (resolver->ftp_settings, "changed",
 		    G_CALLBACK (gsettings_changed), resolver);
-  resolver->socks_settings = g_settings_new (GNOME_PROXY_SOCKS_SETTINGS_SCHEMA);
+  resolver->socks_settings = g_settings_get_child (resolver->proxy_settings,
+                                                   GNOME_PROXY_SOCKS_CHILD_SCHEMA);
   g_signal_connect (resolver->socks_settings, "changed",
 		    G_CALLBACK (gsettings_changed), resolver);
 
