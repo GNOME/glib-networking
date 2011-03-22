@@ -1,3 +1,18 @@
+2.28.4
+======
+  * Added a new proxy backend, GProxyResolverGnome, that uses
+    GSettings and the network proxy schemas from
+    gsettings-desktop-schemas to provide proxy information (and using
+    a new D-Bus service provided by the libproxy backend to provide
+    PAC/WPAD support).
+
+    If you are building glib-networking in a GNOME 3.0 environment,
+    you should make sure that gsettings-desktop-schemas.pc is
+    available when building, so that this backend gets built.
+
+  * New translations:
+	Assamese, Latvian, Oriya, Serbian
+
 2.28.0
 ======
   * Fixed broken libtool check in autogen.sh that failed for libtool
