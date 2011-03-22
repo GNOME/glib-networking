@@ -44,5 +44,8 @@ servicedir = $(datadir)/dbus-1/services
 service_in_files = org.gtk.GLib.PACRunner.service.in
 service_DATA = $(service_in_files:.service.in=.service)
 
+EXTRA_DIST = $(service_in_files)
+CLEANFILES = $(service_DATA)
+
 org.gtk.GLib.PACRunner.service: org.gtk.GLib.PACRunner.service.in Makefile
 	$(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
