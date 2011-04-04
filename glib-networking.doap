@@ -6,6 +6,12 @@
 
   <name xml:lang="en">glib-networking</name>
   <shortdesc xml:lang="en">Network extensions for GLib</shortdesc>
+  <description xml:lang="en"> glib-networking contains the implementations of certain GLib networking features that cannot be implemented directly in GLib itself because of their dependencies.
+
+Currently it contains a GNUTLS-based implementation of GTlsBackend, a libproxy-based implementation of GProxyResolver, and a GNOME GProxyResolver that uses the proxy information from the GSettings schemas in gsettings-desktop-schemas.</description>
+
+  <download-page rdf:resource="http://download.gnome.org/sources/glib-networking" />
+  <bug-database rdf:resource="http://bugzilla.gnome.org/browse.cgi?product=glib" />
 
   <maintainer>
     <foaf:Person>
