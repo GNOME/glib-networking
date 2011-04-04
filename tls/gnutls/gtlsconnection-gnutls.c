@@ -846,6 +846,8 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 	  for (i = num_certs - 1; i >= 0; i--)
 	    {
 	      cert = g_tls_certificate_gnutls_new (&certs[i], chain);
+	      if (chain)
+		g_object_unref (chain);
 	      chain = cert;
 	    }
 	}

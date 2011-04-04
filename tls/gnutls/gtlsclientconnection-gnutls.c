@@ -156,6 +156,7 @@ g_tls_client_connection_gnutls_constructed (GObject *object)
 	  gnutls->priv->session_id = g_strdup_printf ("%s/%d", addrstr, port);
 	  g_free (addrstr);
 	}
+      g_object_unref (remote_addr);
     }
   g_object_unref (base_conn);
 
