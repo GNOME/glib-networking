@@ -93,9 +93,6 @@ g_tls_input_stream_gnutls_read_ready (GPollableInputStream *stream,
     }
   else
     g_simple_async_result_set_op_res_gssize (simple, nread);
-
-  if (tls_stream->priv->cancellable)
-    g_object_unref (tls_stream->priv->cancellable);
   g_simple_async_result_complete (simple);
   g_object_unref (simple);
 

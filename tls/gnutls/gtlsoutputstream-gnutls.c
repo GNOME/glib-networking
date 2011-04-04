@@ -93,9 +93,6 @@ g_tls_output_stream_gnutls_write_ready (GIOStreamAdapter *adapter,
     }
   else
     g_simple_async_result_set_op_res_gssize (simple, nwrote);
-
-  if (tls_stream->priv->cancellable)
-    g_object_unref (tls_stream->priv->cancellable);
   g_simple_async_result_complete (simple);
   g_object_unref (simple);
 
