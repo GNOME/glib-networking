@@ -456,7 +456,6 @@ begin_gnutls_io (GTlsConnectionGnutls  *gnutls,
 static int
 end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 	       int                    status,
-	       const char            *generic_error,
 	       GError               **error)
 {
   gnutls->priv->cancellable = NULL;
@@ -516,8 +515,6 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 	}
     }
 
-  g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-	       generic_error, gnutls_strerror (status));
   return status;
 }
 
@@ -529,7 +526,13 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   } while ((ret == GNUTLS_E_AGAIN ||			\
             ret == GNUTLS_E_WARNING_ALERT_RECEIVED) &&	\
            !gnutls->priv->error);			\
-  ret = end_gnutls_io (gnutls, ret, errmsg, error)
+  ret = end_gnutls_io (gnutls, ret, error);		\
+  if (ret && error && !*error)				\
+    {							\
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,\
+                   errmsg, gnutls_strerror (ret));	\
+    }							\
+  ;
 
 gboolean
 g_tls_connection_gnutls_check (GTlsConnectionGnutls  *gnutls,
