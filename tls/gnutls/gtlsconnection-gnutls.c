@@ -527,7 +527,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
             ret == GNUTLS_E_WARNING_ALERT_RECEIVED) &&	\
            !gnutls->priv->error);			\
   ret = end_gnutls_io (gnutls, ret, error);		\
-  if (ret && error && !*error)				\
+  if (ret < 0 && error && !*error)			\
     {							\
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,\
                    errmsg, gnutls_strerror (ret));	\
