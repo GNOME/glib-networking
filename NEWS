@@ -1,6 +1,10 @@
+2.28.6.1
+========
+  * Fixed a bug in the gnutls backend introduced in 2.28.6
+
 2.28.6
 ======
-  * Fixed some links in the gnutls backend
+  * Fixed some leaks in the gnutls backend
 
   * New translations:
 	Turkish
