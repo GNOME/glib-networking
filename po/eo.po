@@ -90,4 +90,4 @@ msgstr "Eraro dum skribi de la datumoj el la TLS-ingo:%s\n"
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1095
 #, c-format
 msgid "Error performing TLS close: %s"
-msgstr "Eraro dum fermi la TLS-konekto: %s\n"
+msgstr "Eraro dum fermi la TLS-konekto: %s"
