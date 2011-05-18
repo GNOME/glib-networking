@@ -303,7 +303,8 @@ update_settings (GProxyResolverGnome *resolver)
       GError *error = NULL;
       resolver->pacrunner =
 	g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
-				       G_DBUS_PROXY_FLAGS_NONE,
+				       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
+				       G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
 				       NULL,
 				       "org.gtk.GLib.PACRunner",
 				       "/org/gtk/GLib/PACRunner",
