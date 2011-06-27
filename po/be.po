@@ -61,7 +61,7 @@ msgstr ""
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:510
 msgid "TLS connection closed unexpectedly"
-msgstr "TLS-злучэнне нечакана закрылася"
+msgstr "TLS-злучэнне нечакана зачынілася"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:802
 #: ../tls/gnutls/gtlsconnection-gnutls.c:828
@@ -86,4 +86,4 @@ msgstr "Памылка запісу даных у TLS-сокет: %s"
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1100
 #, c-format
 msgid "Error performing TLS close: %s"
-msgstr "Памылка закрыцця TLS-злучэння: %s"
+msgstr "Памылка зачынення TLS-злучэння: %s"
