@@ -1,0 +1,74 @@
+# Finnish messages for glib-networking
+# Copyright (C) 2011 Tommi Vainikainen
+# This file is distributed under the same license as the glib-networking.
+# Tommi Vainikainen <thv@iki.fi>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-06-30 13:44+0300\n"
+"PO-Revision-Date: 2011-06-30 13:43+0300\n"
+"Last-Translator: Tommi Vainikainen <thv@iki.fi>\n"
+"Language-Team: Finnish <translation-team-fi@lists.sourceforge.net>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+msgid "Proxy resolver internal error."
+msgstr "Väliselvityspalvelimen sisäinen virhe."
+
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER-varmennetta ei voitu jäsentää: %s"
+
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM-varmennetta ei voitu jäsentää: %s"
+
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER-yksityisavainta ei voitu jäsentää: %s"
+
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM-yksityisavainta ei voitu jäsentää: %s"
+
+msgid "No certificate data provided"
+msgstr "Varmennetietoja ei tarjottu"
+
+msgid "Server required TLS certificate"
+msgstr "Palvelin vaatii TLS-varmenteen"
+
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Ei voitu luoda TLS-yhteyttä: %s"
+
+msgid "Peer failed to perform TLS handshake"
+msgstr "Vastapuoli ei kyennyt suoriutumaan TLS-kättelystä"
+
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Vastapuoli pyysi laitonta TLS-uusintakättelyä"
+
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS-yhteys katkesi yllättäen"
+
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Virhe suoritettaessa TLS-kättelyä: %s"
+
+msgid "Unacceptable TLS certificate"
+msgstr "Ei hyväksyttävä TLS-varmenne"
+
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Virhe luettaessa tietoa TLS-pistokkeesta: %s"
+
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Virhe kirjoitettaessa tietoa TLS-pistokkeeseen: %s"
+
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Virhe suoritettaessa TLS-sulkemista: %s"
