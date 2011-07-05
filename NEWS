@@ -1,3 +1,16 @@
+2.29.9
+======
+  * Optimized GDBus usage in PACRunner (davidz)
+
+  * Fixed a race condition in GProxyResolverGnome (davidz)
+
+  * Changed configure to --enable-maintainer-mode by default,
+    to match glib
+
+  * New translations:
+	Belarusian, Catalan (Valencian), Esperanto, Finnish,
+	Lithuanian
+
 2.28.6
 ======
   * Fixed some leaks in the gnutls backend
