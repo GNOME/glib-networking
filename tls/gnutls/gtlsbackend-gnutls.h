@@ -25,8 +25,9 @@ G_BEGIN_DECLS
 #define G_IS_TLS_BACKEND_GNUTLS_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_BACKEND_GNUTLS))
 #define G_TLS_BACKEND_GNUTLS_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutlsClass))
 
-typedef struct _GTlsBackendGnutlsClass GTlsBackendGnutlsClass;
-typedef struct _GTlsBackendGnutls      GTlsBackendGnutls;
+typedef struct _GTlsBackendGnutls        GTlsBackendGnutls;
+typedef struct _GTlsBackendGnutlsClass   GTlsBackendGnutlsClass;
+typedef struct _GTlsBackendGnutlsPrivate GTlsBackendGnutlsPrivate;
 
 struct _GTlsBackendGnutlsClass
 {
@@ -36,14 +37,11 @@ struct _GTlsBackendGnutlsClass
 struct _GTlsBackendGnutls
 {
   GObject parent_instance;
+  GTlsBackendGnutlsPrivate *priv;
 };
 
 GType g_tls_backend_gnutls_get_type (void) G_GNUC_CONST;
 void  g_tls_backend_gnutls_register (GIOModule *module);
-
-const GList *g_tls_backend_gnutls_get_system_ca_list_gtls   (void) G_GNUC_CONST;
-void         g_tls_backend_gnutls_get_system_ca_list_gnutls (gnutls_x509_crt_t **cas,
-							     int                *num_cas);
 
 void         g_tls_backend_gnutls_cache_session_data        (const gchar *session_id,
 							     guchar      *session_data,

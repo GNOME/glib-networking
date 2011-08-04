@@ -28,6 +28,10 @@ libgiognutls_la_SOURCES = 		\
 	gtlsclientconnection-gnutls.h	\
 	gtlsconnection-gnutls.c		\
 	gtlsconnection-gnutls.h		\
+	gtlsdatabase-gnutls.c		\
+	gtlsdatabase-gnutls.h		\
+	gtlsfiledatabase-gnutls.c	\
+	gtlsfiledatabase-gnutls.h	\
 	gtlsinputstream-gnutls.c	\
 	gtlsinputstream-gnutls.h	\
 	gtlsoutputstream-gnutls.c	\

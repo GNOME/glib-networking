@@ -56,6 +56,10 @@ GTlsCertificateFlags         g_tls_certificate_gnutls_verify_identity (GTlsCerti
 
 GTlsCertificateFlags         g_tls_certificate_gnutls_convert_flags   (guint                  gnutls_flags);
 
+void                         g_tls_certificate_gnutls_set_issuer      (GTlsCertificateGnutls *gnutls,
+                                                                       GTlsCertificateGnutls *issuer);
+
+GTlsCertificateGnutls*       g_tls_certificate_gnutls_steal_issuer    (GTlsCertificateGnutls *gnutls);
 
 G_END_DECLS
 

@@ -17,6 +17,8 @@ if HAVE_GNUTLS
 SUBDIRS += tls/gnutls
 endif
 
+SUBDIRS += tls/tests
+
 install-exec-hook:
 	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \
 		$(GIO_QUERYMODULES) $(GIO_MODULE_DIR) ;           \

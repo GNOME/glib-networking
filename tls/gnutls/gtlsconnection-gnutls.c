@@ -99,7 +99,9 @@ enum
   PROP_REQUIRE_CLOSE_NOTIFY,
   PROP_REHANDSHAKE_MODE,
   PROP_USE_SYSTEM_CERTDB,
+  PROP_DATABASE,
   PROP_CERTIFICATE,
+  PROP_INTERACTION,
   PROP_PEER_CERTIFICATE,
   PROP_PEER_CERTIFICATE_ERRORS
 };
@@ -110,7 +112,6 @@ struct _GTlsConnectionGnutlsPrivate
   GPollableInputStream *base_istream;
   GPollableOutputStream *base_ostream;
 
-  GList *ca_list;
   gnutls_certificate_credentials creds;
   gnutls_session session;
 
@@ -118,12 +119,16 @@ struct _GTlsConnectionGnutlsPrivate
   GTlsCertificateFlags peer_certificate_errors;
   gboolean require_close_notify;
   GTlsRehandshakeMode rehandshake_mode;
-  gboolean use_system_certdb;
+  gboolean is_system_certdb;
+  GTlsDatabase *database;
+  gboolean database_is_unset;
   gboolean need_handshake, handshaking, ever_handshaked;
   gboolean closing;
 
   GInputStream *tls_istream;
   GOutputStream *tls_ostream;
+
+  GTlsInteraction *interaction;
 
   GError *error;
   GCancellable *cancellable;
@@ -158,7 +163,9 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_REQUIRE_CLOSE_NOTIFY, "require-close-notify");
   g_object_class_override_property (gobject_class, PROP_REHANDSHAKE_MODE, "rehandshake-mode");
   g_object_class_override_property (gobject_class, PROP_USE_SYSTEM_CERTDB, "use-system-certdb");
+  g_object_class_override_property (gobject_class, PROP_DATABASE, "database");
   g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
+  g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
 }
@@ -179,6 +186,9 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 				       GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT);
 
   gnutls->priv->need_handshake = TRUE;
+
+  gnutls->priv->database_is_unset = TRUE;
+  gnutls->priv->is_system_certdb = TRUE;
 }
 
 static gnutls_priority_t priorities[2][2];
@@ -274,10 +284,14 @@ g_tls_connection_gnutls_finalize (GObject *object)
   if (connection->priv->creds)
     gnutls_certificate_free_credentials (connection->priv->creds);
 
+  if (connection->priv->database)
+    g_object_unref (connection->priv->database);
   if (connection->priv->certificate)
     g_object_unref (connection->priv->certificate);
   if (connection->priv->peer_certificate)
     g_object_unref (connection->priv->peer_certificate);
+
+  g_clear_object (&connection->priv->interaction);
 
   if (connection->priv->error)
     g_error_free (connection->priv->error);
@@ -292,6 +306,7 @@ g_tls_connection_gnutls_get_property (GObject    *object,
 				      GParamSpec *pspec)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
+  GTlsBackend *backend;
 
   switch (prop_id)
     {
@@ -308,11 +323,25 @@ g_tls_connection_gnutls_get_property (GObject    *object,
       break;
 
     case PROP_USE_SYSTEM_CERTDB:
-      g_value_set_boolean (value, gnutls->priv->use_system_certdb);
+      g_value_set_boolean (value, gnutls->priv->is_system_certdb);
+      break;
+
+    case PROP_DATABASE:
+      if (gnutls->priv->database_is_unset)
+        {
+          backend = g_tls_backend_get_default ();
+          gnutls->priv->database =  g_tls_backend_get_default_database (backend);
+          gnutls->priv->database_is_unset = FALSE;
+        }
+      g_value_set_object (value, gnutls->priv->database);
       break;
 
     case PROP_CERTIFICATE:
       g_value_set_object (value, gnutls->priv->certificate);
+      break;
+
+    case PROP_INTERACTION:
+      g_value_set_object (value, gnutls->priv->interaction);
       break;
 
     case PROP_PEER_CERTIFICATE:
@@ -337,6 +366,8 @@ g_tls_connection_gnutls_set_property (GObject      *object,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
   GInputStream *istream;
   GOutputStream *ostream;
+  gboolean system_certdb;
+  GTlsBackend *backend;
 
   switch (prop_id)
     {
@@ -371,23 +402,35 @@ g_tls_connection_gnutls_set_property (GObject      *object,
       break;
 
     case PROP_USE_SYSTEM_CERTDB:
-      gnutls->priv->use_system_certdb = g_value_get_boolean (value);
+      system_certdb = g_value_get_boolean (value);
+      if (system_certdb != gnutls->priv->is_system_certdb)
+        {
+          g_clear_object (&gnutls->priv->database);
+          if (system_certdb)
+            {
+              backend = g_tls_backend_get_default ();
+              gnutls->priv->database = g_tls_backend_get_default_database (backend);
+            }
+          gnutls->priv->is_system_certdb = system_certdb;
+        }
+      break;
 
-      gnutls_certificate_free_cas (gnutls->priv->creds);
-      if (gnutls->priv->use_system_certdb)
-	{
-	  gnutls_x509_crt_t *cas;
-	  int num_cas;
-
-	  g_tls_backend_gnutls_get_system_ca_list_gnutls (&cas, &num_cas);
-	  gnutls_certificate_set_x509_trust (gnutls->priv->creds, cas, num_cas);
-	}
+    case PROP_DATABASE:
+      g_clear_object (&gnutls->priv->database);
+      gnutls->priv->database = g_value_dup_object (value);
+      gnutls->priv->is_system_certdb = FALSE;
+      gnutls->priv->database_is_unset = FALSE;
       break;
 
     case PROP_CERTIFICATE:
       if (gnutls->priv->certificate)
 	g_object_unref (gnutls->priv->certificate);
       gnutls->priv->certificate = g_value_dup_object (value);
+      break;
+
+    case PROP_INTERACTION:
+      g_clear_object (&gnutls->priv->interaction);
+      gnutls->priv->interaction = g_value_dup_object (value);
       break;
 
     default:
@@ -860,20 +903,6 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
   if (peer_certificate)
     {
-      int status;
-
-      status = gnutls_certificate_verify_peers (gnutls->priv->session);
-      peer_certificate_errors = g_tls_certificate_gnutls_convert_flags (status);
-      if (peer_certificate_errors)
-	{
-	  /* gnutls_certificate_verify_peers() bails out on the first
-	   * error, which may be G_TLS_CERTIFICATE_UNKNOWN_CA, but the
-	   * caller may be planning to check that part themselves. So
-	   * call g_tls_certificate_verify() to get any other errors.
-	   */
-	  peer_certificate_errors |= g_tls_certificate_verify (peer_certificate, NULL, NULL);
-	}
-
       if (!G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->verify_peer (gnutls, peer_certificate, &peer_certificate_errors))
 	{
 	  g_object_unref (peer_certificate);

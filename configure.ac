@@ -157,8 +157,9 @@ AC_CONFIG_FILES([Makefile
                  po/Makefile.in po/Makefile
                  proxy/libproxy/Makefile
                  proxy/gnome/Makefile
-		 tls/gnutls/Makefile
-		])
+                 tls/gnutls/Makefile
+                 tls/tests/Makefile
+                ])
 AC_OUTPUT
 
 echo ""

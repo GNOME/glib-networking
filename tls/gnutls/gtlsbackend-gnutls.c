@@ -32,7 +32,14 @@
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
 #include "gtlsclientconnection-gnutls.h"
+#include "gtlsfiledatabase-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
+
+struct _GTlsBackendGnutlsPrivate
+{
+  GMutex *mutex;
+  GTlsDatabase *default_database;
+};
 
 static void g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface);
 
@@ -120,16 +127,71 @@ g_tls_backend_gnutls_init (GTlsBackendGnutls *backend)
    * g_io_modules_scan_all_in_directory()).
    */
   g_once (&gnutls_inited, gtls_gnutls_init, NULL);
+
+  backend->priv = G_TYPE_INSTANCE_GET_PRIVATE (backend, G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutlsPrivate);
+  backend->priv->mutex = g_mutex_new ();
+}
+
+static void
+g_tls_backend_gnutls_finalize (GObject *object)
+{
+  GTlsBackendGnutls *backend = G_TLS_BACKEND_GNUTLS (object);
+
+  if (backend->priv->default_database)
+    g_object_unref (backend->priv->default_database);
+  g_mutex_free (backend->priv->mutex);
+
+  G_OBJECT_CLASS (g_tls_backend_gnutls_parent_class)->finalize (object);
 }
 
 static void
 g_tls_backend_gnutls_class_init (GTlsBackendGnutlsClass *backend_class)
 {
+  GObjectClass *gobject_class = G_OBJECT_CLASS (backend_class);
+  gobject_class->finalize = g_tls_backend_gnutls_finalize;
+  g_type_class_add_private (backend_class, sizeof (GTlsBackendGnutlsPrivate));
 }
 
 static void
 g_tls_backend_gnutls_class_finalize (GTlsBackendGnutlsClass *backend_class)
 {
+}
+
+static GTlsDatabase*
+g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
+{
+  GTlsBackendGnutls *self = G_TLS_BACKEND_GNUTLS (backend);
+  const gchar *anchor_file = NULL;
+  GTlsDatabase *result;
+  GError *error = NULL;
+
+  g_mutex_lock (self->priv->mutex);
+
+  if (self->priv->default_database)
+    {
+      result = g_object_ref (self->priv->default_database);
+    }
+  else
+    {
+#ifdef GTLS_SYSTEM_CA_FILE
+      anchor_file = GTLS_SYSTEM_CA_FILE;
+#endif
+      result = g_tls_file_database_new (anchor_file, &error);
+      if (error)
+        {
+          g_warning ("couldn't load TLS file database: %s",
+                     error->message);
+          g_clear_error (&error);
+        }
+      else
+        {
+          self->priv->default_database = g_object_ref (result);
+        }
+    }
+
+  g_mutex_unlock (self->priv->mutex);
+
+  return result;
 }
 
 static void
@@ -138,77 +200,8 @@ g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface)
   iface->get_certificate_type       = g_tls_certificate_gnutls_get_type;
   iface->get_client_connection_type = g_tls_client_connection_gnutls_get_type;
   iface->get_server_connection_type = g_tls_server_connection_gnutls_get_type;
-}
-
-#ifdef GTLS_SYSTEM_CA_FILE
-/* Parsing the system CA list takes a noticeable amount of time.
- * So we only do it once, and only when we actually need to see it.
- */
-static const GList *
-get_ca_lists (gnutls_x509_crt_t **cas,
-	      int                *num_cas)
-{
-  static gnutls_x509_crt_t *ca_list_gnutls;
-  static int ca_list_length;
-  static GList *ca_list;
-
-  if (g_once_init_enter ((volatile gsize *)&ca_list_gnutls))
-    {
-      GError *error = NULL;
-      gnutls_x509_crt_t *x509_crts;
-      GList *c;
-      int i;
-
-      ca_list = g_tls_certificate_list_new_from_file (GTLS_SYSTEM_CA_FILE, &error);
-      if (error)
-	{
-	  g_warning ("Failed to read system CA file %s: %s.",
-		     GTLS_SYSTEM_CA_FILE, error->message);
-	  g_error_free (error);
-	  /* Note that this is not a security problem, since if
-	   * G_TLS_VALIDATE_CA is set, then this just means validation
-	   * will always fail, and if it isn't set, then it doesn't
-	   * matter that we couldn't read the CAs.
-	   */
-	}
-
-      ca_list_length = g_list_length (ca_list);
-      x509_crts = g_new (gnutls_x509_crt_t, ca_list_length);
-      for (c = ca_list, i = 0; c; c = c->next, i++)
-	x509_crts[i] = g_tls_certificate_gnutls_get_cert (c->data);
-
-      g_once_init_leave ((volatile gsize *)&ca_list_gnutls, GPOINTER_TO_SIZE (x509_crts));
-    }
-
-  if (cas)
-    *cas = ca_list_gnutls;
-  if (num_cas)
-    *num_cas = ca_list_length;
-  
-  return ca_list;
-}
-#endif
-
-const GList *
-g_tls_backend_gnutls_get_system_ca_list_gtls (void)
-{
-#ifdef GTLS_SYSTEM_CA_FILE
-  return get_ca_lists (NULL, NULL);
-#else
-  return NULL;
-#endif
-}
-
-void
-g_tls_backend_gnutls_get_system_ca_list_gnutls (gnutls_x509_crt_t **cas,
-						int                *num_cas)
-{
-#ifdef GTLS_SYSTEM_CA_FILE
-  get_ca_lists (cas, num_cas);
-#else
-  *cas = NULL;
-  *num_cas = 0;
-#endif
+  iface->get_file_database_type =     g_tls_file_database_gnutls_get_type;
+  iface->get_default_database =       g_tls_backend_gnutls_get_default_database;
 }
 
 /* Session cache support; all the details are sort of arbitrary. Note

@@ -174,8 +174,32 @@ g_tls_server_connection_gnutls_verify_peer (GTlsConnectionGnutls  *gnutls,
 					    GTlsCertificate       *peer_certificate,
 					    GTlsCertificateFlags  *errors)
 {
+  GTlsDatabase *database;
+  GError *error = NULL;
+
+  database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
+  if (database == NULL)
+    {
+      *errors |= G_TLS_CERTIFICATE_UNKNOWN_CA;
+      *errors |= g_tls_certificate_verify (peer_certificate, NULL, NULL);
+    }
+  else
+    {
+      *errors |= g_tls_database_verify_chain (database, peer_certificate,
+                                              G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT, NULL,
+                                              g_tls_connection_get_interaction (G_TLS_CONNECTION (gnutls)),
+                                              G_TLS_DATABASE_VERIFY_NONE,
+                                              NULL, &error);
+      if (error)
+        {
+          g_warning ("failure verifying certificate chain: %s",
+                     error->message);
+          g_clear_error (&error);
+        }
+    }
+
   return g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
-						   peer_certificate, *errors);
+                                                   peer_certificate, *errors);
 }
 
 static void

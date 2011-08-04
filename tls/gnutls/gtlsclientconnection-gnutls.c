@@ -327,12 +327,30 @@ g_tls_client_connection_gnutls_verify_peer (GTlsConnectionGnutls  *conn_gnutls,
 					    GTlsCertificateFlags  *errors)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn_gnutls);
+  GTlsDatabase *database;
   gboolean accepted;
+  GError *error = NULL;
 
-  if (gnutls->priv->server_identity)
+  database = g_tls_connection_get_database (G_TLS_CONNECTION (conn_gnutls));
+  if (database == NULL)
     {
-      *errors |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (peer_certificate),
-							   gnutls->priv->server_identity);
+      *errors |= G_TLS_CERTIFICATE_UNKNOWN_CA;
+      *errors |= g_tls_certificate_verify (peer_certificate, gnutls->priv->server_identity, NULL);
+    }
+  else
+    {
+      *errors |= g_tls_database_verify_chain (database, peer_certificate,
+                                              G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER,
+                                              gnutls->priv->server_identity,
+                                              g_tls_connection_get_interaction (G_TLS_CONNECTION (gnutls)),
+                                              G_TLS_DATABASE_VERIFY_NONE,
+                                              NULL, &error);
+      if (error)
+        {
+          g_warning ("failure verifying certificate chain: %s",
+                     error->message);
+          g_clear_error (&error);
+        }
     }
 
   if (*errors & gnutls->priv->validation_flags)

@@ -498,3 +498,18 @@ g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
 
   return G_TLS_CERTIFICATE_BAD_IDENTITY;
 }
+
+void
+g_tls_certificate_gnutls_set_issuer (GTlsCertificateGnutls *gnutls,
+                                     GTlsCertificateGnutls *issuer)
+{
+  g_return_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (gnutls));
+  g_return_if_fail (!issuer || G_IS_TLS_CERTIFICATE_GNUTLS (issuer));
+
+  if (issuer)
+    g_object_ref (issuer);
+  if (gnutls->priv->issuer)
+    g_object_unref (gnutls->priv->issuer);
+  gnutls->priv->issuer = issuer;
+  g_object_notify (G_OBJECT (gnutls), "issuer");
+}
