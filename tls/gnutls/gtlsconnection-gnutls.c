@@ -253,6 +253,11 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
       return FALSE;
     }
 
+  /* Some servers (especially on embedded devices) use tiny keys that
+   * gnutls will reject by default. We want it to accept them.
+   */
+  gnutls_dh_set_prime_bits (gnutls->priv->session, 256);
+
   gnutls_transport_set_push_function (gnutls->priv->session,
 				      g_tls_connection_gnutls_push_func);
   gnutls_transport_set_pull_function (gnutls->priv->session,
