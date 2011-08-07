@@ -38,6 +38,7 @@ struct _GTlsConnectionGnutlsClass
 				GTlsCertificate       *peer_certificate,
 				GTlsCertificateFlags  *errors);
   void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
+				gboolean               success,
 				GError               **inout_error);
 };
 

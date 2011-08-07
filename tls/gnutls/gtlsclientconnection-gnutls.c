@@ -56,6 +56,7 @@ static gboolean g_tls_client_connection_gnutls_verify_peer      (GTlsConnectionG
 								 GTlsCertificate       *peer_certificate,
 								 GTlsCertificateFlags  *errors);
 static void     g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
+								 gboolean               success,
 								 GError               **inout_error);
 
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
@@ -363,11 +364,13 @@ g_tls_client_connection_gnutls_verify_peer (GTlsConnectionGnutls  *conn_gnutls,
 
 static void
 g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
+						 gboolean               success,
 						 GError               **inout_error)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
 
-  if (g_error_matches (*inout_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS) &&
+  if (inout_error &&
+      g_error_matches (*inout_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS) &&
       gnutls->priv->cert_requested)
     {
       g_clear_error (inout_error);
@@ -379,7 +382,7 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
     {
       gnutls_datum session_data;
 
-      if (!*inout_error &&
+      if (success &&
 	  gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (conn),
 				    &session_data) == 0)
 	{

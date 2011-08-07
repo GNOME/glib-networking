@@ -49,6 +49,7 @@ static gboolean g_tls_server_connection_gnutls_verify_peer      (GTlsConnectionG
 								 GTlsCertificate       *peer_certificate,
 								 GTlsCertificateFlags  *errors);
 static void     g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
+								 gboolean               success,
 								 GError               **inout_error);
 
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
@@ -204,6 +205,7 @@ g_tls_server_connection_gnutls_verify_peer (GTlsConnectionGnutls  *gnutls,
 
 static void
 g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
+						 gboolean               success,
 						 GError               **inout_error)
 {
 }

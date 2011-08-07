@@ -917,7 +917,7 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 	}
     }
 
-  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, error);
+  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, ret == 0, error);
 
   if (ret == 0)
     {
