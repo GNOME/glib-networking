@@ -199,16 +199,16 @@ g_tls_connection_gnutls_init_priorities (void)
   /* First field is "ssl3 only", second is "allow unsafe rehandshaking" */
 
   gnutls_priority_init (&priorities[FALSE][FALSE],
-			"NORMAL",
+			"NORMAL:%COMPAT",
 			NULL);
   gnutls_priority_init (&priorities[TRUE][FALSE],
-			"NORMAL:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0",
+			"NORMAL:%COMPAT:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0",
 			NULL);
   gnutls_priority_init (&priorities[FALSE][TRUE],
-			"NORMAL:%UNSAFE_RENEGOTIATION",
+			"NORMAL:%COMPAT:%UNSAFE_RENEGOTIATION",
 			NULL);
   gnutls_priority_init (&priorities[TRUE][TRUE],
-			"NORMAL:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%UNSAFE_RENEGOTIATION",
+			"NORMAL:%COMPAT:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%UNSAFE_RENEGOTIATION",
 			NULL);
 }
 
