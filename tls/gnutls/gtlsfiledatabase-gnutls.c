@@ -401,6 +401,9 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
   GByteArray *der;
   gnutls_datum_t datum;
 
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return NULL;
+
   if (!handle)
     return NULL;
 
@@ -421,6 +424,9 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
   datum.data = der->data;
   datum.size = der->len;
 
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return NULL;
+
   return g_tls_certificate_gnutls_new (&datum, NULL);
 }
 
@@ -436,6 +442,9 @@ g_tls_file_database_gnutls_lookup_assertion (GTlsDatabaseGnutls          *databa
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
   GByteArray *der = NULL;
   gboolean contains;
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
 
   /* We only have anchored certificate assertions here */
   if (assertion != G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE)
@@ -454,6 +463,9 @@ g_tls_file_database_gnutls_lookup_assertion (GTlsDatabaseGnutls          *databa
   g_mutex_unlock (self->priv->mutex);
 
   g_byte_array_unref (der);
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
 
   /* All certificates in our file are anchored certificates */
   return contains;
@@ -476,6 +488,9 @@ g_tls_file_database_gnutls_lookup_certificate_issuer (GTlsDatabase           *da
   int gerr;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (certificate), NULL);
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return NULL;
 
   if (flags & G_TLS_DATABASE_LOOKUP_KEYPAIR)
     return NULL;
@@ -500,6 +515,9 @@ g_tls_file_database_gnutls_lookup_certificate_issuer (GTlsDatabase           *da
 
   g_byte_array_unref (subject);
 
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return NULL;
+
   if (der != NULL)
     {
       datum.data = der->data;
@@ -523,7 +541,11 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
   gnutls_datum_t datum;
   GList *issued = NULL;
   GPtrArray *ders;
+  GList *l;
   guint i;
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return NULL;
 
   /* We don't have any private keys here */
   if (flags & G_TLS_DATABASE_LOOKUP_KEYPAIR)
@@ -536,6 +558,15 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
 
   for (i = 0; ders && i < ders->len; i++)
     {
+      if (g_cancellable_set_error_if_cancelled (cancellable, error))
+        {
+          for (l = issued; l != NULL; l = g_list_next (l))
+            g_object_unref (l->data);
+          g_list_free (issued);
+          issued = NULL;
+          break;
+        }
+
       der = ders->pdata[i];
       datum.data = der->data;
       datum.size = der->len;
@@ -582,6 +613,9 @@ g_tls_file_database_gnutls_initable_init (GInitable    *initable,
   GHashTable *subjects, *issuers, *complete;
   gboolean result;
 
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
+
   subjects = multi_byte_array_hash_new ();
   issuers = multi_byte_array_hash_new ();
 
@@ -591,6 +625,9 @@ g_tls_file_database_gnutls_initable_init (GInitable    *initable,
 
   result = load_anchor_file (self->priv->anchor_filename, subjects, issuers,
                              complete, error);
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    result = FALSE;
 
   if (result)
     {

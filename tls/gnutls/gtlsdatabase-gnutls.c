@@ -99,6 +99,9 @@ build_certificate_chain (GTlsDatabaseGnutls      *self,
 
   for (;;)
     {
+      if (g_cancellable_set_error_if_cancelled (cancellable, error))
+        return STATUS_FAILURE;
+
       /* Was the last certificate self-signed? */
       if (is_self_signed (certificate))
         {
@@ -240,6 +243,9 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase           *database,
   if (status == STATUS_PINNED)
       return 0;
 
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return G_TLS_CERTIFICATE_GENERIC_ERROR;
+
   convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain),
                                        &certs, &certs_length);
 
@@ -265,6 +271,8 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase           *database,
 
   if (gerr != 0)
       return G_TLS_CERTIFICATE_GENERIC_ERROR;
+  else if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
   result = g_tls_certificate_gnutls_convert_flags (gnutls_result);
 
