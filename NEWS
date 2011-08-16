@@ -1,3 +1,17 @@
+2.29.15
+=======
+  * gnutls: implement GTlsDatabase (Stef Walter, #636572)
+
+  * gnutls: override minimum key length, to allow connecting to HTTP
+    servers with very small keys (eg, on some embedded devices). (Dan
+    Winship, #652284).
+
+  * gnutls: use %COMPAT mode, which makes GNUTLS behave more like
+    OpenSSL/NSS/Windows in a few ways, making it work with certain
+    broken HTTP servers. (Dan Winship, part of #581342)
+
+  * gnutls: fixed a crash when passed a NULL GError (Dan Winship)
+
 2.29.9
 ======
   * Optimized GDBus usage in PACRunner (davidz)
