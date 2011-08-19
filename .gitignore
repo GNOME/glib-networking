@@ -23,6 +23,8 @@ glib-gettextize
 glib-zip
 gtk-doc.make
 compile
+glib-lcov.info
+glib-lcov
 
 INSTALL
 ChangeLog

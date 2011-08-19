@@ -61,7 +61,7 @@ BUILT_SOURCES = 		\
 	gnutls-marshal.h	\
 	gnutls-marshal.c
 
-EXTRA_DIST = 			\
+EXTRA_DIST += 			\
 	gnutls-marshal.list
 
 CLEANFILES = 			\

@@ -150,6 +150,64 @@ if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
 	done
 fi
 
+dnl ************************************
+dnl *** Enable lcov coverage reports ***
+dnl ************************************
+
+AC_ARG_ENABLE(gcov,
+  AS_HELP_STRING([--enable-gcov],
+		 [Enable gcov]),
+  [use_gcov=$enableval], [use_gcov=no])
+
+if test "x$use_gcov" = "xyes"; then
+  dnl we need gcc:
+  if test "$GCC" != "yes"; then
+    AC_MSG_ERROR([GCC is required for --enable-gcov])
+  fi
+
+  ltp_version_list="1.6 1.7 1.8 1.9"
+  AC_CHECK_PROG(LTP, lcov, lcov)
+  AC_CHECK_PROG(LTP_GENHTML, genhtml, genhtml)
+
+  if test "$LTP"; then
+    AC_CACHE_CHECK([for ltp version], glib_cv_ltp_version, [
+      glib_cv_ltp_version=invalid
+      ltp_version=`$LTP -v 2>/dev/null | $SED -e 's/^.* //'`
+      for ltp_check_version in $ltp_version_list; do
+        if test "$ltp_version" = "$ltp_check_version"; then
+          glib_cv_ltp_version="$ltp_check_version (ok)"
+        fi
+      done
+    ])
+  else
+    ltp_msg="To enable code coverage reporting you must have one of the following LTP versions installed: $ltp_version_list"
+    AC_MSG_ERROR([$ltp_msg])
+  fi
+
+  case $glib_cv_ltp_version in
+    ""|invalid[)]
+      ltp_msg="You must have one of the following versions of LTP: $ltp_version_list (found: $ltp_version)."
+      AC_MSG_ERROR([$ltp_msg])
+      LTP="exit 0;"
+      ;;
+  esac
+
+  if test -z "$LTP_GENHTML"; then
+    AC_MSG_ERROR([Could not find genhtml from the LTP package])
+  fi
+
+  AC_DEFINE(HAVE_GCOV, 1, [Whether you have gcov])
+
+  dnl Remove all optimization flags from CFLAGS
+  changequote({,})
+  CFLAGS=`echo "$CFLAGS" | $SED -e 's/-O[0-9]*//g'`
+  changequote([,])
+
+  dnl Add the special gcc flags
+  CFLAGS="$CFLAGS -O0 -fprofile-arcs -ftest-coverage"
+  LDFLAGS="$LDFLAGS -lgcov"
+fi
+
 dnl *****************************
 dnl *** done                  ***
 dnl *****************************
