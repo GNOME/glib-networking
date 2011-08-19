@@ -472,13 +472,13 @@ g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
 
 void
 g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
-					 gnutls_retr_st       *st)
+                                         gnutls_retr2_st      *st)
 {
   GTlsCertificate *cert;
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (gnutls));
 
-  st->type = GNUTLS_CRT_X509;
+  st->cert_type = GNUTLS_CRT_X509;
   if (cert)
     {
       GTlsCertificateGnutls *gnutlscert = G_TLS_CERTIFICATE_GNUTLS (cert);

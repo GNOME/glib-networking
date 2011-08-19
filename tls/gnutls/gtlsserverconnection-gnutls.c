@@ -54,8 +54,12 @@ static void     g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionG
 
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
 
-static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t  session,
-							     gnutls_retr_st   *st);
+static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t             session,
+                                                             const gnutls_datum_t        *req_ca_rdn,
+                                                             int                          nreqs,
+                                                             const gnutls_pk_algorithm_t *pk_algos,
+                                                             int                          pk_algos_length,
+                                                             gnutls_retr2_st             *st);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
 			 G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
@@ -97,7 +101,7 @@ g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
   gnutls->priv = G_TYPE_INSTANCE_GET_PRIVATE (gnutls, G_TYPE_TLS_SERVER_CONNECTION_GNUTLS, GTlsServerConnectionGnutlsPrivate);
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_server_set_retrieve_function (creds, g_tls_server_connection_gnutls_retrieve_function);
+  gnutls_certificate_set_retrieve_function (creds, g_tls_server_connection_gnutls_retrieve_function);
 }
 
 static void
@@ -139,8 +143,12 @@ g_tls_server_connection_gnutls_set_property (GObject      *object,
 }
 
 static int
-g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t  session,
-						  gnutls_retr_st   *st)
+g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t             session,
+                                                  const gnutls_datum_t        *req_ca_rdn,
+                                                  int                          nreqs,
+                                                  const gnutls_pk_algorithm_t *pk_algos,
+                                                  int                          pk_algos_length,
+                                                  gnutls_retr2_st             *st)
 {
   g_tls_connection_gnutls_get_certificate (gnutls_transport_get_ptr (session), st);
   return 0;

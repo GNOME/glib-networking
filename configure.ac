@@ -80,13 +80,16 @@ AC_SUBST(GSETTINGS_DESKTOP_SCHEMAS_CFLAGS)
 dnl *****************************
 dnl *** Checks for GNUTLS     ***
 dnl *****************************
+
+GNUTLS_MIN_REQUIRED=2.11.0
+
 AC_ARG_WITH(gnutls,
     [AC_HELP_STRING([--with-gnutls],
                     [support for GNUTLS @<:@default=yes@:>@])],
     [],
     [with_gnutls=yes])
 AS_IF([test "x$with_gnutls" != "xno"],
-    [PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.1.7],
+    [PKG_CHECK_MODULES(GNUTLS, [gnutls >= $GNUTLS_MIN_REQUIRED],
         [with_gnutls=yes
 	 tls_support=gnutls
 	 AM_PATH_LIBGCRYPT([])],

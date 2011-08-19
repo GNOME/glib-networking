@@ -66,7 +66,7 @@ static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t   
 							     int                          nreqs,
 							     const gnutls_pk_algorithm_t *pk_algos,
 							     int                          pk_algos_length,
-							     gnutls_retr_st              *st);
+							     gnutls_retr2_st             *st);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionGnutls, g_tls_client_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
 			 G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
@@ -120,7 +120,7 @@ g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
   gnutls->priv = G_TYPE_INSTANCE_GET_PRIVATE (gnutls, G_TYPE_TLS_CLIENT_CONNECTION_GNUTLS, GTlsClientConnectionGnutlsPrivate);
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_client_set_retrieve_function (creds, g_tls_client_connection_gnutls_retrieve_function);
+  gnutls_certificate_set_retrieve_function (creds, g_tls_client_connection_gnutls_retrieve_function);
 }
 
 static const gchar *
@@ -282,7 +282,7 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
 						  int                          nreqs,
 						  const gnutls_pk_algorithm_t *pk_algos,
 						  int                          pk_algos_length,
-						  gnutls_retr_st              *st)
+						  gnutls_retr2_st             *st)
 {
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
   GPtrArray *accepted_cas;
