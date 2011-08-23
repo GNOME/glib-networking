@@ -1,0 +1,94 @@
+# Persian translation for glib-networking.
+# Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+# Arash Mousavi <mousavi.arash@gmail.com>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2011-08-16 01:03+0000\n"
+"PO-Revision-Date: 2011-08-24 01:24+0330\n"
+"Last-Translator: Arash Mousavi <mousavi.arash@gmail.com>\n"
+"Language-Team: Persian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Persian\n"
+"X-Poedit-Country: IRAN, ISLAMIC REPUBLIC OF\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:151
+msgid "Proxy resolver internal error."
+msgstr "خطای داخلی تحلیل‌گر پیشکار."
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "تجزیه گواهینامه DER امکان‌پذیر نبود: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "تجزیه گواهینامه PEM امکان‌پذیر نبود: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "تجزیه کلید خصوصی DER امکان‌پذیر نبود: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "تجزیه کلید خصوصی PEM امکان‌پذیر نبود: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+msgid "No certificate data provided"
+msgstr "هیچ اطلاعات گواهینامه‌ای ارائه نشده"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:378
+msgid "Server required TLS certificate"
+msgstr "کارگزار به گواهینامه TLS احتیاج دارد"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:251
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "نمی‌توان اتصال TLS ایجاد کرد: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:526
+msgid "Peer failed to perform TLS handshake"
+msgstr "برقراری TLS handshake توسط همتا شکست خورد"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:544
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "همتا درخواست یک TLS rehandshake غیرقانونی کرده است"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+msgid "TLS connection closed unexpectedly"
+msgstr "اتصال TLS بطور غیر منتظره‌ای شکست خورد"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:850
+#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "خطا در هنگام انجام TLS handshake. خطا: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:915
+msgid "Unacceptable TLS certificate"
+msgstr "گواهینامه TLS غیر قابل پذیرش"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1062
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "خطا در هنگام هواندن اطلاعات از طریق سوکت TLS. خط: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1088
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "خطا در هنگام نوشتن اطلاعات در سوکت TLS. خطا: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1134
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "خطا در هنگام انجام بستن TLS. خطا: %s"
+
