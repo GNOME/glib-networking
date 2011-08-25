@@ -43,6 +43,7 @@ typedef struct {
   GSocketConnectable *identity;
   GSocketAddress *address;
   GTlsAuthenticationMode auth_mode;
+  gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
 } TestConnection;
 
@@ -112,6 +113,29 @@ on_accept_certificate (GTlsClientConnection *conn, GTlsCertificate *cert,
   return errors == test->accept_flags;
 }
 
+static void on_output_write_finish (GObject        *object,
+				    GAsyncResult   *res,
+				    gpointer        user_data);
+
+static void
+on_rehandshake_finish (GObject        *object,
+		       GAsyncResult   *res,
+		       gpointer        user_data)
+{
+  TestConnection *test = user_data;
+  GError *error = NULL;
+  GOutputStream *stream;
+
+  g_tls_connection_handshake_finish (G_TLS_CONNECTION (object), res, &error);
+  g_assert_no_error (error);
+
+  stream = g_io_stream_get_output_stream (test->server_connection);
+  g_output_stream_write_async (stream, TEST_DATA + TEST_DATA_LENGTH / 2,
+			       TEST_DATA_LENGTH / 2,
+                               G_PRIORITY_DEFAULT, NULL,
+                               on_output_write_finish, test);
+}
+
 static void
 on_output_close_finish (GObject        *object,
                         GAsyncResult   *res,
@@ -129,8 +153,18 @@ on_output_write_finish (GObject        *object,
 {
   TestConnection *test = user_data;
   GError *error = NULL;
+
   g_output_stream_write_finish (G_OUTPUT_STREAM (object), res, &error);
   g_assert_no_error (error);
+
+  if (test->rehandshake)
+    {
+      test->rehandshake = FALSE;
+      g_tls_connection_handshake_async (G_TLS_CONNECTION (test->server_connection),
+					G_PRIORITY_DEFAULT, NULL,
+					on_rehandshake_finish, test);
+      return;
+    }
 
   g_output_stream_close_async (G_OUTPUT_STREAM (object), G_PRIORITY_DEFAULT, NULL,
                                on_output_close_finish, test);
@@ -167,7 +201,8 @@ on_incoming_connection (GSocketService     *service,
 
   stream = g_io_stream_get_output_stream (test->server_connection);
 
-  g_output_stream_write_async (stream, TEST_DATA, TEST_DATA_LENGTH,
+  g_output_stream_write_async (stream, TEST_DATA,
+			       test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH,
                                G_PRIORITY_DEFAULT, NULL,
                                on_output_write_finish, test);
   return FALSE;
@@ -328,6 +363,14 @@ test_client_auth_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+}
+
+static void
+test_client_auth_rehandshake (TestConnection *test,
+			      gconstpointer   data)
+{
+  test->rehandshake = TRUE;
+  test_client_auth_connection (test, data);
 }
 
 static void
@@ -963,6 +1006,8 @@ main (int   argc,
               setup_connection, test_verified_connection, teardown_connection);
   g_test_add ("/tls/connection/client-auth", TestConnection, NULL,
               setup_connection, test_client_auth_connection, teardown_connection);
+  g_test_add ("/tls/connection/client-auth-rehandshake", TestConnection, NULL,
+              setup_connection, test_client_auth_rehandshake, teardown_connection);
   g_test_add ("/tls/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
 
