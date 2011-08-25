@@ -843,7 +843,8 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
   int ret;
 
   if (G_IS_TLS_SERVER_CONNECTION_GNUTLS (gnutls) &&
-      gnutls->priv->ever_handshaked && !gnutls->priv->need_handshake)
+      gnutls->priv->ever_handshaked && !gnutls->priv->handshaking &&
+      !gnutls->priv->need_handshake)
     {
       BEGIN_GNUTLS_IO (gnutls, blocking, cancellable);
       ret = gnutls_rehandshake (gnutls->priv->session);
