@@ -75,22 +75,28 @@ teardown_connection (TestConnection *test, gconstpointer data)
   if (test->server_connection)
     {
       g_assert (G_IS_TLS_SERVER_CONNECTION (test->server_connection));
+      g_object_add_weak_pointer (G_OBJECT (test->server_connection),
+				 (gpointer *)&test->server_connection);
       g_object_unref (test->server_connection);
-      g_assert (!G_IS_TLS_SERVER_CONNECTION (test->server_connection));
+      g_assert (test->server_connection == NULL);
     }
 
   if (test->client_connection)
     {
       g_assert (G_IS_TLS_CLIENT_CONNECTION (test->client_connection));
+      g_object_add_weak_pointer (G_OBJECT (test->client_connection),
+				 (gpointer *)&test->client_connection);
       g_object_unref (test->client_connection);
-      g_assert (!G_IS_TLS_SERVER_CONNECTION (test->client_connection));
+      g_assert (test->client_connection == NULL);
     }
 
   if (test->database)
     {
       g_assert (G_IS_TLS_DATABASE (test->database));
+      g_object_add_weak_pointer (G_OBJECT (test->database),
+				 (gpointer *)&test->database);
       g_object_unref (test->database);
-      g_assert (!G_IS_TLS_DATABASE (test->database));
+      g_assert (test->database == NULL);
     }
 
   g_object_unref (test->address);
@@ -406,8 +412,9 @@ test_create_destroy_certificate_pem (TestCertificate *test, gconstpointer data)
   g_assert_cmpstr (pem, ==, test->pem);
   g_free (pem);
 
+  g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (!G_IS_TLS_CERTIFICATE (cert));
+  g_assert (cert == NULL);
 }
 
 static void
@@ -432,8 +439,9 @@ test_create_destroy_certificate_der (TestCertificate *test, gconstpointer data)
   g_assert (memcmp (der->data, test->der->data, der->len) == 0);
   g_byte_array_unref (der);
 
+  g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (!G_IS_TLS_CERTIFICATE (cert));
+  g_assert (cert == NULL);
 }
 
 static void
@@ -460,15 +468,17 @@ test_create_certificate_with_issuer (TestCertificate   *test,
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
+  g_object_add_weak_pointer (G_OBJECT (issuer), (gpointer *)&issuer);
   g_object_unref (issuer);
-  g_assert (G_IS_TLS_CERTIFICATE (issuer));
+  g_assert (issuer != NULL);
 
   check = g_tls_certificate_get_issuer (cert);
   g_assert (check == issuer);
 
+  g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (!G_IS_TLS_CERTIFICATE (cert));
-  g_assert (!G_IS_TLS_CERTIFICATE (issuer));
+  g_assert (cert == NULL);
+  g_assert (issuer == NULL);
 }
 
 /* -----------------------------------------------------------------------------
@@ -512,16 +522,22 @@ teardown_verify (TestVerify      *test,
                  gconstpointer    data)
 {
   g_assert (G_IS_TLS_CERTIFICATE (test->cert));
+  g_object_add_weak_pointer (G_OBJECT (test->cert),
+			     (gpointer *)&test->cert);
   g_object_unref (test->cert);
-  g_assert (!G_IS_TLS_CERTIFICATE (test->cert));
+  g_assert (test->cert == NULL);
 
   g_assert (G_IS_TLS_CERTIFICATE (test->anchor));
+  g_object_add_weak_pointer (G_OBJECT (test->anchor),
+			     (gpointer *)&test->anchor);
   g_object_unref (test->anchor);
-  g_assert (!G_IS_TLS_CERTIFICATE (test->anchor));
+  g_assert (test->anchor == NULL);
 
   g_assert (G_IS_TLS_DATABASE (test->database));
+  g_object_add_weak_pointer (G_OBJECT (test->database),
+			     (gpointer *)&test->database);
   g_object_unref (test->database);
-  g_assert (!G_IS_TLS_DATABASE (test->database));
+  g_assert (test->database == NULL);
 }
 
 static void
@@ -832,8 +848,10 @@ teardown_file_database (TestFileDatabase *test,
                         gconstpointer     data)
 {
   g_assert (G_IS_TLS_DATABASE (test->database));
+  g_object_add_weak_pointer (G_OBJECT (test->database),
+			     (gpointer *)&test->database);
   g_object_unref (test->database);
-  g_assert (!G_IS_TLS_DATABASE (test->database));
+  g_assert (test->database == NULL);
 
   g_free (test->path);
 }
