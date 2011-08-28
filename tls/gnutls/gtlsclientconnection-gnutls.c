@@ -123,6 +123,17 @@ g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
   gnutls_certificate_client_set_retrieve_function (creds, g_tls_client_connection_gnutls_retrieve_function);
 }
 
+static const gchar *
+get_server_identity (GTlsClientConnectionGnutls *gnutls)
+{
+  if (G_IS_NETWORK_ADDRESS (gnutls->priv->server_identity))
+    return g_network_address_get_hostname (G_NETWORK_ADDRESS (gnutls->priv->server_identity));
+  else if (G_IS_NETWORK_SERVICE (gnutls->priv->server_identity))
+    return g_network_service_get_domain (G_NETWORK_SERVICE (gnutls->priv->server_identity));
+  else
+    return NULL;
+}
+
 static void
 g_tls_client_connection_gnutls_constructed (GObject *object)
 {
@@ -132,14 +143,12 @@ g_tls_client_connection_gnutls_constructed (GObject *object)
   GInetAddress *iaddr;
   guint port;
 
-  /* We base the session ID on the IP address rather than on
-   * server-identity, because it's likely that different virtual
-   * servers on the same host will have access to the same session
-   * cache, whereas different hosts serving the same hostname/service
-   * likely won't. Note that session IDs are opaque, and transmitted
-   * in the clear anyway, so there are no security issues if we send
-   * one to the "wrong" server; we'll just fail to get a resumed
-   * session.
+  /* Create a TLS session ID. We base it on the IP address since
+   * different hosts serving the same hostname/service will probably
+   * not share the same session cache. We base it on the
+   * server-identity because at least some servers will fail (rather
+   * than just failing to resume the session) if we don't.
+   * (https://bugs.launchpad.net/bugs/823325)
    */
   g_object_get (G_OBJECT (gnutls), "base-io-stream", &base_conn, NULL);
   if (G_IS_SOCKET_CONNECTION (base_conn))
@@ -148,13 +157,18 @@ g_tls_client_connection_gnutls_constructed (GObject *object)
       if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
 	{
 	  GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
+	  const gchar *server_hostname;
 	  gchar *addrstr;
 
 	  iaddr = g_inet_socket_address_get_address (isaddr);
 	  port = g_inet_socket_address_get_port (isaddr);
 
 	  addrstr = g_inet_address_to_string (iaddr);
-	  gnutls->priv->session_id = g_strdup_printf ("%s/%d", addrstr, port);
+	  server_hostname = get_server_identity (gnutls);
+	  gnutls->priv->session_id =
+	    g_strdup_printf ("%s/%s/%d", addrstr,
+			     server_hostname ? server_hostname : "",
+			     port);
 	  g_free (addrstr);
 	}
       g_object_unref (remote_addr);
@@ -243,13 +257,7 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 	g_object_unref (gnutls->priv->server_identity);
       gnutls->priv->server_identity = g_value_dup_object (value);
 
-      if (G_IS_NETWORK_ADDRESS (gnutls->priv->server_identity))
-	hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (gnutls->priv->server_identity));
-      else if (G_IS_NETWORK_SERVICE (gnutls->priv->server_identity))
-	hostname = g_network_service_get_domain (G_NETWORK_SERVICE (gnutls->priv->server_identity));
-      else
-	hostname = NULL;
-
+      hostname = get_server_identity (gnutls);
       if (hostname)
 	{
 	  gnutls_session_t session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
