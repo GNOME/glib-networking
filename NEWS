@@ -1,3 +1,24 @@
+2.29.18
+=======
+  * gnutls: fixed two rehandshaking bugs; one in which a client
+    would erroneously report an error after successfully rehandshaking
+    (Igor Makarov, #653645), and one where initiating an asynchronous
+    rehandshake on the server side would send illegal packets and
+    cause the client to disconnect (Dan Winship).
+
+  * gnutls: made GTlsDatabaseGnutls and GTlsFileDatabaseGnutls
+    properly cancellable (Stef Walter)
+
+  * gnutls: fixed the client-side session cache to not share session
+    IDs between different virtual hosts on the same IP address, which
+    caused problems with some servers. (Dan Winship, #581342)
+
+  * tls: Fixed up the tls test program so it can be run from "make
+    check" (Stef Walter)
+
+  * New translations:
+	Persian
+
 2.29.15
 =======
   * gnutls: implement GTlsDatabase (Stef Walter, #636572)
