@@ -32,5 +32,6 @@ m4
 
 proxy/libproxy/glib-pacrunner
 proxy/libproxy/org.gtk.GLib.PACRunner.service
+proxy/tests/gnome
 
 /tls/tests/tls

@@ -13,6 +13,8 @@ if HAVE_GNOME_PROXY
 SUBDIRS += proxy/gnome
 endif
 
+SUBDIRS += proxy/tests
+
 if HAVE_GNUTLS
 SUBDIRS += tls/gnutls
 endif
