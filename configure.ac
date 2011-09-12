@@ -215,6 +215,7 @@ AC_CONFIG_FILES([Makefile
                  po/Makefile.in po/Makefile
                  proxy/libproxy/Makefile
                  proxy/gnome/Makefile
+                 proxy/tests/Makefile
                  tls/gnutls/Makefile
                  tls/tests/Makefile
                 ])

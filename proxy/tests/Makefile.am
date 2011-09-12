@@ -1,0 +1,19 @@
+NULL =
+
+include $(top_srcdir)/Makefile.decl
+
+INCLUDES =					\
+	$(GLIB_CFLAGS)				\
+	$(GSETTINGS_DESKTOP_SCHEMAS_CFLAGS)	\
+	-I$(top_srcdir)/proxy			\
+	-DSRCDIR=\""$(srcdir)"\"		\
+	-DTOP_BUILDDIR=\""$(top_builddir)"\"
+
+noinst_PROGRAMS = $(TEST_PROGS)
+
+LDADD  = \
+	$(GLIB_LIBS)
+
+TEST_PROGS +=		\
+	gnome		\
+	$(NULL)
