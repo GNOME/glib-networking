@@ -132,7 +132,10 @@ struct _GTlsConnectionGnutlsPrivate
 
   GError *error;
   GCancellable *cancellable;
-  gboolean blocking, eof;
+  gboolean blocking;
+#ifndef GNUTLS_E_PREMATURE_TERMINATION
+  gboolean eof;
+#endif
   GIOCondition internal_direction;
 };
 
@@ -548,19 +551,22 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       gnutls->priv->need_handshake = TRUE;
       return status;
     }
-  else if (status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH)
+  else if (
+#ifdef GNUTLS_E_PREMATURE_TERMINATION
+	   status == GNUTLS_E_PREMATURE_TERMINATION
+#else
+	   status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH && gnutls->priv->eof
+#endif
+	   )
     {
-      if (gnutls->priv->eof)
+      if (gnutls->priv->require_close_notify)
 	{
-	  if (gnutls->priv->require_close_notify)
-	    {
-	      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_EOF,
-				   _("TLS connection closed unexpectedly"));
-	      return status;
-	    }
-	  else
-	    return 0;
+	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_EOF,
+			       _("TLS connection closed unexpectedly"));
+	  return status;
 	}
+      else
+	return 0;
     }
 
   return status;
@@ -795,8 +801,10 @@ g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
 
   if (ret < 0)
     set_gnutls_error (gnutls, G_IO_IN);
+#ifndef GNUTLS_E_PREMATURE_TERMINATION
   else if (ret == 0)
     gnutls->priv->eof = TRUE;
+#endif
 
   return ret;
 }
