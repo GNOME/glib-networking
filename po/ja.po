@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-03-13 17:14+0000\n"
-"PO-Revision-Date: 2011-03-08 00:34+0900\n"
-"Last-Translator: Takayuki KUSANO <AE5T-KSN@asahi-net.or.jp>\n"
+"POT-Creation-Date: 2011-09-16 17:52+0000\n"
+"PO-Revision-Date: 2011-09-11 00:28+0900\n"
+"Last-Translator: Jiro Matsuzawa <jmatsuzawa@src.gnome.org>\n"
 "Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:142
+#: ../proxy/libproxy/glibproxyresolver.c:151
 msgid "Proxy resolver internal error."
 msgstr "プロキシ・レゾルバの内部エラー。"
 
@@ -46,48 +46,48 @@ msgstr "PEM 形式の秘密鍵を解析できませんでした: %s"
 msgid "No certificate data provided"
 msgstr "証明書のデータが与えられていません"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:386
 msgid "Server required TLS certificate"
-msgstr "サーバが TLS 証明書を要求しました"
+msgstr "サーバーが TLS 証明書を要求しました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS の接続を確立できませんでした: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+#: ../tls/gnutls/gtlsconnection-gnutls.c:529
 msgid "Peer failed to perform TLS handshake"
 msgstr "通信相手が TLS ハンドシェイクの実行に失敗しました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+#: ../tls/gnutls/gtlsconnection-gnutls.c:547
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "通信相手が不当な TLS の再ハンドシェイクを要求しました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+#: ../tls/gnutls/gtlsconnection-gnutls.c:565
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS の接続が突然、閉じられました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:799
-#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#: ../tls/gnutls/gtlsconnection-gnutls.c:859
+#: ../tls/gnutls/gtlsconnection-gnutls.c:885
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS のハンドシェイクの実行中にエラー: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+#: ../tls/gnutls/gtlsconnection-gnutls.c:924
 msgid "Unacceptable TLS certificate"
 msgstr "受け付けられない TLS 証明書です"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1071
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS socket からのデータの読み込み中にエラー: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1097
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS socket へのデータの書き出し中にエラー: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1143
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS の close 中にエラー: %s"
