@@ -228,8 +228,7 @@ load_anchor_file (const gchar *filename,
   if (*error)
     return FALSE;
 
-
-  for (l = list; l; l = g_list_next (l))
+  for (l = list; l; l = l->next)
     {
       cert = g_tls_certificate_gnutls_get_cert (l->data);
       gerr = gnutls_x509_crt_get_raw_dn (cert, &dn);
@@ -271,7 +270,10 @@ load_anchor_file (const gchar *filename,
       g_byte_array_unref (der);
       g_byte_array_unref (subject);
       g_byte_array_unref (issuer);
+
+      g_object_unref (l->data);
     }
+  g_list_free (list);
 
   return TRUE;
 }
@@ -560,7 +562,7 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
     {
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         {
-          for (l = issued; l != NULL; l = g_list_next (l))
+          for (l = issued; l != NULL; l = l->next)
             g_object_unref (l->data);
           g_list_free (issued);
           issued = NULL;

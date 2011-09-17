@@ -71,7 +71,16 @@ static void
 teardown_connection (TestConnection *test, gconstpointer data)
 {
   if (test->service)
-    g_object_unref (test->service);
+    {
+      g_socket_service_stop (test->service);
+      /* The outstanding accept_async will hold a ref on test->service,
+       * which we want to wait for it to release if we're valgrinding.
+       */
+      g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
+      g_object_unref (test->service);
+      while (test->service)
+	g_main_context_iteration (NULL, TRUE);
+    }
 
   if (test->server_connection)
     {
@@ -316,6 +325,7 @@ test_verified_connection (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert (test->client_connection);
+  g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
 
@@ -346,6 +356,7 @@ test_client_auth_connection (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert (test->client_connection);
+  g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
 
@@ -384,6 +395,7 @@ test_connection_no_database (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert (test->client_connection);
+  g_object_unref (connection);
 
   /* Overrides loading of the default database */
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), NULL);
@@ -581,6 +593,11 @@ teardown_verify (TestVerify      *test,
 			     (gpointer *)&test->database);
   g_object_unref (test->database);
   g_assert (test->database == NULL);
+
+  g_object_add_weak_pointer (G_OBJECT (test->identity),
+			     (gpointer *)&test->identity);
+  g_object_unref (test->identity);
+  g_assert (test->identity == NULL);
 }
 
 static void
@@ -1054,5 +1071,9 @@ main (int   argc,
   ret = g_test_run();
 
   g_free (source_dir);
+
+  /* for valgrinding */
+  g_main_context_unref (g_main_context_default ());
+
   return ret;
 }

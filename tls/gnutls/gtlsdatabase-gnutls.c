@@ -130,6 +130,7 @@ build_certificate_chain (GTlsDatabaseGnutls      *self,
             return STATUS_INCOMPLETE;
           g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
           g_tls_certificate_gnutls_set_issuer (certificate, G_TLS_CERTIFICATE_GNUTLS (issuer));
+          g_object_unref (issuer);
         }
 
       g_assert (issuer);

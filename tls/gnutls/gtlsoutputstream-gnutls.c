@@ -146,6 +146,9 @@ g_tls_output_stream_gnutls_write_async (GOutputStream        *stream,
       return;
     }
 
+  if (error)
+    g_error_free (error);
+
   tls_stream->priv->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
   tls_stream->priv->buffer = buffer;
   tls_stream->priv->count = count;

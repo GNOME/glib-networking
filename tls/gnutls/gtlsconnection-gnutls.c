@@ -1025,6 +1025,8 @@ g_tls_connection_gnutls_handshake_async (GTlsConnection       *conn,
       g_simple_async_result_complete_in_idle (simple);
       g_object_unref (simple);
     }
+  else if (error)
+    g_error_free (error);
 
   source = g_tls_connection_gnutls_create_source (gnutls, 0, cancellable);
   g_source_set_callback (source,
