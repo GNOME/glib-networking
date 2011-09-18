@@ -412,6 +412,93 @@ test_connection_no_database (TestConnection *test,
   g_main_loop_run (test->loop);
 }
 
+static void
+socket_client_connected (GObject      *source,
+			 GAsyncResult *result,
+			 gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  GSocketConnection *connection;
+  GError *error = NULL;
+
+  connection = g_socket_client_connect_finish (G_SOCKET_CLIENT (source),
+					       result, &error);
+  g_assert_no_error (error);
+  test->client_connection = G_IO_STREAM (connection);
+
+  g_main_loop_quit (test->loop);
+}
+
+static void
+test_connection_socket_client (TestConnection *test,
+			       gconstpointer   data)
+{
+  GSocketClient *client;
+  GTlsCertificateFlags flags;
+  GSocketConnection *connection;
+  GIOStream *base;
+  GError *error = NULL;
+
+  start_server_service (test, G_TLS_AUTHENTICATION_NONE);
+  client = g_socket_client_new ();
+  g_socket_client_set_tls (client, TRUE);
+  flags = G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_UNKNOWN_CA;
+  /* test->address doesn't match the server's cert */
+  flags = flags & ~G_TLS_CERTIFICATE_BAD_IDENTITY;
+  g_socket_client_set_tls_validation_flags (client, flags);
+
+  g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
+				 NULL, socket_client_connected, test);
+  g_main_loop_run (test->loop);
+
+  connection = (GSocketConnection *)test->client_connection;
+  test->client_connection = NULL;
+
+  g_assert (G_IS_TCP_WRAPPER_CONNECTION (connection));
+  base = g_tcp_wrapper_connection_get_base_io_stream (G_TCP_WRAPPER_CONNECTION (connection));
+  g_assert (G_IS_TLS_CONNECTION (base));
+
+  g_io_stream_close (G_IO_STREAM (connection), NULL, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  g_object_unref (client);
+}
+
+static void
+socket_client_failed (GObject      *source,
+		      GAsyncResult *result,
+		      gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  GError *error = NULL;
+
+  g_socket_client_connect_finish (G_SOCKET_CLIENT (source),
+				  result, &error);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_clear_error (&error);
+
+  g_main_loop_quit (test->loop);
+}
+
+static void
+test_connection_socket_client_failed (TestConnection *test,
+				      gconstpointer   data)
+{
+  GSocketClient *client;
+
+  start_server_service (test, G_TLS_AUTHENTICATION_NONE);
+  client = g_socket_client_new ();
+  g_socket_client_set_tls (client, TRUE);
+  /* this time we don't adjust the validation flags */
+
+  g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
+				 NULL, socket_client_failed, test);
+  g_main_loop_run (test->loop);
+
+  g_object_unref (client);
+}
+
 /* -----------------------------------------------------------------------------
  * CERTIFICATE TESTS
  */
@@ -1027,6 +1114,10 @@ main (int   argc,
               setup_connection, test_client_auth_rehandshake, teardown_connection);
   g_test_add ("/tls/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
+  g_test_add ("/tls/connection/socket-client", TestConnection, NULL,
+              setup_connection, test_connection_socket_client, teardown_connection);
+  g_test_add ("/tls/connection/socket-client-failed", TestConnection, NULL,
+              setup_connection, test_connection_socket_client_failed, teardown_connection);
 
   g_test_add_func ("/tls/backend/default-database-is-singleton",
                    test_default_database_is_singleton);
