@@ -1,3 +1,14 @@
+2.29.92
+=======
+  * New/updated translations:
+	Belarusian, Tamil, Japanese
+
+  * gnutls: Fixed a problem when linking against GNUTLS 3.0, where
+    connections would sometimes return the error "The TLS connection
+    was non-properly terminated". (Dan Winship, #659233)
+
+  * gnutls: Plugged a few memory leaks (Dan Winship)
+
 2.29.18
 =======
   * gnutls: fixed two rehandshaking bugs; one in which a client
