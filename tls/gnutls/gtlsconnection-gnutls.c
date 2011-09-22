@@ -1264,7 +1264,7 @@ g_tls_connection_gnutls_close_async (GIOStream           *stream,
 
   acd = g_slice_new (AsyncCloseData);
   acd->simple = simple;
-  acd->cancellable = g_object_ref (cancellable);
+  acd->cancellable = cancellable ? g_object_ref (cancellable) : cancellable;
   acd->io_priority = io_priority;
 
   if (success)
