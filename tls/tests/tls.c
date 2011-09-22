@@ -1088,6 +1088,8 @@ main (int   argc,
   g_type_init ();
   g_test_init (&argc, &argv, NULL);
 
+  g_setenv ("GIO_EXTRA_MODULES", GNUTLS_MODULE_DIR, TRUE);
+
   /* Use the gnutls database */
   if (!g_getenv ("GIO_USE_TLS"))
       g_setenv ("GIO_USE_TLS", "gnutls", TRUE);
