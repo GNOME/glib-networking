@@ -1,0 +1,92 @@
+# Thai translation for glib-networking.
+# Copyright (C) 2011 Free Software Foundation, Inc.
+# This file is distributed under the same license as the glib-networking package.
+# Unticha Pramgoed <unticha@gmail.com>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2011-09-23 07:39+0000\n"
+"PO-Revision-Date: 2011-09-24 13:17+0700\n"
+"Last-Translator: Unticha Pramgoed <unticha@gmail.com>\n"
+"Language-Team: th <thai-l10n@googlegroups.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: UTF-8\n"
+"\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:151
+msgid "Proxy resolver internal error."
+msgstr "เกิดข้อผิดพลาดภายในของบริการเปิดหาพร็อกซี"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "ไม่สามารถแจงใบรับรอง DER: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "ไม่สามารถแจงใบรับรอง PEM: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "ไม่สามารถแจงกุญแจส่วนตัว DER: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "ไม่สามารถแจงกุญแจส่วนตัว PEM: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+msgid "No certificate data provided"
+msgstr "ไม่มีข้อมูลใบรับรอง"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:386
+msgid "Server required TLS certificate"
+msgstr "เซิร์ฟเวอร์ต้องการใบรับรอง TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "ไม่สามารถสร้างการเชื่อมต่อ TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:529
+msgid "Peer failed to perform TLS handshake"
+msgstr "อีกฝ่ายหนึ่งดำเนินการ TLS handshake ไม่สำเร็จ"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:547
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "อีกฝ่ายหนึ่งร้องขอ TLS rehandshake ไม่ถูกต้อง"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:565
+msgid "TLS connection closed unexpectedly"
+msgstr "การเชื่อมต่อ TLS ปิดอย่างกะทันหัน"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:859
+#: ../tls/gnutls/gtlsconnection-gnutls.c:885
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "เกิดข้อผิดพลาดขณะดำเนินการ TLS handshake: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:924
+msgid "Unacceptable TLS certificate"
+msgstr "ใบรับรอง TLS ไม่เป็นที่ยอมรับ"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1073
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "เกิดข้อผิดพลาดขณะอ่านข้อมูลจากซ็อกเก็ต TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "เกิดข้อผิดพลาดขณะเขียนข้อมูลลงซ็อกเก็ต TLS: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1145
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "เกิดข้อผิดพลาดขณะดำเนินการปิด TLS: %s"
