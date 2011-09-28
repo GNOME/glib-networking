@@ -31,7 +31,6 @@
 #include "gtlsinputstream-gnutls.h"
 #include "gtlsoutputstream-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
-#include "gnutls-marshal.h"
 #include <glib/gi18n-lib.h>
 
 static void g_tls_connection_gnutls_get_property (GObject    *object,
@@ -722,7 +721,7 @@ static GSourceFuncs gnutls_source_funcs =
   gnutls_source_dispatch,
   gnutls_source_finalize,
   (GSourceFunc)g_tls_connection_gnutls_source_closure_callback,
-  (GSourceDummyMarshal)_gnutls_marshal_BOOLEAN__VOID,
+  (GSourceDummyMarshal)g_cclosure_marshal_generic
 };
 
 GSource *

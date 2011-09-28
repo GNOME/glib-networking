@@ -2,19 +2,8 @@ include $(top_srcdir)/Makefile.decl
 
 giomodule_LTLIBRARIES = libgiognutls.la
 
-gnutls-marshal.h: gnutls-marshal.list
-	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=_gnutls_marshal $(srcdir)/gnutls-marshal.list --header --internal > $@.tmp && \
-	  mv $@.tmp $@
-
-gnutls-marshal.c: gnutls-marshal.h gnutls-marshal.list
-	$(AM_V_GEN) (echo "#include \"gnutls-marshal.h\""; \
-	$(GLIB_GENMARSHAL) --prefix=_gnutls_marshal $(srcdir)/gnutls-marshal.list --body --internal) > $@.tmp && \
-	  mv $@.tmp $@
-
 libgiognutls_la_SOURCES = 		\
 	gnutls-module.c			\
-	gnutls-marshal.c		\
-	gnutls-marshal.h		\
 	gtlsbackend-gnutls.c		\
 	gtlsbackend-gnutls.h		\
 	gtlscertificate-gnutls.c	\
@@ -35,8 +24,6 @@ libgiognutls_la_SOURCES = 		\
 	gtlsserverconnection-gnutls.h	\
 	$(NULL)
 
-$(libgiognutls_la_OBJECTS): gnutls-marshal.h
-
 INCLUDES +=				\
 	$(LIBGNUTLS_CFLAGS)		\
 	$(LIBGCRYPT_CFLAGS)		\
@@ -48,13 +35,3 @@ libgiognutls_la_LIBADD =		\
 	$(GNUTLS_LIBS)			\
 	$(LIBGCRYPT_LIBS)		\
 	$(NULL)
-
-BUILT_SOURCES = 		\
-	gnutls-marshal.h	\
-	gnutls-marshal.c
-
-EXTRA_DIST += 			\
-	gnutls-marshal.list
-
-CLEANFILES = 			\
-	$(BUILT_SOURCES)
