@@ -1,9 +1,6 @@
-NULL =
-
 include $(top_srcdir)/Makefile.decl
 
-INCLUDES =					\
-	$(GLIB_CFLAGS)				\
+INCLUDES +=					\
 	$(GSETTINGS_DESKTOP_SCHEMAS_CFLAGS)	\
 	-I$(top_srcdir)/proxy			\
 	-DSRCDIR=\""$(srcdir)"\"		\

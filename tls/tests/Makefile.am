@@ -1,9 +1,6 @@
-NULL =
-
 include $(top_srcdir)/Makefile.decl
 
-INCLUDES =					\
-	$(GLIB_CFLAGS)				\
+INCLUDES +=					\
 	-I$(top_srcdir)/tls			\
 	-DSRCDIR=\""$(srcdir)"\"		\
 	-DGNUTLS_MODULE_DIR=\""$(top_builddir)/tls/gnutls/.libs"\"
