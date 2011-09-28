@@ -7,9 +7,9 @@ AC_CONFIG_SRCDIR([proxy/libproxy/glibproxyresolver.h])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Other initialization
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([1.11 no-dist-gzip dist-xz -Wno-portability])
 AM_MAINTAINER_MODE([enable])
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],)
+AM_SILENT_RULES([yes])
 LT_INIT
 
 dnl Checks for programs.
