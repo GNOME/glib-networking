@@ -36,9 +36,10 @@ proxy/libproxy/org.gtk.GLib.PACRunner.service
 proxy/tests/gnome
 proxy/tests/libproxy
 
-/tls/tests/certificate
-/tls/tests/file-database
-/tls/tests/connection
+/tls/tests/certificate-*
+/tls/tests/connection-*
+/tls/tests/file-database-*
+
 /tls/tests/pkcs11
 /tls/tests/pkcs11-array
 /tls/tests/pkcs11-pin

@@ -165,7 +165,16 @@ on_server_close_finish (GObject        *object,
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
   if (test->expect_server_error)
-    g_assert (error != NULL);
+    {
+      if (error)
+	{
+#if GLIB_CHECK_VERSION (2, 35, 3)
+	  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE);
+#else
+	  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+#endif
+	}
+    }
   else
     g_assert_no_error (error);
   test->server_closed = TRUE;
@@ -464,9 +473,9 @@ on_notify_accepted_cas (GObject *obj,
                         GParamSpec *spec,
                         gpointer user_data)
 {
-  gboolean *changed = user_data;
-  g_assert (*changed == FALSE);
-  *changed = TRUE;
+  gint *changed = user_data;
+
+  (*changed)++;
 }
 
 static void
@@ -477,7 +486,8 @@ test_client_auth_connection (TestConnection *test,
   GError *error = NULL;
   GTlsCertificate *cert;
   GTlsCertificate *peer;
-  gboolean cas_changed;
+  gboolean rehandshaking = test->rehandshake;
+  gint cas_changed;
 
   test->database = g_tls_file_database_new (TEST_FILE ("ca-roots.pem"), &error);
   g_assert_no_error (error);
@@ -500,7 +510,7 @@ test_client_auth_connection (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
 
-  cas_changed = FALSE;
+  cas_changed = 0;
   g_signal_connect (test->client_connection, "notify::accepted-cas",
                     G_CALLBACK (on_notify_accepted_cas), &cas_changed);
 
@@ -513,7 +523,10 @@ test_client_auth_connection (TestConnection *test,
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
   g_assert (peer != NULL);
   g_assert (g_tls_certificate_is_same (peer, cert));
-  g_assert (cas_changed == TRUE);
+  if (rehandshaking)
+    g_assert_cmpint (cas_changed, <=, 2); /* FIXME: gnutls/nss inconsistency */
+  else
+    g_assert_cmpint (cas_changed, ==, 1);
 
   g_object_unref (cert);
 }
@@ -640,7 +653,9 @@ test_failed_connection (TestConnection *test,
   g_main_loop_run (test->loop);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
-  g_assert_no_error (test->server_error);
+  /* FIXME: gnutls/nss inconsistency */
+  if (test->server_error)
+    g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_HANDSHAKE);
 }
 
 static void
@@ -1070,8 +1085,9 @@ main (int   argc,
   g_test_bug_base ("http://bugzilla.gnome.org/");
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
-  g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/tls/gnutls/.libs", TRUE);
-  g_setenv ("GIO_USE_TLS", "gnutls", TRUE);
+  g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/tls/" BACKEND "/.libs", TRUE);
+  g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
+  g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
   g_test_add ("/tls/connection/basic", TestConnection, NULL,
               setup_connection, test_basic_connection, teardown_connection);

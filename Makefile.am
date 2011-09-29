@@ -23,6 +23,13 @@ endif
 
 if HAVE_GNUTLS
 SUBDIRS += tls/gnutls
+endif
+
+if HAVE_NSS
+SUBDIRS += tls/nss
+endif
+
+if HAVE_TLS
 SUBDIRS += tls/tests
 endif
 
