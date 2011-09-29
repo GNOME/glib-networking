@@ -92,7 +92,7 @@ build_certificate_chain (GTlsDatabaseGnutls      *self,
       g_tls_certificate_gnutls_set_issuer (certificate, NULL);
       return STATUS_PINNED;
     }
-  else if(*error)
+  else if (*error)
     {
       return STATUS_FAILURE;
     }
@@ -102,7 +102,21 @@ build_certificate_chain (GTlsDatabaseGnutls      *self,
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         return STATUS_FAILURE;
 
-      /* Was the last certificate self-signed? */
+      /* Look up whether this certificate is an anchor */
+      if (g_tls_database_gnutls_lookup_assertion (self, certificate,
+                                                  G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE,
+                                                  purpose, identity, cancellable, error))
+        {
+          g_tls_certificate_gnutls_set_issuer (certificate, NULL);
+          *anchor = certificate;
+          return STATUS_ANCHORED;
+        }
+      else if (*error)
+        {
+          return STATUS_FAILURE;
+        }
+
+      /* Is it self-signed? */
       if (is_self_signed (certificate))
         {
           g_tls_certificate_gnutls_set_issuer (certificate, NULL);
@@ -135,20 +149,6 @@ build_certificate_chain (GTlsDatabaseGnutls      *self,
 
       g_assert (issuer);
       certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
-
-      /* Now look up whether this certificate is an anchor */
-      if (g_tls_database_gnutls_lookup_assertion (self, certificate,
-                                                  G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE,
-                                                  purpose, identity, cancellable, error))
-        {
-          g_tls_certificate_gnutls_set_issuer (certificate, NULL);
-          *anchor = certificate;
-          return STATUS_ANCHORED;
-        }
-      else if (*error)
-        {
-          return STATUS_FAILURE;
-        }
     }
 
   g_assert_not_reached ();
