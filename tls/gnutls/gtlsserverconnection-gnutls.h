@@ -1,4 +1,4 @@
-/* GIO - GLib ServerConnection, Output and Gnutlsing Library
+/* GIO - GLib Input, Output and Streaming Library
  *
  * Copyright © 2010 Red Hat, Inc.
  *

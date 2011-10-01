@@ -1,4 +1,4 @@
-/* GIO - GLib Certificate, Output and Gnutlsing Library
+/* GIO - GLib Input, Output and Streaming Library
  *
  * Copyright © 2009 Red Hat, Inc.
  *
