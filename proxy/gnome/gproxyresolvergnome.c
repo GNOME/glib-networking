@@ -507,7 +507,7 @@ g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
 			       GError         **error)
 {
   GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (proxy_resolver);
-  GSocketConnectable *addr;
+  GSocketConnectable *addr = NULL;
   const gchar *scheme = NULL, *host = NULL;
   const gchar *proxy = "direct://";
   gchar **proxies = NULL;
