@@ -11,6 +11,6 @@ noinst_PROGRAMS = $(TEST_PROGS)
 LDADD  = \
 	$(GLIB_LIBS)
 
-TEST_PROGS +=		\
-	gnome		\
-	$(NULL)
+if HAVE_GNOME_PROXY
+TEST_PROGS += gnome
+endif
