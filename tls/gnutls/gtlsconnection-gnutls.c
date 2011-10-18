@@ -520,6 +520,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       if (g_error_matches (gnutls->priv->error, G_IO_ERROR, G_IO_ERROR_FAILED) ||
 	  status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
 	  status == GNUTLS_E_FATAL_ALERT_RECEIVED ||
+	  status == GNUTLS_E_DECRYPTION_FAILED ||
 	  status == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
 	{
 	  g_clear_error (&gnutls->priv->error);
