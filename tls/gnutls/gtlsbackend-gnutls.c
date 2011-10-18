@@ -98,6 +98,14 @@ static struct gcry_thread_cbs gtls_gcry_threads_win32 = {		 \
 
 #endif
 
+#ifdef GTLS_GNUTLS_DEBUG
+static void
+gtls_log_func (int level, const char *msg)
+{
+  g_print ("GTLS: %s", msg);
+}
+#endif
+
 static gpointer
 gtls_gnutls_init (gpointer data)
 {
@@ -107,6 +115,11 @@ gtls_gnutls_init (gpointer data)
   gcry_control (GCRYCTL_SET_THREAD_CBS, &gtls_gcry_threads_win32);
 #endif
   gnutls_global_init ();
+
+#ifdef GTLS_GNUTLS_DEBUG
+  gnutls_global_set_log_function (gtls_log_func);
+  gnutls_global_set_log_level (9);
+#endif
 
   /* Leak the module to keep it from being unloaded. */
   g_type_plugin_use (g_type_get_plugin (G_TYPE_TLS_BACKEND_GNUTLS));
