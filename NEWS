@@ -1,3 +1,16 @@
+2.30.1
+======
+  * Fixed a crash when passing a NULL GCancellable to
+    g_tls_connection_close_async() (Dan, #659786)
+
+  * Fixed ignore_hosts handling in GProxyResolverGnome (Dan, #655581)
+
+  * Fixed handling of self-signed CA certificates in
+    GTlsDatabaseGnutls (Dan, #660508)
+
+  * New translations:
+	Telugu
+
 2.30.0
 ======
   * Updated translation:
