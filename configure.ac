@@ -66,7 +66,7 @@ dnl *** Checks for GNOME proxy backend ***
 dnl **************************************
 AC_ARG_WITH(gnome-proxy,
     [AC_HELP_STRING([--with-gnome-proxy],
-                    [support for GNOME proxy configuration @<:@default=check@:>@])]
+                    [support for GNOME proxy configuration @<:@default=check@:>@])],
     [],
     [with_gnome_proxy=check])
 AS_IF([test "x$with_gnome_proxy" != "xno"],
