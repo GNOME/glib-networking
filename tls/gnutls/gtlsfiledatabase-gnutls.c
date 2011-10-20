@@ -220,12 +220,14 @@ load_anchor_file (const gchar *filename,
   GByteArray *subject;
   GByteArray *issuer;
   gint gerr;
+  GError *my_error = NULL;
 
-  g_assert (error);
-
-  list = g_tls_certificate_list_new_from_file (filename, error);
-  if (*error)
-    return FALSE;
+  list = g_tls_certificate_list_new_from_file (filename, &my_error);
+  if (my_error)
+    {
+      g_propagate_error (error, my_error);
+      return FALSE;
+    }
 
   for (l = list; l; l = l->next)
     {
