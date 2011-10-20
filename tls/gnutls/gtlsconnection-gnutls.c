@@ -916,9 +916,18 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
   if (peer_certificate)
     {
-      if (!G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->verify_peer (gnutls, peer_certificate, &peer_certificate_errors))
+      gboolean accepted;
+
+      accepted = G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->verify_peer (gnutls, peer_certificate, &peer_certificate_errors);
+
+      gnutls->priv->peer_certificate = peer_certificate;
+      gnutls->priv->peer_certificate_errors = peer_certificate_errors;
+
+      g_object_notify (G_OBJECT (gnutls), "peer-certificate");
+      g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
+
+      if (!accepted)
 	{
-	  g_object_unref (peer_certificate);
 	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
 			       _("Unacceptable TLS certificate"));
 	  return FALSE;
@@ -926,19 +935,7 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
     }
 
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, ret == 0, error);
-
-  if (ret == 0)
-    {
-      gnutls->priv->peer_certificate = peer_certificate;
-      gnutls->priv->peer_certificate_errors = peer_certificate_errors;
-
-      g_object_notify (G_OBJECT (gnutls), "peer-certificate");
-      g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
-
-      return TRUE;
-    }
-  else
-    return FALSE;
+  return (ret == 0);
 }
 
 static gboolean
