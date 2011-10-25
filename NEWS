@@ -1,3 +1,42 @@
+2.31.0
+======
+  * gnutls
+	* Bumped required GNUTLS version to 2.11.0 and updated
+	  code for that (Stef, #656903)
+
+	* Fixed a crash when passing a NULL GCancellable to
+	  g_tls_connection_close_async() (Dan, #659786) or a NULL
+	  GError to g_tls_file_database_new().
+
+	* Fixed handling of self-signed CA certificates in
+	  GTlsDatabaseGnutls (Dan, #660508)
+
+	* Added another G_TLS_ERROR_NOT_TLS (aka "dumb server, try
+	  falling back from TLS to SSLv3") case, when the handshake
+	  completes but then packets after that don't decrypt
+	  correctly. (Dan, #662104)
+
+	* Made sure that GTlsConnection:peer-certificate and
+          :peer-certificate-errors get set even when the peer
+          certificate is rejected. (Dan)
+
+  * proxy/gnome
+	* Fixed ignore_hosts handling (Dan, #655581)
+
+	* Fixed configure check so that "--without-gnome-proxy" works.
+	  (Alexandre Rostovtsev, #662203)
+
+	* Fixed tests to only build the gnome proxy test if we're
+	  building the gnome proxy. (Kalev Lember, #662085)
+
+  * New translations:
+	Telugu
+
+2.30.0
+======
+  * Updated translation:
+	Thai
+
 2.29.92
 =======
   * New/updated translations:
