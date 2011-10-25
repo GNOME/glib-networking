@@ -86,7 +86,7 @@ struct _GProxyResolverGnome {
 
   GDBusProxy *pacrunner;
 
-  GMutex *lock;
+  GMutex lock;
 };
 
 static void g_proxy_resolver_gnome_iface_init (GProxyResolverInterface *iface);
@@ -129,9 +129,9 @@ gsettings_changed (GSettings   *settings,
 {
   GProxyResolverGnome *resolver = user_data;
 
-  g_mutex_lock (resolver->lock);
+  g_mutex_lock (&resolver->lock);
   resolver->need_update = TRUE;
-  g_mutex_unlock (resolver->lock);
+  g_mutex_unlock (&resolver->lock);
 }
 
 static void
@@ -172,7 +172,7 @@ g_proxy_resolver_gnome_finalize (GObject *object)
   if (resolver->pacrunner)
     g_object_unref (resolver->pacrunner);
 
-  g_mutex_free (resolver->lock);
+  g_mutex_clear (&resolver->lock);
 
   G_OBJECT_CLASS (g_proxy_resolver_gnome_parent_class)->finalize (object);
 }
@@ -180,7 +180,7 @@ g_proxy_resolver_gnome_finalize (GObject *object)
 static void
 g_proxy_resolver_gnome_init (GProxyResolverGnome *resolver)
 {
-  resolver->lock = g_mutex_new ();
+  g_mutex_init (&resolver->lock);
 
   resolver->proxy_settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
   g_signal_connect (resolver->proxy_settings, "changed",
@@ -513,10 +513,10 @@ g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
   gchar **proxies = NULL;
   gushort port;
 
-  g_mutex_lock (resolver->lock);
+  g_mutex_lock (&resolver->lock);
   if (resolver->need_update)
     update_settings (resolver);
-  g_mutex_unlock (resolver->lock);
+  g_mutex_unlock (&resolver->lock);
 
   if (resolver->mode == G_DESKTOP_PROXY_MODE_NONE)
     goto done;

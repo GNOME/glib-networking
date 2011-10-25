@@ -36,7 +36,7 @@
 
 struct _GTlsBackendGnutlsPrivate
 {
-  GMutex *mutex;
+  GMutex mutex;
   GTlsDatabase *default_database;
 };
 
@@ -141,7 +141,7 @@ g_tls_backend_gnutls_init (GTlsBackendGnutls *backend)
   g_once (&gnutls_inited, gtls_gnutls_init, NULL);
 
   backend->priv = G_TYPE_INSTANCE_GET_PRIVATE (backend, G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutlsPrivate);
-  backend->priv->mutex = g_mutex_new ();
+  g_mutex_init (&backend->priv->mutex);
 }
 
 static void
@@ -151,7 +151,7 @@ g_tls_backend_gnutls_finalize (GObject *object)
 
   if (backend->priv->default_database)
     g_object_unref (backend->priv->default_database);
-  g_mutex_free (backend->priv->mutex);
+  g_mutex_clear (&backend->priv->mutex);
 
   G_OBJECT_CLASS (g_tls_backend_gnutls_parent_class)->finalize (object);
 }
@@ -177,7 +177,7 @@ g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
   GTlsDatabase *result;
   GError *error = NULL;
 
-  g_mutex_lock (self->priv->mutex);
+  g_mutex_lock (&self->priv->mutex);
 
   if (self->priv->default_database)
     {
@@ -201,7 +201,7 @@ g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
         }
     }
 
-  g_mutex_unlock (self->priv->mutex);
+  g_mutex_unlock (&self->priv->mutex);
 
   return result;
 }
