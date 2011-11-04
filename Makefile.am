@@ -15,6 +15,10 @@ endif
 
 SUBDIRS += proxy/tests
 
+if HAVE_PKCS11
+SUBDIRS += tls/pkcs11
+endif
+
 if HAVE_GNUTLS
 SUBDIRS += tls/gnutls
 endif

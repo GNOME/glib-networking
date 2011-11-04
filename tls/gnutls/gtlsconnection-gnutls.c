@@ -30,6 +30,12 @@
 #include "gtlsinputstream-gnutls.h"
 #include "gtlsoutputstream-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
+
+#ifdef HAVE_PKCS11
+#include <p11-kit/pin.h>
+#include "pkcs11/gpkcs11pin.h"
+#endif
+
 #include <glib/gi18n-lib.h>
 
 static void g_tls_connection_gnutls_get_property (GObject    *object,
@@ -81,6 +87,14 @@ static gboolean g_tls_connection_gnutls_initable_init       (GInitable       *in
 							     GCancellable    *cancellable,
 							     GError         **error);
 
+#ifdef HAVE_PKCS11
+static P11KitPin*    on_pin_prompt_callback  (const char     *pinfile,
+                                              P11KitUri      *pin_uri,
+                                              const char     *pin_description,
+                                              P11KitPinFlags  pin_flags,
+                                              void           *callback_data);
+#endif
+
 static void g_tls_connection_gnutls_init_priorities (void);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION,
@@ -127,6 +141,7 @@ struct _GTlsConnectionGnutlsPrivate
   GOutputStream *tls_ostream;
 
   GTlsInteraction *interaction;
+  gchar *interaction_id;
 
   GError *error;
   GCancellable *cancellable;
@@ -136,6 +151,8 @@ struct _GTlsConnectionGnutlsPrivate
 #endif
   GIOCondition internal_direction;
 };
+
+static gint unique_interaction_id = 0;
 
 static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
@@ -180,6 +197,8 @@ g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface)
 static void
 g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 {
+  gint unique_id;
+
   gnutls->priv = G_TYPE_INSTANCE_GET_PRIVATE (gnutls, G_TYPE_TLS_CONNECTION_GNUTLS, GTlsConnectionGnutlsPrivate);
 
   gnutls_certificate_allocate_credentials (&gnutls->priv->creds);
@@ -190,6 +209,14 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 
   gnutls->priv->database_is_unset = TRUE;
   gnutls->priv->is_system_certdb = TRUE;
+
+  unique_id = g_atomic_int_add (&unique_interaction_id, 1);
+  gnutls->priv->interaction_id = g_strdup_printf ("gtls:%d", unique_id);
+
+#ifdef HAVE_PKCS11
+  p11_kit_pin_register_callback (gnutls->priv->interaction_id,
+                                 on_pin_prompt_callback, gnutls, NULL);
+#endif
 }
 
 static gnutls_priority_t priorities[2][2];
@@ -301,6 +328,12 @@ g_tls_connection_gnutls_finalize (GObject *object)
 
   if (connection->priv->error)
     g_error_free (connection->priv->error);
+
+#ifdef HAVE_PKCS11
+  p11_kit_pin_unregister_callback (connection->priv->interaction_id,
+                                   on_pin_prompt_callback, connection);
+#endif
+  g_free (connection->priv->interaction_id);
 
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
 }
@@ -477,18 +510,11 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (gnutls));
 
   st->cert_type = GNUTLS_CRT_X509;
-  if (cert)
-    {
-      GTlsCertificateGnutls *gnutlscert = G_TLS_CERTIFICATE_GNUTLS (cert);
+  st->ncerts = 0;
 
-      st->ncerts = 1;
-      st->cert.x509 = gnutls_malloc (sizeof (gnutls_x509_crt_t));
-      st->cert.x509[0] = g_tls_certificate_gnutls_copy_cert (gnutlscert);
-      st->key.x509 = g_tls_certificate_gnutls_copy_key (gnutlscert);
-      st->deinit_all = TRUE;
-    }
-  else
-    st->ncerts = 0;
+  if (cert)
+      g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
+                                     gnutls->priv->interaction_id, st);
 }
 
 static void
@@ -499,6 +525,8 @@ begin_gnutls_io (GTlsConnectionGnutls  *gnutls,
   gnutls->priv->blocking = blocking;
   gnutls->priv->cancellable = cancellable;
   gnutls->priv->internal_direction = 0;
+  if (cancellable)
+    g_cancellable_push_current (cancellable);
   g_clear_error (&gnutls->priv->error);
 }
 
@@ -507,6 +535,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 	       int                    status,
 	       GError               **error)
 {
+  if (gnutls->priv->cancellable)
+    g_cancellable_pop_current (gnutls->priv->cancellable);
   gnutls->priv->cancellable = NULL;
 
   if (status >= 0)
@@ -1296,3 +1326,55 @@ g_tls_connection_gnutls_close_finish (GIOStream           *stream,
 
   return g_simple_async_result_get_op_res_gboolean (simple);
 }
+
+#ifdef HAVE_PKCS11
+
+static P11KitPin*
+on_pin_prompt_callback (const char     *pinfile,
+                        P11KitUri      *pin_uri,
+                        const char     *pin_description,
+                        P11KitPinFlags  pin_flags,
+                        void           *callback_data)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (callback_data);
+  GTlsInteractionResult result;
+  GTlsPasswordFlags flags = 0;
+  GTlsPassword *password;
+  P11KitPin *pin = NULL;
+  GError *error = NULL;
+
+  if (!gnutls->priv->interaction)
+    return NULL;
+
+  if (pin_flags & P11_KIT_PIN_FLAGS_RETRY)
+    flags |= G_TLS_PASSWORD_RETRY;
+  if (pin_flags & P11_KIT_PIN_FLAGS_MANY_TRIES)
+    flags |= G_TLS_PASSWORD_MANY_TRIES;
+  if (pin_flags & P11_KIT_PIN_FLAGS_FINAL_TRY)
+    flags |= G_TLS_PASSWORD_FINAL_TRY;
+
+  password = g_pkcs11_pin_new (flags, pin_description);
+
+  result = g_tls_interaction_ask_password (gnutls->priv->interaction, password,
+                                           g_cancellable_get_current (), &error);
+
+  switch (result)
+    {
+    case G_TLS_INTERACTION_FAILED:
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("couldn't ask for password: %s", error->message);
+      pin = NULL;
+      break;
+    case G_TLS_INTERACTION_UNHANDLED:
+      pin = NULL;
+      break;
+    case G_TLS_INTERACTION_HANDLED:
+      pin = g_pkcs11_pin_steal_internal (G_PKCS11_PIN (password));
+      break;
+    }
+
+  g_object_unref (password);
+  return pin;
+}
+
+#endif /* HAVE_PKCS11 */

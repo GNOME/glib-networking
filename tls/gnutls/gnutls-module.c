@@ -22,12 +22,14 @@
 #include <gio/gio.h>
 
 #include "gtlsbackend-gnutls.h"
+#include "gtlsbackend-gnutls-pkcs11.h"
 
 
 void
 g_io_module_load (GIOModule *module)
 {
   g_tls_backend_gnutls_register (module);
+  g_tls_backend_gnutls_pkcs11_register (module);
 }
 
 void

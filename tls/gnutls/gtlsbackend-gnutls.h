@@ -32,6 +32,9 @@ typedef struct _GTlsBackendGnutlsPrivate GTlsBackendGnutlsPrivate;
 struct _GTlsBackendGnutlsClass
 {
   GObjectClass parent_class;
+
+  GTlsDatabase*   (*create_database)      (GTlsBackendGnutls          *self,
+                                           GError                    **error);
 };
 
 struct _GTlsBackendGnutls

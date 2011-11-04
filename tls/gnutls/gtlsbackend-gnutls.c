@@ -156,11 +156,23 @@ g_tls_backend_gnutls_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_backend_gnutls_parent_class)->finalize (object);
 }
 
+static GTlsDatabase*
+g_tls_backend_gnutls_real_create_database (GTlsBackendGnutls  *self,
+                                           GError            **error)
+{
+  const gchar *anchor_file = NULL;
+#ifdef GTLS_SYSTEM_CA_FILE
+  anchor_file = GTLS_SYSTEM_CA_FILE;
+#endif
+  return g_tls_file_database_new (anchor_file, error);
+}
+
 static void
 g_tls_backend_gnutls_class_init (GTlsBackendGnutlsClass *backend_class)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (backend_class);
   gobject_class->finalize = g_tls_backend_gnutls_finalize;
+  backend_class->create_database = g_tls_backend_gnutls_real_create_database;
   g_type_class_add_private (backend_class, sizeof (GTlsBackendGnutlsPrivate));
 }
 
@@ -173,7 +185,6 @@ static GTlsDatabase*
 g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
 {
   GTlsBackendGnutls *self = G_TLS_BACKEND_GNUTLS (backend);
-  const gchar *anchor_file = NULL;
   GTlsDatabase *result;
   GError *error = NULL;
 
@@ -185,10 +196,8 @@ g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
     }
   else
     {
-#ifdef GTLS_SYSTEM_CA_FILE
-      anchor_file = GTLS_SYSTEM_CA_FILE;
-#endif
-      result = g_tls_file_database_new (anchor_file, &error);
+      g_assert (G_TLS_BACKEND_GNUTLS_GET_CLASS (self)->create_database);
+      result = G_TLS_BACKEND_GNUTLS_GET_CLASS (self)->create_database (self, &error);
       if (error)
         {
           g_warning ("couldn't load TLS file database: %s",
@@ -197,6 +206,7 @@ g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
         }
       else
         {
+          g_assert (result);
           self->priv->default_database = g_object_ref (result);
         }
     }

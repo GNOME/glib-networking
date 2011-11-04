@@ -82,19 +82,22 @@ dnl *** Checks for GNUTLS     ***
 dnl *****************************
 
 GNUTLS_MIN_REQUIRED=2.11.0
+GNUTLS_MIN_PKCS11=2.12.8
 
 AC_ARG_WITH(gnutls,
     [AC_HELP_STRING([--with-gnutls],
                     [support for GNUTLS @<:@default=yes@:>@])],
     [],
     [with_gnutls=yes])
-AS_IF([test "x$with_gnutls" != "xno"],
-    [PKG_CHECK_MODULES(GNUTLS, [gnutls >= $GNUTLS_MIN_REQUIRED],
-        [with_gnutls=yes
-	 tls_support=gnutls
-	 AM_PATH_LIBGCRYPT([])],
-        [AS_IF([test "x$with_gnutls" = "xyes"],
-               [AC_MSG_FAILURE("$GNUTLS_PKG_ERRORS")])])])
+if test "x$with_gnutls" != "xno"; then
+	PKG_CHECK_MODULES(GNUTLS,
+	                  [gnutls >= $GNUTLS_MIN_REQUIRED],
+	                  [with_gnutls=yes
+	                   tls_support="${tls_support}gnutls "
+	                   AM_PATH_LIBGCRYPT([])],
+	                  [AS_IF([test "x$with_gnutls" = "xyes"],
+	                         [AC_MSG_FAILURE("$GNUTLS_PKG_ERRORS")])])
+fi
 AM_CONDITIONAL(HAVE_GNUTLS, [test "x$with_gnutls" = "xyes"])
 AC_SUBST(GNUTLS_CFLAGS)
 AC_SUBST(GNUTLS_LIBS)
@@ -123,6 +126,32 @@ if test "x$with_gnutls" = "xyes"; then
         AC_DEFINE_UNQUOTED(GTLS_SYSTEM_CA_FILE, ["$with_ca_certificates"], [The system TLS CA list])
     fi
 fi
+
+dnl *****************************
+dnl *** Checks for pkcs11    ***
+dnl *****************************
+
+P11_KIT_REQUIRED=0.8
+
+AC_ARG_WITH(pkcs11,
+	[AC_HELP_STRING([--with-pkcs11],
+	                [support for pkcs11 @<:@default=check@:>@])],
+	                [],
+	                [with_pkcs11=check])
+if test "x$with_pkcs11" != "xno"; then
+	PKG_CHECK_MODULES(PKCS11,
+	                  [p11-kit-1 >= $P11_KIT_REQUIRED gnutls >= $GNUTLS_MIN_PKCS11],
+	                  [with_pkcs11=yes
+	                   pkcs11_support=p11-kit
+	                   tls_support="${tls_support}gnutls-pkcs11 "
+	                   AC_DEFINE_UNQUOTED([HAVE_PKCS11], [1], [Building with PKCS#11 support])],
+	                  [AS_IF([test "x$with_pkcs11" = "xyes"],
+	                         [AC_MSG_FAILURE("$PKCS11_PKG_ERRORS")])
+	                   pkcs11_support=no])
+fi
+AM_CONDITIONAL(HAVE_PKCS11, [test "x$with_pkcs11" = "xyes"])
+AC_SUBST(PKCS11_CFLAGS)
+AC_SUBST(PKCS11_LIBS)
 
 dnl ************************************
 dnl *** Enable lcov coverage reports ***
@@ -209,15 +238,17 @@ AC_CONFIG_FILES([Makefile
                  proxy/gnome/Makefile
                  proxy/tests/Makefile
                  tls/gnutls/Makefile
+                 tls/pkcs11/Makefile
                  tls/tests/Makefile
                 ])
 AC_OUTPUT
 
 echo ""
-echo "  Proxy support: ${proxy_support:-no}"
-echo "  TLS support:   ${tls_support:-no}"
+echo     "  Proxy support:     ${proxy_support:-no}"
+echo     "  TLS support:       ${tls_support:-no}"
 if test "$tls_support" != "no"; then
-    echo "  TLS CA file:   ${with_ca_certificates:-(none)}"
+    echo "  PKCS#11 Support:   $pkcs11_support"
+    echo "  TLS CA file:       ${with_ca_certificates:-(none)}"
     if test -n "$with_ca_certificates"; then
 	if ! test -f "$with_ca_certificates"; then
 	    AC_MSG_WARN([Specified certificate authority file '$with_ca_certificates' does not exist])
