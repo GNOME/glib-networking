@@ -148,6 +148,8 @@ if test "x$with_pkcs11" != "xno"; then
 	                  [AS_IF([test "x$with_pkcs11" = "xyes"],
 	                         [AC_MSG_FAILURE("$PKCS11_PKG_ERRORS")])
 	                   pkcs11_support=no])
+else
+	pkcs11_support=no
 fi
 AM_CONDITIONAL(HAVE_PKCS11, [test "x$with_pkcs11" = "xyes"])
 AC_SUBST(PKCS11_CFLAGS)
