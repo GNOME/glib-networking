@@ -38,22 +38,20 @@ libgiognutls_la_SOURCES = 		\
 	gtlsdatabase-gnutls.h		\
 	gtlsfiledatabase-gnutls.c	\
 	gtlsfiledatabase-gnutls.h	\
-	gtlsinputstream-gnutls.c	\
-	gtlsinputstream-gnutls.h	\
-	gtlsoutputstream-gnutls.c	\
-	gtlsoutputstream-gnutls.h	\
 	gtlsserverconnection-gnutls.c	\
 	gtlsserverconnection-gnutls.h	\
 	$(P11_SRCS) 			\
 	$(NULL)
 
 INCLUDES +=				\
+	-I$(top_srcdir)/tls/base	\
 	$(P11_CFLAGS)			\
 	$(GNUTLS_CFLAGS)		\
 	$(NULL)
 
 libgiognutls_la_LDFLAGS = $(module_flags)
 libgiognutls_la_LIBADD =		\
+	../base/libtlsbase.la		\
 	$(P11_LIBADD)			\
 	$(GLIB_LIBS)			\
 	$(GNUTLS_LIBS)			\

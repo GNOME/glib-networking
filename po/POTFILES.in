@@ -1,4 +1,5 @@
 proxy/libproxy/glibproxyresolver.c
+tls/base/gtlsconnection-base.c
 tls/gnutls/gtlscertificate-gnutls.c
 tls/gnutls/gtlsclientconnection-gnutls.c
 tls/gnutls/gtlsconnection-gnutls.c

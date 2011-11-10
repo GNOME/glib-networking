@@ -25,6 +25,7 @@
 #include <gnutls/x509.h>
 #include <string.h>
 
+#include "gtlsconnection-base.h"
 #include "gtlsclientconnection-gnutls.h"
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
@@ -60,7 +61,6 @@ struct _GTlsClientConnectionGnutlsPrivate
 
   GBytes *session_id;
 
-  gboolean cert_requested;
   GPtrArray *accepted_cas;
 };
 
@@ -238,11 +238,12 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
 						  gnutls_retr2_st             *st)
 {
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
+  GTlsConnectionBase *tls = gnutls_transport_get_ptr (session);
   GPtrArray *accepted_cas;
   GByteArray *dn;
   int i;
 
-  gnutls->priv->cert_requested = TRUE;
+  tls->certificate_requested = TRUE;
 
   accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
   for (i = 0; i < nreqs; i++)
@@ -270,10 +271,12 @@ g_tls_client_connection_gnutls_failed (GTlsConnectionGnutls *conn)
     g_tls_backend_gnutls_remove_session (GNUTLS_CLIENT, gnutls->priv->session_id);
 }
 
-static void
-g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
+static GTlsConnectionBaseStatus
+g_tls_client_connection_gnutls_handshake (GTlsConnectionBase  *tls,
+					  GCancellable        *cancellable,
+					  GError             **error)
 {
-  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
 
   /* Try to get a cached session */
   if (gnutls->priv->session_id)
@@ -283,38 +286,33 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
       session_data = g_tls_backend_gnutls_lookup_session (GNUTLS_CLIENT, gnutls->priv->session_id);
       if (session_data)
 	{
-	  gnutls_session_set_data (g_tls_connection_gnutls_get_session (conn),
+	  gnutls_session_set_data (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
 				   g_bytes_get_data (session_data, NULL),
 				   g_bytes_get_size (session_data));
 	  g_bytes_unref (session_data);
 	}
     }
 
-  gnutls->priv->cert_requested = FALSE;
+  return G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->
+    handshake (tls, cancellable, error);
 }
 
-static void
-g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
-						 GError               **inout_error)
+static GTlsConnectionBaseStatus
+g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
+						   GError             **error)
 {
-  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
+  GTlsConnectionBaseStatus status;
 
-  g_assert (inout_error != NULL);
-
-  if (g_error_matches (*inout_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS) &&
-      gnutls->priv->cert_requested)
-    {
-      g_clear_error (inout_error);
-      g_set_error_literal (inout_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
-			   _("Server required TLS certificate"));
-    }
+  status = G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->
+    complete_handshake (tls, error);
 
   if (gnutls->priv->session_id)
     {
       gnutls_datum session_datum;
 
-      if (!*inout_error &&
-	  gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (conn),
+      if (status == G_TLS_CONNECTION_BASE_OK &&
+	  gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
 				    &session_datum) == 0)
 	{
 	  GBytes *session_data = g_bytes_new_with_free_func (session_datum.data, session_datum.size,
@@ -327,13 +325,16 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
       else
 	g_tls_backend_gnutls_remove_session (GNUTLS_CLIENT, gnutls->priv->session_id);
     }
+
+  return status;
 }
 
 static void
 g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
+  GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
+  GTlsConnectionGnutlsClass *gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
   g_type_class_add_private (klass, sizeof (GTlsClientConnectionGnutlsPrivate));
 
@@ -342,9 +343,10 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
   gobject_class->constructed  = g_tls_client_connection_gnutls_constructed;
   gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
 
-  connection_gnutls_class->failed           = g_tls_client_connection_gnutls_failed;
-  connection_gnutls_class->begin_handshake  = g_tls_client_connection_gnutls_begin_handshake;
-  connection_gnutls_class->finish_handshake = g_tls_client_connection_gnutls_finish_handshake;
+  base_class->handshake          = g_tls_client_connection_gnutls_handshake;
+  base_class->complete_handshake = g_tls_client_connection_gnutls_complete_handshake;
+
+  gnutls_class->failed      = g_tls_client_connection_gnutls_failed;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");

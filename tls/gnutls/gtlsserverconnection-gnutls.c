@@ -163,10 +163,12 @@ g_tls_server_connection_gnutls_failed (GTlsConnectionGnutls *conn)
   gnutls_db_remove_session (g_tls_connection_gnutls_get_session (conn));
 }
 
-static void
-g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
+static GTlsConnectionBaseStatus
+g_tls_server_connection_gnutls_handshake (GTlsConnectionBase  *tls,
+					  GCancellable        *cancellable,
+					  GError             **error)
 {
-  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (conn);
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (tls);
   gnutls_session_t session;
   gnutls_certificate_request_t req_mode;
 
@@ -183,14 +185,11 @@ g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
       break;
     }
 
-  session = g_tls_connection_gnutls_get_session (conn);
+  session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls));
   gnutls_certificate_server_set_request (session, req_mode);
-}
 
-static void
-g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
-						 GError               **inout_error)
-{
+  return G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_gnutls_parent_class)->
+    handshake (tls, cancellable, error);
 }
 
 /* Session cache management */
@@ -255,16 +254,17 @@ static void
 g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
+  GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
+  GTlsConnectionGnutlsClass *gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
   g_type_class_add_private (klass, sizeof (GTlsServerConnectionGnutlsPrivate));
 
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 
-  connection_gnutls_class->failed           = g_tls_server_connection_gnutls_failed;
-  connection_gnutls_class->begin_handshake  = g_tls_server_connection_gnutls_begin_handshake;
-  connection_gnutls_class->finish_handshake = g_tls_server_connection_gnutls_finish_handshake;
+  base_class->handshake       = g_tls_server_connection_gnutls_handshake;
+
+  gnutls_class->failed        = g_tls_server_connection_gnutls_failed;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }

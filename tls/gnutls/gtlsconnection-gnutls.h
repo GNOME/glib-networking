@@ -16,6 +16,8 @@
 #include <gio/gio.h>
 #include <gnutls/gnutls.h>
 
+#include "gtlsconnection-base.h"
+
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CONNECTION_GNUTLS            (g_tls_connection_gnutls_get_type ())
@@ -31,18 +33,14 @@ typedef struct _GTlsConnectionGnutls                          GTlsConnectionGnut
 
 struct _GTlsConnectionGnutlsClass
 {
-  GTlsConnectionClass parent_class;
+  GTlsConnectionBaseClass parent_class;
 
   void     (*failed)           (GTlsConnectionGnutls  *gnutls);
-
-  void     (*begin_handshake)  (GTlsConnectionGnutls  *gnutls);
-  void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
-				GError               **inout_error);
 };
 
 struct _GTlsConnectionGnutls
 {
-  GTlsConnection parent_instance;
+  GTlsConnectionBase parent_instance;
   GTlsConnectionGnutlsPrivate *priv;
 };
 
@@ -52,25 +50,6 @@ gnutls_certificate_credentials g_tls_connection_gnutls_get_credentials (GTlsConn
 gnutls_session                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
 void                           g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
                                                                         gnutls_retr2_st      *st);
-
-gssize   g_tls_connection_gnutls_read          (GTlsConnectionGnutls  *gnutls,
-						void                  *buffer,
-						gsize                  size,
-						gboolean               blocking,
-						GCancellable          *cancellable,
-						GError               **error);
-gssize   g_tls_connection_gnutls_write         (GTlsConnectionGnutls  *gnutls,
-						const void            *buffer,
-						gsize                  size,
-						gboolean               blocking,
-						GCancellable          *cancellable,
-						GError               **error);
-
-gboolean g_tls_connection_gnutls_check         (GTlsConnectionGnutls  *gnutls,
-						GIOCondition           condition);
-GSource *g_tls_connection_gnutls_create_source (GTlsConnectionGnutls  *gnutls,
-						GIOCondition           condition,
-						GCancellable          *cancellable);
 
 G_END_DECLS
 

@@ -240,6 +240,7 @@ AC_CONFIG_FILES([Makefile
                  proxy/libproxy/Makefile
                  proxy/gnome/Makefile
                  proxy/tests/Makefile
+                 tls/base/Makefile
                  tls/gnutls/Makefile
                  tls/pkcs11/Makefile
                  tls/tests/Makefile
