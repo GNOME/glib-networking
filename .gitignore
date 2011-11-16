@@ -37,14 +37,8 @@ proxy/tests/gnome
 
 /tls/tests/certificate
 /tls/tests/connection
-/tls/tests/tls
 /tls/tests/pkcs11
 /tls/tests/pkcs11-array
 /tls/tests/pkcs11-pin
 /tls/tests/pkcs11-slot
 /tls/tests/pkcs11-util
-/tls/tests/tls-gnutls
-/tls/tests/tls-gnutls-pkcs11
-
-/tls/pkcs11/gpkcs11marshal.c
-/tls/pkcs11/gpkcs11marshal.h

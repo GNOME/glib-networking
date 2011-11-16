@@ -10,9 +10,6 @@ noinst_PROGRAMS = $(TEST_PROGS)
 LDADD  = \
 	$(GLIB_LIBS)
 
-TEST_ENVIRONMENT =   \
-	GIO_EXTRA_MODULES=$(top_builddir)/tls/gnutls/.libs
-
 TEST_PROGS +=         \
 	certificate   \
 	connection    \

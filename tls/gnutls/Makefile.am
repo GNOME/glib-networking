@@ -4,18 +4,19 @@ giomodule_LTLIBRARIES = libgiognutls.la
 
 if HAVE_PKCS11
 P11_SRCS = \
-	gtlsbackend-gnutls-pkcs11.c \
-	gtlsbackend-gnutls-pkcs11.h \
-	gtlscertificate-gnutls-pkcs11.c \
-	gtlscertificate-gnutls-pkcs11.h \
+	gtlsbackend-gnutls-pkcs11.c	\
+	gtlsbackend-gnutls-pkcs11.h	\
+	gtlscertificate-gnutls-pkcs11.c	\
+	gtlscertificate-gnutls-pkcs11.h	\
 	gtlsdatabase-gnutls-pkcs11.c	\
 	gtlsdatabase-gnutls-pkcs11.h	\
 	$(NULL)
-P11_LIBADD = \
+P11_LIBADD =				\
 	$(top_builddir)/tls/pkcs11/libgiopkcs11.la \
-	$(PKCS11_LIBS) \
+	$(PKCS11_LIBS)			\
 	$(NULL)
-P11_CFLAGS = \
+P11_CFLAGS =				\
+	-I$(top_srcdir)/tls/		\
 	$(PKCS11_CFLAGS)
 else
 P11_SRCS =
@@ -47,13 +48,9 @@ libgiognutls_la_SOURCES = 		\
 	$(NULL)
 
 INCLUDES +=				\
-	-DG_LOG_DOMAIN=\"GLib-Net\"	\
-	$(GLIB_CFLAGS)			\
 	$(P11_CFLAGS)			\
 	$(LIBGNUTLS_CFLAGS)		\
 	$(LIBGCRYPT_CFLAGS)		\
-	-DG_DISABLE_DEPRECATED		\
-	-I$(top_srcdir)/tls/		\
 	$(NULL)
 
 libgiognutls_la_LDFLAGS = $(module_flags)

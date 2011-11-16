@@ -3,7 +3,7 @@ include $(top_srcdir)/Makefile.decl
 noinst_LTLIBRARIES = \
 	libgiopkcs11.la
 
-libgiopkcs11_la_SOURCES = 		\
+libgiopkcs11_la_SOURCES =			\
 	gpkcs11array.c				\
 	gpkcs11array.h				\
 	gpkcs11pin.c				\
@@ -12,14 +12,9 @@ libgiopkcs11_la_SOURCES = 		\
 	gpkcs11slot.h				\
 	gpkcs11util.c				\
 	gpkcs11util.h				\
-	pkcs11-trust-assertions.h 	\
+	pkcs11-trust-assertions.h		\
 	$(NULL)
 
-libgiopkcs11_la_CFLAGS = \
-	-DG_LOG_DOMAIN=\"GLib-Net\"	\
-	$(GLIB_CFLAGS)			\
+INCLUDES +=					\
 	$(PKCS11_CFLAGS)			\
 	-DG_DISABLE_DEPRECATED
-
-CLEANFILES = 			\
-	$(BUILT_SOURCES)
