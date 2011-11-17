@@ -492,6 +492,7 @@ main (int   argc,
   g_type_init ();
   g_test_init (&argc, &argv, NULL);
 
+  g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/tls/gnutls/.libs", TRUE);
   g_setenv ("GIO_USE_TLS", "gnutls", TRUE);
 
