@@ -207,6 +207,15 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
         gnutls_x509_privkey_init (&gnutls->priv->key);
       status = gnutls_x509_privkey_import (gnutls->priv->key, &data,
 					   GNUTLS_X509_FMT_DER);
+      if (status != 0)
+	{
+	  int pkcs8_status =
+	    gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
+					      GNUTLS_X509_FMT_DER, NULL,
+					      GNUTLS_PKCS_PLAIN);
+	  if (pkcs8_status == 0)
+	    status = 0;
+	}
       if (status == 0)
 	gnutls->priv->have_key = TRUE;
       else if (!gnutls->priv->construct_error)
@@ -229,6 +238,15 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
         gnutls_x509_privkey_init (&gnutls->priv->key);
       status = gnutls_x509_privkey_import (gnutls->priv->key, &data,
 					   GNUTLS_X509_FMT_PEM);
+      if (status != 0)
+	{
+	  int pkcs8_status =
+	    gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
+					      GNUTLS_X509_FMT_PEM, NULL,
+					      GNUTLS_PKCS_PLAIN);
+	  if (pkcs8_status == 0)
+	    status = 0;
+	}
       if (status == 0)
 	gnutls->priv->have_key = TRUE;
       else if (!gnutls->priv->construct_error)
