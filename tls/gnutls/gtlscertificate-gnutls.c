@@ -460,6 +460,12 @@ g_tls_certificate_gnutls_get_cert (GTlsCertificateGnutls *gnutls)
   return gnutls->priv->cert;
 }
 
+gboolean
+g_tls_certificate_gnutls_has_key (GTlsCertificateGnutls *gnutls)
+{
+  return gnutls->priv->have_key;
+}
+
 void
 g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls *gnutls,
                                 const gchar           *interaction_id,

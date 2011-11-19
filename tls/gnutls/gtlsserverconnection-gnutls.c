@@ -51,6 +51,10 @@ static void     g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionG
 								 gboolean               success,
 								 GError               **inout_error);
 
+static void     g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface);
+static gboolean g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
+							      GCancellable    *cancellable,
+							      GError         **error);
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
 
 static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t             session,
@@ -60,9 +64,14 @@ static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t   
                                                              int                          pk_algos_length,
                                                              gnutls_retr2_st             *st);
 
+static GInitableIface *g_tls_server_connection_gnutls_parent_initable_iface;
+
 G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
+			 G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+						g_tls_server_connection_gnutls_initable_interface_init)
 			 G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
-						g_tls_server_connection_gnutls_server_connection_interface_init))
+						g_tls_server_connection_gnutls_server_connection_interface_init)
+)
 
 struct _GTlsServerConnectionGnutlsPrivate
 {
@@ -93,6 +102,14 @@ g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConne
 }
 
 static void
+g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface)
+{
+  g_tls_server_connection_gnutls_parent_initable_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = g_tls_server_connection_gnutls_initable_init;
+}
+
+static void
 g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
 {
   gnutls_certificate_credentials_t creds;
@@ -101,6 +118,28 @@ g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function (creds, g_tls_server_connection_gnutls_retrieve_function);
+}
+
+static gboolean
+g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
+					      GCancellable    *cancellable,
+					      GError         **error)
+{
+  GTlsCertificate *cert;
+
+  if (!g_tls_server_connection_gnutls_parent_initable_iface->
+      init (initable, cancellable, error))
+    return FALSE;
+
+  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
+  if (cert && !g_tls_certificate_gnutls_has_key (G_TLS_CERTIFICATE_GNUTLS (cert)))
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+			   _("Certificate has no private key"));
+      return FALSE;
+    }
+
+  return TRUE;
 }
 
 static void

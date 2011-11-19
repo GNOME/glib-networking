@@ -1159,7 +1159,7 @@ close_internal (GTlsConnectionGnutls  *gnutls,
   /* If we haven't finished the initial handshake yet, there's no
    * reason to finish it just so we can close.
    */
-  if (gnutls->priv->handshaking && !gnutls->priv->ever_handshaked)
+  if (!gnutls->priv->ever_handshaked)
     return TRUE;
 
   if (handshake_in_progress_or_failed (gnutls, blocking, cancellable, error))
