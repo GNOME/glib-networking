@@ -1,3 +1,21 @@
+2.31.2
+======
+  * gnutls
+	* Added gnutls-pkcs11 backend, which uses gnutls 2.12.8 and
+	  p11-kit (a new optional dependency) to provide access to
+	  PKCS#11 tokens. At the moment, this is only enabled if you
+	  set GIO_USE_TLS=gnutls-pkcs11 in the environment. (Stef,
+	  #656361)
+
+	* GTlsCertificateGnutls can now read unencrypted PKCS#8 keys
+	  (which show "BEGIN PRIVATE KEY" in PEM form) in addition to
+	  the previously-supported PKCS#1 keys ("BEGIN RSA PRIVATE
+	  KEY").
+
+  * Updated translations:
+	Galician, German, Lithuanian, Norwegian bokmål, Spanish,
+	Turkish
+
 2.31.0
 ======
   * gnutls
