@@ -51,6 +51,7 @@ static const char *ignore_hosts[] = {
   "ddd.xx",
   "*.eee.xx:8000",
   "127.0.0.0/24",
+  "10.0.0.1:8000",
   "::1",
   "fe80::/10"
 };
@@ -95,6 +96,8 @@ static const struct {
   { "http://127.0.0.2/",       	 "direct://" },
   { "http://127.0.0.255/",     	 "direct://" },
   { "http://127.0.1.0/",       	 "http://localhost:8080" },
+  { "http://10.0.0.1/",        	 "http://localhost:8080" },
+  { "http://10.0.0.1:8000/",   	 "direct://" },
   { "http://[::1]/",           	 "direct://" },
   { "http://[::1]:80/",        	 "direct://" },
   { "http://[::1:1]/",         	 "http://localhost:8080" },
