@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-01-22 13:54+0100\n"
-"PO-Revision-Date: 2011-01-22 13:57+0100\n"
+"POT-Creation-Date: 2011-11-25 09:51+0100\n"
+"PO-Revision-Date: 2011-11-25 09:54+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: \n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:142
+#: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
 msgstr "Internt fel i proxyuppslag."
 
@@ -30,63 +30,95 @@ msgstr "Kunde inte tolka DER-certifikat: %s"
 msgid "Could not parse PEM certificate: %s"
 msgstr "Kunde inte tolka PEM-certifikat: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Kunde inte tolka privat DER-nyckel: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Kunde inte tolka privat PEM-nyckel: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Inget certifikatdata tillhandahölls"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
 msgid "Server required TLS certificate"
 msgstr "Servern krävde TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#: ../tls/gnutls/gtlsconnection-gnutls.c:279
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunde inte skapa TLS-anslutning: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+#: ../tls/gnutls/gtlsconnection-gnutls.c:558
 msgid "Peer failed to perform TLS handshake"
 msgstr "Motparten misslyckades med att genomföra TLS-handskakning"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Motparten begärde otillåten TLS-återhandskakning"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+#: ../tls/gnutls/gtlsconnection-gnutls.c:594
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-anslutningen stängdes oväntat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:799
-#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:914
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fel vid genomförande av TLS-handskakning: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+#: ../tls/gnutls/gtlsconnection-gnutls.c:962
 msgid "Unacceptable TLS certificate"
 msgstr "Ej acceptabelt TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Fel vid läsning av data från TLS-uttag: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Fel vid skrivning av data till TLS-uttag: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fel vid genomförande av TLS-stängning: %s"
+
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+msgid "Certificate has no private key"
+msgstr "Certifikatet har ingen privat nyckel"
+
+#: ../tls/pkcs11/gpkcs11pin.c:108
+msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgstr "Detta är sista försöket att ange PIN-koden korrekt innan kortet låses."
+
+#: ../tls/pkcs11/gpkcs11pin.c:110
+msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
+msgstr "Flera PIN-kodsförsök har varit felaktiga och kortet kommer att låsas vid ytterligare felaktiga försök."
+
+#: ../tls/pkcs11/gpkcs11pin.c:112
+msgid "The PIN entered is incorrect."
+msgstr "Angiven PIN-kod är felaktig."
+
+#: ../tls/pkcs11/gpkcs11slot.c:446
+msgid "Module"
+msgstr "Modul"
+
+#: ../tls/pkcs11/gpkcs11slot.c:447
+msgid "PKCS#11 Module Pointer"
+msgstr "PKCS#11-modulpekare"
+
+#: ../tls/pkcs11/gpkcs11slot.c:454
+msgid "Slot ID"
+msgstr "Plats-id"
+
+#: ../tls/pkcs11/gpkcs11slot.c:455
+msgid "PKCS#11 Slot Identifier"
+msgstr "PKCS#11-platsidentifierare"
 
