@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-12 12:03+0100\n"
-"PO-Revision-Date: 2011-11-12 12:04+0100\n"
+"POT-Creation-Date: 2011-12-01 18:02+0100\n"
+"PO-Revision-Date: 2011-12-01 18:04+0100\n"
 "Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
 "Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
 "Language: \n"
@@ -30,17 +30,17 @@ msgstr "Kunne ikke lese DER-sertifikat: %s"
 msgid "Could not parse PEM certificate: %s"
 msgstr "Kunne ikke lese PEM-sertifikat: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:216
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Kunne ikke lese privat DER-nøkkel: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:238
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Kunne ikke lese privat PEM-nøkkel: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:278
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Ingen sertifikatdata oppgitt"
 
@@ -90,17 +90,21 @@ msgstr "Feil under skriving av data til TLS-plugg: %s"
 msgid "Error performing TLS close: %s"
 msgstr "Feil under utføring av lukking av TLS-tilkobling: %s"
 
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+msgid "Certificate has no private key"
+msgstr "Sertifikatet har ingen privat nøkkel"
+
 #: ../tls/pkcs11/gpkcs11pin.c:108
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
-msgstr ""
+msgstr "Dette er siste sjanse til å oppgi korrekt PIN-kode før tokenet låses."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
-msgstr ""
+msgstr "Flere feilede forsøk med PIN oppdaget. Token vil bli låst ved flere feilede forsøk."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -112,12 +116,12 @@ msgstr "Modul"
 
 #: ../tls/pkcs11/gpkcs11slot.c:447
 msgid "PKCS#11 Module Pointer"
-msgstr ""
+msgstr "PKCS#11-modulpeker"
 
 #: ../tls/pkcs11/gpkcs11slot.c:454
 msgid "Slot ID"
-msgstr ""
+msgstr "Plassidentifikator"
 
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
-msgstr ""
+msgstr "PKCS#11 plassidentifikator"
