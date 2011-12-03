@@ -21,12 +21,9 @@
 #include "glib.h"
 
 #include <errno.h>
+#include <string.h>
 
 #include <gnutls/gnutls.h>
-#include <gcrypt.h>
-#ifndef G_OS_WIN32
-#include <pthread.h>
-#endif
 
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
@@ -40,63 +37,14 @@ struct _GTlsBackendGnutlsPrivate
   GTlsDatabase *default_database;
 };
 
+static void gtls_gnutls_init (void);
 static void g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendGnutls, g_tls_backend_gnutls, G_TYPE_OBJECT, 0,
 				G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
-							       g_tls_backend_gnutls_interface_init);)
-
-#if defined(GCRY_THREAD_OPTION_PTHREAD_IMPL) && !defined(G_OS_WIN32)
-GCRY_THREAD_OPTION_PTHREAD_IMPL;
-#endif
-
-#ifdef G_OS_WIN32
-
-static int
-gtls_gcry_win32_mutex_init (void **priv)
-{
-	int err = 0;
-	CRITICAL_SECTION *lock = (CRITICAL_SECTION*)malloc (sizeof (CRITICAL_SECTION));
-
-	if (!lock)
-		err = ENOMEM;
-	if (!err) {
-		InitializeCriticalSection (lock);
-		*priv = lock;
-	}
-	return err;
-}
-
-static int
-gtls_gcry_win32_mutex_destroy (void **lock)
-{
-	DeleteCriticalSection ((CRITICAL_SECTION*)*lock);
-	free (*lock);
-	return 0;
-}
-
-static int
-gtls_gcry_win32_mutex_lock (void **lock)
-{
-	EnterCriticalSection ((CRITICAL_SECTION*)*lock);
-	return 0;
-}
-
-static int
-gtls_gcry_win32_mutex_unlock (void **lock)
-{
-	LeaveCriticalSection ((CRITICAL_SECTION*)*lock);
-	return 0;
-}
-
-
-static struct gcry_thread_cbs gtls_gcry_threads_win32 = {		 \
-	(GCRY_THREAD_OPTION_USER | (GCRY_THREAD_OPTION_VERSION << 8)),	 \
-	NULL, gtls_gcry_win32_mutex_init, gtls_gcry_win32_mutex_destroy, \
-	gtls_gcry_win32_mutex_lock, gtls_gcry_win32_mutex_unlock,	 \
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-
-#endif
+							       g_tls_backend_gnutls_interface_init);
+				gtls_gnutls_init ();
+				)
 
 #ifdef GTLS_GNUTLS_DEBUG
 static void
@@ -106,40 +54,25 @@ gtls_log_func (int level, const char *msg)
 }
 #endif
 
-static gpointer
-gtls_gnutls_init (gpointer data)
+static void
+gtls_gnutls_init (void)
 {
-#if defined(GCRY_THREAD_OPTION_PTHREAD_IMPL) && !defined(G_OS_WIN32)
-  gcry_control (GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
-#elif defined(G_OS_WIN32)
-  gcry_control (GCRYCTL_SET_THREAD_CBS, &gtls_gcry_threads_win32);
-#endif
   gnutls_global_init ();
 
 #ifdef GTLS_GNUTLS_DEBUG
   gnutls_global_set_log_function (gtls_log_func);
   gnutls_global_set_log_level (9);
-#endif
 
-  /* Leak the module to keep it from being unloaded. */
+  /* Leak the module to keep it from being unloaded and breaking
+   * the pointer to gtls_log_func().
+   */
   g_type_plugin_use (g_type_get_plugin (G_TYPE_TLS_BACKEND_GNUTLS));
-  return NULL;
+#endif
 }
-
-static GOnce gnutls_inited = G_ONCE_INIT;
 
 static void
 g_tls_backend_gnutls_init (GTlsBackendGnutls *backend)
 {
-  /* Once we call gtls_gnutls_init(), we can't allow the module to be
-   * unloaded, since that would break the pointers to the mutex
-   * functions we set for gcrypt. So we initialize it from here rather
-   * than at class init time so that it doesn't happen unless the app
-   * is actually using TLS (as opposed to just calling
-   * g_io_modules_scan_all_in_directory()).
-   */
-  g_once (&gnutls_inited, gtls_gnutls_init, NULL);
-
   backend->priv = G_TYPE_INSTANCE_GET_PRIVATE (backend, G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutlsPrivate);
   g_mutex_init (&backend->priv->mutex);
 }

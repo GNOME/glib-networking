@@ -93,8 +93,7 @@ if test "x$with_gnutls" != "xno"; then
 	PKG_CHECK_MODULES(GNUTLS,
 	                  [gnutls >= $GNUTLS_MIN_REQUIRED],
 	                  [with_gnutls=yes
-	                   tls_support="${tls_support}gnutls "
-	                   AM_PATH_LIBGCRYPT([])],
+	                   tls_support="${tls_support}gnutls "],
 	                  [AS_IF([test "x$with_gnutls" = "xyes"],
 	                         [AC_MSG_FAILURE("$GNUTLS_PKG_ERRORS")])])
 fi
