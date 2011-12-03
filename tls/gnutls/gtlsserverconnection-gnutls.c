@@ -25,6 +25,7 @@
 #include <gnutls/x509.h>
 
 #include "gtlsserverconnection-gnutls.h"
+#include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
 #include <glib/gi18n-lib.h>
 
@@ -45,6 +46,14 @@ static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t   
                                                              int                          pk_algos_length,
                                                              gnutls_retr2_st             *st);
 
+static int            g_tls_server_connection_gnutls_db_store    (void            *user_data,
+								  gnutls_datum_t   key,
+								  gnutls_datum_t   data);
+static int            g_tls_server_connection_gnutls_db_remove   (void            *user_data,
+								  gnutls_datum_t   key);
+static gnutls_datum_t g_tls_server_connection_gnutls_db_retrieve (void            *user_data,
+								  gnutls_datum_t   key);
+
 static GInitableIface *g_tls_server_connection_gnutls_parent_initable_iface;
 
 G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
@@ -63,11 +72,17 @@ static void
 g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
 {
   gnutls_certificate_credentials_t creds;
+  gnutls_session_t session;
 
   gnutls->priv = G_TYPE_INSTANCE_GET_PRIVATE (gnutls, G_TYPE_TLS_SERVER_CONNECTION_GNUTLS, GTlsServerConnectionGnutlsPrivate);
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function (creds, g_tls_server_connection_gnutls_retrieve_function);
+
+  session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
+  gnutls_db_set_retrieve_function (session, g_tls_server_connection_gnutls_db_retrieve);
+  gnutls_db_set_store_function (session, g_tls_server_connection_gnutls_db_store);
+  gnutls_db_set_remove_function (session, g_tls_server_connection_gnutls_db_remove);
 }
 
 static gboolean
@@ -143,6 +158,12 @@ g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t             s
 }
 
 static void
+g_tls_server_connection_gnutls_failed (GTlsConnectionGnutls *conn)
+{
+  gnutls_db_remove_session (g_tls_connection_gnutls_get_session (conn));
+}
+
+static void
 g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 {
   GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (conn);
@@ -206,6 +227,64 @@ g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
 {
 }
 
+/* Session cache management */
+
+static int
+g_tls_server_connection_gnutls_db_store (void            *user_data,
+					 gnutls_datum_t   key,
+					 gnutls_datum_t   data)
+{
+  GBytes *session_id, *session_data;
+
+  session_id = g_bytes_new (key.data, key.size);
+  session_data = g_bytes_new (data.data, data.size);
+  g_tls_backend_gnutls_store_session (GNUTLS_SERVER, session_id, session_data);
+  g_bytes_unref (session_id);
+  g_bytes_unref (session_data);
+
+  return 0;
+}
+
+static int
+g_tls_server_connection_gnutls_db_remove (void            *user_data,
+					  gnutls_datum_t   key)
+{
+  GBytes *session_id;
+
+  session_id = g_bytes_new (key.data, key.size);
+  g_tls_backend_gnutls_remove_session (GNUTLS_SERVER, session_id);
+  g_bytes_unref (session_id);
+
+  return 0;
+}
+
+static gnutls_datum_t
+g_tls_server_connection_gnutls_db_retrieve (void            *user_data,
+					    gnutls_datum_t   key)
+{
+  GBytes *session_id, *session_data;
+  gnutls_datum_t data;
+
+  session_id = g_bytes_new (key.data, key.size);
+  session_data = g_tls_backend_gnutls_lookup_session (GNUTLS_SERVER, session_id);
+  g_bytes_unref (session_id);
+
+  if (session_data)
+    {
+      data.size = g_bytes_get_size (session_data);
+      data.data = gnutls_malloc (data.size);
+      memcpy (data.data, g_bytes_get_data (session_data), data.size);
+      g_bytes_unref (session_data);
+    }
+  else
+    {
+      data.size = 0;
+      data.data = NULL;
+    }
+
+  return data;
+}
+
 static void
 g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
 {
@@ -217,6 +296,7 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 
+  connection_gnutls_class->failed           = g_tls_server_connection_gnutls_failed;
   connection_gnutls_class->begin_handshake  = g_tls_server_connection_gnutls_begin_handshake;
   connection_gnutls_class->verify_peer      = g_tls_server_connection_gnutls_verify_peer;
   connection_gnutls_class->finish_handshake = g_tls_server_connection_gnutls_finish_handshake;

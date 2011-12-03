@@ -166,26 +166,26 @@ g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface)
  */
 
 G_LOCK_DEFINE_STATIC (session_cache_lock);
-GHashTable *session_cache;
+GHashTable *client_session_cache, *server_session_cache;
 
 #define SESSION_CACHE_MAX_SIZE 50
 #define SESSION_CACHE_MAX_AGE (60 * 60) /* one hour */
 
 typedef struct {
-  gchar      *session_id;
-  GByteArray *session_data;
-  time_t      last_used;
+  GBytes *session_id;
+  GBytes *session_data;
+  time_t  last_used;
 } GTlsBackendGnutlsCacheData;
 
 static void
-session_cache_cleanup (void)
+session_cache_cleanup (GHashTable *cache)
 {
   GHashTableIter iter;
   gpointer key, value;
   GTlsBackendGnutlsCacheData *cache_data;
   time_t expired = time (NULL) - SESSION_CACHE_MAX_AGE;
 
-  g_hash_table_iter_init (&iter, session_cache);
+  g_hash_table_iter_init (&iter, cache);
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
       cache_data = value;
@@ -199,81 +199,98 @@ cache_data_free (gpointer data)
 {
   GTlsBackendGnutlsCacheData *cache_data = data;
 
-  g_free (cache_data->session_id);
-  g_byte_array_unref (cache_data->session_data);
+  g_bytes_unref (cache_data->session_id);
+  g_bytes_unref (cache_data->session_data);
   g_slice_free (GTlsBackendGnutlsCacheData, cache_data);
 }
 
+static GHashTable *
+get_session_cache (gnutls_connection_end_t type,
+		   gboolean                create)
+{
+  GHashTable **cache_p;
+
+  cache_p = (type == GNUTLS_CLIENT) ? &client_session_cache : &server_session_cache;
+  if (!*cache_p && create)
+    {
+      *cache_p = g_hash_table_new_full (g_bytes_hash, g_bytes_equal,
+					NULL, cache_data_free);
+    }
+  return *cache_p;
+}
+
 void
-g_tls_backend_gnutls_cache_session_data (const gchar *session_id,
-					 guchar      *session_data,
-					 gsize        session_data_length)
+g_tls_backend_gnutls_store_session (gnutls_connection_end_t  type,
+				    GBytes                  *session_id,
+				    GBytes                  *session_data)
 {
   GTlsBackendGnutlsCacheData *cache_data;
+  GHashTable *cache;
 
   G_LOCK (session_cache_lock);
 
-  if (!session_cache)
-    session_cache = g_hash_table_new_full (g_str_hash, g_str_equal,
-					   NULL, cache_data_free);
-
-  cache_data = g_hash_table_lookup (session_cache, session_id);
+  cache = get_session_cache (type, TRUE);
+  cache_data = g_hash_table_lookup (cache, session_id);
   if (cache_data)
     {
-      if (cache_data->session_data->len == session_data_length &&
-	  memcmp (cache_data->session_data->data,
-		  session_data, session_data_length) == 0)
+      if (!g_bytes_equal (cache_data->session_data, session_data))
 	{
-	  cache_data->last_used = time (NULL);
-	  G_UNLOCK (session_cache_lock);
-	  return;
+	  g_bytes_unref (cache_data->session_data);
+	  cache_data->session_data = g_bytes_ref (session_data);
 	}
-
-      g_byte_array_set_size (cache_data->session_data, 0);
     }
   else
     {
-      if (g_hash_table_size (session_cache) >= SESSION_CACHE_MAX_SIZE)
-	session_cache_cleanup ();
+      if (g_hash_table_size (cache) >= SESSION_CACHE_MAX_SIZE)
+	session_cache_cleanup (cache);
 
       cache_data = g_slice_new (GTlsBackendGnutlsCacheData);
-      cache_data->session_id = g_strdup (session_id);
-      cache_data->session_data = g_byte_array_sized_new (session_data_length);
+      cache_data->session_id = g_bytes_ref (session_id);
+      cache_data->session_data = g_bytes_ref (session_data);
 
-      g_hash_table_insert (session_cache, cache_data->session_id, cache_data);
+      g_hash_table_insert (cache, cache_data->session_id, cache_data);
     }
-
-  g_byte_array_append (cache_data->session_data,
-		       session_data, session_data_length);
   cache_data->last_used = time (NULL);
+
   G_UNLOCK (session_cache_lock);
 }
 
 void
-g_tls_backend_gnutls_uncache_session_data (const gchar *session_id)
+g_tls_backend_gnutls_remove_session (gnutls_connection_end_t  type,
+				     GBytes                  *session_id)
 {
+  GHashTable *cache;
+
   G_LOCK (session_cache_lock);
-  if (session_cache)
-    g_hash_table_remove (session_cache, session_id);
+
+  cache = get_session_cache (type, FALSE);
+  if (cache)
+    g_hash_table_remove (cache, session_id);
+
   G_UNLOCK (session_cache_lock);
 }
 
-GByteArray *
-g_tls_backend_gnutls_lookup_session_data (const gchar *session_id)
+GBytes *
+g_tls_backend_gnutls_lookup_session (gnutls_connection_end_t  type,
+				     GBytes                  *session_id)
 {
   GTlsBackendGnutlsCacheData *cache_data;
-  GByteArray *session_data = NULL;
+  GBytes *session_data = NULL;
+  GHashTable *cache;
 
   G_LOCK (session_cache_lock);
-  if (session_cache)
+
+  cache = get_session_cache (type, FALSE);
+  if (cache)
     {
-      cache_data = g_hash_table_lookup (session_cache, session_id);
+      cache_data = g_hash_table_lookup (cache, session_id);
       if (cache_data)
 	{
 	  cache_data->last_used = time (NULL);
-	  session_data = g_byte_array_ref (cache_data->session_data);
+	  session_data = g_bytes_ref (cache_data->session_data);
 	}
     }
+
   G_UNLOCK (session_cache_lock);
 
   return session_data;

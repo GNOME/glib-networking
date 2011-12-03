@@ -58,7 +58,7 @@ struct _GTlsClientConnectionGnutlsPrivate
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
 
-  char *session_id;
+  GBytes *session_id;
 
   gboolean cert_requested;
   GPtrArray *accepted_cas;
@@ -111,17 +111,17 @@ g_tls_client_connection_gnutls_constructed (GObject *object)
 	{
 	  GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
 	  const gchar *server_hostname;
-	  gchar *addrstr;
+	  gchar *addrstr, *session_id;
 
 	  iaddr = g_inet_socket_address_get_address (isaddr);
 	  port = g_inet_socket_address_get_port (isaddr);
 
 	  addrstr = g_inet_address_to_string (iaddr);
 	  server_hostname = get_server_identity (gnutls);
-	  gnutls->priv->session_id =
-	    g_strdup_printf ("%s/%s/%d", addrstr,
-			     server_hostname ? server_hostname : "",
-			     port);
+	  session_id = g_strdup_printf ("%s/%s/%d", addrstr,
+					server_hostname ? server_hostname : "",
+					port);
+	  gnutls->priv->session_id = g_bytes_new_take (session_id, strlen (session_id));
 	  g_free (addrstr);
 	}
       g_object_unref (remote_addr);
@@ -142,7 +142,7 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
   if (gnutls->priv->accepted_cas)
     g_ptr_array_unref (gnutls->priv->accepted_cas);
   if (gnutls->priv->session_id)
-    g_free (gnutls->priv->session_id);
+    g_bytes_unref (gnutls->priv->session_id);
 
   G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->finalize (object);
 }
@@ -262,6 +262,15 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
 }
 
 static void
+g_tls_client_connection_gnutls_failed (GTlsConnectionGnutls *conn)
+{
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
+
+  if (gnutls->priv->session_id)
+    g_tls_backend_gnutls_remove_session (GNUTLS_CLIENT, gnutls->priv->session_id);
+}
+
+static void
 g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
@@ -269,14 +278,15 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
   /* Try to get a cached session */
   if (gnutls->priv->session_id)
     {
-      GByteArray *session_data;
+      GBytes *session_data;
 
-      session_data = g_tls_backend_gnutls_lookup_session_data (gnutls->priv->session_id);
+      session_data = g_tls_backend_gnutls_lookup_session (GNUTLS_CLIENT, gnutls->priv->session_id);
       if (session_data)
 	{
 	  gnutls_session_set_data (g_tls_connection_gnutls_get_session (conn),
-				   session_data->data, session_data->len);
-	  g_byte_array_unref (session_data);
+				   g_bytes_get_data (session_data),
+				   g_bytes_get_size (session_data));
+	  g_bytes_unref (session_data);
 	}
     }
 
@@ -341,19 +351,21 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
 
   if (gnutls->priv->session_id)
     {
-      gnutls_datum session_data;
+      gnutls_datum session_datum;
 
       if (success &&
 	  gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (conn),
-				    &session_data) == 0)
+				    &session_datum) == 0)
 	{
-	  g_tls_backend_gnutls_cache_session_data (gnutls->priv->session_id,
-						   session_data.data,
-						   session_data.size);
-	  gnutls_free (session_data.data);
+	  GBytes *session_data = g_bytes_new_with_free_func (session_datum.data, session_datum.size,
+							     (GDestroyNotify)gnutls_free, session_datum.data);
+
+	  g_tls_backend_gnutls_store_session (GNUTLS_CLIENT, gnutls->priv->session_id,
+					      session_data);
+	  g_bytes_unref (session_data);
 	}
       else
-	g_tls_backend_gnutls_uncache_session_data (gnutls->priv->session_id);
+	g_tls_backend_gnutls_remove_session (GNUTLS_CLIENT, gnutls->priv->session_id);
     }
 }
 
@@ -370,6 +382,7 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
   gobject_class->constructed  = g_tls_client_connection_gnutls_constructed;
   gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
 
+  connection_gnutls_class->failed           = g_tls_client_connection_gnutls_failed;
   connection_gnutls_class->begin_handshake  = g_tls_client_connection_gnutls_begin_handshake;
   connection_gnutls_class->verify_peer      = g_tls_client_connection_gnutls_verify_peer;
   connection_gnutls_class->finish_handshake = g_tls_client_connection_gnutls_finish_handshake;

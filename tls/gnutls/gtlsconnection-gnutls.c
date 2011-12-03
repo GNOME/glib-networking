@@ -487,6 +487,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     {
       if (g_error_matches (gnutls->priv->error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
 	status = GNUTLS_E_AGAIN;
+      else
+	G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
       g_propagate_error (error, gnutls->priv->error);
       gnutls->priv->error = NULL;
       return status;
@@ -515,6 +517,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 	{
 	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_EOF,
 			       _("TLS connection closed unexpectedly"));
+	  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
 	  return status;
 	}
       else
