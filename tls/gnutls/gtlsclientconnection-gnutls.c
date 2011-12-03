@@ -39,25 +39,6 @@ enum
   PROP_ACCEPTED_CAS
 };
 
-static void g_tls_client_connection_gnutls_get_property (GObject    *object,
-							 guint       prop_id,
-							 GValue     *value,
-							 GParamSpec *pspec);
-static void g_tls_client_connection_gnutls_set_property (GObject      *object,
-							 guint         prop_id,
-							 const GValue *value,
-							 GParamSpec   *pspec);
-static void g_tls_client_connection_gnutls_constructed  (GObject      *object);
-static void g_tls_client_connection_gnutls_finalize     (GObject      *object);
-
-static void     g_tls_client_connection_gnutls_begin_handshake  (GTlsConnectionGnutls  *conn);
-static gboolean g_tls_client_connection_gnutls_verify_peer      (GTlsConnectionGnutls  *gnutls,
-								 GTlsCertificate       *peer_certificate,
-								 GTlsCertificateFlags  *errors);
-static void     g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
-								 gboolean               success,
-								 GError               **inout_error);
-
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
 
 static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             session,
@@ -83,33 +64,6 @@ struct _GTlsClientConnectionGnutlsPrivate
   GPtrArray *accepted_cas;
 };
 
-static void
-g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klass)
-{
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (GTlsClientConnectionGnutlsPrivate));
-
-  gobject_class->get_property = g_tls_client_connection_gnutls_get_property;
-  gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
-  gobject_class->constructed  = g_tls_client_connection_gnutls_constructed;
-  gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
-
-  connection_gnutls_class->begin_handshake  = g_tls_client_connection_gnutls_begin_handshake;
-  connection_gnutls_class->verify_peer      = g_tls_client_connection_gnutls_verify_peer;
-  connection_gnutls_class->finish_handshake = g_tls_client_connection_gnutls_finish_handshake;
-
-  g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
-  g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
-  g_object_class_override_property (gobject_class, PROP_USE_SSL3, "use-ssl3");
-  g_object_class_override_property (gobject_class, PROP_ACCEPTED_CAS, "accepted-cas");
-}
-
-static void
-g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface)
-{
-}
 
 static void
 g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
@@ -401,4 +355,32 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
       else
 	g_tls_backend_gnutls_uncache_session_data (gnutls->priv->session_id);
     }
+}
+
+static void
+g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klass)
+{
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
+
+  g_type_class_add_private (klass, sizeof (GTlsClientConnectionGnutlsPrivate));
+
+  gobject_class->get_property = g_tls_client_connection_gnutls_get_property;
+  gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
+  gobject_class->constructed  = g_tls_client_connection_gnutls_constructed;
+  gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
+
+  connection_gnutls_class->begin_handshake  = g_tls_client_connection_gnutls_begin_handshake;
+  connection_gnutls_class->verify_peer      = g_tls_client_connection_gnutls_verify_peer;
+  connection_gnutls_class->finish_handshake = g_tls_client_connection_gnutls_finish_handshake;
+
+  g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
+  g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
+  g_object_class_override_property (gobject_class, PROP_USE_SSL3, "use-ssl3");
+  g_object_class_override_property (gobject_class, PROP_ACCEPTED_CAS, "accepted-cas");
+}
+
+static void
+g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface)
+{
 }

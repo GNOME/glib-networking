@@ -34,27 +34,8 @@ enum
   PROP_AUTHENTICATION_MODE
 };
 
-static void g_tls_server_connection_gnutls_get_property (GObject    *object,
-							 guint       prop_id,
-							 GValue     *value,
-							 GParamSpec *pspec);
-static void g_tls_server_connection_gnutls_set_property (GObject      *object,
-							 guint         prop_id,
-							 const GValue *value,
-							 GParamSpec   *pspec);
-
-static void     g_tls_server_connection_gnutls_begin_handshake  (GTlsConnectionGnutls  *conn);
-static gboolean g_tls_server_connection_gnutls_verify_peer      (GTlsConnectionGnutls  *gnutls,
-								 GTlsCertificate       *peer_certificate,
-								 GTlsCertificateFlags  *errors);
-static void     g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
-								 gboolean               success,
-								 GError               **inout_error);
-
 static void     g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface);
-static gboolean g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
-							      GCancellable    *cancellable,
-							      GError         **error);
+
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
 
 static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t             session,
@@ -77,37 +58,6 @@ struct _GTlsServerConnectionGnutlsPrivate
 {
   GTlsAuthenticationMode authentication_mode;
 };
-
-static void
-g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
-{
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (GTlsServerConnectionGnutlsPrivate));
-
-  gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
-  gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
-
-  connection_gnutls_class->begin_handshake  = g_tls_server_connection_gnutls_begin_handshake;
-  connection_gnutls_class->verify_peer      = g_tls_server_connection_gnutls_verify_peer;
-  connection_gnutls_class->finish_handshake = g_tls_server_connection_gnutls_finish_handshake;
-
-  g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
-}
-
-static void
-g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface)
-{
-}
-
-static void
-g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface)
-{
-  g_tls_server_connection_gnutls_parent_initable_iface = g_type_interface_peek_parent (iface);
-
-  iface->init = g_tls_server_connection_gnutls_initable_init;
-}
 
 static void
 g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
@@ -254,4 +204,35 @@ g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
 						 gboolean               success,
 						 GError               **inout_error)
 {
+}
+
+static void
+g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
+{
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
+
+  g_type_class_add_private (klass, sizeof (GTlsServerConnectionGnutlsPrivate));
+
+  gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
+  gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
+
+  connection_gnutls_class->begin_handshake  = g_tls_server_connection_gnutls_begin_handshake;
+  connection_gnutls_class->verify_peer      = g_tls_server_connection_gnutls_verify_peer;
+  connection_gnutls_class->finish_handshake = g_tls_server_connection_gnutls_finish_handshake;
+
+  g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
+}
+
+static void
+g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface)
+{
+}
+
+static void
+g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface)
+{
+  g_tls_server_connection_gnutls_parent_initable_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = g_tls_server_connection_gnutls_initable_init;
 }

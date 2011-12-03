@@ -38,43 +38,6 @@
 
 #include <glib/gi18n-lib.h>
 
-static void g_tls_connection_gnutls_get_property (GObject    *object,
-						  guint       prop_id,
-						  GValue     *value,
-						  GParamSpec *pspec);
-static void g_tls_connection_gnutls_set_property (GObject      *object,
-						  guint         prop_id,
-						  const GValue *value,
-						  GParamSpec   *pspec);
-static void g_tls_connection_gnutls_finalize     (GObject      *object);
-
-static gboolean     g_tls_connection_gnutls_handshake        (GTlsConnection       *connection,
-							      GCancellable         *cancellable,
-							      GError              **error);
-static void         g_tls_connection_gnutls_handshake_async  (GTlsConnection       *conn,
-							      int                   io_priority,
-							      GCancellable         *cancellable,
-							      GAsyncReadyCallback   callback,
-							      gpointer              user_data);
-static gboolean     g_tls_connection_gnutls_handshake_finish (GTlsConnection       *conn,
-							      GAsyncResult         *result,
-							      GError              **error);
-
-static GInputStream  *g_tls_connection_gnutls_get_input_stream  (GIOStream *stream);
-static GOutputStream *g_tls_connection_gnutls_get_output_stream (GIOStream *stream);
-
-static gboolean     g_tls_connection_gnutls_close        (GIOStream           *stream,
-							  GCancellable        *cancellable,
-							  GError             **error);
-static void         g_tls_connection_gnutls_close_async  (GIOStream           *stream,
-							  int                  io_priority,
-							  GCancellable        *cancellable,
-							  GAsyncReadyCallback  callback,
-							  gpointer             user_data);
-static gboolean     g_tls_connection_gnutls_close_finish (GIOStream           *stream,
-							  GAsyncResult        *result,
-							  GError             **error);
-
 static ssize_t g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
 						  const void             *buf,
 						  size_t                  buflen);
@@ -153,46 +116,6 @@ struct _GTlsConnectionGnutlsPrivate
 };
 
 static gint unique_interaction_id = 0;
-
-static void
-g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
-{
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsConnectionClass *connection_class = G_TLS_CONNECTION_CLASS (klass);
-  GIOStreamClass *iostream_class = G_IO_STREAM_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (GTlsConnectionGnutlsPrivate));
-
-  gobject_class->get_property = g_tls_connection_gnutls_get_property;
-  gobject_class->set_property = g_tls_connection_gnutls_set_property;
-  gobject_class->finalize     = g_tls_connection_gnutls_finalize;
-
-  connection_class->handshake        = g_tls_connection_gnutls_handshake;
-  connection_class->handshake_async  = g_tls_connection_gnutls_handshake_async;
-  connection_class->handshake_finish = g_tls_connection_gnutls_handshake_finish;
-
-  iostream_class->get_input_stream  = g_tls_connection_gnutls_get_input_stream;
-  iostream_class->get_output_stream = g_tls_connection_gnutls_get_output_stream;
-  iostream_class->close_fn          = g_tls_connection_gnutls_close;
-  iostream_class->close_async       = g_tls_connection_gnutls_close_async;
-  iostream_class->close_finish      = g_tls_connection_gnutls_close_finish;
-
-  g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");
-  g_object_class_override_property (gobject_class, PROP_REQUIRE_CLOSE_NOTIFY, "require-close-notify");
-  g_object_class_override_property (gobject_class, PROP_REHANDSHAKE_MODE, "rehandshake-mode");
-  g_object_class_override_property (gobject_class, PROP_USE_SYSTEM_CERTDB, "use-system-certdb");
-  g_object_class_override_property (gobject_class, PROP_DATABASE, "database");
-  g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
-  g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
-  g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
-  g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
-}
-
-static void
-g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface)
-{
-  iface->init = g_tls_connection_gnutls_initable_init;
-}
 
 static void
 g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
@@ -1378,3 +1301,43 @@ on_pin_prompt_callback (const char     *pinfile,
 }
 
 #endif /* HAVE_PKCS11 */
+
+static void
+g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
+{
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  GTlsConnectionClass *connection_class = G_TLS_CONNECTION_CLASS (klass);
+  GIOStreamClass *iostream_class = G_IO_STREAM_CLASS (klass);
+
+  g_type_class_add_private (klass, sizeof (GTlsConnectionGnutlsPrivate));
+
+  gobject_class->get_property = g_tls_connection_gnutls_get_property;
+  gobject_class->set_property = g_tls_connection_gnutls_set_property;
+  gobject_class->finalize     = g_tls_connection_gnutls_finalize;
+
+  connection_class->handshake        = g_tls_connection_gnutls_handshake;
+  connection_class->handshake_async  = g_tls_connection_gnutls_handshake_async;
+  connection_class->handshake_finish = g_tls_connection_gnutls_handshake_finish;
+
+  iostream_class->get_input_stream  = g_tls_connection_gnutls_get_input_stream;
+  iostream_class->get_output_stream = g_tls_connection_gnutls_get_output_stream;
+  iostream_class->close_fn          = g_tls_connection_gnutls_close;
+  iostream_class->close_async       = g_tls_connection_gnutls_close_async;
+  iostream_class->close_finish      = g_tls_connection_gnutls_close_finish;
+
+  g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");
+  g_object_class_override_property (gobject_class, PROP_REQUIRE_CLOSE_NOTIFY, "require-close-notify");
+  g_object_class_override_property (gobject_class, PROP_REHANDSHAKE_MODE, "rehandshake-mode");
+  g_object_class_override_property (gobject_class, PROP_USE_SYSTEM_CERTDB, "use-system-certdb");
+  g_object_class_override_property (gobject_class, PROP_DATABASE, "database");
+  g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
+  g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
+  g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
+  g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
+}
+
+static void
+g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface)
+{
+  iface->init = g_tls_connection_gnutls_initable_init;
+}
