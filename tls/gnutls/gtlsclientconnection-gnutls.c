@@ -284,7 +284,7 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
       if (session_data)
 	{
 	  gnutls_session_set_data (g_tls_connection_gnutls_get_session (conn),
-				   g_bytes_get_data (session_data),
+				   g_bytes_get_data (session_data, NULL),
 				   g_bytes_get_size (session_data));
 	  g_bytes_unref (session_data);
 	}

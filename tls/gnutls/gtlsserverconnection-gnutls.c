@@ -273,7 +273,7 @@ g_tls_server_connection_gnutls_db_retrieve (void            *user_data,
     {
       data.size = g_bytes_get_size (session_data);
       data.data = gnutls_malloc (data.size);
-      memcpy (data.data, g_bytes_get_data (session_data), data.size);
+      memcpy (data.data, g_bytes_get_data (session_data, NULL), data.size);
       g_bytes_unref (session_data);
     }
   else
