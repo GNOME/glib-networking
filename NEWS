@@ -1,3 +1,21 @@
+2.31.6
+======
+  * gnutls
+	* Support gnutls built against nettle instead of gcrypt
+          (#657306)
+
+	* Implement TLS session caching for GTlsServerConnection
+          (#636574)
+
+  * tls/tests: Explicitly request the memory GSettings backend, to
+    avoid warnings in partial jhbuild environments
+
+  * proxy/gnome: Update to use GInetAddressMask
+
+  * Updated translations:
+	Chinese (simplified), Hebrew, Norwegian bokmål, Slovenian,
+	Swedish, Ukranian
+
 2.31.2
 ======
   * gnutls
