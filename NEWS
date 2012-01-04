@@ -1,3 +1,21 @@
+2.30.2
+======
+  * gnutls
+	* Added another G_TLS_ERROR_NOT_TLS (aka "dumb server, try
+	  falling back from TLS to SSLv3") case, when the handshake
+	  completes but then packets after that don't decrypt
+	  correctly. (Dan, #662104)
+
+	* Fixed a crash when passing a NULL GError to
+	  g_tls_file_database_new(). (Dan)
+
+  * proxy/gnome
+	* Fixed configure check so that "--without-gnome-proxy" works.
+	  (Alexandre Rostovtsev, #662203)
+
+	* Fixed tests to only build the gnome proxy test if we're
+	  building the gnome proxy. (Kalev Lember, #662085)
+
 2.30.1
 ======
   * Fixed a crash when passing a NULL GCancellable to
