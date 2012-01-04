@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the glib-networking package.
 #
 # Muhammed Eken <gnome@m-eken.com>, 2011.
-# Muhammet Kara <muhammet.k@gmail.com>, 2011.
+# Muhammet Kara <muhammet.k@gmail.com>, 2011, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-04 16:19+0000\n"
-"PO-Revision-Date: 2011-11-18 16:18+0200\n"
+"POT-Creation-Date: 2011-11-19 01:32+0000\n"
+"PO-Revision-Date: 2012-01-04 10:17+0000\n"
 "Last-Translator: Muhammet Kara <muhammet.k@gmail.com>\n"
 "Language-Team: Turkish <gnome-turk@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -34,17 +34,17 @@ msgstr "DER sertifikası çözümlenemedi: %s"
 msgid "Could not parse PEM certificate: %s"
 msgstr "PEM sertifikası çözümlenemedi: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:216
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "DER özel anahtarı çözümlenemedi: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:238
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "PEM özel anahtarı çözümlenemedi: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:278
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Sertifika verisi sağlanmadı"
 
@@ -93,6 +93,10 @@ msgstr "TLS soketinde veri yazma hatası: %s"
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS kapatma işleminde hata: %s"
+
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+msgid "Certificate has no private key"
+msgstr "Sertifikanın özel anahtarı yok"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
 msgid ""
