@@ -1,7 +1,7 @@
 # Vietnamese translation for glib-networking.
 # Copyright (C) 2011 glib-networking's Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-networking package.
-# Nguyễn Thái Ngọc Duy <pclouds@gmail.com>, 2011.
+# Nguyễn Thái Ngọc Duy <pclouds@gmail.com>, 2011-2012.
 #
 msgid ""
 msgstr ""
@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
 "POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-01-06 16:44+0700\n"
+"PO-Revision-Date: 2012-01-06 16:46+0700\n"
 "Last-Translator: Nguyễn Thái Ngọc Duy <pclouds@gmail.com>\n"
 "Language-Team: Vietnamese <gnomevi-list@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -93,36 +93,36 @@ msgstr "Lỗi đóng kết nối TLS: %s"
 
 #: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
 msgid "Certificate has no private key"
-msgstr ""
+msgstr "Chứng nhận không có khoá riêng"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
-msgstr ""
+msgstr "Đây là cơ hội cuối cùng để nhập đúng PIN trước khi token bị khoá."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
-msgstr ""
+msgstr "PIN bị nhập sai đã vài lần, token sẽ bị khoá để tránh lỗi tiếp theo."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
-msgstr ""
+msgstr "PIN nhập không đúng."
 
 #: ../tls/pkcs11/gpkcs11slot.c:446
 msgid "Module"
-msgstr ""
+msgstr "Mô-đun"
 
 #: ../tls/pkcs11/gpkcs11slot.c:447
 msgid "PKCS#11 Module Pointer"
-msgstr ""
+msgstr "Con trỏ mô đun PKCS#11"
 
 #: ../tls/pkcs11/gpkcs11slot.c:454
 msgid "Slot ID"
-msgstr ""
+msgstr "ID khe"
 
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
-msgstr ""
+msgstr "Định danh khe PKCS#11"
