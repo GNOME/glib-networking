@@ -1,14 +1,14 @@
 # Norwegian bokmål translation of glib-networking.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# Kjartan Maraas <kmaraas@gnome.org>, 2011.
+# Kjartan Maraas <kmaraas@gnome.org>, 2011-2012.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: glib-networking\n"
+"Project-Id-Version: glib-networking 2.31.x\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-01 18:02+0100\n"
-"PO-Revision-Date: 2011-12-01 18:04+0100\n"
+"POT-Creation-Date: 2012-01-24 15:17+0100\n"
+"PO-Revision-Date: 2012-01-24 15:18+0100\n"
 "Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
 "Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
 "Language: \n"
@@ -18,7 +18,7 @@ msgstr ""
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
-msgstr "Intern feil i proxy-navneoppslag"
+msgstr "Intern feil i proxy-navneoppslag."
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:173
 #, c-format
@@ -44,53 +44,53 @@ msgstr "Kunne ikke lese privat PEM-nøkkel: %s"
 msgid "No certificate data provided"
 msgstr "Ingen sertifikatdata oppgitt"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
 msgid "Server required TLS certificate"
 msgstr "Tjener krever TLS-sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:202
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunne ikke lage TLS-tilkobling: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:481
 msgid "Peer failed to perform TLS handshake"
 msgstr "Likemann feilet å utføre TLS-håndtrykk"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:501
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Likemann ba om ugyldig nytt TLS-håndtrykk"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:519
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-tilkobling ble lukket uventet"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:814
+#: ../tls/gnutls/gtlsconnection-gnutls.c:840
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Feil under utføring av TLS-håndtrykk: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:888
 msgid "Unacceptable TLS certificate"
 msgstr "Uakseptabelt TLS-sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1025
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Feil under lesing av data fra TLS-plugg: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1051
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Feil under skriving av data til TLS-plugg: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1097
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Feil under utføring av lukking av TLS-tilkobling: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "Sertifikatet har ingen privat nøkkel"
 
@@ -104,7 +104,9 @@ msgstr "Dette er siste sjanse til å oppgi korrekt PIN-kode før tokenet låses.
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
-msgstr "Flere feilede forsøk med PIN oppdaget. Token vil bli låst ved flere feilede forsøk."
+msgstr ""
+"Flere feilede forsøk med PIN oppdaget. Token vil bli låst ved flere feilede "
+"forsøk."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
