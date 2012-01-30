@@ -101,13 +101,13 @@ test_set_get_value (TestPin        *test,
 
   value = g_tls_password_get_value (test->pin, &n_value);
   g_assert_cmpuint (n_value, ==, 6);
-  g_assert_cmpstr ((const gchar *)value, ==, "secret");
+  g_assert (!strncmp ((const gchar *)value, "secret", n_value));
 
   g_tls_password_set_value (test->pin, (const guchar *)"other", 5);
 
   value = g_tls_password_get_value (test->pin, &n_value);
   g_assert_cmpuint (n_value, ==, 5);
-  g_assert_cmpstr ((const gchar *)value, ==, "other");
+  g_assert (!strncmp ((const gchar *)value, "other", n_value));
 }
 
 static void
@@ -124,7 +124,7 @@ test_internal_pin (TestPin        *test,
 
   value = p11_kit_pin_get_value (pin, &n_value);
   g_assert_cmpuint (n_value, ==, 6);
-  g_assert_cmpstr ((const gchar *)value, ==, "secret");
+  g_assert (!strncmp ((const gchar *)value, "secret", n_value));
 
   p11_kit_pin_unref (pin);
 }
