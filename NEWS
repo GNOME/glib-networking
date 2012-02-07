@@ -1,3 +1,15 @@
+2.31.16
+=======
+  * gnutls: Fixed a TLS handshaking bug that in particular caused lots
+    of crashes in epiphany. (#658771)
+
+  * tls/tests: Fixed a bug in the pkcs11-pin test that could cause it
+    to spuriously fail
+
+  * Updated translations:
+	Bulgarian, Chinese (traditional), Czech, Japanese,
+	Norwegian bokmål, Turkish, Vietnamese
+
 2.31.6
 ======
   * gnutls
