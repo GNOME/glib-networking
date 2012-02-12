@@ -1,21 +1,22 @@
-# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2011.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2011, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib.networking\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-03-13 17:14+0000\n"
-"PO-Revision-Date: 2011-03-06 06:36+0200\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&k"
+"eywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2011-11-19 01:32+0000\n"
+"PO-Revision-Date: 2012-02-12 20:20+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <gnom@prevod.org>\n"
+"Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: Serbian (sr)\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : "
+"n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Project-Style: gnome\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:142
+#: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
 msgstr "Унутрашња грешка решавача посредника."
 
@@ -29,62 +30,102 @@ msgstr "Не могу да рашчланим ДЕР уверење: %s"
 msgid "Could not parse PEM certificate: %s"
 msgstr "Не могу да рашчланим ПЕМ уверење: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Не могу да рашчланим приватни ДЕР кључ: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Не могу да рашчланим приватни ПЕМ кључ: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Нису обезбеђени подаци уверења"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
 msgid "Server required TLS certificate"
 msgstr "ТЛС уверење које захтева сервер"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#: ../tls/gnutls/gtlsconnection-gnutls.c:279
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Не могу да направим ТЛС везу: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+#: ../tls/gnutls/gtlsconnection-gnutls.c:558
 msgid "Peer failed to perform TLS handshake"
 msgstr "Парњак није успео да изврши ТЛС руковање"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Парњак је затражио илегално ТЛС поновно руковање"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+#: ../tls/gnutls/gtlsconnection-gnutls.c:594
 msgid "TLS connection closed unexpectedly"
 msgstr "ТЛС веза је неочекивано затворена"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:799
-#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:914
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Грешка у извршавању ТЛС руковања: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+#: ../tls/gnutls/gtlsconnection-gnutls.c:962
 msgid "Unacceptable TLS certificate"
 msgstr "Неприхватљиво ТЛС уверење"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Грешка приликом читања података са ТЛС прикључка: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Грешка приликом уписивања података у ТЛС прикључак: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Грешка у извршавању ТЛС затварања: %s"
+
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+msgid "Certificate has no private key"
+msgstr "Уверење нема приватни кључ"
+
+#: ../tls/pkcs11/gpkcs11pin.c:108
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
+msgstr ""
+"Ово је последња прилика да исправно унесете ПИН пре него што карика буде "
+"закључана."
+
+#: ../tls/pkcs11/gpkcs11pin.c:110
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"Неколико унешених ПИН-ова је било неисправно, и зато ће карика бити "
+"закључана након будућих неуспеха."
+
+#: ../tls/pkcs11/gpkcs11pin.c:112
+msgid "The PIN entered is incorrect."
+msgstr "Унешени ПИН је погрешан."
+
+#: ../tls/pkcs11/gpkcs11slot.c:446
+msgid "Module"
+msgstr "Модул"
+
+#: ../tls/pkcs11/gpkcs11slot.c:447
+msgid "PKCS#11 Module Pointer"
+msgstr "Указивач ПКЦС#11 модула"
+
+#: ../tls/pkcs11/gpkcs11slot.c:454
+msgid "Slot ID"
+msgstr "ИБ слота"
+
+#: ../tls/pkcs11/gpkcs11slot.c:455
+msgid "PKCS#11 Slot Identifier"
+msgstr "Одредник ПКЦС#11 слота"
