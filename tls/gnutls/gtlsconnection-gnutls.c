@@ -98,6 +98,7 @@ struct _GTlsConnectionGnutlsPrivate
   GTlsDatabase *database;
   gboolean database_is_unset;
   gboolean need_handshake, handshaking, ever_handshaked;
+  GError *handshake_error;
   gboolean closing;
 
   GInputStream *tls_istream;
@@ -248,6 +249,7 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_clear_object (&gnutls->priv->interaction);
 
   g_clear_error (&gnutls->priv->error);
+  g_clear_error (&gnutls->priv->handshake_error);
 
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
 }
@@ -523,14 +525,14 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   begin_gnutls_io (gnutls, blocking, cancellable);	\
   do {
 
-#define END_GNUTLS_IO(gnutls, ret, errmsg, error)	\
+#define END_GNUTLS_IO(gnutls, ret, errmsg, err)	\
   } while ((ret == GNUTLS_E_AGAIN ||			\
             ret == GNUTLS_E_WARNING_ALERT_RECEIVED) &&	\
            !gnutls->priv->error);			\
-  ret = end_gnutls_io (gnutls, ret, error);		\
-  if (ret < 0 && ret != GNUTLS_E_REHANDSHAKE && error && !*error) \
+  ret = end_gnutls_io (gnutls, ret, err);		\
+  if (ret < 0 && ret != GNUTLS_E_REHANDSHAKE && err && !*err) \
     {							\
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,\
+      g_set_error (err, G_TLS_ERROR, G_TLS_ERROR_MISC,\
                    errmsg, gnutls_strerror (ret));	\
     }							\
   ;
@@ -777,6 +779,8 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
   GTlsCertificateFlags peer_certificate_errors = 0;
   int ret;
 
+  g_clear_error (&gnutls->priv->handshake_error);
+
   if (G_IS_TLS_SERVER_CONNECTION_GNUTLS (gnutls) &&
       gnutls->priv->ever_handshaked && !gnutls->priv->handshaking &&
       !gnutls->priv->need_handshake)
@@ -808,10 +812,15 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
   BEGIN_GNUTLS_IO (gnutls, blocking, cancellable);
   ret = gnutls_handshake (gnutls->priv->session);
-  END_GNUTLS_IO (gnutls, ret, _("Error performing TLS handshake: %s"), error);
+  END_GNUTLS_IO (gnutls, ret, _("Error performing TLS handshake: %s"),
+		 &gnutls->priv->handshake_error);
 
   if (ret == GNUTLS_E_AGAIN)
-    return FALSE;
+    {
+      g_propagate_error (error, gnutls->priv->handshake_error);
+      gnutls->priv->handshake_error = NULL;
+      return FALSE;
+    }
 
   gnutls->priv->handshaking = FALSE;
   gnutls->priv->need_handshake = FALSE;
@@ -855,13 +864,20 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
       if (!accepted)
 	{
-	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+	  g_set_error_literal (&gnutls->priv->handshake_error,
+			       G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
 			       _("Unacceptable TLS certificate"));
+	  if (error)
+	    *error = g_error_copy (gnutls->priv->handshake_error);
 	  return FALSE;
 	}
     }
 
-  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, ret == 0, error);
+  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->
+    finish_handshake (gnutls, ret == 0, &gnutls->priv->handshake_error);
+
+  if (gnutls->priv->handshake_error && error)
+    *error = g_error_copy (gnutls->priv->handshake_error);
   return (ret == 0);
 }
 
@@ -871,6 +887,13 @@ handshake_in_progress_or_failed (GTlsConnectionGnutls  *gnutls,
 				 GCancellable          *cancellable,
 				 GError               **error)
 {
+  if (gnutls->priv->handshake_error)
+    {
+      if (error)
+	*error = g_error_copy (gnutls->priv->handshake_error);
+      return TRUE;
+    }
+
   if (!(gnutls->priv->need_handshake || gnutls->priv->handshaking))
     return FALSE;
 
