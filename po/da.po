@@ -1,16 +1,17 @@
 # Danish translation for glib-networking.
-# Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
+# Copyright (C) 2011-2012 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
 # Kris Thomsen <lakristho@gmail.com>, 2011.
+# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-29 23:52+0200\n"
-"PO-Revision-Date: 2011-03-29 15:06+0000\n"
-"Last-Translator: Kris Thomsen <lakristho@gmail.com>\n"
+"POT-Creation-Date: 2012-02-20 22:30+0100\n"
+"PO-Revision-Date: 2012-02-18 18:59+0100\n"
+"Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -18,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:151
+#: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
 msgstr "Intern fejl i proxy-opløser."
 
@@ -32,62 +33,102 @@ msgstr "Kunne ikke fortolke DER-certifikat: %s"
 msgid "Could not parse PEM certificate: %s"
 msgstr "Kunne ikke fortolke PEM-certifikat: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Kunne ikke fortolke privat nøgle for DER: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Kunne ikke fortolke privat nøgle for PEM: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Ingen certifikatdata angivet"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:356
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
 msgid "Server required TLS certificate"
 msgstr "Server kræver et TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:241
+#: ../tls/gnutls/gtlsconnection-gnutls.c:202
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunne ikke oprette TLS-forbindelse: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:479
+#: ../tls/gnutls/gtlsconnection-gnutls.c:481
 msgid "Peer failed to perform TLS handshake"
 msgstr "Modpart mislykkedes i at udføre TLS-forhandling"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:497
+#: ../tls/gnutls/gtlsconnection-gnutls.c:501
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Modpart forspurgte illegalt TLS-genforhandling"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:511
+#: ../tls/gnutls/gtlsconnection-gnutls.c:519
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-forbindelse lukkede uventet ned"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:799
-#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#: ../tls/gnutls/gtlsconnection-gnutls.c:814
+#: ../tls/gnutls/gtlsconnection-gnutls.c:840
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fejl under udførsel af TLS-handshake: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+#: ../tls/gnutls/gtlsconnection-gnutls.c:888
 msgid "Unacceptable TLS certificate"
 msgstr "Uacceptabelt TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1023
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Fejl under læsning af data fra TLS-sokkel: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Fejl under skrivning af data til TLS-sokkel: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1095
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fejl under nedlukning af TLS: %s"
+
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+msgid "Certificate has no private key"
+msgstr "Certifikatet har ingen privat nøgle"
+
+#: ../tls/pkcs11/gpkcs11pin.c:108
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
+msgstr ""
+"Dette er sidste chance for at indtaste PIN korrekt, før det kryptografiske "
+"tegn (token) låses."
+
+#: ../tls/pkcs11/gpkcs11pin.c:110
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"Der er indtastet adskillige forkerte PIN, og det kryptografiske tegn (token) "
+"vil blive låst hvis der sker flere fejl."
+
+#: ../tls/pkcs11/gpkcs11pin.c:112
+msgid "The PIN entered is incorrect."
+msgstr "Den indtastede PIN er forkert."
+
+#: ../tls/pkcs11/gpkcs11slot.c:446
+msgid "Module"
+msgstr "Modul"
+
+#: ../tls/pkcs11/gpkcs11slot.c:447
+msgid "PKCS#11 Module Pointer"
+msgstr "PKCS#11-modulpointer"
+
+#: ../tls/pkcs11/gpkcs11slot.c:454
+msgid "Slot ID"
+msgstr "Plads-id"
+
+#: ../tls/pkcs11/gpkcs11slot.c:455
+msgid "PKCS#11 Slot Identifier"
+msgstr "PKCS#11 plads-identifikation"
