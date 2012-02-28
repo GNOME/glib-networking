@@ -15,6 +15,10 @@ libgiopkcs11_la_SOURCES =			\
 	pkcs11-trust-assertions.h		\
 	$(NULL)
 
+libgiopkcs11_la_LIBADD =			\
+	$(GLIB_LIBS)				\
+	$(NULL)
+
 INCLUDES +=					\
 	$(PKCS11_CFLAGS)			\
 	-DG_DISABLE_DEPRECATED
