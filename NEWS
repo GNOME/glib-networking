@@ -1,3 +1,13 @@
+2.31.20
+=======
+  * gnutls: Fixed a linking problem on some platforms when PKCS#11 is
+    enabled. (#670956, Kalev Lember)
+
+  * Updated translations:
+	Assamese, Basque, Belarusian, Brazilian Portuguese, Danish,
+	Estonian, French, German, Hungarian, Italian, Korean, Polish,
+	Russian, Serbian
+
 2.31.16
 =======
   * gnutls: Fixed a TLS handshaking bug that in particular caused lots
