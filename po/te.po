@@ -1,16 +1,15 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) 2012 Swecha Telugu Localisation team
+# Copyright (C) 2011, 2012 Swecha Telugu Localisation team
 # This file is distributed under the same license as the PACKAGE package.
 # Hari Krishna <hari@swecha.net>, 2011.
-# Bhuvan Krishna <bhuvan@swecha.net>, 1012.
+# Bhuvan Krishna <bhuvan@swecha.net>, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-network.master.te\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-03-18 14:20+0530\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-03-18 08:55+0000\n"
+"PO-Revision-Date: 2012-03-19 13:49+0530\n"
 "Last-Translator: Bhuvan Krishna <bhuvan@swecha.net>\n"
 "Language-Team: Telugu <Indlinux-telugu@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -46,67 +45,63 @@ msgstr "PEM స్వంతతాళం  పార్స్ చేయుట క�
 msgid "No certificate data provided"
 msgstr "ధృవీకరణపత్ర దత్తాశం అమర్చబడలేదు "
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
 msgid "Server required TLS certificate"
 msgstr "TLS ధృవీకరణపత్రము సేవికకు అవసరం "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:202
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS అనుసంధానం సృష్టించడం కుదరుటలేదు: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:481
 msgid "Peer failed to perform TLS handshake"
 msgstr "TLS హాండ్ షేక్ నెరవేర్చటకు పీర్ విఫలం "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:501
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "న్యాయవిరోధమైన TLS తిరిగి హాండ్ షేక్  పీర్ అడిగినది "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:519
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS బంధం ఊహించని విధంగా రద్దైపోయినది "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:814
+#: ../tls/gnutls/gtlsconnection-gnutls.c:840
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS హాండ్ షేక్ నెరవేర్చటలో విఫలం: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:888
 msgid "Unacceptable TLS certificate"
 msgstr "అంగీకరించని TLS ధృవీకరణపత్రము "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS తొర్ర లో దత్తంశం పఠించుటలో దొషం:  %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS తొర్ర లో దత్తంశం లిఖించుట లో దొషం:  %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS మూయడంలో దోషం: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "సర్టిఫికేట్ కు స్వంతతాళం లెదు"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
-msgid ""
-"This is the last chance to enter the PIN correctly before the token is "
-"locked."
+msgid "This is the last chance to enter the PIN correctly before the token is locked."
 msgstr "టోకెన్ తాళం వెసె ముందు సరైన PIN ను నమోదు చివరి అవకాశం"
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
-msgid ""
-"Several PIN attempts have been incorrect, and the token will be locked after "
-"further failures."
-msgstr ""
+msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
+msgstr "మీరు చేసిన అనేక PIN ప్రయత్నాలు సరైనవి కాదు, అందువల్ల తదుపరి తప్పిదాలు జరగకుండా టోకెన్ లాక్ చేయబడినది"
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -127,3 +122,4 @@ msgstr "జాబితా ID"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 జాబితా గుర్తింపుచిహ్నం"
+
