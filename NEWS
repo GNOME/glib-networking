@@ -1,3 +1,9 @@
+2.31.22
+=======
+  * Updated translations:
+	British English, Catalan, Finnish, Lithuanian, Portuguese,
+	Telugu
+
 2.31.20
 =======
   * gnutls: Fixed a linking problem on some platforms when PKCS#11 is
