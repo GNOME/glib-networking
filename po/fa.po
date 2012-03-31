@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-08-16 01:03+0000\n"
-"PO-Revision-Date: 2011-08-24 01:24+0330\n"
+"POT-Creation-Date: 2011-11-19 01:32+0000\n"
+"PO-Revision-Date: 2012-03-31 22:22+0330\n"
 "Last-Translator: Arash Mousavi <mousavi.arash@gmail.com>\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -18,7 +18,7 @@ msgstr ""
 "X-Poedit-Country: IRAN, ISLAMIC REPUBLIC OF\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:151
+#: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
 msgstr "خطای داخلی تحلیل‌گر پیشکار."
 
@@ -32,63 +32,95 @@ msgstr "تجزیه گواهینامه DER امکان‌پذیر نبود: %s"
 msgid "Could not parse PEM certificate: %s"
 msgstr "تجزیه گواهینامه PEM امکان‌پذیر نبود: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:214
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "تجزیه کلید خصوصی DER امکان‌پذیر نبود: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:234
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "تجزیه کلید خصوصی PEM امکان‌پذیر نبود: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:275
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "هیچ اطلاعات گواهینامه‌ای ارائه نشده"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:378
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
 msgid "Server required TLS certificate"
 msgstr "کارگزار به گواهینامه TLS احتیاج دارد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:251
+#: ../tls/gnutls/gtlsconnection-gnutls.c:279
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "نمی‌توان اتصال TLS ایجاد کرد: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:526
+#: ../tls/gnutls/gtlsconnection-gnutls.c:558
 msgid "Peer failed to perform TLS handshake"
 msgstr "برقراری TLS handshake توسط همتا شکست خورد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:544
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "همتا درخواست یک TLS rehandshake غیرقانونی کرده است"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:594
 msgid "TLS connection closed unexpectedly"
 msgstr "اتصال TLS بطور غیر منتظره‌ای شکست خورد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:850
-#: ../tls/gnutls/gtlsconnection-gnutls.c:876
+#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:914
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "خطا در هنگام انجام TLS handshake. خطا: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:915
+#: ../tls/gnutls/gtlsconnection-gnutls.c:962
 msgid "Unacceptable TLS certificate"
 msgstr "گواهینامه TLS غیر قابل پذیرش"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1062
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "خطا در هنگام هواندن اطلاعات از طریق سوکت TLS. خط: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1088
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "خطا در هنگام نوشتن اطلاعات در سوکت TLS. خطا: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1134
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "خطا در هنگام انجام بستن TLS. خطا: %s"
+
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+msgid "Certificate has no private key"
+msgstr "گواهینامه هیچ کلید خصوصی‌ای ندارد"
+
+#: ../tls/pkcs11/gpkcs11pin.c:108
+msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgstr "آخرین شانس برای صحیح وارد کردن PIN قبل از قفل شدن رمز است."
+
+#: ../tls/pkcs11/gpkcs11pin.c:110
+msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
+msgstr "تعدادی از تلاش‌های برای وارد کردن PIN شکست خورده است، و رمز پس از شکست‌های بعدی قفل خواهد شد."
+
+#: ../tls/pkcs11/gpkcs11pin.c:112
+msgid "The PIN entered is incorrect."
+msgstr "عبارت PIN وارد شده نادرست است."
+
+#: ../tls/pkcs11/gpkcs11slot.c:446
+msgid "Module"
+msgstr "ماژول"
+
+#: ../tls/pkcs11/gpkcs11slot.c:447
+msgid "PKCS#11 Module Pointer"
+msgstr "نشانگر ماژول PKCS#11"
+
+#: ../tls/pkcs11/gpkcs11slot.c:454
+msgid "Slot ID"
+msgstr "شناسه‌ی جایگاه"
+
+#: ../tls/pkcs11/gpkcs11slot.c:455
+msgid "PKCS#11 Slot Identifier"
+msgstr "شناساگر جایگاه PKCS#11"
 
