@@ -739,20 +739,10 @@ g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
    */
   g_clear_error (&gnutls->priv->error);
 
-  if (gnutls->priv->blocking)
-    {
-      ret = g_input_stream_read (G_INPUT_STREAM (gnutls->priv->base_istream),
-				 buf, buflen,
-				 gnutls->priv->cancellable,
-				 &gnutls->priv->error);
-    }
-  else
-    {
-      ret = g_pollable_input_stream_read_nonblocking (gnutls->priv->base_istream,
-						      buf, buflen,
-						      gnutls->priv->cancellable,
-						      &gnutls->priv->error);
-    }
+  ret = g_pollable_stream_read (G_INPUT_STREAM (gnutls->priv->base_istream),
+				buf, buflen, gnutls->priv->blocking,
+				gnutls->priv->cancellable,
+				&gnutls->priv->error);
 
   if (ret < 0)
     set_gnutls_error (gnutls, G_IO_IN);
@@ -775,20 +765,10 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
   /* See comment in pull_func. */
   g_clear_error (&gnutls->priv->error);
 
-  if (gnutls->priv->blocking)
-    {
-      ret = g_output_stream_write (G_OUTPUT_STREAM (gnutls->priv->base_ostream),
-				   buf, buflen,
-				   gnutls->priv->cancellable,
-				   &gnutls->priv->error);
-    }
-  else
-    {
-      ret = g_pollable_output_stream_write_nonblocking (gnutls->priv->base_ostream,
-							buf, buflen,
-							gnutls->priv->cancellable,
-							&gnutls->priv->error);
-    }
+  ret = g_pollable_stream_write (G_OUTPUT_STREAM (gnutls->priv->base_ostream),
+				 buf, buflen, gnutls->priv->blocking,
+				 gnutls->priv->cancellable,
+				 &gnutls->priv->error);
   if (ret < 0)
     set_gnutls_error (gnutls, G_IO_OUT);
 
