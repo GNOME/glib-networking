@@ -1,3 +1,12 @@
+2.32.1
+======
+  * gnutls: added /etc/ssl/ca-bundle.pem to the list of files to check
+    for to use as the default CA list. (This is what openSUSE uses.)
+    (#673944, Federico Mena Quintero)
+
+  * Updated translations:
+	Catalan (Valencian), Marathi, Odia, Persian
+
 2.32.0
 ======
   * New/updated translations:
