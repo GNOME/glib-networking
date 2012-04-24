@@ -29,11 +29,6 @@ G_DEFINE_TYPE_WITH_CODE (GTlsOutputStreamGnutls, g_tls_output_stream_gnutls, G_T
 struct _GTlsOutputStreamGnutlsPrivate
 {
   GTlsConnectionGnutls *conn;
-
-  /* pending operation metadata */
-  GCancellable *cancellable;
-  gconstpointer buffer;
-  gsize count;
 };
 
 static void

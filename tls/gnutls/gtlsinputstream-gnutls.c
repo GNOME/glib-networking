@@ -29,11 +29,6 @@ G_DEFINE_TYPE_WITH_CODE (GTlsInputStreamGnutls, g_tls_input_stream_gnutls, G_TYP
 struct _GTlsInputStreamGnutlsPrivate
 {
   GTlsConnectionGnutls *conn;
-
-  /* pending operation metadata */
-  GCancellable *cancellable;
-  gpointer buffer;
-  gsize count;
 };
 
 static void
