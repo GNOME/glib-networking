@@ -318,26 +318,29 @@ update_settings (GProxyResolverGnome *resolver)
   host = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_HOST_KEY);
   port = g_settings_get_int (resolver->http_settings, GNOME_PROXY_HTTP_PORT_KEY);
 
-  if (g_settings_get_boolean (resolver->http_settings, GNOME_PROXY_HTTP_USE_AUTH_KEY))
+  if (host && *host)
     {
-      gchar *user, *password;
-      gchar *enc_user, *enc_password;
+      if (g_settings_get_boolean (resolver->http_settings, GNOME_PROXY_HTTP_USE_AUTH_KEY))
+	{
+	  gchar *user, *password;
+	  gchar *enc_user, *enc_password;
 
-      user = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_USER_KEY);
-      enc_user = g_uri_escape_string (user, NULL, TRUE);
-      g_free (user);
-      password = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_PASSWORD_KEY);
-      enc_password = g_uri_escape_string (password, NULL, TRUE);
-      g_free (password);
+	  user = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_USER_KEY);
+	  enc_user = g_uri_escape_string (user, NULL, TRUE);
+	  g_free (user);
+	  password = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_PASSWORD_KEY);
+	  enc_password = g_uri_escape_string (password, NULL, TRUE);
+	  g_free (password);
 
-      resolver->http_proxy = g_strdup_printf ("http://%s:%s@%s:%u",
-					      enc_user, enc_password,
-					      host, port);
-      g_free (enc_user);
-      g_free (enc_password);
+	  resolver->http_proxy = g_strdup_printf ("http://%s:%s@%s:%u",
+						  enc_user, enc_password,
+						  host, port);
+	  g_free (enc_user);
+	  g_free (enc_password);
+	}
+      else
+	resolver->http_proxy = g_strdup_printf ("http://%s:%u", host, port);
     }
-  else
-    resolver->http_proxy = g_strdup_printf ("http://%s:%u", host, port);
   g_free (host);
 
   host = g_settings_get_string (resolver->https_settings, GNOME_PROXY_HTTPS_HOST_KEY);
