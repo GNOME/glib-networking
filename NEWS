@@ -1,3 +1,10 @@
+2.33.2
+======
+  * gnutls: simplify using new glib pollable stream methods
+
+  * proxy/gnome: fix a bug that made it impossible to use SOCKS
+    without also having a separate http proxy.
+
 2.32.1
 ======
   * gnutls: added /etc/ssl/ca-bundle.pem to the list of files to check
