@@ -374,6 +374,7 @@ g_tls_connection_gnutls_set_property (GObject      *object,
               gnutls->priv->database = g_tls_backend_get_default_database (backend);
             }
           gnutls->priv->is_system_certdb = system_certdb;
+          gnutls->priv->database_is_unset = FALSE;
         }
       break;
 
