@@ -13,6 +13,7 @@ if test -z $AUTORECONF; then
         exit 1
 fi
 
+mkdir -p m4
 autoreconf --force --install --verbose || exit $?
 
 cd "$olddir"
