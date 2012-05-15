@@ -1,3 +1,10 @@
+2.32.3
+======
+  * proxy/gnome: Fix SOCKS to work when no http proxy is set
+
+  * Updated translations:
+	Greek
+
 2.32.1
 ======
   * gnutls: added /etc/ssl/ca-bundle.pem to the list of files to check
