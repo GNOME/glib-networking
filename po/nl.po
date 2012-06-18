@@ -1,15 +1,17 @@
 # Dutch translation for glib-networking
 # This file is distributed under the same license as the glib-networking package.
-# Wouter Bolsterlee <wbolster@gnome.org>, 2011
+#
+# Wouter Bolsterlee <wbolster@gnome.org>, 2011–2013
 # Rachid <rachidbm@ubuntu.com>, 2012.
+#
 # Peer - andere kant van de verbinding   (heel vrij vertaald)
 msgid ""
 msgstr ""
 "Project-Id-Version: gconf\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-18 21:06+0200\n"
-"PO-Revision-Date: 2012-06-06 23:52+0200\n"
-"Last-Translator: Rachid <rachidbm@ubuntu.com>\n"
+"POT-Creation-Date: 2012-06-18 21:07+0200\n"
+"PO-Revision-Date: 2012-06-18 21:07+0200\n"
+"Last-Translator: Wouter Bolsterlee <wbolster@gnome.org>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -108,8 +110,8 @@ msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr ""
-"U heeft meerdere malen een onjuiste PIN ingevoerd, na verdere mislukte "
-"pogingen zal de token ongeldig worden."
+"U heeft meerdere malen een onjuiste PIN ingevoerd. Na verdere mislukte "
+"pogingen wordt de token ongeldig."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -121,12 +123,12 @@ msgstr "Module"
 
 #: ../tls/pkcs11/gpkcs11slot.c:447
 msgid "PKCS#11 Module Pointer"
-msgstr "PKCS#11 Module-wijzer"
+msgstr "PKCS#11 Module Pointer"
 
 #: ../tls/pkcs11/gpkcs11slot.c:454
 msgid "Slot ID"
-msgstr "Slot-ID"
+msgstr "Slot ID"
 
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
-msgstr "PKCS#11 Slot-identificatie"
+msgstr "PKCS#11 Slot Identifier"
