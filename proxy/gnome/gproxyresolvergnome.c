@@ -546,7 +546,7 @@ got_autoconfig_proxies (GObject      *source,
 			GAsyncResult *result,
 			gpointer      user_data)
 {
-  GSimpleAsyncResult *simple = user_data;
+  GTask *task = user_data;
   GVariant *vproxies;
   char **proxies;
   GError *error = NULL;
@@ -556,17 +556,12 @@ got_autoconfig_proxies (GObject      *source,
   if (vproxies)
     {
       g_variant_get (vproxies, "(^as)", &proxies);
-      g_simple_async_result_set_op_res_gpointer (simple, proxies,
-						 (GDestroyNotify)g_strfreev);
+      g_task_return_pointer (task, proxies, (GDestroyNotify)g_strfreev);
       g_variant_unref (vproxies);
     }
   else
-    {
-      g_simple_async_result_set_from_error (simple, error);
-      g_error_free (error);
-    }
-  g_simple_async_result_complete (simple);
-  g_object_unref (simple);
+    g_task_return_error (task, error);
+  g_object_unref (task);
 }
 
 static void
@@ -577,11 +572,9 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
 				     gpointer             user_data)
 {
   GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (proxy_resolver);
-  GSimpleAsyncResult *simple;
+  GTask *task;
 
-  simple = g_simple_async_result_new (G_OBJECT (resolver),
-				      callback, user_data,
-				      g_proxy_resolver_gnome_lookup_async);
+  task = g_task_new (resolver, cancellable, callback, user_data);
 
   if (resolver->pacrunner)
     {
@@ -594,7 +587,7 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
 			 -1,
 			 cancellable,
 			 got_autoconfig_proxies,
-			 simple);
+			 task);
     }
   else
     {
@@ -604,17 +597,10 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
       proxies = g_proxy_resolver_gnome_lookup (proxy_resolver, uri,
 					       cancellable, &error);
       if (proxies)
-	{
-	  g_simple_async_result_set_op_res_gpointer (simple, proxies,
-						     (GDestroyNotify)g_strfreev);
-	}
+	g_task_return_pointer (task, proxies, (GDestroyNotify)g_strfreev);
       else
-	{
-	  g_simple_async_result_set_from_error (simple, error);
-	  g_error_free (error);
-	}
-      g_simple_async_result_complete_in_idle (simple);
-      g_object_unref (simple);
+	g_task_return_error (task, error);
+      g_object_unref (task);
     }
 }
 
@@ -623,18 +609,9 @@ g_proxy_resolver_gnome_lookup_finish (GProxyResolver  *resolver,
 				      GAsyncResult    *result,
 				      GError         **error)
 {
-  GSimpleAsyncResult *simple;
-  gchar **proxies;
+  g_return_val_if_fail (g_task_is_valid (result, resolver), NULL);
 
-  g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (resolver), g_proxy_resolver_gnome_lookup_async), NULL);
-
-  simple = G_SIMPLE_ASYNC_RESULT (result);
-
-  if (g_simple_async_result_propagate_error (simple, error))
-    return NULL;
-
-  proxies = g_simple_async_result_get_op_res_gpointer (simple);
-  return g_strdupv (proxies);
+  return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 static void

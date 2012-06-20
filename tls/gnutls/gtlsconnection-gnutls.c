@@ -65,7 +65,7 @@ static gboolean do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
 				       GCancellable          *cancellable,
 				       GError               **error);
 static gboolean finish_handshake (GTlsConnectionGnutls  *gnutls,
-				  GSimpleAsyncResult    *thread_result,
+				  GTask                 *thread_task,
 				  GError               **error);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION,
@@ -129,7 +129,7 @@ struct _GTlsConnectionGnutlsPrivate
    */
   gboolean need_handshake, need_finish_handshake;
   gboolean started_handshake, handshaking, ever_handshaked;
-  GSimpleAsyncResult *implicit_handshake;
+  GTask *implicit_handshake;
   GError *handshake_error;
 
   gboolean closing, closed;
@@ -1024,11 +1024,12 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
 }
 
 static void
-handshake_thread (GSimpleAsyncResult *result,
-		  GObject            *object,
-		  GCancellable       *cancellable)
+handshake_thread (GTask        *task,
+		  gpointer      object,
+		  gpointer      task_data,
+		  GCancellable *cancellable)
 {
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
+  GTlsConnectionGnutls *gnutls = object;
   gboolean is_client;
   GError *error = NULL;
   int ret;
@@ -1038,7 +1039,7 @@ handshake_thread (GSimpleAsyncResult *result,
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE,
 		 TRUE, cancellable, &error))
     {
-      g_simple_async_result_take_error (result, error);
+      g_task_return_error (task, error);
       return;
     }
 
@@ -1056,7 +1057,7 @@ handshake_thread (GSimpleAsyncResult *result,
 
       if (error)
 	{
-	  g_simple_async_result_take_error (result, error);
+	  g_task_return_error (task, error);
 	  return;
 	}
     }
@@ -1076,9 +1077,9 @@ handshake_thread (GSimpleAsyncResult *result,
   gnutls->priv->ever_handshaked = TRUE;
 
   if (error)
-    g_simple_async_result_take_error (result, error);
+    g_task_return_error (task, error);
   else
-    g_simple_async_result_set_op_res_gboolean (result, TRUE);
+    g_task_return_boolean (task, TRUE);
 }
 
 static GTlsCertificate *
@@ -1186,7 +1187,7 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
 
 static gboolean
 finish_handshake (GTlsConnectionGnutls  *gnutls,
-		  GSimpleAsyncResult    *result,
+		  GTask                 *task,
 		  GError               **error)
 {
   GTlsCertificate *peer_certificate;
@@ -1194,7 +1195,7 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
 
   g_assert (error != NULL);
 
-  if (!g_simple_async_result_propagate_error (result, error) &&
+  if (g_task_propagate_boolean (task, error) &&
       gnutls_certificate_type_get (gnutls->priv->session) == GNUTLS_CRT_X509)
     peer_certificate = get_peer_certificate_from_session (gnutls);
   else
@@ -1235,16 +1236,14 @@ g_tls_connection_gnutls_handshake (GTlsConnection   *conn,
 				   GError          **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (conn);
-  GSimpleAsyncResult *result;
+  GTask *task;
   gboolean success;
   GError *my_error = NULL;
 
-  result = g_simple_async_result_new (G_OBJECT (conn), NULL, NULL,
-				      g_tls_connection_gnutls_handshake);
-  handshake_thread (result, G_OBJECT (conn), cancellable);
-
-  success = finish_handshake (gnutls, result, &my_error);
-  g_object_unref (result);
+  task = g_task_new (conn, cancellable, NULL, NULL);
+  g_task_run_in_thread_sync (task, handshake_thread);
+  success = finish_handshake (gnutls, task, &my_error);
+  g_object_unref (task);
 
   yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE);
 
@@ -1253,10 +1252,9 @@ g_tls_connection_gnutls_handshake (GTlsConnection   *conn,
   return success;
 }
 
-/* In the async version we use two GSimpleAsyncResults; one to run
- * handshake_thread() and then call handshake_thread_completed(), and
- * a second to call the caller's original callback after we call
- * finish_handshake().
+/* In the async version we use two GTasks; one to run handshake_thread() and
+ * then call handshake_thread_completed(), and a second to call the caller's
+ * original callback after we call finish_handshake().
  */
 
 static void
@@ -1264,23 +1262,19 @@ handshake_thread_completed (GObject      *object,
 			    GAsyncResult *result,
 			    gpointer      user_data)
 {
-  GTlsConnectionGnutls *gnutls;
-  GSimpleAsyncResult *caller_result = user_data;
+  GTask *caller_task = user_data;
+  GTlsConnectionGnutls *gnutls = g_task_get_source_object (caller_task);
   GError *error = NULL;
   gboolean success;
 
-  gnutls = G_TLS_CONNECTION_GNUTLS (g_async_result_get_source_object (G_ASYNC_RESULT (caller_result)));
-  g_object_unref (gnutls);
-
-  success = finish_handshake (gnutls, G_SIMPLE_ASYNC_RESULT (result), &error);
+  success = finish_handshake (gnutls, G_TASK (result), &error);
   yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE);
 
   if (success)
-    g_simple_async_result_set_op_res_gboolean (caller_result, TRUE);
+    g_task_return_boolean (caller_task, TRUE);
   else
-    g_simple_async_result_take_error (caller_result, error);
-  g_simple_async_result_complete (caller_result);
-  g_object_unref (caller_result);
+    g_task_return_error (caller_task, error);
+  g_object_unref (caller_task);
 }
 
 static void
@@ -1290,17 +1284,16 @@ g_tls_connection_gnutls_handshake_async (GTlsConnection       *conn,
 					 GAsyncReadyCallback   callback,
 					 gpointer              user_data)
 {
-  GSimpleAsyncResult *thread_result, *caller_result;
+  GTask *thread_task, *caller_task;
 
-  caller_result = g_simple_async_result_new (G_OBJECT (conn), callback, user_data,
-					     g_tls_connection_gnutls_handshake_async);
+  caller_task = g_task_new (conn, cancellable, callback, user_data);
+  g_task_set_priority (caller_task, io_priority);
 
-  thread_result = g_simple_async_result_new (G_OBJECT (conn),
-					     handshake_thread_completed, caller_result,
-					     g_tls_connection_gnutls_handshake_async);
-  g_simple_async_result_run_in_thread (thread_result, handshake_thread,
-				       io_priority, cancellable);
-  g_object_unref (thread_result);
+  thread_task = g_task_new (conn, cancellable,
+			    handshake_thread_completed, caller_task);
+  g_task_set_priority (thread_task, io_priority);
+  g_task_run_in_thread (thread_task, handshake_thread);
+  g_object_unref (thread_task);
 }
 
 static gboolean
@@ -1308,16 +1301,9 @@ g_tls_connection_gnutls_handshake_finish (GTlsConnection       *conn,
 					  GAsyncResult         *result,
 					  GError              **error)
 {
-  GSimpleAsyncResult *simple;
+  g_return_val_if_fail (g_task_is_valid (result, conn), FALSE);
 
-  g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (conn), g_tls_connection_gnutls_handshake_async), FALSE);
-
-  simple = G_SIMPLE_ASYNC_RESULT (result);
-
-  if (g_simple_async_result_propagate_error (simple, error))
-    return FALSE;
-
-  return g_simple_async_result_get_op_res_gboolean (simple);
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 static void
@@ -1342,10 +1328,9 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
 {
   /* We have op_mutex */
 
-  gnutls->priv->implicit_handshake =
-    g_simple_async_result_new (G_OBJECT (gnutls),
-			       implicit_handshake_completed, NULL,
-			       do_implicit_handshake);
+  gnutls->priv->implicit_handshake = g_task_new (gnutls, cancellable,
+						 implicit_handshake_completed,
+						 NULL);
 
   if (blocking)
     {
@@ -1353,9 +1338,8 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
       gboolean success;
 
       g_mutex_unlock (&gnutls->priv->op_mutex);
-      handshake_thread (gnutls->priv->implicit_handshake,
-			G_OBJECT (gnutls),
-			cancellable);
+      g_task_run_in_thread_sync (gnutls->priv->implicit_handshake,
+				 handshake_thread);
       success = finish_handshake (gnutls,
 				  gnutls->priv->implicit_handshake,
 				  &my_error);
@@ -1369,9 +1353,8 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
     }
   else
     {
-      g_simple_async_result_run_in_thread (gnutls->priv->implicit_handshake,
-					   handshake_thread,
-					   G_PRIORITY_DEFAULT, cancellable);
+      g_task_run_in_thread (gnutls->priv->implicit_handshake,
+			    handshake_thread);
 
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK,
 			   _("Operation would block"));
@@ -1502,17 +1485,18 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
  * (since handshakes are also done synchronously now).
  */
 static void
-close_thread (GSimpleAsyncResult *result,
-	      GObject            *object,
-	      GCancellable       *cancellable)
+close_thread (GTask        *task,
+	      gpointer      object,
+	      gpointer      task_data,
+	      GCancellable *cancellable)
 {
-  GIOStream *stream = G_IO_STREAM (object);
+  GIOStream *stream = object;
   GError *error = NULL;
 
   if (!g_tls_connection_gnutls_close (stream, cancellable, &error))
-    g_simple_async_result_take_error (result, error);
+    g_task_return_error (task, error);
   else
-    g_simple_async_result_set_op_res_gboolean (result, TRUE);
+    g_task_return_boolean (task, TRUE);
 }
 
 static void
@@ -1522,14 +1506,12 @@ g_tls_connection_gnutls_close_async (GIOStream           *stream,
 				     GAsyncReadyCallback  callback,
 				     gpointer             user_data)
 {
-  GSimpleAsyncResult *result;
+  GTask *task;
 
-  result = g_simple_async_result_new (G_OBJECT (stream),
-				      callback, user_data,
-				      g_tls_connection_gnutls_close_async);
-  g_simple_async_result_run_in_thread (result, close_thread,
-				       io_priority, cancellable);
-  g_object_unref (result);
+  task = g_task_new (stream, cancellable, callback, user_data);
+  g_task_set_priority (task, io_priority);
+  g_task_run_in_thread (task, close_thread);
+  g_object_unref (task);
 }
 
 static gboolean
@@ -1537,16 +1519,9 @@ g_tls_connection_gnutls_close_finish (GIOStream           *stream,
 				      GAsyncResult        *result,
 				      GError             **error)
 {
-  GSimpleAsyncResult *simple;
+  g_return_val_if_fail (g_task_is_valid (result, stream), FALSE);
 
-  g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (stream), g_tls_connection_gnutls_close_async), FALSE);
-
-  simple = G_SIMPLE_ASYNC_RESULT (result);
-
-  if (g_simple_async_result_propagate_error (simple, error))
-    return FALSE;
-
-  return g_simple_async_result_get_op_res_gboolean (simple);
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 #ifdef HAVE_PKCS11

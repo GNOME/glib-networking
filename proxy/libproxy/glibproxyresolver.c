@@ -185,26 +185,22 @@ g_libproxy_resolver_lookup (GProxyResolver  *iresolver,
 }
 
 static void
-_lookup_async (GSimpleAsyncResult *simple,
-	       GObject *object,
+_lookup_async (GTask        *task,
+	       gpointer      object,
+	       gpointer      task_data,
 	       GCancellable *cancellable)
 {
-  GLibProxyResolver *resolver = G_LIBPROXY_RESOLVER (object);
+  GLibProxyResolver *resolver = object;
+  gchar *uri = task_data;
   GError *error = NULL;
   gchar **proxies = NULL;
-  gchar *uri;
-
-  uri = g_simple_async_result_get_op_res_gpointer (simple);
 
   proxies = get_libproxy_proxies (resolver, uri, cancellable, &error);
 
   if (error)
-    {
-      g_simple_async_result_set_from_error (simple, error);
-      g_error_free (error);
-    }
+    g_task_return_error (task, error);
   else
-    g_simple_async_result_set_op_res_gpointer (simple, proxies, (GDestroyNotify)free_libproxy_proxies);
+    g_task_return_pointer (task, proxies, (GDestroyNotify)free_libproxy_proxies);
 }
 
 static void
@@ -214,17 +210,12 @@ g_libproxy_resolver_lookup_async (GProxyResolver      *resolver,
 				  GAsyncReadyCallback  callback,
 				  gpointer             user_data)
 {
-  GSimpleAsyncResult *simple;
+  GTask *task;
 
-  simple = g_simple_async_result_new (G_OBJECT (resolver),
-				      callback, user_data,
-				      g_libproxy_resolver_lookup_async);
-  g_simple_async_result_set_op_res_gpointer (simple,
-					     g_strdup (uri),
-					     (GDestroyNotify) g_free);
-  g_simple_async_result_run_in_thread (simple, _lookup_async,
-				       G_PRIORITY_DEFAULT, cancellable);
-  g_object_unref (simple);
+  task = g_task_new (resolver, cancellable, callback, user_data);
+  g_task_set_task_data (task, g_strdup (uri), (GDestroyNotify) g_free);
+  g_task_run_in_thread (task, _lookup_async);
+  g_object_unref (task);
 }
 
 static gchar **
@@ -232,18 +223,9 @@ g_libproxy_resolver_lookup_finish (GProxyResolver     *resolver,
 				   GAsyncResult       *result,
 				   GError            **error)
 {
-  GSimpleAsyncResult *simple;
-  gchar **proxies;
+  g_return_val_if_fail (g_task_is_valid (result, resolver), NULL);
 
-  g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (resolver), g_libproxy_resolver_lookup_async), NULL);
-
-  simple = G_SIMPLE_ASYNC_RESULT (result);
-
-  if (g_simple_async_result_propagate_error (simple, error))
-    return NULL;
-
-  proxies = g_simple_async_result_get_op_res_gpointer (simple);
-  return copy_proxies (proxies);
+  return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 static void

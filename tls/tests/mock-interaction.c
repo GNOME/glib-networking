@@ -29,17 +29,6 @@
 G_DEFINE_TYPE (MockInteraction, mock_interaction, G_TYPE_TLS_INTERACTION);
 
 static void
-on_cancellable_cancelled (GCancellable *cancellable,
-                          gpointer user_data)
-{
-  GSimpleAsyncResult *res = G_SIMPLE_ASYNC_RESULT (user_data);
-  GError *error = NULL;
-  if (!g_cancellable_set_error_if_cancelled (cancellable, &error))
-    g_assert_not_reached ();
-  g_simple_async_result_take_error (res, error);
-}
-
-static void
 mock_interaction_ask_password_async (GTlsInteraction    *interaction,
                                      GTlsPassword       *password,
                                      GCancellable       *cancellable,
@@ -47,19 +36,12 @@ mock_interaction_ask_password_async (GTlsInteraction    *interaction,
                                      gpointer            user_data)
 {
   MockInteraction *self = MOCK_INTERACTION (interaction);
-  GSimpleAsyncResult *res;
+  GTask *task;
 
-  res = g_simple_async_result_new (G_OBJECT (interaction), callback, user_data,
-                                   mock_interaction_ask_password_async);
-
-  if (cancellable)
-    g_cancellable_connect (cancellable,
-                           G_CALLBACK (on_cancellable_cancelled),
-                           g_object_ref (res),
-                           g_object_unref);
+  task = g_task_new (interaction, cancellable, callback, user_data);
 
   g_tls_password_set_value (password, (const guchar *)self->static_password, -1);
-  g_simple_async_result_complete_in_idle (res);
+  g_task_return_boolean (task, TRUE);
 }
 
 static GTlsInteractionResult
@@ -67,14 +49,16 @@ mock_interaction_ask_password_finish (GTlsInteraction    *interaction,
                                       GAsyncResult       *result,
                                       GError            **error)
 {
-  g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (interaction),
-                                                        mock_interaction_ask_password_async),
-                                                        G_TLS_INTERACTION_UNHANDLED);
+  g_return_val_if_fail (g_task_is_valid (result, interaction),
+			G_TLS_INTERACTION_UNHANDLED);
 
-  if (g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (result), error))
-    return G_TLS_INTERACTION_FAILED;
-
-  return G_TLS_INTERACTION_HANDLED;
+  if (g_task_had_error (G_TASK (result)))
+    {
+      g_task_propagate_boolean (G_TASK (result), error);
+      return G_TLS_INTERACTION_FAILED;
+    }
+  else
+    return G_TLS_INTERACTION_HANDLED;
 }
 
 static GTlsInteractionResult
