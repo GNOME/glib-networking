@@ -1,3 +1,14 @@
+2.33.3
+======
+  * Updated autogen.sh (in particular to support automake 1.12)
+    (#675261)
+
+  * gnutls: fix the use-system-certdb property on GTlsConnectionGnutls
+    (previously, setting it to FALSE was a no-op).
+
+  * Updated translations:
+	Dutch, Greek, Indonesian
+
 2.33.2
 ======
   * gnutls: simplify using new glib pollable stream methods
