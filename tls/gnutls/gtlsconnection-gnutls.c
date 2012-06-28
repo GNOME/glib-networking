@@ -224,39 +224,30 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
 static void
 g_tls_connection_gnutls_finalize (GObject *object)
 {
-  GTlsConnectionGnutls *connection = G_TLS_CONNECTION_GNUTLS (object);
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
 
-  if (connection->priv->base_io_stream)
-    g_object_unref (connection->priv->base_io_stream);
+  g_clear_object (&gnutls->priv->base_io_stream);
 
-  if (connection->priv->session)
-    gnutls_deinit (connection->priv->session);
+  g_clear_object (&gnutls->priv->tls_istream);
+  g_clear_object (&gnutls->priv->tls_ostream);
 
-  if (connection->priv->tls_istream)
-    g_object_unref (connection->priv->tls_istream);
-  if (connection->priv->tls_ostream) 
-    g_object_unref (connection->priv->tls_ostream);
+  if (gnutls->priv->session)
+    gnutls_deinit (gnutls->priv->session);
+  if (gnutls->priv->creds)
+    gnutls_certificate_free_credentials (gnutls->priv->creds);
 
-  if (connection->priv->creds)
-    gnutls_certificate_free_credentials (connection->priv->creds);
-
-  if (connection->priv->database)
-    g_object_unref (connection->priv->database);
-  if (connection->priv->certificate)
-    g_object_unref (connection->priv->certificate);
-  if (connection->priv->peer_certificate)
-    g_object_unref (connection->priv->peer_certificate);
-
-  g_clear_object (&connection->priv->interaction);
-
-  if (connection->priv->error)
-    g_error_free (connection->priv->error);
+  g_clear_object (&gnutls->priv->database);
+  g_clear_object (&gnutls->priv->certificate);
+  g_clear_object (&gnutls->priv->peer_certificate);
 
 #ifdef HAVE_PKCS11
-  p11_kit_pin_unregister_callback (connection->priv->interaction_id,
-                                   on_pin_prompt_callback, connection);
+  p11_kit_pin_unregister_callback (gnutls->priv->interaction_id,
+                                   on_pin_prompt_callback, gnutls);
 #endif
-  g_free (connection->priv->interaction_id);
+  g_free (gnutls->priv->interaction_id);
+  g_clear_object (&gnutls->priv->interaction);
+
+  g_clear_error (&gnutls->priv->error);
 
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
 }
@@ -804,8 +795,7 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
       if (gnutls->priv->peer_certificate)
 	{
-	  g_object_unref (gnutls->priv->peer_certificate);
-	  gnutls->priv->peer_certificate = NULL;
+	  g_clear_object (&gnutls->priv->peer_certificate);
 	  gnutls->priv->peer_certificate_errors = 0;
 
 	  g_object_notify (G_OBJECT (gnutls), "peer-certificate");
