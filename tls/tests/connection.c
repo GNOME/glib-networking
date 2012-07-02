@@ -41,6 +41,9 @@ typedef struct {
   gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
   GError *read_error;
+
+  char buf[128];
+  gssize nread, nwrote;
 } TestConnection;
 
 static void
@@ -75,7 +78,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
       g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
       g_object_unref (test->service);
       while (test->service)
-	g_main_context_iteration (NULL, TRUE);
+	g_main_context_iteration (NULL, FALSE);
     }
 
   if (test->server_connection)
@@ -212,7 +215,7 @@ on_incoming_connection (GSocketService     *service,
 }
 
 static void
-start_server_service (TestConnection *test, GTlsAuthenticationMode auth_mode)
+start_async_server_service (TestConnection *test, GTlsAuthenticationMode auth_mode)
 {
   GError *error = NULL;
 
@@ -227,14 +230,101 @@ start_server_service (TestConnection *test, GTlsAuthenticationMode auth_mode)
   g_signal_connect (test->service, "incoming", G_CALLBACK (on_incoming_connection), test);
 }
 
-static GIOStream*
-start_server_and_connect_to_it (TestConnection *test, GTlsAuthenticationMode auth_mode)
+static GIOStream *
+start_async_server_and_connect_to_it (TestConnection *test, GTlsAuthenticationMode auth_mode)
 {
   GSocketClient *client;
   GError *error = NULL;
   GSocketConnection *connection;
 
-  start_server_service (test, auth_mode);
+  start_async_server_service (test, auth_mode);
+
+  client = g_socket_client_new ();
+  connection = g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                        NULL, &error);
+  g_assert_no_error (error);
+  g_object_unref (client);
+
+  return G_IO_STREAM (connection);
+}
+
+static void
+run_echo_server (GThreadedSocketService *service,
+		 GSocketConnection      *connection,
+		 GObject                *source_object,
+		 gpointer                user_data)
+{
+  TestConnection *test = user_data;
+  GTlsConnection *tlsconn;
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  GInputStream *istream;
+  GOutputStream *ostream;
+  gssize nread, nwrote, total;
+  gchar buf[128];
+
+  cert = g_tls_certificate_new_from_file (TEST_FILE ("server-and-key.pem"), &error);
+  g_assert_no_error (error);
+
+  test->server_connection = g_tls_server_connection_new (G_IO_STREAM (connection),
+                                                         cert, &error);
+  g_assert_no_error (error);
+  g_object_unref (cert);
+
+  tlsconn = G_TLS_CONNECTION (test->server_connection);
+  g_tls_connection_handshake (tlsconn, NULL, &error);
+  g_assert_no_error (error);
+
+  istream = g_io_stream_get_input_stream (test->server_connection);
+  ostream = g_io_stream_get_output_stream (test->server_connection);
+
+  while (TRUE)
+    {
+      nread = g_input_stream_read (istream, buf, sizeof (buf), NULL, &error);
+      g_assert_no_error (error);
+      g_assert_cmpint (nread, >=, 0);
+
+      if (nread == 0)
+	break;
+
+      for (total = 0; total < nread; total += nwrote)
+	{
+	  nwrote = g_output_stream_write (ostream, buf + total, nread - total, NULL, &error);
+	  g_assert_no_error (error);
+	}
+
+      if (test->rehandshake)
+	{
+	  test->rehandshake = FALSE;
+	  g_tls_connection_handshake (tlsconn, NULL, &error);
+	  g_assert_no_error (error);
+	}
+    }
+}
+
+static void
+start_echo_server_service (TestConnection *test)
+{
+  GError *error = NULL;
+
+  test->service = g_threaded_socket_service_new (5);
+  g_socket_listener_add_address (G_SOCKET_LISTENER (test->service),
+                                 G_SOCKET_ADDRESS (test->address),
+                                 G_SOCKET_TYPE_STREAM, G_SOCKET_PROTOCOL_TCP,
+                                 NULL, NULL, &error);
+  g_assert_no_error (error);
+
+  g_signal_connect (test->service, "run", G_CALLBACK (run_echo_server), test);
+}
+
+static GIOStream *
+start_echo_server_and_connect_to_it (TestConnection *test)
+{
+  GSocketClient *client;
+  GError *error = NULL;
+  GSocketConnection *connection;
+
+  start_echo_server_service (test);
 
   client = g_socket_client_new ();
   connection = g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
@@ -289,7 +379,7 @@ test_basic_connection (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-  connection = start_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
@@ -314,7 +404,7 @@ test_verified_connection (TestConnection *test,
   g_assert_no_error (error);
   g_assert (test->database);
 
-  connection = start_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert (test->client_connection);
@@ -343,7 +433,7 @@ test_client_auth_connection (TestConnection *test,
   g_assert_no_error (error);
   g_assert (test->database);
 
-  connection = start_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert (test->client_connection);
@@ -381,7 +471,7 @@ test_connection_no_database (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-  connection = start_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert (test->client_connection);
@@ -427,7 +517,7 @@ test_failed_connection (TestConnection *test,
   GError *error = NULL;
   GSocketConnectable *bad_addr;
 
-  connection = start_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
 
   bad_addr = g_network_address_new ("wrong.example.com", 80);
   test->client_connection = g_tls_client_connection_new (connection, bad_addr, &error);
@@ -475,7 +565,7 @@ test_connection_socket_client (TestConnection *test,
   GIOStream *base;
   GError *error = NULL;
 
-  start_server_service (test, G_TLS_AUTHENTICATION_NONE);
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE);
   client = g_socket_client_new ();
   g_socket_client_set_tls (client, TRUE);
   flags = G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_UNKNOWN_CA;
@@ -523,7 +613,7 @@ test_connection_socket_client_failed (TestConnection *test,
 {
   GSocketClient *client;
 
-  start_server_service (test, G_TLS_AUTHENTICATION_NONE);
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE);
   client = g_socket_client_new ();
   g_socket_client_set_tls (client, TRUE);
   /* this time we don't adjust the validation flags */
@@ -533,6 +623,201 @@ test_connection_socket_client_failed (TestConnection *test,
   g_main_loop_run (test->loop);
 
   g_object_unref (client);
+}
+
+static void
+simul_async_read_complete (GObject      *object,
+			   GAsyncResult *result,
+			   gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  gssize nread;
+  GError *error = NULL;
+
+  nread = g_input_stream_read_finish (G_INPUT_STREAM (object),
+				      result, &error);
+  g_assert_no_error (error);
+
+  test->nread += nread;
+  g_assert_cmpint (test->nread, <=, TEST_DATA_LENGTH);
+
+  if (test->nread == TEST_DATA_LENGTH)
+    {
+      g_io_stream_close (test->client_connection, NULL, &error);
+      g_assert_no_error (error);
+      g_main_loop_quit (test->loop);
+    }
+  else
+    {
+      g_input_stream_read_async (G_INPUT_STREAM (object),
+				 test->buf + test->nread,
+				 TEST_DATA_LENGTH / 2,
+				 G_PRIORITY_DEFAULT, NULL,
+				 simul_async_read_complete, test);
+    }
+}
+
+static void
+simul_async_write_complete (GObject      *object,
+			    GAsyncResult *result,
+			    gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  gssize nwrote;
+  GError *error = NULL;
+
+  nwrote = g_output_stream_write_finish (G_OUTPUT_STREAM (object),
+					 result, &error);
+  g_assert_no_error (error);
+
+  test->nwrote += nwrote;
+  if (test->nwrote < TEST_DATA_LENGTH)
+    {
+      g_output_stream_write_async (G_OUTPUT_STREAM (object),
+				   TEST_DATA + test->nwrote,
+				   TEST_DATA_LENGTH - test->nwrote,
+				   G_PRIORITY_DEFAULT, NULL,
+				   simul_async_write_complete, test);
+    }
+}
+
+static void
+test_simultaneous_async (TestConnection *test,
+			 gconstpointer   data)
+{
+  GIOStream *connection;
+  GTlsCertificateFlags flags;
+  GError *error = NULL;
+
+  connection = start_echo_server_and_connect_to_it (test);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  flags = G_TLS_CERTIFICATE_VALIDATE_ALL &
+    ~(G_TLS_CERTIFICATE_UNKNOWN_CA | G_TLS_CERTIFICATE_BAD_IDENTITY);
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                flags);
+
+  memset (test->buf, 0, sizeof (test->buf));
+  test->nread = test->nwrote = 0;
+
+  g_input_stream_read_async (g_io_stream_get_input_stream (test->client_connection),
+			     test->buf, TEST_DATA_LENGTH / 2,
+			     G_PRIORITY_DEFAULT, NULL,
+			     simul_async_read_complete, test);
+  g_output_stream_write_async (g_io_stream_get_output_stream (test->client_connection),
+			       TEST_DATA, TEST_DATA_LENGTH / 2,
+			       G_PRIORITY_DEFAULT, NULL,
+			       simul_async_write_complete, test);
+
+  g_main_loop_run (test->loop);
+
+  g_assert_cmpint (test->nread, ==, TEST_DATA_LENGTH);
+  g_assert_cmpint (test->nwrote, ==, TEST_DATA_LENGTH);
+  g_assert_cmpstr (test->buf, ==, TEST_DATA);
+}
+
+static void
+test_simultaneous_async_rehandshake (TestConnection *test,
+				     gconstpointer   data)
+{
+  test->rehandshake = TRUE;
+  test_simultaneous_async (test, data);
+}
+
+static gpointer
+simul_read_thread (gpointer user_data)
+{
+  TestConnection *test = user_data;
+  GInputStream *istream = g_io_stream_get_input_stream (test->client_connection);
+  GError *error = NULL;
+  gssize nread;
+
+  while (test->nread < TEST_DATA_LENGTH)
+    {
+      nread = g_input_stream_read (istream,
+				   test->buf + test->nread,
+				   MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nread),
+				   NULL, &error);
+      g_assert_no_error (error);
+
+      test->nread += nread;
+    }
+
+  return NULL;
+}
+
+static gpointer
+simul_write_thread (gpointer user_data)
+{
+  TestConnection *test = user_data;
+  GOutputStream *ostream = g_io_stream_get_output_stream (test->client_connection);
+  GError *error = NULL;
+  gssize nwrote;
+
+  while (test->nwrote < TEST_DATA_LENGTH)
+    {
+      nwrote = g_output_stream_write (ostream,
+				      TEST_DATA + test->nwrote,
+				      MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nwrote),
+				      NULL, &error);
+      g_assert_no_error (error);
+
+      test->nwrote += nwrote;
+    }
+
+  return NULL;
+}
+
+static void
+test_simultaneous_sync (TestConnection *test,
+			gconstpointer   data)
+{
+  GIOStream *connection;
+  GTlsCertificateFlags flags;
+  GError *error = NULL;
+  GThread *read_thread, *write_thread;
+
+  connection = start_echo_server_and_connect_to_it (test);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  flags = G_TLS_CERTIFICATE_VALIDATE_ALL &
+    ~(G_TLS_CERTIFICATE_UNKNOWN_CA | G_TLS_CERTIFICATE_BAD_IDENTITY);
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                flags);
+
+  memset (test->buf, 0, sizeof (test->buf));
+  test->nread = test->nwrote = 0;
+
+  read_thread = g_thread_new ("reader", simul_read_thread, test);
+  write_thread = g_thread_new ("writer", simul_write_thread, test);
+
+  /* We need to run the main loop to get the GThreadedSocketService to
+   * receive the connection and spawn the server thread.
+   */
+  while (!test->server_connection)
+    g_main_context_iteration (NULL, FALSE);
+
+  g_thread_join (write_thread);
+  g_thread_join (read_thread);
+
+  g_assert_cmpint (test->nread, ==, TEST_DATA_LENGTH);
+  g_assert_cmpint (test->nwrote, ==, TEST_DATA_LENGTH);
+  g_assert_cmpstr (test->buf, ==, TEST_DATA);
+
+  g_io_stream_close (test->client_connection, NULL, &error);
+  g_assert_no_error (error);
+}
+
+static void
+test_simultaneous_sync_rehandshake (TestConnection *test,
+				    gconstpointer   data)
+{
+  test->rehandshake = TRUE;
+  test_simultaneous_sync (test, data);
 }
 
 int
@@ -564,6 +849,14 @@ main (int   argc,
               setup_connection, test_connection_socket_client, teardown_connection);
   g_test_add ("/tls/connection/socket-client-failed", TestConnection, NULL,
               setup_connection, test_connection_socket_client_failed, teardown_connection);
+  g_test_add ("/tls/connection/simultaneous-async", TestConnection, NULL,
+              setup_connection, test_simultaneous_async, teardown_connection);
+  g_test_add ("/tls/connection/simultaneous-sync", TestConnection, NULL,
+	      setup_connection, test_simultaneous_sync, teardown_connection);
+  g_test_add ("/tls/connection/simultaneous-async-rehandshake", TestConnection, NULL,
+              setup_connection, test_simultaneous_async_rehandshake, teardown_connection);
+  g_test_add ("/tls/connection/simultaneous-sync-rehandshake", TestConnection, NULL,
+	      setup_connection, test_simultaneous_sync_rehandshake, teardown_connection);
 
   ret = g_test_run();
 
