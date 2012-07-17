@@ -769,6 +769,110 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
   return ret;
 }
 
+
+static GTlsCertificate *
+get_peer_certificate_from_session (GTlsConnectionGnutls *gnutls)
+{
+  GTlsCertificate *chain, *cert;
+  const gnutls_datum_t *certs;
+  unsigned int num_certs;
+  int i;
+
+  certs = gnutls_certificate_get_peers (gnutls->priv->session, &num_certs);
+  if (!certs || !num_certs)
+    return NULL;
+
+  chain = NULL;
+  for (i = num_certs - 1; i >= 0; i--)
+    {
+      cert = g_tls_certificate_gnutls_new (&certs[i], chain);
+      if (chain)
+	g_object_unref (chain);
+      chain = cert;
+    }
+
+  return chain;
+}
+
+static GTlsCertificateFlags
+verify_peer_certificate (GTlsConnectionGnutls *gnutls,
+			 GTlsCertificate      *peer_certificate)
+{
+  GTlsConnection *conn = G_TLS_CONNECTION (gnutls);
+  GSocketConnectable *peer_identity;
+  GTlsDatabase *database;
+  GTlsCertificateFlags errors;
+  gboolean is_client;
+
+  is_client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
+  if (is_client)
+    peer_identity = g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (gnutls));
+  else
+    peer_identity = NULL;
+
+  errors = 0;
+
+  database = g_tls_connection_get_database (conn);
+  if (database == NULL)
+    {
+      errors |= G_TLS_CERTIFICATE_UNKNOWN_CA;
+      errors |= g_tls_certificate_verify (peer_certificate, peer_identity, NULL);
+    }
+  else
+    {
+      GError *error = NULL;
+
+      errors |= g_tls_database_verify_chain (database, peer_certificate,
+					     is_client ?
+					     G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER :
+					     G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
+					     peer_identity,
+					     g_tls_connection_get_interaction (conn),
+					     G_TLS_DATABASE_VERIFY_NONE,
+					     NULL, &error);
+      if (error)
+	{
+	  g_warning ("failure verifying certificate chain: %s",
+		     error->message);
+	  g_assert (errors != 0);
+	  g_clear_error (&error);
+	}
+    }
+
+  return errors;
+}
+
+static gboolean
+accept_peer_certificate (GTlsConnectionGnutls *gnutls,
+			 GTlsCertificate      *peer_certificate,
+			 GTlsCertificateFlags  peer_certificate_errors)
+{
+  gboolean accepted;
+
+  if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+    {
+      GTlsCertificateFlags validation_flags =
+	g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (gnutls));
+
+      if ((peer_certificate_errors & validation_flags) == 0)
+	accepted = TRUE;
+      else
+	{
+	  accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
+							       peer_certificate,
+							       peer_certificate_errors);
+	}
+    }
+  else
+    {
+      accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
+							   peer_certificate,
+							   peer_certificate_errors);
+    }
+
+  return accepted;
+}
+
 static gboolean
 handshake_internal (GTlsConnectionGnutls  *gnutls,
 		    gboolean               blocking,
@@ -797,14 +901,8 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
     {
       gnutls->priv->handshaking = TRUE;
 
-      if (gnutls->priv->peer_certificate)
-	{
-	  g_clear_object (&gnutls->priv->peer_certificate);
-	  gnutls->priv->peer_certificate_errors = 0;
-
-	  g_object_notify (G_OBJECT (gnutls), "peer-certificate");
-	  g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
-	}
+      g_clear_object (&gnutls->priv->peer_certificate);
+      gnutls->priv->peer_certificate_errors = 0;
 
       g_tls_connection_gnutls_set_handshake_priority (gnutls);
       G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
@@ -828,57 +926,44 @@ handshake_internal (GTlsConnectionGnutls  *gnutls,
 
   if (ret == 0 &&
       gnutls_certificate_type_get (gnutls->priv->session) == GNUTLS_CRT_X509)
-    {
-      GTlsCertificate *chain, *cert;
-      const gnutls_datum_t *certs;
-      unsigned int num_certs;
-      int i;
-
-      certs = gnutls_certificate_get_peers (gnutls->priv->session, &num_certs);
-      chain = NULL;
-      if (certs)
-	{
-	  for (i = num_certs - 1; i >= 0; i--)
-	    {
-	      cert = g_tls_certificate_gnutls_new (&certs[i], chain);
-	      if (chain)
-		g_object_unref (chain);
-	      chain = cert;
-	    }
-	}
-
-      peer_certificate = chain;
-    }
+    peer_certificate = get_peer_certificate_from_session (gnutls);
+  else
+    peer_certificate = NULL;
 
   if (peer_certificate)
     {
-      gboolean accepted;
-
-      accepted = G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->verify_peer (gnutls, peer_certificate, &peer_certificate_errors);
-
-      gnutls->priv->peer_certificate = peer_certificate;
-      gnutls->priv->peer_certificate_errors = peer_certificate_errors;
-
-      g_object_notify (G_OBJECT (gnutls), "peer-certificate");
-      g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
-
-      if (!accepted)
+      peer_certificate_errors = verify_peer_certificate (gnutls, peer_certificate);
+      if (!accept_peer_certificate (gnutls, peer_certificate,
+				    peer_certificate_errors))
 	{
 	  g_set_error_literal (&gnutls->priv->handshake_error,
 			       G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
 			       _("Unacceptable TLS certificate"));
-	  if (error)
-	    *error = g_error_copy (gnutls->priv->handshake_error);
-	  return FALSE;
 	}
+
+      gnutls->priv->peer_certificate = peer_certificate;
+      gnutls->priv->peer_certificate_errors = peer_certificate_errors;
+      g_object_notify (G_OBJECT (gnutls), "peer-certificate");
+      g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
+    }
+  else if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+    {
+      g_set_error_literal (&gnutls->priv->handshake_error,
+			   G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+			   _("Server did not return a valid TLS certificate"));
     }
 
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->
-    finish_handshake (gnutls, ret == 0, &gnutls->priv->handshake_error);
+    finish_handshake (gnutls, &gnutls->priv->handshake_error);
 
-  if (gnutls->priv->handshake_error && error)
-    *error = g_error_copy (gnutls->priv->handshake_error);
-  return (ret == 0);
+  if (gnutls->priv->handshake_error)
+    {
+      if (error)
+	*error = g_error_copy (gnutls->priv->handshake_error);
+      return FALSE;
+    }
+  else
+    return TRUE;
 }
 
 static gboolean

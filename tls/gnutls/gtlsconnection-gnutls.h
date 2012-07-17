@@ -36,11 +36,7 @@ struct _GTlsConnectionGnutlsClass
   void     (*failed)           (GTlsConnectionGnutls  *gnutls);
 
   void     (*begin_handshake)  (GTlsConnectionGnutls  *gnutls);
-  gboolean (*verify_peer)      (GTlsConnectionGnutls  *gnutls,
-				GTlsCertificate       *peer_certificate,
-				GTlsCertificateFlags  *errors);
   void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
-				gboolean               success,
 				GError               **inout_error);
 };
 

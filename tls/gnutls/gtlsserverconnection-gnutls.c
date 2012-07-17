@@ -187,42 +187,8 @@ g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
   gnutls_certificate_server_set_request (session, req_mode);
 }
 
-static gboolean
-g_tls_server_connection_gnutls_verify_peer (GTlsConnectionGnutls  *gnutls,
-					    GTlsCertificate       *peer_certificate,
-					    GTlsCertificateFlags  *errors)
-{
-  GTlsDatabase *database;
-  GError *error = NULL;
-
-  database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
-  if (database == NULL)
-    {
-      *errors |= G_TLS_CERTIFICATE_UNKNOWN_CA;
-      *errors |= g_tls_certificate_verify (peer_certificate, NULL, NULL);
-    }
-  else
-    {
-      *errors |= g_tls_database_verify_chain (database, peer_certificate,
-                                              G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT, NULL,
-                                              g_tls_connection_get_interaction (G_TLS_CONNECTION (gnutls)),
-                                              G_TLS_DATABASE_VERIFY_NONE,
-                                              NULL, &error);
-      if (error)
-        {
-          g_warning ("failure verifying certificate chain: %s",
-                     error->message);
-          g_clear_error (&error);
-        }
-    }
-
-  return g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
-                                                   peer_certificate, *errors);
-}
-
 static void
 g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
-						 gboolean               success,
 						 GError               **inout_error)
 {
 }
@@ -298,7 +264,6 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
 
   connection_gnutls_class->failed           = g_tls_server_connection_gnutls_failed;
   connection_gnutls_class->begin_handshake  = g_tls_server_connection_gnutls_begin_handshake;
-  connection_gnutls_class->verify_peer      = g_tls_server_connection_gnutls_verify_peer;
   connection_gnutls_class->finish_handshake = g_tls_server_connection_gnutls_finish_handshake;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
