@@ -6,10 +6,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-02 12:02+0300\n"
-"PO-Revision-Date: 2012-05-02 12:03+0300\n"
-"Last-Translator: Kostas Papadimas <pkst@gnome.org>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-07-18 21:47+0000\n"
+"PO-Revision-Date: 2012-07-24 11:28+0200\n"
+"Last-Translator: Tom Tryfonidis <tomtryf@gmail.com>\n"
 "Language-Team: team@gnome.gr\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
@@ -46,48 +46,66 @@ msgstr "Αδυναμία ανάλυσης ιδιωτικού κλειδιού PE
 msgid "No certificate data provided"
 msgstr "Δεν παρέχονται δεδομένα πιστοποιητικού"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "Ο διακομιστής απαίτησε πιστοποιητικό TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:248
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Αδύνατη η δημιουργία σύνδεσης TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Connection is closed"
+msgstr "Η σύνδεση έκλεισε"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+msgid "Operation would block"
+msgstr "Η λειτουργία θα μπλοκαριστεί"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
 msgstr "Ο άλλος υπολογιστής απέτυχε να εκτελέσει «χειραψία» TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Ο άλλος υπολογιστής απαίτησε παράτυπη «χειραψία» TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:738
 msgid "TLS connection closed unexpectedly"
 msgstr "Η σύνδεση TLS τερματίστηκε απρόσμενα"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:794
-#: ../tls/gnutls/gtlsconnection-gnutls.c:820
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Σφάλμα κατά τη «χειραψία» TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:868
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
 msgid "Unacceptable TLS certificate"
 msgstr "Μη αποδεκτό πιστοποιητικό TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1007
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+#| msgid "Server required TLS certificate"
+msgid "Server did not return a valid TLS certificate"
+msgstr "Ο διακομιστής δεν επέστρεψε ένα έγκυρο πιστοποιητικό TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Σφάλμα κατά την ανάγνωση δεδομένων από την υποδοχή TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1033
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Σφάλμα κατά την εγγραφή δεδομένων στην υποδοχή TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1079
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+msgid "Connection is already closed"
+msgstr "Η σύνδεση έχει ήδη κλείσει"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Σφάλμα κατά το κλείσιμο TLS: %s"
@@ -97,20 +115,12 @@ msgid "Certificate has no private key"
 msgstr "Το πιστοποιητικό δεν έχει ιδιωτικό κλειδί"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
-msgid ""
-"This is the last chance to enter the PIN correctly before the token is "
-"locked."
-msgstr ""
-"Αυτή είναι η τελευταία σας ευκαιρία να πληκτρολογήσετε σωστά το PIN πριν να "
-"κλειδωθεί το token."
+msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgstr "Αυτή είναι η τελευταία σας ευκαιρία να πληκτρολογήσετε σωστά το PIN πριν να κλειδωθεί το token."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
-msgid ""
-"Several PIN attempts have been incorrect, and the token will be locked after "
-"further failures."
-msgstr ""
-"Αρκετές προσπάθειες PIN ήταν εσφαλμένες, και το token θα κλειδωθεί μετά από "
-"περαιτέρω αποτυχίες."
+msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
+msgstr "Αρκετές προσπάθειες PIN ήταν εσφαλμένες, και το token θα κλειδωθεί μετά από περαιτέρω αποτυχίες."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -131,3 +141,4 @@ msgstr "ID υποδοχής"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "Αναγνωριστικό θέσης PKCS#11"
+
