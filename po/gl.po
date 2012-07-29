@@ -8,21 +8,21 @@
 # Proxecto Trasno - Adaptación do software libre á lingua galega:  Se desexas
 # colaborar connosco, podes atopar máis información en <http://trasno.net>
 # Fran Diéguez <frandieguez@ubuntu.com>, 2011.
-# Fran Dieguez <frandieguez@gnome.org>, 2011.
+# Fran Dieguez <frandieguez@gnome.org>, 2011, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-21 01:50+0100\n"
-"PO-Revision-Date: 2011-11-21 01:51+0100\n"
+"POT-Creation-Date: 2012-07-30 01:52+0200\n"
+"PO-Revision-Date: 2012-07-30 01:53+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician <gnome-l10n-gl@gnome.org>\n"
 "Language: gl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 1.0\n"
+"X-Generator: Gtranslator 2.91.5\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
@@ -53,53 +53,70 @@ msgstr "Non foi posíbel analizar a chave privada PEM: %s"
 msgid "No certificate data provided"
 msgstr "Non se forneceu ningún dato do certificado"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "O servidor require un certificado TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:248
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Non foi posíbel crear a conexión TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Connection is closed"
+msgstr "A conexión está pechada"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+msgid "Operation would block"
+msgstr "A operación bloquearase"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
 msgstr "O par fallou ao realizar a negociación TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "O par solicitou unha renegociación TLS inaceptábel"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:738
 msgid "TLS connection closed unexpectedly"
 msgstr "A conexión TLS pechouse de forma inesperada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Produciuse un erro ao realizar a negociación TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceptábel"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+msgid "Server did not return a valid TLS certificate"
+msgstr "O servidor non devolveu un certificado TLS válido"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Produciuse un erro ao ler datos do conectador TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Produciuse un erro ao escribir datos no conectador TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+msgid "Connection is already closed"
+msgstr "A conexión está pechada"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Produciuse un erro ao realizar o peche de TLS: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "O certificado no ten unha chave privada"
 
