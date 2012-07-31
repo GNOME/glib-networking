@@ -12,6 +12,7 @@ LDADD  = \
 
 TEST_PROGS +=         \
 	certificate   \
+	file-database \
 	connection    \
 	$(NULL)
 
