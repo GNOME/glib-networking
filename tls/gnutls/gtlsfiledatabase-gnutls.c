@@ -99,8 +99,8 @@ bytes_multi_table_insert (GHashTable *table,
 }
 
 static GBytes *
-bytes_multi_table_lookup_one (GHashTable *table,
-                              GBytes     *key)
+bytes_multi_table_lookup_ref_one (GHashTable *table,
+                                  GBytes     *key)
 {
   GPtrArray *multi;
 
@@ -109,14 +109,25 @@ bytes_multi_table_lookup_one (GHashTable *table,
     return NULL;
 
   g_assert (multi->len > 0);
-  return multi->pdata[0];
+  return g_bytes_ref (multi->pdata[0]);
 }
 
-static GPtrArray *
-bytes_multi_table_lookup_all (GHashTable *table,
-                              GBytes     *key)
+static GList *
+bytes_multi_table_lookup_ref_all (GHashTable *table,
+                                  GBytes     *key)
 {
-  return g_hash_table_lookup (table, key);
+  GPtrArray *multi;
+  GList *list = NULL;
+  gint i;
+
+  multi = g_hash_table_lookup (table, key);
+  if (multi == NULL)
+    return NULL;
+
+  for (i = 0; i < multi->len; i++)
+    list = g_list_prepend (list, g_bytes_ref (multi->pdata[i]));
+
+  return g_list_reverse (list);
 }
 
 static gchar *
@@ -367,6 +378,7 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
                                                           GError                 **error)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
+  GTlsCertificate *cert;
   GBytes *der;
   gnutls_datum_t datum;
   gsize length;
@@ -385,6 +397,8 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
                                                          self->priv->complete);
 
     der = g_hash_table_lookup (self->priv->handles, handle);
+    if (der != NULL)
+      g_bytes_ref (der);
 
   g_mutex_unlock (&self->priv->mutex);
 
@@ -395,9 +409,12 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
   datum.size = length;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return NULL;
+    cert = NULL;
+  else
+    cert = g_tls_certificate_gnutls_new (&datum, NULL);
 
-  return g_tls_certificate_gnutls_new (&datum, NULL);
+  g_bytes_unref (der);
+  return cert;
 }
 
 static gboolean
@@ -478,21 +495,24 @@ g_tls_file_database_gnutls_lookup_certificate_issuer (GTlsDatabase           *da
 
   /* Find the full DER value of the certificate */
   g_mutex_lock (&self->priv->mutex);
-  der = bytes_multi_table_lookup_one (self->priv->subjects, subject);
+  der = bytes_multi_table_lookup_ref_one (self->priv->subjects, subject);
   g_mutex_unlock (&self->priv->mutex);
 
   g_bytes_unref (subject);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return NULL;
-
-  if (der != NULL)
+    {
+      issuer = NULL;
+    }
+  else if (der != NULL)
     {
       datum.data = (unsigned char *)g_bytes_get_data (der, &length);
       datum.size = length;
       issuer = g_tls_certificate_gnutls_new (&datum, NULL);
     }
 
+  if (der != NULL)
+    g_bytes_unref (der);
   return issuer;
 }
 
@@ -505,14 +525,12 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
                                                           GError                **error)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
-  GBytes *der;
   GBytes *issuer;
   gnutls_datum_t datum;
   GList *issued = NULL;
-  GPtrArray *ders;
+  GList *ders;
   gsize length;
   GList *l;
-  guint i;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return NULL;
@@ -525,28 +543,26 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
 
   /* Find the full DER value of the certificate */
   g_mutex_lock (&self->priv->mutex);
-  ders = bytes_multi_table_lookup_all (self->priv->issuers, issuer);
+  ders = bytes_multi_table_lookup_ref_all (self->priv->issuers, issuer);
   g_mutex_unlock (&self->priv->mutex);
 
   g_bytes_unref (issuer);
 
-  for (i = 0; ders && i < ders->len; i++)
+  for (l = ders; l != NULL; l = g_list_next (l))
     {
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         {
-          for (l = issued; l != NULL; l = l->next)
-            g_object_unref (l->data);
-          g_list_free (issued);
+          g_list_free_full (issued, g_object_unref);
           issued = NULL;
           break;
         }
 
-      der = ders->pdata[i];
-      datum.data = (unsigned char *)g_bytes_get_data (der, &length);
+      datum.data = (unsigned char *)g_bytes_get_data (l->data, &length);
       datum.size = length;
       issued = g_list_prepend (issued, g_tls_certificate_gnutls_new (&datum, NULL));
     }
 
+  g_list_free_full (ders, (GDestroyNotify)g_bytes_unref);
   return issued;
 }
 
