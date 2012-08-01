@@ -53,7 +53,7 @@ struct _GTlsFileDatabaseGnutlsPrivate
   GMutex mutex;
 
   /*
-   * These are hash tables of GByteArray -> GPtrArray<GByteArray>. The values of
+   * These are hash tables of GBytes -> GPtrArray<GBytes>. The values of
    * the ptr array are full DER encoded certificate values. The keys are byte
    * arrays containing either subject DNs, issuer DNs, or full DER encoded certs
    */
@@ -61,84 +61,46 @@ struct _GTlsFileDatabaseGnutlsPrivate
   GHashTable *issuers;
 
   /*
-   * This is a table of GByteArray -> GByteArray. The values and keys are
+   * This is a table of GBytes -> GBytes. The values and keys are
    * DER encoded certificate values.
    */
   GHashTable *complete;
 
   /*
-   * This is a table of gchar * -> GPtrArray<GByteArray>. The values of
+   * This is a table of gchar * -> GPtrArray<GBytes>. The values of
    * the ptr array are full DER encoded certificate values. The keys are the
    * string handles. This array is populated on demand.
    */
   GHashTable *handles;
 };
 
-static guint
-byte_array_hash (gconstpointer v)
-{
-  const GByteArray *array = v;
-  const signed char *p;
-  guint32 h = 0;
-  gsize i;
-
-  g_assert (array);
-  g_assert (array->data);
-  p = (signed char*)array->data;
-
-  /* 31 bit hash function */
-  for (i = 0; i < array->len; ++i, ++p)
-    h = (h << 5) - h + *p;
-
-  return h;
-}
-
-static gboolean
-byte_array_equal (gconstpointer v1, gconstpointer v2)
-{
-  const GByteArray *array1 = v1;
-  const GByteArray *array2 = v2;
-
-  if (array1 == array2)
-    return TRUE;
-  if (!array1 || !array2)
-    return FALSE;
-
-  if (array1->len != array2->len)
-    return FALSE;
-
-  if (array1->data == array2->data)
-    return TRUE;
-  if (!array1->data || !array2->data)
-    return FALSE;
-
-  return (memcmp (array1->data, array2->data, array1->len) == 0) ? TRUE : FALSE;
-}
-
 static GHashTable *
-multi_byte_array_hash_new (void)
+bytes_multi_table_new (void)
 {
-  return g_hash_table_new_full (byte_array_hash, byte_array_equal,
-                                (GDestroyNotify)g_byte_array_unref,
+  return g_hash_table_new_full (g_bytes_hash, g_bytes_equal,
+                                (GDestroyNotify)g_bytes_unref,
                                 (GDestroyNotify)g_ptr_array_unref);
 }
 
 static void
-multi_byte_array_hash_insert (GHashTable *table, GByteArray *key, GByteArray *value)
+bytes_multi_table_insert (GHashTable *table,
+                          GBytes     *key,
+                          GBytes     *value)
 {
   GPtrArray *multi;
 
   multi = g_hash_table_lookup (table, key);
   if (multi == NULL)
     {
-      multi = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
-      g_hash_table_insert (table, g_byte_array_ref (key), multi);
+      multi = g_ptr_array_new_with_free_func ((GDestroyNotify)g_bytes_unref);
+      g_hash_table_insert (table, g_bytes_ref (key), multi);
     }
-  g_ptr_array_add (multi, g_byte_array_ref (value));
+  g_ptr_array_add (multi, g_bytes_ref (value));
 }
 
-static GByteArray *
-multi_byte_array_hash_lookup_one (GHashTable *table, GByteArray *key)
+static GBytes *
+bytes_multi_table_lookup_one (GHashTable *table,
+                              GBytes     *key)
 {
   GPtrArray *multi;
 
@@ -151,14 +113,15 @@ multi_byte_array_hash_lookup_one (GHashTable *table, GByteArray *key)
 }
 
 static GPtrArray *
-multi_byte_array_hash_lookup_all (GHashTable *table, GByteArray *key)
+bytes_multi_table_lookup_all (GHashTable *table,
+                              GBytes     *key)
 {
   return g_hash_table_lookup (table, key);
 }
 
 static gchar *
 create_handle_for_certificate (const gchar *filename,
-                               GByteArray  *der)
+                               GBytes      *der)
 {
   gchar *bookmark;
   gchar *uri_part;
@@ -173,8 +136,7 @@ create_handle_for_certificate (const gchar *filename,
   if (!uri_part)
     return NULL;
 
-  bookmark = g_compute_checksum_for_data (G_CHECKSUM_SHA256,
-                                          der->data, der->len);
+  bookmark = g_compute_checksum_for_bytes (G_CHECKSUM_SHA256, der);
   uri = g_strconcat (uri_part, "#", bookmark, NULL);
 
   g_free (bookmark);
@@ -189,21 +151,31 @@ create_handles_array_unlocked (const gchar *filename,
 {
   GHashTable *handles;
   GHashTableIter iter;
-  GByteArray *der;
+  GBytes *der;
   gchar *handle;
 
   handles = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
-                                   (GDestroyNotify)g_byte_array_unref);
+                                   (GDestroyNotify)g_bytes_unref);
 
   g_hash_table_iter_init (&iter, complete);
   while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&der))
     {
       handle = create_handle_for_certificate (filename, der);
       if (handle != NULL)
-        g_hash_table_insert (handles, handle, g_byte_array_ref (der));
+        g_hash_table_insert (handles, handle, g_bytes_ref (der));
     }
 
   return handles;
+}
+
+static GBytes *
+get_der_for_certificate (GTlsCertificate *cert)
+{
+  GBytes *bytes = NULL;
+
+  g_object_get (cert, "certificate-bytes", &bytes, NULL);
+  g_return_val_if_fail (bytes, NULL);
+  return bytes;
 }
 
 static gboolean
@@ -216,9 +188,9 @@ load_anchor_file (const gchar *filename,
   GList *list, *l;
   gnutls_x509_crt_t cert;
   gnutls_datum_t dn;
-  GByteArray *der;
-  GByteArray *subject;
-  GByteArray *issuer;
+  GBytes *der;
+  GBytes *subject;
+  GBytes *issuer;
   gint gerr;
   GError *my_error = NULL;
 
@@ -240,9 +212,7 @@ load_anchor_file (const gchar *filename,
           continue;
         }
 
-      subject = g_byte_array_new ();
-      g_byte_array_append (subject, dn.data, dn.size);
-      gnutls_free (dn.data);
+      subject = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
       gerr = gnutls_x509_crt_get_raw_issuer_dn (cert, &dn);
       if (gerr < 0)
@@ -252,25 +222,21 @@ load_anchor_file (const gchar *filename,
           continue;
         }
 
-      issuer = g_byte_array_new ();
-      g_byte_array_append (issuer, dn.data, dn.size);
-      gnutls_free (dn.data);
+      issuer = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
-      /* Dig out the full value of this certificate's DER encoding */
-      der = NULL;
-      g_object_get (l->data, "certificate", &der, NULL);
-      g_return_val_if_fail (der, FALSE);
+      der = get_der_for_certificate (l->data);
+      g_return_val_if_fail (der != NULL, FALSE);
 
       /* Three different ways of looking up same certificate */
-      multi_byte_array_hash_insert (subjects, subject, der);
-      multi_byte_array_hash_insert (issuers, issuer, der);
+      bytes_multi_table_insert (subjects, subject, der);
+      bytes_multi_table_insert (issuers, issuer, der);
 
-      g_hash_table_insert (complete, g_byte_array_ref (der),
-                           g_byte_array_ref (der));
+      g_hash_table_insert (complete, g_bytes_ref (der),
+                           g_bytes_ref (der));
 
-      g_byte_array_unref (der);
-      g_byte_array_unref (subject);
-      g_byte_array_unref (issuer);
+      g_bytes_unref (der);
+      g_bytes_unref (subject);
+      g_bytes_unref (issuer);
 
       g_object_unref (l->data);
     }
@@ -370,12 +336,12 @@ g_tls_file_database_gnutls_create_certificate_handle (GTlsDatabase            *d
                                                       GTlsCertificate         *certificate)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
-  GByteArray *der;
+  GBytes *der;
   gboolean contains;
   gchar *handle = NULL;
 
-  g_object_get (certificate, "certificate", &der, NULL);
-  g_return_val_if_fail (der, FALSE);
+  der = get_der_for_certificate (certificate);
+  g_return_val_if_fail (der != NULL, FALSE);
 
   g_mutex_lock (&self->priv->mutex);
 
@@ -388,7 +354,7 @@ g_tls_file_database_gnutls_create_certificate_handle (GTlsDatabase            *d
   if (contains)
     handle = create_handle_for_certificate (self->priv->anchor_filename, der);
 
-  g_byte_array_unref (der);
+  g_bytes_unref (der);
   return handle;
 }
 
@@ -401,8 +367,9 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
                                                           GError                 **error)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
-  GByteArray *der;
+  GBytes *der;
   gnutls_datum_t datum;
+  gsize length;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return NULL;
@@ -424,8 +391,8 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
   if (der == NULL)
     return NULL;
 
-  datum.data = der->data;
-  datum.size = der->len;
+  datum.data = (unsigned char *)g_bytes_get_data (der, &length);
+  datum.size = length;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return NULL;
@@ -443,7 +410,7 @@ g_tls_file_database_gnutls_lookup_assertion (GTlsDatabaseGnutls          *databa
                                              GError                     **error)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
-  GByteArray *der = NULL;
+  GBytes *der = NULL;
   gboolean contains;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
@@ -458,14 +425,13 @@ g_tls_file_database_gnutls_lookup_assertion (GTlsDatabaseGnutls          *databa
    * comparing them to the purpose.
    */
 
-  g_object_get (certificate, "certificate", &der, NULL);
-  g_return_val_if_fail (der, FALSE);
+  der = get_der_for_certificate (G_TLS_CERTIFICATE (certificate));
 
   g_mutex_lock (&self->priv->mutex);
   contains = g_hash_table_lookup (self->priv->complete, der) ? TRUE : FALSE;
   g_mutex_unlock (&self->priv->mutex);
 
-  g_byte_array_unref (der);
+  g_bytes_unref (der);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return FALSE;
@@ -484,10 +450,11 @@ g_tls_file_database_gnutls_lookup_certificate_issuer (GTlsDatabase           *da
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
   gnutls_datum_t dn = { NULL, 0 };
-  GByteArray *subject, *der;
+  GBytes *subject, *der;
   gnutls_datum_t datum;
   GTlsCertificate *issuer = NULL;
   gnutls_x509_crt_t cert;
+  gsize length;
   int gerr;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (certificate), NULL);
@@ -507,24 +474,22 @@ g_tls_file_database_gnutls_lookup_certificate_issuer (GTlsDatabase           *da
       return NULL;
     }
 
-  subject = g_byte_array_new ();
-  g_byte_array_append (subject, dn.data, dn.size);
-  gnutls_free (dn.data);
+  subject = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
   /* Find the full DER value of the certificate */
   g_mutex_lock (&self->priv->mutex);
-  der = multi_byte_array_hash_lookup_one (self->priv->subjects, subject);
+  der = bytes_multi_table_lookup_one (self->priv->subjects, subject);
   g_mutex_unlock (&self->priv->mutex);
 
-  g_byte_array_unref (subject);
+  g_bytes_unref (subject);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return NULL;
 
   if (der != NULL)
     {
-      datum.data = der->data;
-      datum.size = der->len;
+      datum.data = (unsigned char *)g_bytes_get_data (der, &length);
+      datum.size = length;
       issuer = g_tls_certificate_gnutls_new (&datum, NULL);
     }
 
@@ -540,10 +505,12 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
                                                           GError                **error)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (database);
-  GByteArray *der;
+  GBytes *der;
+  GBytes *issuer;
   gnutls_datum_t datum;
   GList *issued = NULL;
   GPtrArray *ders;
+  gsize length;
   GList *l;
   guint i;
 
@@ -554,10 +521,14 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
   if (flags & G_TLS_DATABASE_LOOKUP_KEYPAIR)
     return NULL;
 
+  issuer = g_bytes_new_static (issuer_raw_dn->data, issuer_raw_dn->len);
+
   /* Find the full DER value of the certificate */
   g_mutex_lock (&self->priv->mutex);
-  ders = multi_byte_array_hash_lookup_all (self->priv->issuers, issuer_raw_dn);
+  ders = bytes_multi_table_lookup_all (self->priv->issuers, issuer);
   g_mutex_unlock (&self->priv->mutex);
+
+  g_bytes_unref (issuer);
 
   for (i = 0; ders && i < ders->len; i++)
     {
@@ -571,8 +542,8 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
         }
 
       der = ders->pdata[i];
-      datum.data = der->data;
-      datum.size = der->len;
+      datum.data = (unsigned char *)g_bytes_get_data (der, &length);
+      datum.size = length;
       issued = g_list_prepend (issued, g_tls_certificate_gnutls_new (&datum, NULL));
     }
 
@@ -619,12 +590,12 @@ g_tls_file_database_gnutls_initable_init (GInitable    *initable,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return FALSE;
 
-  subjects = multi_byte_array_hash_new ();
-  issuers = multi_byte_array_hash_new ();
+  subjects = bytes_multi_table_new ();
+  issuers = bytes_multi_table_new ();
 
-  complete = g_hash_table_new_full (byte_array_hash, byte_array_equal,
-                                    (GDestroyNotify)g_byte_array_unref,
-                                    (GDestroyNotify)g_byte_array_unref);
+  complete = g_hash_table_new_full (g_bytes_hash, g_bytes_equal,
+                                    (GDestroyNotify)g_bytes_unref,
+                                    (GDestroyNotify)g_bytes_unref);
 
   result = load_anchor_file (self->priv->anchor_filename, subjects, issuers,
                              complete, error);
