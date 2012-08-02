@@ -188,25 +188,31 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
   g_cancellable_cancel (gnutls->priv->waiting_for_op);
 }
 
+/* First field is "ssl3 only", second is "allow unsafe rehandshaking" */
 static gnutls_priority_t priorities[2][2];
 
 static void
 g_tls_connection_gnutls_init_priorities (void)
 {
-  /* First field is "ssl3 only", second is "allow unsafe rehandshaking" */
+  const gchar *base_priority;
+  gchar *ssl3_priority, *unsafe_rehandshake_priority, *ssl3_unsafe_rehandshake_priority;
 
-  gnutls_priority_init (&priorities[FALSE][FALSE],
-			"NORMAL:%COMPAT",
-			NULL);
-  gnutls_priority_init (&priorities[TRUE][FALSE],
-			"NORMAL:%COMPAT:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0",
-			NULL);
-  gnutls_priority_init (&priorities[FALSE][TRUE],
-			"NORMAL:%COMPAT:%UNSAFE_RENEGOTIATION",
-			NULL);
-  gnutls_priority_init (&priorities[TRUE][TRUE],
-			"NORMAL:%COMPAT:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%UNSAFE_RENEGOTIATION",
-			NULL);
+  base_priority = g_getenv ("G_TLS_GNUTLS_PRIORITY");
+  if (!base_priority)
+    base_priority = "NORMAL:%COMPAT";
+
+  ssl3_priority = g_strdup_printf ("%s:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0", base_priority);
+  unsafe_rehandshake_priority = g_strdup_printf ("%s:%UNSAFE_RENEGOTIATION", base_priority);
+  ssl3_unsafe_rehandshake_priority = g_strdup_printf ("%s:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%UNSAFE_RENEGOTIATION", base_priority);
+
+  gnutls_priority_init (&priorities[FALSE][FALSE], base_priority, NULL);
+  gnutls_priority_init (&priorities[TRUE][FALSE], ssl3_priority, NULL);
+  gnutls_priority_init (&priorities[FALSE][TRUE], unsafe_rehandshake_priority, NULL);
+  gnutls_priority_init (&priorities[TRUE][TRUE], ssl3_unsafe_rehandshake_priority, NULL);
+
+  g_free (ssl3_priority);
+  g_free (unsafe_rehandshake_priority);
+  g_free (ssl3_unsafe_rehandshake_priority);
 }
 
 static void
