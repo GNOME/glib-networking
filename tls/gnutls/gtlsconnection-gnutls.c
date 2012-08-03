@@ -202,8 +202,8 @@ g_tls_connection_gnutls_init_priorities (void)
     base_priority = "NORMAL:%COMPAT";
 
   ssl3_priority = g_strdup_printf ("%s:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0", base_priority);
-  unsafe_rehandshake_priority = g_strdup_printf ("%s:%UNSAFE_RENEGOTIATION", base_priority);
-  ssl3_unsafe_rehandshake_priority = g_strdup_printf ("%s:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%UNSAFE_RENEGOTIATION", base_priority);
+  unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION", base_priority);
+  ssl3_unsafe_rehandshake_priority = g_strdup_printf ("%s:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%%UNSAFE_RENEGOTIATION", base_priority);
 
   gnutls_priority_init (&priorities[FALSE][FALSE], base_priority, NULL);
   gnutls_priority_init (&priorities[TRUE][FALSE], ssl3_priority, NULL);
