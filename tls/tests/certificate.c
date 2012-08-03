@@ -320,6 +320,35 @@ test_verify_certificate_bad_combo (TestVerify      *test,
   g_object_unref (identity);
 }
 
+static void
+test_certificate_is_same (void)
+{
+  GTlsCertificate *one;
+  GTlsCertificate *two;
+  GTlsCertificate *three;
+  GError *error = NULL;
+
+  one = g_tls_certificate_new_from_file (TEST_FILE ("client.pem"), &error);
+  g_assert_no_error (error);
+
+  two = g_tls_certificate_new_from_file (TEST_FILE ("client-and-key.pem"), &error);
+  g_assert_no_error (error);
+
+  three = g_tls_certificate_new_from_file (TEST_FILE ("server.pem"), &error);
+  g_assert_no_error (error);
+
+  g_assert (g_tls_certificate_is_same (one, two) == TRUE);
+  g_assert (g_tls_certificate_is_same (two, one) == TRUE);
+  g_assert (g_tls_certificate_is_same (three, one) == FALSE);
+  g_assert (g_tls_certificate_is_same (one, three) == FALSE);
+  g_assert (g_tls_certificate_is_same (two, three) == FALSE);
+  g_assert (g_tls_certificate_is_same (three, two) == FALSE);
+
+  g_object_unref (one);
+  g_object_unref (two);
+  g_object_unref (three);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -350,6 +379,8 @@ main (int   argc,
               setup_verify, test_verify_certificate_bad_expired, teardown_verify);
   g_test_add ("/tls/certificate/verify-bad-combo", TestVerify, NULL,
               setup_verify, test_verify_certificate_bad_combo, teardown_verify);
+
+  g_test_add_func ("/tls/certificate/is-same", test_certificate_is_same);
 
   return g_test_run();
 }

@@ -324,7 +324,7 @@ certificate_is_in_list (GList *certificates,
 
   for (l = certificates; l != NULL; l = g_list_next (l))
     {
-      if (g_tls_certificate_equal (l->data, cert))
+      if (g_tls_certificate_is_same (l->data, cert))
         break;
     }
 
