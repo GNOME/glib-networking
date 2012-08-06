@@ -37,8 +37,10 @@ enum
   PROP_0,
 
   PROP_CERTIFICATE,
+  PROP_CERTIFICATE_BYTES,
   PROP_CERTIFICATE_PEM,
   PROP_PRIVATE_KEY,
+  PROP_PRIVATE_KEY_BYTES,
   PROP_PRIVATE_KEY_PEM,
   PROP_ISSUER
 };
@@ -73,6 +75,69 @@ g_tls_certificate_gnutls_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_certificate_gnutls_parent_class)->finalize (object);
 }
 
+static GByteArray *
+get_der_for_certificate (GTlsCertificateGnutls *self)
+{
+  GByteArray *certificate;
+  size_t size;
+  int status;
+
+  size = 0;
+  status = gnutls_x509_crt_export (self->priv->cert,
+                                   GNUTLS_X509_FMT_DER,
+                                   NULL, &size);
+  if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
+    {
+      certificate = NULL;
+    }
+  else
+    {
+      certificate = g_byte_array_sized_new (size);
+      certificate->len = size;
+      status = gnutls_x509_crt_export (self->priv->cert,
+                                       GNUTLS_X509_FMT_DER,
+                                       certificate->data, &size);
+      if (status != 0)
+        {
+          g_byte_array_free (certificate, TRUE);
+          certificate = NULL;
+        }
+    }
+
+  return certificate;
+}
+
+static gchar *
+get_pem_for_certificate (GTlsCertificateGnutls *self)
+{
+  char *certificate_pem;
+  int status;
+  size_t size;
+
+  size = 0;
+  status = gnutls_x509_crt_export (self->priv->cert,
+                                   GNUTLS_X509_FMT_PEM,
+                                   NULL, &size);
+  if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
+    {
+      certificate_pem = NULL;
+    }
+  else
+    {
+      certificate_pem = g_malloc (size);
+      status = gnutls_x509_crt_export (self->priv->cert,
+                                       GNUTLS_X509_FMT_PEM,
+                                       certificate_pem, &size);
+      if (status != 0)
+        {
+          g_free (certificate_pem);
+          certificate_pem = NULL;
+        }
+    }
+
+  return certificate_pem;
+}
+
 static void
 g_tls_certificate_gnutls_get_property (GObject    *object,
 				       guint       prop_id,
@@ -81,55 +146,23 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (object);
   GByteArray *certificate;
-  char *certificate_pem;
-  int status;
-  size_t size;
 
   switch (prop_id)
     {
     case PROP_CERTIFICATE:
-      size = 0;
-      status = gnutls_x509_crt_export (gnutls->priv->cert,
-				       GNUTLS_X509_FMT_DER,
-				       NULL, &size);
-      if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
-	certificate = NULL;
+      g_value_take_boxed (value, get_der_for_certificate (gnutls));
+      break;
+
+    case PROP_CERTIFICATE_BYTES:
+      certificate = get_der_for_certificate (gnutls);
+      if (certificate == NULL)
+        g_value_take_boxed (value, NULL);
       else
-	{
-	  certificate = g_byte_array_sized_new (size);
-	  certificate->len = size;
-	  status = gnutls_x509_crt_export (gnutls->priv->cert,
-					   GNUTLS_X509_FMT_DER,
-					   certificate->data, &size);
-	  if (status != 0)
-	    {
-	      g_byte_array_free (certificate, TRUE);
-	      certificate = NULL;
-	    }
-	}
-      g_value_take_boxed (value, certificate);
+        g_value_take_boxed (value, g_byte_array_free_to_bytes (certificate));
       break;
 
     case PROP_CERTIFICATE_PEM:
-      size = 0;
-      status = gnutls_x509_crt_export (gnutls->priv->cert,
-				       GNUTLS_X509_FMT_PEM,
-				       NULL, &size);
-      if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
-	certificate_pem = NULL;
-      else
-	{
-	  certificate_pem = g_malloc (size);
-	  status = gnutls_x509_crt_export (gnutls->priv->cert,
-					   GNUTLS_X509_FMT_PEM,
-					   certificate_pem, &size);
-	  if (status != 0)
-	    {
-	      g_free (certificate_pem);
-	      certificate_pem = NULL;
-	    }
-	}
-      g_value_take_string (value, certificate_pem);
+      g_value_take_string (value, get_pem_for_certificate (gnutls));
       break;
 
     case PROP_ISSUER:
@@ -142,120 +175,182 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 }
 
 static void
+set_certificate_from_der (GTlsCertificateGnutls *self,
+                          const guchar *der,
+                          gsize len)
+{
+  gnutls_datum_t data;
+  int status;
+
+  g_return_if_fail (self->priv->have_cert == FALSE);
+  data.data = (guchar *)der;
+  data.size = len;
+  status = gnutls_x509_crt_import (self->priv->cert, &data,
+                                   GNUTLS_X509_FMT_DER);
+  if (status == 0)
+    {
+      self->priv->have_cert = TRUE;
+    }
+  else if (!self->priv->construct_error)
+    {
+      self->priv->construct_error =
+        g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                     _("Could not parse DER certificate: %s"),
+                     gnutls_strerror (status));
+    }
+}
+
+static void
+set_certificate_from_pem (GTlsCertificateGnutls *self,
+                          const gchar *string)
+{
+  gnutls_datum_t data;
+  int status;
+
+  g_return_if_fail (self->priv->have_cert == FALSE);
+  data.data = (guchar *)string;
+  data.size = strlen (string);
+  status = gnutls_x509_crt_import (self->priv->cert, &data,
+                                   GNUTLS_X509_FMT_PEM);
+  if (status == 0)
+    {
+      self->priv->have_cert = TRUE;
+    }
+  else if (!self->priv->construct_error)
+    {
+      self->priv->construct_error =
+        g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                     _("Could not parse PEM certificate: %s"),
+                     gnutls_strerror (status));
+    }
+}
+
+static void
+set_private_key_from_der (GTlsCertificateGnutls *self,
+                          const guchar *der,
+                          gsize len)
+{
+  gnutls_datum_t data;
+  int status;
+
+  g_return_if_fail (self->priv->have_key == FALSE);
+  data.data = (guchar *)der;
+  data.size = len;
+  if (!self->priv->key)
+    gnutls_x509_privkey_init (&self->priv->key);
+  status = gnutls_x509_privkey_import (self->priv->key, &data,
+                                       GNUTLS_X509_FMT_DER);
+  if (status != 0)
+    {
+      int pkcs8_status =
+        gnutls_x509_privkey_import_pkcs8 (self->priv->key, &data,
+                                          GNUTLS_X509_FMT_DER, NULL,
+                                          GNUTLS_PKCS_PLAIN);
+      if (pkcs8_status == 0)
+        status = 0;
+    }
+  if (status == 0)
+    {
+      self->priv->have_key = TRUE;
+    }
+  else if (!self->priv->construct_error)
+    {
+      self->priv->construct_error =
+        g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                     _("Could not parse DER private key: %s"),
+                     gnutls_strerror (status));
+    }
+}
+
+static void
+set_private_key_from_pem (GTlsCertificateGnutls *self,
+                          const gchar *string)
+{
+  gnutls_datum_t data;
+  int status;
+
+  g_return_if_fail (self->priv->have_key == FALSE);
+  data.data = (guchar *)string;
+  data.size = strlen (string);
+  if (!self->priv->key)
+    gnutls_x509_privkey_init (&self->priv->key);
+  status = gnutls_x509_privkey_import (self->priv->key, &data,
+                                       GNUTLS_X509_FMT_PEM);
+  if (status != 0)
+    {
+      int pkcs8_status =
+        gnutls_x509_privkey_import_pkcs8 (self->priv->key, &data,
+                                          GNUTLS_X509_FMT_PEM, NULL,
+                                          GNUTLS_PKCS_PLAIN);
+      if (pkcs8_status == 0)
+        status = 0;
+    }
+  if (status == 0)
+    {
+      self->priv->have_key = TRUE;
+    }
+  else if (!self->priv->construct_error)
+    {
+      self->priv->construct_error =
+        g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                     _("Could not parse PEM private key: %s"),
+                     gnutls_strerror (status));
+    }
+}
+
+static void
 g_tls_certificate_gnutls_set_property (GObject      *object,
 				       guint         prop_id,
 				       const GValue *value,
 				       GParamSpec   *pspec)
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (object);
-  GByteArray *bytes;
+  GByteArray *byte_array;
   const char *string;
-  gnutls_datum_t data;
-  int status;
+  GBytes *bytes;
 
   switch (prop_id)
     {
     case PROP_CERTIFICATE:
-      bytes = g_value_get_boxed (value);
-      if (!bytes)
-	break;
-      g_return_if_fail (gnutls->priv->have_cert == FALSE);
-      data.data = bytes->data;
-      data.size = bytes->len;
-      status = gnutls_x509_crt_import (gnutls->priv->cert, &data,
-				       GNUTLS_X509_FMT_DER);
-      if (status == 0)
-	gnutls->priv->have_cert = TRUE;
-      else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse DER certificate: %s"),
-			 gnutls_strerror (status));
-	}
+      byte_array = g_value_get_boxed (value);
+      if (byte_array)
+        set_certificate_from_der (gnutls, byte_array->data, byte_array->len);
+      break;
 
+    case PROP_CERTIFICATE_BYTES:
+      bytes = g_value_get_boxed (value);
+      if (bytes)
+        {
+          set_certificate_from_der (gnutls, g_bytes_get_data (bytes, NULL),
+                                    g_bytes_get_size (bytes));
+        }
       break;
 
     case PROP_CERTIFICATE_PEM:
       string = g_value_get_string (value);
-      if (!string)
-	break;
-      g_return_if_fail (gnutls->priv->have_cert == FALSE);
-      data.data = (void *)string;
-      data.size = strlen (string);
-      status = gnutls_x509_crt_import (gnutls->priv->cert, &data,
-				       GNUTLS_X509_FMT_PEM);
-      if (status == 0)
-	gnutls->priv->have_cert = TRUE;
-      else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse PEM certificate: %s"),
-			 gnutls_strerror (status));
-	}
+      if (string)
+        set_certificate_from_pem (gnutls, string);
       break;
 
     case PROP_PRIVATE_KEY:
+      byte_array = g_value_get_boxed (value);
+      if (byte_array)
+        set_private_key_from_der (gnutls, byte_array->data, byte_array->len);
+      break;
+
+    case PROP_PRIVATE_KEY_BYTES:
       bytes = g_value_get_boxed (value);
-      if (!bytes)
-	break;
-      g_return_if_fail (gnutls->priv->have_key == FALSE);
-      data.data = bytes->data;
-      data.size = bytes->len;
-      if (!gnutls->priv->key)
-        gnutls_x509_privkey_init (&gnutls->priv->key);
-      status = gnutls_x509_privkey_import (gnutls->priv->key, &data,
-					   GNUTLS_X509_FMT_DER);
-      if (status != 0)
-	{
-	  int pkcs8_status =
-	    gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
-					      GNUTLS_X509_FMT_DER, NULL,
-					      GNUTLS_PKCS_PLAIN);
-	  if (pkcs8_status == 0)
-	    status = 0;
-	}
-      if (status == 0)
-	gnutls->priv->have_key = TRUE;
-      else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse DER private key: %s"),
-			 gnutls_strerror (status));
-	}
+      if (bytes)
+        {
+          set_private_key_from_der (gnutls, g_bytes_get_data (bytes, NULL),
+                                    g_bytes_get_size (bytes));
+        }
       break;
 
     case PROP_PRIVATE_KEY_PEM:
       string = g_value_get_string (value);
-      if (!string)
-	break;
-      g_return_if_fail (gnutls->priv->have_key == FALSE);
-      data.data = (void *)string;
-      data.size = strlen (string);
-      if (!gnutls->priv->key)
-        gnutls_x509_privkey_init (&gnutls->priv->key);
-      status = gnutls_x509_privkey_import (gnutls->priv->key, &data,
-					   GNUTLS_X509_FMT_PEM);
-      if (status != 0)
-	{
-	  int pkcs8_status =
-	    gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
-					      GNUTLS_X509_FMT_PEM, NULL,
-					      GNUTLS_PKCS_PLAIN);
-	  if (pkcs8_status == 0)
-	    status = 0;
-	}
-      if (status == 0)
-	gnutls->priv->have_key = TRUE;
-      else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse PEM private key: %s"),
-			 gnutls_strerror (status));
-	}
+      if (string)
+        set_private_key_from_pem (gnutls, string);
       break;
 
     case PROP_ISSUER:
@@ -416,8 +511,10 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   klass->copy = g_tls_certificate_gnutls_real_copy;
 
   g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
+  g_object_class_override_property (gobject_class, PROP_CERTIFICATE_BYTES, "certificate-bytes");
   g_object_class_override_property (gobject_class, PROP_CERTIFICATE_PEM, "certificate-pem");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
+  g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_BYTES, "private-key-bytes");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
 }
