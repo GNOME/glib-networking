@@ -1,3 +1,17 @@
+2.33.8
+======
+  * gnutls: If a GTlsConnection gets an error when handshaking, it
+    will now continue to return that error message on future I/O
+    attempts, rather than behaving in an undefined manner.
+
+  * gnutls: You can now read from a GTlsConnection's input stream and
+    write to its output stream at the same time (either in different
+    threads, or asynchronously in a single thread). (#660252)
+
+  * Updated translations:
+	Chinese (traditional), Galician, Greek, Hebrew, Lithuanian,
+	Norwegian bokmål, Russian, Serbian, Slovenian, Spanish
+
 2.33.3
 ======
   * Updated autogen.sh (in particular to support automake 1.12)
