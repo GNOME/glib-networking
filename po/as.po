@@ -7,10 +7,11 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug."
 "cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-03-05 19:36+0530\n"
+"POT-Creation-Date: 2012-07-18 21:47+0000\n"
+"PO-Revision-Date: 2012-08-08 14:17+0530\n"
 "Last-Translator: Nilamdyuti Goswami <ngoswami@redhat.com>\n"
 "Language-Team: as_IN <kde-i18n-doc@kde.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -45,53 +46,71 @@ msgstr "PEM ব্যক্তিগত চাবিক বিশ্লেষণ
 msgid "No certificate data provided"
 msgstr "কোনো প্ৰমাণপত্ৰ তথ্য যোগান দিয়া হোৱা নাই"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "চাৰ্ভাৰৰ TLS প্ৰমাণপত্ৰৰ প্ৰয়োজন আছিল"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:248
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS সংযোগ সৃষ্টি কৰিব পৰা নগল: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Connection is closed"
+msgstr "সংযোগ বন্ধ"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+msgid "Operation would block"
+msgstr "কাৰ্য্য প্ৰতিৰোধ কৰিব"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
 msgstr "TLS হেন্ডশেক কৰিবলে সমনীয়া ব্যৰ্থ হল"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "সমনীয়ায় অবৈধ পুনৰ হেন্ডশেকৰ অনুৰোধ কৰিছিল"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:738
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS সংযোগ অপ্ৰত্যাশিতভাৱে বন্ধ হৈ গল"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS হেন্ডশেক কৰোতে ত্ৰুটি: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
 msgid "Unacceptable TLS certificate"
 msgstr "অগ্ৰহণযোগ্য TLS প্ৰমাণপত্ৰ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+#| msgid "Server required TLS certificate"
+msgid "Server did not return a valid TLS certificate"
+msgstr "চাৰ্ভাৰে এটা বৈধ TLS প্ৰমাণপত্ৰ ঘুৰাই নিদিলে"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS চকেটৰ পৰা তথ্য পঢোতে ত্ৰুটি: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS চকেটলে তথ্য লিখোতে ত্ৰুটি: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+msgid "Connection is already closed"
+msgstr "সংযোগ ইতিমধ্যে বন্ধ"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS বন্ধ কৰোতে ত্ৰুটি: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "প্ৰমাণপত্ৰৰ কোনো ব্যক্তিগত চাবি নাই"
 
@@ -105,8 +124,7 @@ msgstr "টকেন লক হোৱাৰ আগত PIN সঠিকভাৱ�
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
-msgstr ""
-"কেইবাটাও PIN চেষ্টা ভুল হৈছে, আৰু ততোধিক ব্যৰ্থতাৰ পিছত টকেন লক কৰা হব।"
+msgstr "কেইবাটাও PIN চেষ্টা ভুল হৈছে, আৰু ততোধিক ব্যৰ্থতাৰ পিছত টকেন লক কৰা হব।"
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
