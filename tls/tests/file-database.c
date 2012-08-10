@@ -23,7 +23,7 @@
 
 #include <gio/gio.h>
 
-#include "tls/gnutls/gtlscertificate-gnutls.h"
+#include "gnutls/gtlscertificate-gnutls.h"
 
 #include <sys/types.h>
 #include <string.h>
