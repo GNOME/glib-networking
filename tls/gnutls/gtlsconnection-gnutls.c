@@ -1461,7 +1461,7 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (stream);
   gboolean success;
-  int ret;
+  int ret = 0;
 
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_CLOSE,
 		 TRUE, cancellable, error))
