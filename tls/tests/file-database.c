@@ -285,7 +285,7 @@ test_verify_with_incorrect_root_in_chain (void)
    * C = US, O = "VeriSign, Inc.", OU = Class 3 Public Primary Certification Authority
    *
    * But it is not the same certificate in our database. However our database should
-   * verify this chain as valid, since the issuer fierds and signatures should chain up
+   * verify this chain as valid, since the issuer fields and signatures should chain up
    * to the certificate in our database.
    */
   chain = load_certificate_chain (TEST_FILE ("chain-with-verisign-md2.pem"), &error);
