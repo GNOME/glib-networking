@@ -1,21 +1,24 @@
-# SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2011, 2012 Swecha Telugu Localisation team
 # This file is distributed under the same license as the PACKAGE package.
+#
 # Hari Krishna <hari@swecha.net>, 2011.
 # Bhuvan Krishna <bhuvan@swecha.net>, 2012.
-#
+# Krishnababu Krothapalli <kkrothap@redhat.com>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-network.master.te\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-03-18 08:55+0000\n"
-"PO-Revision-Date: 2012-03-19 13:49+0530\n"
-"Last-Translator: Bhuvan Krishna <bhuvan@swecha.net>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-07-18 21:47+0000\n"
+"PO-Revision-Date: 2012-08-14 13:48+0530\n"
+"Last-Translator: Krishnababu Krothapalli <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <Indlinux-telugu@lists.sourceforge.net>\n"
+"Language: te\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Generator: Lokalize 1.4\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
@@ -45,48 +48,66 @@ msgstr "PEM స్వంతతాళం  పార్స్ చేయుట క�
 msgid "No certificate data provided"
 msgstr "ధృవీకరణపత్ర దత్తాశం అమర్చబడలేదు "
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "TLS ధృవీకరణపత్రము సేవికకు అవసరం "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:248
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS అనుసంధానం సృష్టించడం కుదరుటలేదు: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Connection is closed"
+msgstr "అనుసంధానం మూసివేయబడింది"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+msgid "Operation would block"
+msgstr "ఆపరేషన్ నిరోధించబడును"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
 msgstr "TLS హాండ్ షేక్ నెరవేర్చటకు పీర్ విఫలం "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "న్యాయవిరోధమైన TLS తిరిగి హాండ్ షేక్  పీర్ అడిగినది "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:738
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS బంధం ఊహించని విధంగా రద్దైపోయినది "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS హాండ్ షేక్ నెరవేర్చటలో విఫలం: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
 msgid "Unacceptable TLS certificate"
 msgstr "అంగీకరించని TLS ధృవీకరణపత్రము "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+#| msgid "Server required TLS certificate"
+msgid "Server did not return a valid TLS certificate"
+msgstr "సేవిక చెల్లునటువంటి TLS ధృవీకరణపత్రం తిప్పియీయలేదు"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS తొర్ర లో దత్తంశం పఠించుటలో దొషం:  %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS తొర్ర లో దత్తంశం లిఖించుట లో దొషం:  %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+msgid "Connection is already closed"
+msgstr "అనుసంధానం యిప్పటికే మూయబడెను"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS మూయడంలో దోషం: %s"
@@ -96,12 +117,18 @@ msgid "Certificate has no private key"
 msgstr "సర్టిఫికేట్ కు స్వంతతాళం లెదు"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
-msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
 msgstr "టోకెన్ తాళం వెసె ముందు సరైన PIN ను నమోదు చివరి అవకాశం"
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
-msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
-msgstr "మీరు చేసిన అనేక PIN ప్రయత్నాలు సరైనవి కాదు, అందువల్ల తదుపరి తప్పిదాలు జరగకుండా టోకెన్ లాక్ చేయబడినది"
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"మీరు చేసిన అనేక PIN ప్రయత్నాలు సరైనవి కాదు, అందువల్ల తదుపరి తప్పిదాలు "
+"జరగకుండా టోకెన్ లాక్ చేయబడినది"
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
