@@ -1,3 +1,15 @@
+2.33.10
+=======
+  * gnutls: Improved the certificate verifying code to deal with the
+    case of a CA being reissued with the same key but a different
+    signature algorithm. (#681299, Stef)
+
+  * gnutls: Fixed an uninitialized variable in
+    g_tls_connection_gnutls_close(). (#681636)
+
+  * Updated translations:
+	Assamese, Portuguese, Telugu
+
 2.33.8
 ======
   * gnutls: If a GTlsConnection gets an error when handshaking, it
