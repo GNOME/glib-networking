@@ -32,11 +32,9 @@ typedef struct {
   gchar *cert_pem;
   gsize cert_pem_length;
   GByteArray *cert_der;
-  GBytes *cert_bytes;
   gchar *key_pem;
   gsize key_pem_length;
   GByteArray *key_der;
-  GBytes *key_bytes;
 } TestCertificate;
 
 static void
@@ -61,10 +59,6 @@ setup_certificate (TestCertificate *test, gconstpointer data)
   g_byte_array_append (test->cert_der, (guint8 *)contents, length);
   g_free (contents);
 
-  test->cert_bytes = g_bytes_new_with_free_func (test->cert_der->data, test->cert_der->len,
-                                                 (GDestroyNotify)g_byte_array_unref,
-                                                 g_byte_array_ref (test->cert_der));
-
   g_file_get_contents (TEST_FILE ("server-key.pem"), &test->key_pem,
                        &test->key_pem_length, &error);
   g_assert_no_error (error);
@@ -76,10 +70,6 @@ setup_certificate (TestCertificate *test, gconstpointer data)
   test->key_der = g_byte_array_new ();
   g_byte_array_append (test->key_der, (guint8 *)contents, length);
   g_free (contents);
-
-  test->key_bytes = g_bytes_new_with_free_func (test->key_der->data, test->key_der->len,
-                                                (GDestroyNotify)g_byte_array_unref,
-                                                g_byte_array_ref (test->key_der));
 }
 
 static void
@@ -88,11 +78,9 @@ teardown_certificate (TestCertificate *test,
 {
   g_free (test->cert_pem);
   g_byte_array_free (test->cert_der, TRUE);
-  g_bytes_unref (test->cert_bytes);
 
   g_free (test->key_pem);
   g_byte_array_free (test->key_der, TRUE);
-  g_bytes_unref (test->key_bytes);
 }
 
 static void
@@ -142,7 +130,6 @@ test_create_der (TestCertificate *test,
   GTlsCertificate *cert;
   GByteArray *der = NULL;
   GError *error = NULL;
-  GBytes *bytes;
 
   cert = g_initable_new (test->cert_gtype, NULL, &error,
                          "certificate", test->cert_der,
@@ -154,14 +141,6 @@ test_create_der (TestCertificate *test,
   g_assert (der);
   g_assert_cmpuint (der->len, ==, test->cert_der->len);
   g_assert (memcmp (der->data, test->cert_der->data, der->len) == 0);
-
-  /* Make sure that certificate-bytes is equal to certificate */
-  bytes = NULL;
-  g_object_get (cert, "certificate-bytes", &bytes, NULL);
-  g_assert (bytes != NULL);
-  g_assert_cmpuint (der->len, ==, g_bytes_get_size (bytes));
-  g_assert (memcmp (der->data, g_bytes_get_data (bytes, NULL), der->len) == 0);
-  g_bytes_unref (bytes);
 
   g_byte_array_unref (der);
 
@@ -180,59 +159,6 @@ test_create_with_key_der (TestCertificate *test,
   cert = g_initable_new (test->cert_gtype, NULL, &error,
                          "certificate", test->cert_der,
                          "private-key", test->key_der,
-                         NULL);
-  g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
-
-  g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
-  g_object_unref (cert);
-  g_assert (cert == NULL);
-}
-
-static void
-test_create_bytes (TestCertificate *test,
-                   gconstpointer    data)
-{
-  GTlsCertificate *cert;
-  GBytes *der = NULL;
-  GError *error = NULL;
-  GByteArray *array;
-
-  cert = g_initable_new (test->cert_gtype, NULL, &error,
-                         "certificate-bytes", test->cert_bytes,
-                         NULL);
-  g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
-
-  g_object_get (cert, "certificate-bytes", &der, NULL);
-  g_assert (der);
-  g_assert (g_bytes_equal (der, test->cert_bytes));
-
-  /* Make sure that certificate is equal to certificate-bytes */
-  array = NULL;
-  g_object_get (cert, "certificate", &array, NULL);
-  g_assert (array != NULL);
-  g_assert_cmpuint (array->len, ==, g_bytes_get_size (der));
-  g_assert (memcmp (array->data, g_bytes_get_data (der, NULL), array->len) == 0);
-  g_byte_array_unref (array);
-
-  g_bytes_unref (der);
-
-  g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
-  g_object_unref (cert);
-  g_assert (cert == NULL);
-}
-
-static void
-test_create_with_key_bytes (TestCertificate *test,
-                            gconstpointer data)
-{
-  GTlsCertificate *cert;
-  GError *error = NULL;
-
-  cert = g_initable_new (test->cert_gtype, NULL, &error,
-                         "certificate-bytes", test->cert_bytes,
-                         "private-key-bytes", test->key_bytes,
                          NULL);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
@@ -497,14 +423,10 @@ main (int   argc,
               setup_certificate, test_create_pem, teardown_certificate);
   g_test_add ("/tls/certificate/create-der", TestCertificate, NULL,
               setup_certificate, test_create_der, teardown_certificate);
-  g_test_add ("/tls/certificate/create-bytes", TestCertificate, NULL,
-              setup_certificate, test_create_bytes, teardown_certificate);
   g_test_add ("/tls/certificate/create-with-key-pem", TestCertificate, NULL,
               setup_certificate, test_create_with_key_pem, teardown_certificate);
   g_test_add ("/tls/certificate/create-with-key-der", TestCertificate, NULL,
               setup_certificate, test_create_with_key_der, teardown_certificate);
-  g_test_add ("/tls/certificate/create-with-key-bytes", TestCertificate, NULL,
-              setup_certificate, test_create_with_key_bytes, teardown_certificate);
   g_test_add ("/tls/certificate/create-with-issuer", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_issuer, teardown_certificate);
 

@@ -221,7 +221,7 @@ load_certificate_chain (const char  *filename,
   GList *certificates;
   GTlsCertificate *chain = NULL;
   GTlsBackend *backend;
-  GBytes *der;
+  GByteArray *der;
   GList *l;
 
   certificates = g_tls_certificate_list_new_from_file (filename, error);
@@ -232,12 +232,12 @@ load_certificate_chain (const char  *filename,
   certificates = g_list_reverse (certificates);
   for (l = certificates; l != NULL; l = g_list_next (l))
     {
-      g_object_get (l->data, "certificate-bytes", &der, NULL);
+      g_object_get (l->data, "certificate", &der, NULL);
       chain = g_object_new (g_tls_backend_get_certificate_type (backend),
-                            "certificate-bytes", der,
+                            "certificate", der,
                             "issuer", chain,
                             NULL);
-      g_bytes_unref (der);
+      g_byte_array_unref (der);
     }
 
   g_list_free_full (certificates, g_object_unref);

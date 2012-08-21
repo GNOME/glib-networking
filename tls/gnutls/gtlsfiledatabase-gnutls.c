@@ -179,16 +179,6 @@ create_handles_array_unlocked (const gchar *filename,
   return handles;
 }
 
-static GBytes *
-get_der_for_certificate (GTlsCertificate *cert)
-{
-  GBytes *bytes = NULL;
-
-  g_object_get (cert, "certificate-bytes", &bytes, NULL);
-  g_return_val_if_fail (bytes, NULL);
-  return bytes;
-}
-
 static gboolean
 load_anchor_file (const gchar *filename,
                   GHashTable  *subjects,
@@ -235,7 +225,7 @@ load_anchor_file (const gchar *filename,
 
       issuer = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
-      der = get_der_for_certificate (l->data);
+      der = g_tls_certificate_gnutls_get_bytes (l->data);
       g_return_val_if_fail (der != NULL, FALSE);
 
       /* Three different ways of looking up same certificate */
@@ -351,7 +341,7 @@ g_tls_file_database_gnutls_create_certificate_handle (GTlsDatabase            *d
   gboolean contains;
   gchar *handle = NULL;
 
-  der = get_der_for_certificate (certificate);
+  der = g_tls_certificate_gnutls_get_bytes (G_TLS_CERTIFICATE_GNUTLS (certificate));
   g_return_val_if_fail (der != NULL, FALSE);
 
   g_mutex_lock (&self->priv->mutex);
@@ -442,7 +432,7 @@ g_tls_file_database_gnutls_lookup_assertion (GTlsDatabaseGnutls          *databa
    * comparing them to the purpose.
    */
 
-  der = get_der_for_certificate (G_TLS_CERTIFICATE (certificate));
+  der = g_tls_certificate_gnutls_get_bytes (certificate);
 
   g_mutex_lock (&self->priv->mutex);
   contains = g_hash_table_lookup (self->priv->complete, der) ? TRUE : FALSE;

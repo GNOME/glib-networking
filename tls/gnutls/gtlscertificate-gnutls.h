@@ -49,6 +49,8 @@ GType g_tls_certificate_gnutls_get_type (void) G_GNUC_CONST;
 GTlsCertificate *            g_tls_certificate_gnutls_new             (const gnutls_datum    *datum,
                                                                        GTlsCertificate       *issuer);
 
+GBytes *                     g_tls_certificate_gnutls_get_bytes       (GTlsCertificateGnutls *gnutls);
+
 void                         g_tls_certificate_gnutls_set_data        (GTlsCertificateGnutls *gnutls,
                                                                        const gnutls_datum *datum);
 
