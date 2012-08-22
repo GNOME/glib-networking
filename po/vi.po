@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
 "POT-Creation-Date: 2012-07-18 21:47+0000\n"
-"PO-Revision-Date: 2012-08-22 08:52+0700\n"
+"PO-Revision-Date: 2012-08-22 08:53+0700\n"
 "Last-Translator: Nguyễn Thái Ngọc Duy <pclouds@gmail.com>\n"
 "Language-Team: Vietnamese <gnomevi-list@lists.sourceforge.net>\n"
 "Language: vi\n"
@@ -57,12 +57,12 @@ msgstr "Không thể tạo kết nối TLS: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:508
 msgid "Connection is closed"
-msgstr ""
+msgstr "Kết nối đã đóng"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:568
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1371
 msgid "Operation would block"
-msgstr ""
+msgstr "Thao tác có thể ngăn các thao tác khác"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
@@ -87,10 +87,9 @@ msgid "Unacceptable TLS certificate"
 msgstr "Chứng nhận TLS không thể chấp nhận"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1215
-#, fuzzy
 #| msgid "Server required TLS certificate"
 msgid "Server did not return a valid TLS certificate"
-msgstr "Máy chủ yêu cầu chứng nhận TLS"
+msgstr "Máy chủ không trả về chứng nhận TLS hợp lệ"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
@@ -104,7 +103,7 @@ msgstr "Lỗi đọc dữ liệu vào kết nối TLS: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1467
 msgid "Connection is already closed"
-msgstr ""
+msgstr "Kết nối đã đóng rồi"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
