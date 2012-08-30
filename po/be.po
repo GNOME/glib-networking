@@ -3,9 +3,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-18 23:20+0300\n"
-"PO-Revision-Date: 2012-02-18 23:20+0300\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-07-18 21:47+0000\n"
+"PO-Revision-Date: 2012-08-30 15:27+0300\n"
 "Last-Translator: Kasia Bondarava <kasia.bondarava@gmail.com>\n"
 "Language-Team: Belarusian <i18n-bel-gnome@googlegroups.com>\n"
 "Language: be\n"
@@ -45,48 +46,65 @@ msgstr "Не ўдалося разабраць прыватны PEM-ключ: %s
 msgid "No certificate data provided"
 msgstr "Даныя сертыфіката не пададзеныя"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "Сервер запатрабаваў TLS-сертыфікат"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:248
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Не ўдалося стварыць TLS-злучэнне: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Connection is closed"
+msgstr "Злучэнне закрыта"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+msgid "Operation would block"
+msgstr "Аперацыя будзе заблакіравана"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
 msgstr "Суразмоўцу не ўдалося выканаць вітанне TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Суразмоўца запытаў забароненае паўторнае вітанне TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:738
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-злучэнне нечакана закрылася"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Памылка выканання вітання TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
 msgid "Unacceptable TLS certificate"
 msgstr "Непрымальны TLS-сертыфікат"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+msgid "Server did not return a valid TLS certificate"
+msgstr "Сервер не вярнуў правільнага TLS-сертыфіката"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Памылка чытання даных з TLS-сокета: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Памылка запісу даных у TLS-сокет: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+msgid "Connection is already closed"
+msgstr "Злучэнне ўжо закрыта"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Памылка закрыцця TLS-злучэння: %s"
