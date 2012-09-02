@@ -1,21 +1,20 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-#
 # Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>, 2012.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-03-24 19:11+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-09-02 20:28+0300\n"
+"PO-Revision-Date: 2012-09-02 20:31+0300\n"
 "Last-Translator: Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>\n"
-"Language-Team: Latvian <lata-l10n@googlegroups.com>\n"
+"Language-Team: Latviešu <lata-l10n@googlegroups.com>\n"
+"Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: lv\n"
-"X-Generator: Lokalize 1.2\n"
+"X-Generator: Gtranslator 2.91.5\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
 
@@ -26,74 +25,91 @@ msgstr "Starpnieka risinātāja iekšēja kļūda."
 #: ../tls/gnutls/gtlscertificate-gnutls.c:173
 #, c-format
 msgid "Could not parse DER certificate: %s"
-msgstr "Nevarēju noparsēt DER sertifikātu: %s"
+msgstr "Nevarēju noparsēt DER sertifikātu — %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:194
 #, c-format
 msgid "Could not parse PEM certificate: %s"
-msgstr "Nevarēju noparsēt PEM sertifikātu: %s"
+msgstr "Nevarēju noparsēt PEM sertifikātu — %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
-msgstr "Nevarēju noparsēt DER privāto atslēgu: %s"
+msgstr "Nevarēju noparsēt DER privāto atslēgu — %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
-msgstr "Nevarēju noparsēt PEM privāto atslēgu: %s"
+msgstr "Nevarēju noparsēt PEM privāto atslēgu — %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Nav norādīti sertifikāta dati"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "Serveris pieprasa TLS sertifikātu"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
-msgstr "Neizdevās izveidot TLS savienojumu: %s"
+msgstr "Neizdevās izveidot TLS savienojumu — %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+msgid "Connection is closed"
+msgstr "Savienojums ir aizvērts"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:574
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+msgid "Operation would block"
+msgstr "Darbība bloķēs"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:701
 msgid "Peer failed to perform TLS handshake"
 msgstr "Dalībniekam neizdevās veikt TLS izaicinājumrokspiedienu"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:718
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Dalībnieks pieprasīja neatļautu TLS izaicinājumrokspiedienu"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:744
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS savienojums aizvērās negaidīti"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
 #, c-format
 msgid "Error performing TLS handshake: %s"
-msgstr "Kļūda, veicot TLS izaicinājumrokspiedienu: %s"
+msgstr "Kļūda, veicot TLS izaicinājumrokspiedienu — %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
 msgid "Unacceptable TLS certificate"
 msgstr "Nepieņemams TLS sertifikāts"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+msgid "Server did not return a valid TLS certificate"
+msgstr "Serveris neatgrieza derīgu TLS sertifikātu"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
 #, c-format
 msgid "Error reading data from TLS socket: %s"
-msgstr "Kļūda lasot datus no TLS ligzdas: %s"
+msgstr "Kļūda, lasot datus no TLS ligzdas — %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
 #, c-format
 msgid "Error writing data to TLS socket: %s"
-msgstr "Kļūda rakstot datus TLS ligzdā: %s"
+msgstr "Kļūda, rakstot datus TLS ligzdā — %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+msgid "Connection is already closed"
+msgstr "Savienojums jau ir aizvērts"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
 #, c-format
 msgid "Error performing TLS close: %s"
-msgstr "Kļūda, veicot TLS aizvēršanu: %s"
+msgstr "Kļūda, veicot TLS aizvēršanu — %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "Sertifikātam nav privātās atslēgas"
 
@@ -122,13 +138,12 @@ msgstr "Modulis"
 
 #: ../tls/pkcs11/gpkcs11slot.c:447
 msgid "PKCS#11 Module Pointer"
-msgstr "PKCS#11 Moduļa rādītājs"
+msgstr "PKCS#11 moduļa rādītājs"
 
 #: ../tls/pkcs11/gpkcs11slot.c:454
 msgid "Slot ID"
-msgstr "Slota ID"
+msgstr "Ligzdas ID"
 
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
-msgstr "PKCS#11 slota identifikators"
-
+msgstr "PKCS#11 ligzdas identifikators"
