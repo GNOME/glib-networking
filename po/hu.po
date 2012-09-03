@@ -1,22 +1,21 @@
 # Hungarian translation of glib-networking
-# Copyright (C) 2011. Free Software Foundation, Inc.
+# Copyright (C) 2011, 2012. Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-networking package.
 #
 # Gabor Kelemen <kelemeng at gnome dot hu>, 2011, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug."
-"cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-03-04 03:03+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-09-03 16:28+0200\n"
+"PO-Revision-Date: 2012-09-03 16:30+0200\n"
 "Last-Translator: Gabor Kelemen <kelemeng at gnome dot hu>\n"
-"Language-Team: Magyar <gnome-hu-list at gnome dot org>\n"
+"Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: \n"
-"X-Generator: Lokalize 1.0\n"
+"X-Generator: KBabel 1.11.4\n"
 "Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
@@ -47,53 +46,70 @@ msgstr "A PEM személyes kulcs nem dolgozható fel: %s"
 msgid "No certificate data provided"
 msgstr "Nincsenek megadva tanúsítványadatok"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "A kiszolgáló TLS-tanúsítványt kért"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nem sikerült létrehozni TLS-kapcsolatot: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+msgid "Connection is closed"
+msgstr "A kapcsolat lezárva"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:574
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+msgid "Operation would block"
+msgstr "A művelet blokkoló lenne"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:701
 msgid "Peer failed to perform TLS handshake"
 msgstr "A partner nem tudta végrehajtani a TLS-kézfogást"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:718
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "A partner illegális ismételt TLS-kézfogást kért"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:744
 msgid "TLS connection closed unexpectedly"
 msgstr "A TLS-kapcsolat váratlanul befejeződött"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Hiba a TLS-kézfogás végrehajtásakor: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
 msgid "Unacceptable TLS certificate"
 msgstr "Elfogadhatatlan TLS-tanúsítvány"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+msgid "Server did not return a valid TLS certificate"
+msgstr "A kiszolgáló nem adott vissza érvényes TLS-tanúsítványt"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Hiba az adatok olvasásakor a TLS-foglalatból: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Hiba az adatok TLS-foglalatba írásakor: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+msgid "Connection is already closed"
+msgstr "A kapcsolat már le van zárva"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Hiba a TLS-lezárás végrehajtásakor: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "A tanúsítványnak nincs személyes kulcsa"
 
