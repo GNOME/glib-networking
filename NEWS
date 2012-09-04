@@ -1,3 +1,13 @@
+2.33.12
+=======
+  * gnutls: Revert the addition of the certificate-bytes and
+    private-key-bytes properties to GTlsCertificateGnutls, since they
+    were reverted in glib. (#682081, Stef)
+
+  * Updated translations:
+	Belarusian, Hungarian, Indonesian, Italian, Latvian, Polish,
+	Polish, Vietnamese
+
 2.33.10
 =======
   * gnutls: Improved the certificate verifying code to deal with the
