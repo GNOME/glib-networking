@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-06 15:30+0000\n"
-"PO-Revision-Date: 2012-03-06 15:30+0100\n"
+"POT-Creation-Date: 2012-09-05 19:36+0100\n"
+"PO-Revision-Date: 2012-09-05 19:36+0100\n"
 "Last-Translator: Bruce Cowan <bruce@bcowan.me.uk>\n"
 "Language-Team: British English <en@li.org>\n"
 "Language: en_GB\n"
@@ -45,48 +45,65 @@ msgstr "Could not parse PEM private key: %s"
 msgid "No certificate data provided"
 msgstr "No certificate data provided"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "Server required TLS certificate"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Could not create TLS connection: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+msgid "Connection is closed"
+msgstr "Connection is closed"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:574
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+msgid "Operation would block"
+msgstr "Operation would block"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:701
 msgid "Peer failed to perform TLS handshake"
 msgstr "Peer failed to perform TLS handshake"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:718
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Peer requested illegal TLS rehandshake"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:744
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS connection closed unexpectedly"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Error performing TLS handshake: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
 msgid "Unacceptable TLS certificate"
 msgstr "Unacceptable TLS certificate"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+msgid "Server did not return a valid TLS certificate"
+msgstr "Server did not return a valid TLS certificate"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Error reading data from TLS socket: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Error writing data to TLS socket: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+msgid "Connection is already closed"
+msgstr "Connection is already closed"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Error performing TLS close: %s"
