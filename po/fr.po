@@ -8,10 +8,11 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-02-11 11:22+0100\n"
+"POT-Creation-Date: 2012-07-18 21:47+0000\n"
+"PO-Revision-Date: 2012-09-06 17:35+0200\n"
 "Last-Translator: Claude Paroz <claude@2xlibre.net>\n"
 "Language-Team: GNOME French Team <gnomefr@traduc.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -45,53 +46,70 @@ msgstr "Impossible d'analyser la clé privée PEM : %s"
 msgid "No certificate data provided"
 msgstr "Aucune donnée de certificat fournie"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "Le serveur requiert un certificat TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:248
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Impossible de créer une connexion TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Connection is closed"
+msgstr "La connexion est fermée"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+msgid "Operation would block"
+msgstr "L'opération serait bloquée"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
 msgstr "La négociation TLS avec le serveur pair a échoué"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Le serveur pair a demandé une renégociation TLS non autorisée"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:738
 msgid "TLS connection closed unexpectedly"
 msgstr "La connexion TLS a été fermée de manière inattendue"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Erreur lors de la négociation TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
 msgid "Unacceptable TLS certificate"
 msgstr "Certificat TLS inacceptable"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+msgid "Server did not return a valid TLS certificate"
+msgstr "Le serveur n'a pas renvoyé un certificat TLS valide"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Erreur lors de la lecture de données du connecteur TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Erreur lors de l'écriture de données sur le connecteur TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+msgid "Connection is already closed"
+msgstr "La connexion est déjà fermée"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Erreur lors de la fermeture TLS : %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "Le certificat n'a pas de clé privée"
 
