@@ -7,9 +7,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-03-04 18:59+0900\n"
-"PO-Revision-Date: 2012-03-04 19:01+0900\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-07-18 21:47+0000\n"
+"PO-Revision-Date: 2012-09-09 05:25+0900\n"
 "Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
 "Language-Team: Korean <gnome-kr@googlegroups.com>\n"
 "Language: ko\n"
@@ -46,48 +47,65 @@ msgstr "PEM 개인 키를 파싱할 수 없습니다: %s"
 msgid "No certificate data provided"
 msgstr "인증서 데이터를 제공하지 않았습니다"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "서버에 TLS 인증서가 필요합니다"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:248
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS 연결을 만들 수 없습니다: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Connection is closed"
+msgstr "연결이 닫혔습니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+msgid "Operation would block"
+msgstr "동작이 중단됩니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
 msgstr "상대편이 TLS 핸드셰이킹에 실패했습니다"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "상대편이 잘못된 TLS 핸드셰이킹을 요청했습니다"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:738
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS 연결이 예상치 못하게 닫혔습니다"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS 핸드셰이킹에 오류가 발생했습니다: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
 msgid "Unacceptable TLS certificate"
 msgstr "TLS 핸드셰이킹을 받아들일 수 없습니다"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+msgid "Server did not return a valid TLS certificate"
+msgstr "서버에서 올바른 TLS 인증서를 반환하지 않았습니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS 소켓에서 데이터를 읽는데 오류가 발생했습니다: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS 소켓에 데이터를 쓰는데 오류가 발생했습니다: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+msgid "Connection is already closed"
+msgstr "연결이 이미 닫혔습니다"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS를 닫는데 오류가 발생했습니다: %s"
@@ -106,7 +124,9 @@ msgstr "PIN 입력 마지막 기회입니다. 한 번 더 실패하면 토큰을
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
-msgstr "여러 번의 PIN 시도가 모두 틀렸으므로, 앞으로 더 실패하면 해당 토큰을 잠급니다."
+msgstr ""
+"여러 번의 PIN 시도가 모두 틀렸으므로, 앞으로 더 실패하면 해당 토큰을 잠급니"
+"다."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
