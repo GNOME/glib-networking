@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-20 22:30+0100\n"
-"PO-Revision-Date: 2012-02-18 18:59+0100\n"
+"POT-Creation-Date: 2012-09-16 13:19+0200\n"
+"PO-Revision-Date: 2012-09-16 00:28+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -47,48 +47,65 @@ msgstr "Kunne ikke fortolke privat nøgle for PEM: %s"
 msgid "No certificate data provided"
 msgstr "Ingen certifikatdata angivet"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "Server kræver et TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunne ikke oprette TLS-forbindelse: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+msgid "Connection is closed"
+msgstr "Forbindelsen er lukket"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:574
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+msgid "Operation would block"
+msgstr "Forbindelsen ville blokere"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:701
 msgid "Peer failed to perform TLS handshake"
 msgstr "Modpart mislykkedes i at udføre TLS-forhandling"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:718
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Modpart forspurgte illegalt TLS-genforhandling"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:744
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-forbindelse lukkede uventet ned"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fejl under udførsel af TLS-handshake: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
 msgid "Unacceptable TLS certificate"
 msgstr "Uacceptabelt TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+msgid "Server did not return a valid TLS certificate"
+msgstr "Serveren returnerede ikke et gyldigt TLS-certifikat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Fejl under læsning af data fra TLS-sokkel: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Fejl under skrivning af data til TLS-sokkel: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+msgid "Connection is already closed"
+msgstr "Forbindelsen er allerede lukket"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fejl under nedlukning af TLS: %s"
