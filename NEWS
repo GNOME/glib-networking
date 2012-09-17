@@ -1,3 +1,9 @@
+2.33.14
+=======
+  * Updated translations:
+	Brazilian Portuguese, British English, Czech, Danish, Finnish,
+	French, German, Korean, Punjabi
+
 2.33.12
 =======
   * gnutls: Revert the addition of the certificate-bytes and
