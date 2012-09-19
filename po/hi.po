@@ -4,14 +4,15 @@
 # This file is distributed under the same license as the glib-networking package.
 # Rajesh Ranjan <rranjan@redhat.com>, 2011.
 # chandankumar(ciypro) <chandankumar.093047@gmail.com>, 2012.
+# rajesh <rajeshkajha@yahoo.com>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking.po.master.hi\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
 "POT-Creation-Date: 2012-07-18 21:47+0000\n"
-"PO-Revision-Date: 2012-03-26 15:28+0530\n"
-"Last-Translator: chandankumar(ciypro) <chandankumar.093047@gmail.com>\n"
+"PO-Revision-Date: 2012-09-19 17:39+0530\n"
+"Last-Translator: rajesh <rajeshkajha@yahoo.com>\n"
 "Language-Team: Hindi <kde-i18n-doc@kde.org>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
@@ -59,12 +60,12 @@ msgstr "टीएलएस कनेक्शन नहीं बना सक�
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:508
 msgid "Connection is closed"
-msgstr ""
+msgstr "कनेक्शन बंद है"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:568
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1371
 msgid "Operation would block"
-msgstr ""
+msgstr "कार्य रोक दिया जाएगा"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:695
 msgid "Peer failed to perform TLS handshake"
@@ -89,10 +90,9 @@ msgid "Unacceptable TLS certificate"
 msgstr "अस्वीकार्य TLS प्रमाणपत्र"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1215
-#, fuzzy
 #| msgid "Server required TLS certificate"
 msgid "Server did not return a valid TLS certificate"
-msgstr "सर्वर के लिए TLS प्रमाणपत्र चाहिए"
+msgstr "सर्वर ने वैध TLS प्रमाणपत्र नहीं दिया है"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1394
 #, c-format
@@ -106,7 +106,7 @@ msgstr "TLS सॉकेट से आँकड़ा लिखने में 
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1467
 msgid "Connection is already closed"
-msgstr ""
+msgstr "कनेक्शन पहले से बंद है"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
@@ -128,7 +128,8 @@ msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr ""
-"कई पिन प्रयास को गलत कर दिया गया है, और आगे विफलताओं के बाद टोकन बंद कर दिया जाएगा."
+"कई पिन प्रयास को गलत कर दिया गया है, और आगे विफलताओं के बाद टोकन बंद कर दिया "
+"जाएगा."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -149,3 +150,4 @@ msgstr "स्लॉट ID"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 स्लॉट पहचानकर्ता"
+
