@@ -3,25 +3,25 @@
 # This file is distributed under the same license as glib-networking package.
 # Takayuki KUSANO <AE5T-KSN@asahi-net.or.jp>, 2011-2012.
 # Hideki Yamane <henrich@debian.org>, 2011-2012.
+# Yoji TOYODA <bsyamato@sea.plala.or.jp>, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-03-12 09:02+0000\n"
-"PO-Revision-Date: 2012-03-12 21:04+0900\n"
-"Last-Translator: Takayuki KUSANO <AE5T-KSN@asahi-net.or.jp>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-08-30 12:32+0000\n"
+"PO-Revision-Date: 2012-08-30 21:54+0900\n"
+"Last-Translator: Yoji TOYODA <bsyamato@sea.plala.or.jp>\n"
 "Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
-msgstr "プロキシレゾルバでの内部エラー。"
+msgstr "プロキシリゾルバーでの内部エラー。"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:173
 #, c-format
@@ -47,48 +47,65 @@ msgstr "PEM 形式の秘密鍵を解析できませんでした: %s"
 msgid "No certificate data provided"
 msgstr "証明書のデータが与えられていません"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "サーバーが TLS 証明書を要求しました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
-msgstr "TLS の接続を確立できませんでした: %s"
+msgstr "TLS コネクションを確立できませんでした: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+msgid "Connection is closed"
+msgstr "コネクションが切断されています"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:574
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+msgid "Operation would block"
+msgstr "操作がブロックされます"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:701
 msgid "Peer failed to perform TLS handshake"
 msgstr "通信相手が TLS ハンドシェイクの実行に失敗しました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:718
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "通信相手が不当な TLS の再ハンドシェイクを要求しました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:744
 msgid "TLS connection closed unexpectedly"
-msgstr "TLS 接続が突然閉じられました"
+msgstr "TLS コネクションが突然閉じられました"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS ハンドシェイク実行中のエラー: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
 msgid "Unacceptable TLS certificate"
 msgstr "受け付けられない TLS 証明書です"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+msgid "Server did not return a valid TLS certificate"
+msgstr "サーバーが有効な TLS 証明書を返しませんでした。"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS ソケットからのデータ読み込み中のエラー: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS ソケットへのデータ書き出し中のエラー: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+msgid "Connection is already closed"
+msgstr "コネクションはすでに切断されています"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS クローズ実行中のエラー: %s"
@@ -98,19 +115,12 @@ msgid "Certificate has no private key"
 msgstr "証明書に秘密鍵がありません"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
-msgid ""
-"This is the last chance to enter the PIN correctly before the token is "
-"locked."
-msgstr ""
-"これがトークンがロックされる前に、正しく PIN を入力する最後のチャンスです。"
+msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgstr "これがトークンがロックされる前に正しく PIN コードを入力する最後のチャンスです。"
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
-msgid ""
-"Several PIN attempts have been incorrect, and the token will be locked after "
-"further failures."
-msgstr ""
-"正しくない PIN 入力が複数回行われたので、さらに失敗するとトークンはロックされ"
-"ます。"
+msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
+msgstr "正しくない PIN コードの入力が複数回行われたので、さらに失敗するとトークンはロックされます。"
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
