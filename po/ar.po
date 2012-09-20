@@ -3,22 +3,22 @@
 # This file is distributed under the same license as the PACKAGE package.
 # IBRAHIM <mradonadiego@hotmail.fr>, 2011
 # Mohammad Alhargan <malham1@gmail.com>, 2012.
+# Khaled Hosny <khaledhosny@eglug.org>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-08-21 12:35+0000\n"
-"PO-Revision-Date: 2012-05-17 23:57+0300\n"
-"Last-Translator: Mohammad Alhargan <malham1@gmail.com>\n"
-"Language-Team: http://www.vertaal.com.ar/files/factory/ar/list/\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-09-20 07:26+0200\n"
+"PO-Revision-Date: 2012-09-20 07:26+0200\n"
+"Last-Translator: Khaled Hosny <khaledhosny@eglug.org>\n"
+"Language-Team: Arabic <doc@arabeyes.org>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Virtaal 0.7.1\n"
+"X-Generator: Virtaal 0.7.0\n"
 "X-Project-Style: gnome\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
@@ -51,7 +51,7 @@ msgstr "لم يتم تقديم بيانات الشهادة"
 
 #: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
-msgstr "يتطلب الخادم شهادة TLS"
+msgstr "يتطلب الخادوم شهادة TLS"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
@@ -60,12 +60,12 @@ msgstr "لا يمكن إنشاء اتصال TLS: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:514
 msgid "Connection is closed"
-msgstr ""
+msgstr "الاتصال مغلق"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:574
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1377
 msgid "Operation would block"
-msgstr ""
+msgstr "العملية قد تغلق"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:701
 msgid "Peer failed to perform TLS handshake"
@@ -90,10 +90,8 @@ msgid "Unacceptable TLS certificate"
 msgstr "شهادة TLS غير مقبولة"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1221
-#, fuzzy
-#| msgid "Server required TLS certificate"
 msgid "Server did not return a valid TLS certificate"
-msgstr "يتطلب الخادم شهادة TLS"
+msgstr "لم يُرجع الخادوم شهادة TLS سليمة"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1400
 #, c-format
@@ -107,7 +105,7 @@ msgstr "حدث خطأ أثناء كتابة البيانات من مأخذ تو�
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1473
 msgid "Connection is already closed"
-msgstr ""
+msgstr "الاتصال مغلق من قبل"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1483
 #, c-format
