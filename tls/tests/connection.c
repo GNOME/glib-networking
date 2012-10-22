@@ -826,7 +826,6 @@ main (int   argc,
 {
   int ret;
 
-  g_type_init ();
   g_test_init (&argc, &argv, NULL);
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);

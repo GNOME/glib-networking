@@ -130,8 +130,6 @@ main (int argc, char *argv[])
 {
   int owner_id;
 
-  g_type_init ();
-
   /* Unset variables that would make libproxy try to use gconf or ksettings */
   g_unsetenv ("GNOME_DESKTOP_SESSION_ID");
   g_unsetenv ("DESKTOP_SESSION");
