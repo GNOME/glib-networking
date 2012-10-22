@@ -1,3 +1,11 @@
+2.35.1
+======
+  * Update for glib 2.35.1; remove g_type_init() calls and port to
+    GTask.
+
+  * Updated translations:
+	Estonian
+
 2.34.0
 ======
   * Updated translations:
