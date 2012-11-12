@@ -1,3 +1,11 @@
+2.34.2
+======
+  * build: it no longer tries to build the TLS tests if gnutls is not
+    available.
+
+  * New/Updated translations:
+	Estonian, Slovak
+
 2.34.0
 ======
   * Updated translations:
