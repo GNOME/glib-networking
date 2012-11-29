@@ -1711,3 +1711,24 @@ g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface)
 {
   iface->init = g_tls_connection_gnutls_initable_init;
 }
+
+gboolean
+g_tls_connection_gnutls_request_certificate (GTlsConnectionGnutls  *self,
+					     GError               **error)
+{
+  GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;
+  GTlsInteraction *interaction;
+  GTlsConnection *conn;
+
+  g_return_val_if_fail (G_IS_TLS_CONNECTION_GNUTLS (self), FALSE);
+
+  conn = G_TLS_CONNECTION (self);
+
+  interaction = g_tls_connection_get_interaction (conn);
+  if (!interaction)
+    return FALSE;
+
+  res = g_tls_interaction_invoke_request_certificate (interaction, conn, 0,
+						      self->priv->read_cancellable, error);
+  return res != G_TLS_INTERACTION_FAILED;
+}

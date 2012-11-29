@@ -41,6 +41,8 @@ struct _MockInteraction
 {
   GTlsInteraction parent_instance;
   gchar *static_password;
+  GTlsCertificate *static_certificate;
+  GError *static_error;
 };
 
 struct _MockInteractionClass
@@ -50,7 +52,14 @@ struct _MockInteractionClass
 
 
 GType            mock_interaction_get_type   (void);
-GTlsInteraction *mock_interaction_new_static       (const gchar *password);
+
+GTlsInteraction *mock_interaction_new_static_password       (const gchar *password);
+
+GTlsInteraction *mock_interaction_new_static_certificate    (GTlsCertificate *cert);
+
+GTlsInteraction *mock_interaction_new_static_error          (GQuark domain,
+                                                             gint code,
+                                                             const gchar *message);
 
 G_END_DECLS
 

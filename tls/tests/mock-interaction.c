@@ -40,8 +40,12 @@ mock_interaction_ask_password_async (GTlsInteraction    *interaction,
 
   task = g_task_new (interaction, cancellable, callback, user_data);
 
-  g_tls_password_set_value (password, (const guchar *)self->static_password, -1);
+  if (self->static_error)
+    g_task_return_error (task, g_error_copy (self->static_error));
+  else
+    g_tls_password_set_value (password, (const guchar *)self->static_password, -1);
   g_task_return_boolean (task, TRUE);
+  g_object_unref (task);
 }
 
 static GTlsInteractionResult
@@ -72,8 +76,77 @@ mock_interaction_ask_password (GTlsInteraction    *interaction,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_INTERACTION_FAILED;
 
-  g_tls_password_set_value (password, (const guchar *)self->static_password, -1);
-  return G_TLS_INTERACTION_HANDLED;
+  if (self->static_error)
+    {
+      g_propagate_error (error, g_error_copy (self->static_error));
+      return G_TLS_INTERACTION_FAILED;
+    }
+  else
+    {
+      g_tls_password_set_value (password, (const guchar *)self->static_password, -1);
+      return G_TLS_INTERACTION_HANDLED;
+    }
+}
+
+static void
+mock_interaction_request_certificate_async (GTlsInteraction            *interaction,
+                                            GTlsConnection             *connection,
+                                            GTlsCertificateRequestFlags flags,
+                                            GCancellable               *cancellable,
+                                            GAsyncReadyCallback         callback,
+                                            gpointer                    user_data)
+{
+  MockInteraction *self = MOCK_INTERACTION (interaction);
+  GTask *task;
+
+  task = g_task_new (interaction, cancellable, callback, user_data);
+
+  if (self->static_error)
+    g_task_return_error (task, g_error_copy (self->static_error));
+  else
+    {
+      g_tls_connection_set_certificate (connection, self->static_certificate);
+      g_task_return_boolean (task, TRUE);
+    }
+  g_object_unref (task);
+}
+
+static GTlsInteractionResult
+mock_interaction_request_certificate_finish (GTlsInteraction    *interaction,
+                                             GAsyncResult       *result,
+                                             GError            **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, interaction),
+                        G_TLS_INTERACTION_UNHANDLED);
+
+  if (!g_task_propagate_boolean (G_TASK (result), error))
+    return G_TLS_INTERACTION_FAILED;
+  else
+    return G_TLS_INTERACTION_HANDLED;
+}
+
+static GTlsInteractionResult
+mock_interaction_request_certificate (GTlsInteraction            *interaction,
+                                      GTlsConnection             *connection,
+                                      GTlsCertificateRequestFlags flags,
+                                      GCancellable               *cancellable,
+                                      GError                    **error)
+{
+  MockInteraction *self = MOCK_INTERACTION (interaction);
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return G_TLS_INTERACTION_FAILED;
+
+  if (self->static_error)
+    {
+      g_propagate_error (error, g_error_copy (self->static_error));
+      return G_TLS_INTERACTION_FAILED;
+    }
+  else
+    {
+      g_tls_connection_set_certificate (connection, self->static_certificate);
+      return G_TLS_INTERACTION_HANDLED;
+    }
 }
 
 static void
@@ -103,16 +176,42 @@ mock_interaction_class_init (MockInteractionClass *klass)
   interaction_class->ask_password = mock_interaction_ask_password;
   interaction_class->ask_password_async = mock_interaction_ask_password_async;
   interaction_class->ask_password_finish = mock_interaction_ask_password_finish;
-
+  interaction_class->request_certificate = mock_interaction_request_certificate;
+  interaction_class->request_certificate_async = mock_interaction_request_certificate_async;
+  interaction_class->request_certificate_finish = mock_interaction_request_certificate_finish;
 }
 
 GTlsInteraction *
-mock_interaction_new_static (const gchar *password)
+mock_interaction_new_static_password (const gchar *password)
 {
   MockInteraction *self;
 
   self = g_object_new (MOCK_TYPE_INTERACTION, NULL);
 
   self->static_password = g_strdup (password);
+  return G_TLS_INTERACTION (self);
+}
+
+GTlsInteraction *
+mock_interaction_new_static_certificate (GTlsCertificate *cert)
+{
+  MockInteraction *self;
+
+  self = g_object_new (MOCK_TYPE_INTERACTION, NULL);
+
+  self->static_certificate = cert ? g_object_ref (cert) : NULL;
+  return G_TLS_INTERACTION (self);
+}
+
+GTlsInteraction *
+mock_interaction_new_static_error (GQuark domain,
+                                   gint code,
+                                   const gchar *message)
+{
+  MockInteraction *self;
+
+  self = g_object_new (MOCK_TYPE_INTERACTION, NULL);
+
+  self->static_error = g_error_new (domain, code, "%s", message);
   return G_TLS_INTERACTION (self);
 }

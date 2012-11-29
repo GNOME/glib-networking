@@ -463,7 +463,7 @@ test_enumerate_private (TestSlot     *test,
 
   /* This time we log in, and should have a match */
   results = g_ptr_array_new_with_free_func ((GDestroyNotify)g_pkcs11_array_unref);
-  interaction = mock_interaction_new_static (MOCK_SLOT_ONE_PIN);
+  interaction = mock_interaction_new_static_password (MOCK_SLOT_ONE_PIN);
 
   state = g_pkcs11_slot_enumerate (test->slot, interaction,
                                    match->attrs, match->count, TRUE,

@@ -50,8 +50,12 @@ GType g_tls_connection_gnutls_get_type (void) G_GNUC_CONST;
 
 gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);
 gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
-void                             g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
-                                                                        gnutls_retr2_st      *st);
+
+void     g_tls_connection_gnutls_get_certificate     (GTlsConnectionGnutls  *gnutls,
+						      gnutls_retr2_st       *st);
+
+gboolean g_tls_connection_gnutls_request_certificate (GTlsConnectionGnutls  *gnutls,
+						      GError               **error);
 
 gssize   g_tls_connection_gnutls_read          (GTlsConnectionGnutls  *gnutls,
 						void                  *buffer,

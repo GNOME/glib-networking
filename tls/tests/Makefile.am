@@ -33,6 +33,9 @@ pkcs11_slot_SOURCES = pkcs11-slot.c \
 	mock-pkcs11.c mock-pkcs11.h \
 	mock-interaction.c mock-interaction.h
 
+connection_SOURCES = connection.c \
+	mock-interaction.c mock-interaction.h
+
 endif
 
 testfiles_data =				\
