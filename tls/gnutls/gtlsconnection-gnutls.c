@@ -539,18 +539,20 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 
       if (gnutls->priv->need_finish_handshake)
 	{
+	  GError *my_error = NULL;
 	  gboolean success;
 
 	  gnutls->priv->need_finish_handshake = FALSE;
 
 	  g_mutex_unlock (&gnutls->priv->op_mutex);
-	  success = finish_handshake (gnutls, gnutls->priv->implicit_handshake, error);
+	  success = finish_handshake (gnutls, gnutls->priv->implicit_handshake, &my_error);
 	  g_clear_object (&gnutls->priv->implicit_handshake);
 	  g_mutex_lock (&gnutls->priv->op_mutex);
 
 	  gnutls->priv->handshaking = FALSE;
-	  if (!success || g_cancellable_set_error_if_cancelled (cancellable, error))
+	  if (!success || g_cancellable_set_error_if_cancelled (cancellable, &my_error))
 	    {
+	      g_propagate_error (error, my_error);
 	      g_mutex_unlock (&gnutls->priv->op_mutex);
 	      return FALSE;
 	    }
