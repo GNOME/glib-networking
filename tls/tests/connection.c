@@ -885,6 +885,26 @@ test_simultaneous_sync (TestConnection *test,
 }
 
 static void
+test_close_immediately (TestConnection *test,
+                        gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  /*
+   * At this point the server won't get a chance to run. But regardless
+   * closing should not wait on the server, trying to handshake or something.
+   */
+  if (!g_io_stream_close (test->client_connection, NULL, NULL))
+    g_assert_not_reached ();
+}
+
+static void
 test_simultaneous_sync_rehandshake (TestConnection *test,
 				    gconstpointer   data)
 {
@@ -930,6 +950,8 @@ main (int   argc,
               setup_connection, test_simultaneous_async_rehandshake, teardown_connection);
   g_test_add ("/tls/connection/simultaneous-sync-rehandshake", TestConnection, NULL,
 	      setup_connection, test_simultaneous_sync_rehandshake, teardown_connection);
+  g_test_add ("/tls/connection/close-immediately", TestConnection, NULL,
+              setup_connection, test_close_immediately, teardown_connection);
 
   ret = g_test_run();
 

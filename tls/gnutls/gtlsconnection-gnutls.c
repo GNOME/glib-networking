@@ -524,7 +524,8 @@ claim_op (GTlsConnectionGnutls    *gnutls,
       return FALSE;
     }
 
-  if (op != G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE)
+  if (op != G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE &&
+      op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE)
     {
       if (gnutls->priv->need_handshake)
 	{
