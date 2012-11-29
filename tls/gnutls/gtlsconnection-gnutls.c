@@ -1082,12 +1082,15 @@ handshake_thread (GTask        *task,
   END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
 		 _("Error performing TLS handshake: %s"), &error);
 
-  gnutls->priv->ever_handshaked = TRUE;
-
   if (error)
-    g_task_return_error (task, error);
+    {
+      g_task_return_error (task, error);
+    }
   else
-    g_task_return_boolean (task, TRUE);
+    {
+      gnutls->priv->ever_handshaked = TRUE;
+      g_task_return_boolean (task, TRUE);
+    }
 }
 
 static GTlsCertificate *
