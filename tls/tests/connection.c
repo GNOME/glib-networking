@@ -41,6 +41,7 @@ typedef struct {
   gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
   GError *read_error;
+  GError *server_error;
 
   char buf[128];
   gssize nread, nwrote;
@@ -112,6 +113,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
   g_object_unref (test->identity);
   g_main_loop_unref (test->loop);
   g_clear_error (&test->read_error);
+  g_clear_error (&test->server_error);
 }
 
 static gboolean
@@ -146,12 +148,12 @@ on_rehandshake_finish (GObject        *object,
 }
 
 static void
-on_output_close_finish (GObject        *object,
+on_server_close_finish (GObject        *object,
                         GAsyncResult   *res,
                         gpointer        user_data)
 {
   GError *error = NULL;
-  g_output_stream_close_finish (G_OUTPUT_STREAM (object), res, &error);
+  g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
   g_assert_no_error (error);
 }
 
@@ -161,12 +163,11 @@ on_output_write_finish (GObject        *object,
                         gpointer        user_data)
 {
   TestConnection *test = user_data;
-  GError *error = NULL;
 
-  g_output_stream_write_finish (G_OUTPUT_STREAM (object), res, &error);
-  g_assert_no_error (error);
+  g_assert (test->server_error == NULL);
+  g_output_stream_write_finish (G_OUTPUT_STREAM (object), res, &test->server_error);
 
-  if (test->rehandshake)
+  if (!test->server_error && test->rehandshake)
     {
       test->rehandshake = FALSE;
       g_tls_connection_handshake_async (G_TLS_CONNECTION (test->server_connection),
@@ -175,8 +176,8 @@ on_output_write_finish (GObject        *object,
       return;
     }
 
-  g_output_stream_close_async (G_OUTPUT_STREAM (object), G_PRIORITY_DEFAULT, NULL,
-                               on_output_close_finish, test);
+  g_io_stream_close_async (test->server_connection, G_PRIORITY_DEFAULT, NULL,
+                           on_server_close_finish, test);
 }
 
 static gboolean
@@ -390,7 +391,9 @@ test_basic_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+
   g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
 }
 
 static void
@@ -418,7 +421,9 @@ test_verified_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+
   g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
 }
 
 static void
@@ -468,7 +473,9 @@ test_client_auth_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+
   g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
 
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
   g_assert (peer != NULL);
@@ -484,6 +491,45 @@ test_client_auth_rehandshake (TestConnection *test,
 {
   test->rehandshake = TRUE;
   test_client_auth_connection (test, data);
+}
+
+static void
+test_client_auth_failure (TestConnection *test,
+                          gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+  gboolean accepted_changed;
+
+  test->database = g_tls_file_database_new (TEST_FILE ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (test->database);
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* No Certificate set */
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  accepted_changed = FALSE;
+  g_signal_connect (test->client_connection, "notify::accepted-cas",
+                    G_CALLBACK (on_notify_accepted_cas), &accepted_changed);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+
+  g_assert (accepted_changed == TRUE);
 }
 
 static void
@@ -512,7 +558,9 @@ test_connection_no_database (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+
   g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
 }
 
 static void
@@ -557,7 +605,9 @@ test_failed_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_no_error (test->server_error);
 }
 
 static void
@@ -862,6 +912,8 @@ main (int   argc,
               setup_connection, test_client_auth_connection, teardown_connection);
   g_test_add ("/tls/connection/client-auth-rehandshake", TestConnection, NULL,
               setup_connection, test_client_auth_rehandshake, teardown_connection);
+  g_test_add ("/tls/connection/client-auth-failure", TestConnection, NULL,
+              setup_connection, test_client_auth_failure, teardown_connection);
   g_test_add ("/tls/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
   g_test_add ("/tls/connection/failed", TestConnection, NULL,
