@@ -1187,6 +1187,12 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
   return accepted;
 }
 
+static void
+begin_handshake (GTlsConnectionGnutls *gnutls)
+{
+  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
+}
+
 static gboolean
 finish_handshake (GTlsConnectionGnutls  *gnutls,
 		  GTask                 *task,
@@ -1243,6 +1249,7 @@ g_tls_connection_gnutls_handshake (GTlsConnection   *conn,
   GError *my_error = NULL;
 
   task = g_task_new (conn, cancellable, NULL, NULL);
+  begin_handshake (gnutls);
   g_task_run_in_thread_sync (task, handshake_thread);
   success = finish_handshake (gnutls, task, &my_error);
   g_object_unref (task);
@@ -1291,6 +1298,8 @@ g_tls_connection_gnutls_handshake_async (GTlsConnection       *conn,
   caller_task = g_task_new (conn, cancellable, callback, user_data);
   g_task_set_priority (caller_task, io_priority);
 
+  begin_handshake (G_TLS_CONNECTION_GNUTLS (conn));
+
   thread_task = g_task_new (conn, cancellable,
 			    handshake_thread_completed, caller_task);
   g_task_set_priority (thread_task, io_priority);
@@ -1333,6 +1342,8 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
   gnutls->priv->implicit_handshake = g_task_new (gnutls, cancellable,
 						 implicit_handshake_completed,
 						 NULL);
+
+  begin_handshake (gnutls);
 
   if (blocking)
     {

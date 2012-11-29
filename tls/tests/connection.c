@@ -422,12 +422,24 @@ test_verified_connection (TestConnection *test,
 }
 
 static void
+on_notify_accepted_cas (GObject *obj,
+                        GParamSpec *spec,
+                        gpointer user_data)
+{
+  gboolean *changed = user_data;
+  g_assert (*changed == FALSE);
+  *changed = TRUE;
+}
+
+static void
 test_client_auth_connection (TestConnection *test,
                              gconstpointer   data)
 {
   GIOStream *connection;
   GError *error = NULL;
   GTlsCertificate *cert;
+  GTlsCertificate *peer;
+  gboolean cas_changed;
 
   test->database = g_tls_file_database_new (TEST_FILE ("ca-roots.pem"), &error);
   g_assert_no_error (error);
@@ -445,15 +457,25 @@ test_client_auth_connection (TestConnection *test,
   g_assert_no_error (error);
 
   g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
-  g_object_unref (cert);
 
   /* All validation in this test */
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
 
+  cas_changed = FALSE;
+  g_signal_connect (test->client_connection, "notify::accepted-cas",
+                    G_CALLBACK (on_notify_accepted_cas), &cas_changed);
+
   read_test_data_async (test);
   g_main_loop_run (test->loop);
   g_assert_no_error (test->read_error);
+
+  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
+  g_assert (peer != NULL);
+  g_assert (g_tls_certificate_is_same (peer, cert));
+  g_assert (cas_changed == TRUE);
+
+  g_object_unref (cert);
 }
 
 static void
