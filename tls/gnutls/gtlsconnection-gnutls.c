@@ -750,6 +750,12 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       else
 	return 0;
     }
+  else if (status == GNUTLS_E_NO_CERTIFICATE_FOUND)
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
+                           _("TLS connection peer did not send a certificate"));
+      return status;
+    }
 
   if (error)
     {
