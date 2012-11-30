@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-24 23:13+0300\n"
-"PO-Revision-Date: 2012-07-24 23:13+0200\n"
+"POT-Creation-Date: 2012-11-30 10:53+0200\n"
+"PO-Revision-Date: 2012-11-30 10:53+0200\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <sh.yaron@gmail.com>\n"
 "Language: he\n"
@@ -52,61 +52,65 @@ msgstr "לא סופקו נתוני אישור"
 msgid "Server required TLS certificate"
 msgstr "השרת דורש תעודת TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:248
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "לא ניתן ליצור חיבור TLS:‏ %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
 msgid "Connection is closed"
 msgstr "החיבור סגור"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:568
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+#: ../tls/gnutls/gtlsconnection-gnutls.c:577
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1383
 msgid "Operation would block"
 msgstr "הפעולה תיחסם"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:695
+#: ../tls/gnutls/gtlsconnection-gnutls.c:704
 msgid "Peer failed to perform TLS handshake"
 msgstr "העמית נכשל בלחיצת היד מסוג TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:721
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "העמית ביקש לחיצת יד חוזרת מסוג TLS בלתי חוקית"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:738
+#: ../tls/gnutls/gtlsconnection-gnutls.c:747
 msgid "TLS connection closed unexpectedly"
 msgstr "החיבור ל־TLS נסגר באופן בלתי צפוי"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
+#: ../tls/gnutls/gtlsconnection-gnutls.c:757
+msgid "TLS connection peer did not send a certificate"
+msgstr "הצד השני בחיבור ה־TLS לא החזיר תעודה"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1065
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1084
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "שגיאה בביצוע לחיצת יד מסוג TLS:‏ %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1229
 msgid "Unacceptable TLS certificate"
 msgstr "אישור ה־TLS אינו מקובל"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1240
 msgid "Server did not return a valid TLS certificate"
 msgstr "השרת לא החזיר תעודת TLS תקפה"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1406
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "שגיאה בקריאת הנתונים משקע ה־TLS:‏ %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1435
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "שגיאה בכתיבת נתונים אל שקע ה־TLS:‏ %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1479
 msgid "Connection is already closed"
 msgstr "החיבור כבר סגור"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1489
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "שגיאה בביצוע סגירת TLS:‏ %s"
