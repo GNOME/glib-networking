@@ -530,9 +530,6 @@ mock_C_GetMechanismList (CK_SLOT_ID slotID,
       return CKR_OK;
     }
 
-  if (*pulCount < 0)
-    g_return_val_if_reached (CKR_BUFFER_TOO_SMALL);
-
   return CKR_OK;
 }
 
