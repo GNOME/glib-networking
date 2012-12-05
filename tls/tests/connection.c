@@ -42,6 +42,7 @@ typedef struct {
   GTlsCertificateFlags accept_flags;
   GError *read_error;
   GError *server_error;
+  gboolean server_closed;
 
   char buf[128];
   gssize nread, nwrote;
@@ -84,6 +85,9 @@ teardown_connection (TestConnection *test, gconstpointer data)
 
   if (test->server_connection)
     {
+      while (!test->server_closed)
+	g_main_context_iteration (NULL, FALSE);
+
       g_assert (G_IS_TLS_SERVER_CONNECTION (test->server_connection));
       g_object_add_weak_pointer (G_OBJECT (test->server_connection),
 				 (gpointer *)&test->server_connection);
@@ -152,9 +156,12 @@ on_server_close_finish (GObject        *object,
                         GAsyncResult   *res,
                         gpointer        user_data)
 {
+  TestConnection *test = user_data;
   GError *error = NULL;
+
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
   g_assert_no_error (error);
+  test->server_closed = TRUE;
 }
 
 static void
@@ -301,6 +308,10 @@ run_echo_server (GThreadedSocketService *service,
 	  g_assert_no_error (error);
 	}
     }
+
+  g_io_stream_close (test->server_connection, NULL, &error);
+  g_assert_no_error (error);
+  test->server_closed = TRUE;
 }
 
 static void
