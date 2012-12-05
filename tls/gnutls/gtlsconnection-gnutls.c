@@ -694,6 +694,9 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   if (gnutls->priv->handshaking && !gnutls->priv->ever_handshaked)
     {
       if (g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_FAILED) ||
+#if GLIB_CHECK_VERSION (2, 35, 3)
+	  g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE) ||
+#endif
 	  status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
 	  status == GNUTLS_E_FATAL_ALERT_RECEIVED ||
 	  status == GNUTLS_E_DECRYPTION_FAILED ||
