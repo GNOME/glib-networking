@@ -100,6 +100,9 @@ struct _GTlsConnectionGnutlsPrivate
 
   GTlsCertificate *certificate, *peer_certificate;
   GTlsCertificateFlags peer_certificate_errors;
+  GTlsCertificate *peer_certificate_tmp;
+  GTlsCertificateFlags peer_certificate_errors_tmp;
+
   gboolean require_close_notify;
   GTlsRehandshakeMode rehandshake_mode;
   gboolean is_system_certdb;
@@ -291,6 +294,7 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_clear_object (&gnutls->priv->database);
   g_clear_object (&gnutls->priv->certificate);
   g_clear_object (&gnutls->priv->peer_certificate);
+  g_clear_object (&gnutls->priv->peer_certificate_tmp);
 
 #ifdef HAVE_PKCS11
   p11_kit_pin_unregister_callback (gnutls->priv->interaction_id,
@@ -1035,67 +1039,6 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
   return ret;
 }
 
-static void
-handshake_thread (GTask        *task,
-		  gpointer      object,
-		  gpointer      task_data,
-		  GCancellable *cancellable)
-{
-  GTlsConnectionGnutls *gnutls = object;
-  gboolean is_client;
-  GError *error = NULL;
-  int ret;
-
-  gnutls->priv->started_handshake = FALSE;
-
-  if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE,
-		 TRUE, cancellable, &error))
-    {
-      g_task_return_error (task, error);
-      return;
-    }
-
-  g_clear_error (&gnutls->priv->handshake_error);
-
-  is_client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
-
-  if (!is_client && gnutls->priv->ever_handshaked &&
-      !gnutls->priv->implicit_handshake)
-    {
-      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
-      ret = gnutls_rehandshake (gnutls->priv->session);
-      END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-		     _("Error performing TLS handshake: %s"), &error);
-
-      if (error)
-	{
-	  g_task_return_error (task, error);
-	  return;
-	}
-    }
-
-  gnutls->priv->started_handshake = TRUE;
-
-  g_clear_object (&gnutls->priv->peer_certificate);
-  gnutls->priv->peer_certificate_errors = 0;
-
-  g_tls_connection_gnutls_set_handshake_priority (gnutls);
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
-  ret = gnutls_handshake (gnutls->priv->session);
-  END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-		 _("Error performing TLS handshake: %s"), &error);
-
-  if (error)
-    {
-      g_task_return_error (task, error);
-    }
-  else
-    {
-      gnutls->priv->ever_handshaked = TRUE;
-      g_task_return_boolean (task, TRUE);
-    }
-}
 
 static GTlsCertificate *
 get_peer_certificate_from_session (GTlsConnectionGnutls *gnutls)
@@ -1169,6 +1112,82 @@ verify_peer_certificate (GTlsConnectionGnutls *gnutls,
   return errors;
 }
 
+static void
+handshake_thread (GTask        *task,
+		  gpointer      object,
+		  gpointer      task_data,
+		  GCancellable *cancellable)
+{
+  GTlsConnectionGnutls *gnutls = object;
+  gboolean is_client;
+  GError *error = NULL;
+  int ret;
+
+  gnutls->priv->started_handshake = FALSE;
+
+  if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE,
+		 TRUE, cancellable, &error))
+    {
+      g_task_return_error (task, error);
+      return;
+    }
+
+  g_clear_error (&gnutls->priv->handshake_error);
+
+  is_client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
+
+  if (!is_client && gnutls->priv->ever_handshaked &&
+      !gnutls->priv->implicit_handshake)
+    {
+      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+      ret = gnutls_rehandshake (gnutls->priv->session);
+      END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
+		     _("Error performing TLS handshake: %s"), &error);
+
+      if (error)
+	{
+	  g_task_return_error (task, error);
+	  return;
+	}
+    }
+
+  gnutls->priv->started_handshake = TRUE;
+
+  g_clear_object (&gnutls->priv->peer_certificate);
+  gnutls->priv->peer_certificate_errors = 0;
+
+  g_tls_connection_gnutls_set_handshake_priority (gnutls);
+
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+  ret = gnutls_handshake (gnutls->priv->session);
+  END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
+		 _("Error performing TLS handshake: %s"), &error);
+
+  if (ret == 0 && gnutls_certificate_type_get (gnutls->priv->session) == GNUTLS_CRT_X509)
+    {
+      gnutls->priv->peer_certificate_tmp = get_peer_certificate_from_session (gnutls);
+      if (gnutls->priv->peer_certificate_tmp)
+	gnutls->priv->peer_certificate_errors_tmp = verify_peer_certificate (gnutls, gnutls->priv->peer_certificate_tmp);
+      else if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+	{
+	  g_set_error_literal (&error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+			       _("Server did not return a valid TLS certificate"));
+	}
+    }
+
+  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, &error);
+
+  if (error)
+    {
+      g_task_return_error (task, error);
+    }
+  else
+    {
+      gnutls->priv->ever_handshaked = TRUE;
+      g_task_return_boolean (task, TRUE);
+    }
+}
+
 static gboolean
 accept_peer_certificate (GTlsConnectionGnutls *gnutls,
 			 GTlsCertificate      *peer_certificate,
@@ -1216,15 +1235,13 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
 
   g_assert (error != NULL);
 
-  if (g_task_propagate_boolean (task, error) &&
-      gnutls_certificate_type_get (gnutls->priv->session) == GNUTLS_CRT_X509)
-    peer_certificate = get_peer_certificate_from_session (gnutls);
-  else
-    peer_certificate = NULL;
+  peer_certificate = gnutls->priv->peer_certificate_tmp;
+  gnutls->priv->peer_certificate_tmp = NULL;
+  peer_certificate_errors = gnutls->priv->peer_certificate_errors_tmp;
+  gnutls->priv->peer_certificate_errors_tmp = 0;
 
-  if (peer_certificate)
+  if (g_task_propagate_boolean (task, error) && peer_certificate)
     {
-      peer_certificate_errors = verify_peer_certificate (gnutls, peer_certificate);
       if (!accept_peer_certificate (gnutls, peer_certificate,
 				    peer_certificate_errors))
 	{
@@ -1237,13 +1254,6 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
       g_object_notify (G_OBJECT (gnutls), "peer-certificate");
       g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
     }
-  else if (error && !*error && G_IS_TLS_CLIENT_CONNECTION (gnutls))
-    {
-      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			   _("Server did not return a valid TLS certificate"));
-    }
-
-  G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, error);
 
   if (*error && gnutls->priv->started_handshake)
     gnutls->priv->handshake_error = g_error_copy (*error);
