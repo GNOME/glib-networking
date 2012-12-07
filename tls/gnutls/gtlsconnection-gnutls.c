@@ -110,19 +110,19 @@ struct _GTlsConnectionGnutlsPrivate
   gboolean database_is_unset;
 
   /* need_handshake means the next claim_op() will get diverted into
-   * an implicit handshake (unless it's an OP_HANDSHAKE itself).
-   * need_finish_handshake means the next claim_op() will get
-   * diverted into finish_handshake().
+   * an implicit handshake (unless it's an OP_HANDSHAKE or OP_CLOSE).
+   * need_finish_handshake means the next claim_op() will get diverted
+   * into finish_handshake() (unless it's an OP_CLOSE).
    *
-   * handshaking is TRUE as soon as a handshake thread is queued.
-   * Normally it becomes FALSE after finish_handshake() completes. For
-   * an implicit handshake, but in the case of an async implicit
-   * handshake, it becomes FALSE at the end of handshake_thread(),
-   * (and then the next read/write op will call finish_handshake()).
-   * This is because we don't want to call finish_handshake() (and
-   * possibly emit signals) if the caller is not actually in a TLS op
-   * at the time. (Eg, if they're waiting to try a nonblocking call
-   * again, we don't want to emit the signal until they do.)
+   * handshaking is TRUE as soon as a handshake thread is queued. For
+   * a sync handshake it becomes FALSE after finish_handshake()
+   * completes in the calling thread, but for an async implicit
+   * handshake, it becomes FALSE (and need_finish_handshake becomes
+   * TRUE) at the end of the handshaking thread (and then the next
+   * non-close op will call finish_handshake()). We can't just wait
+   * for handshake_thread_completed() to run, because it's possible
+   * that its main loop is being blocked by a synchronous op which is
+   * waiting for handshaking to become FALSE...
    *
    * started_handshake indicates that the current handshake attempt
    * got at least as far as calling gnutls_handshake() (and so any
@@ -554,7 +554,6 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 	  g_clear_object (&gnutls->priv->implicit_handshake);
 	  g_mutex_lock (&gnutls->priv->op_mutex);
 
-	  gnutls->priv->handshaking = FALSE;
 	  if (!success || g_cancellable_set_error_if_cancelled (cancellable, &my_error))
 	    {
 	      g_propagate_error (error, my_error);
@@ -1297,16 +1296,54 @@ handshake_thread_completed (GObject      *object,
   GTask *caller_task = user_data;
   GTlsConnectionGnutls *gnutls = g_task_get_source_object (caller_task);
   GError *error = NULL;
-  gboolean success;
+  gboolean need_finish_handshake, success;
 
-  success = finish_handshake (gnutls, G_TASK (result), &error);
-  yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE);
-
-  if (success)
-    g_task_return_boolean (caller_task, TRUE);
+  g_mutex_lock (&gnutls->priv->op_mutex);
+  if (gnutls->priv->need_finish_handshake)
+    {
+      need_finish_handshake = TRUE;
+      gnutls->priv->need_finish_handshake = FALSE;
+    }
   else
-    g_task_return_error (caller_task, error);
+    need_finish_handshake = FALSE;
+  g_mutex_unlock (&gnutls->priv->op_mutex);
+
+  if (need_finish_handshake)
+    {
+      success = finish_handshake (gnutls, G_TASK (result), &error);
+      if (success)
+	g_task_return_boolean (caller_task, TRUE);
+      else
+	g_task_return_error (caller_task, error);
+    }
+  else if (gnutls->priv->handshake_error)
+    g_task_return_error (caller_task, g_error_copy (gnutls->priv->handshake_error));
+  else
+    g_task_return_boolean (caller_task, TRUE);
+
   g_object_unref (caller_task);
+}
+
+static void
+async_handshake_thread (GTask        *task,
+			gpointer      object,
+			gpointer      task_data,
+			GCancellable *cancellable)
+{
+  GTlsConnectionGnutls *gnutls = object;
+
+  handshake_thread (task, object, task_data, cancellable);
+
+  g_mutex_lock (&gnutls->priv->op_mutex);
+  gnutls->priv->need_finish_handshake = TRUE;
+  /* yield_op will clear handshaking too, but we don't want the
+   * connection to be briefly "handshaking && need_finish_handshake"
+   * after we unlock the mutex.
+   */
+  gnutls->priv->handshaking = FALSE;
+  g_mutex_unlock (&gnutls->priv->op_mutex);
+
+  yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE);
 }
 
 static void
@@ -1326,7 +1363,7 @@ g_tls_connection_gnutls_handshake_async (GTlsConnection       *conn,
   thread_task = g_task_new (conn, cancellable,
 			    handshake_thread_completed, caller_task);
   g_task_set_priority (thread_task, io_priority);
-  g_task_run_in_thread (thread_task, handshake_thread);
+  g_task_run_in_thread (thread_task, async_handshake_thread);
   g_object_unref (thread_task);
 }
 
@@ -1340,20 +1377,6 @@ g_tls_connection_gnutls_handshake_finish (GTlsConnection       *conn,
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
-static void
-implicit_handshake_completed (GObject      *object,
-			      GAsyncResult *result,
-			      gpointer      user_data)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
-
-  g_mutex_lock (&gnutls->priv->op_mutex);
-  gnutls->priv->need_finish_handshake = TRUE;
-  g_mutex_unlock (&gnutls->priv->op_mutex);
-
-  yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE);
-}
-
 static gboolean
 do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
 		       gboolean               blocking,
@@ -1362,9 +1385,7 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
 {
   /* We have op_mutex */
 
-  gnutls->priv->implicit_handshake = g_task_new (gnutls, cancellable,
-						 implicit_handshake_completed,
-						 NULL);
+  gnutls->priv->implicit_handshake = g_task_new (gnutls, cancellable, NULL, NULL);
 
   begin_handshake (gnutls);
 
@@ -1390,7 +1411,7 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
   else
     {
       g_task_run_in_thread (gnutls->priv->implicit_handshake,
-			    handshake_thread);
+			    async_handshake_thread);
 
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK,
 			   _("Operation would block"));
