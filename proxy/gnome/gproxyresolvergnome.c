@@ -390,9 +390,7 @@ update_settings (GProxyResolverGnome *resolver)
 static gboolean
 g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
 {
-  GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (object);
-
-  return resolver->proxy_settings != NULL;
+  return !g_strcmp0 (g_getenv ("DESKTOP_SESSION"), "gnome");
 }
 
 static gboolean
