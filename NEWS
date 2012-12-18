@@ -1,3 +1,46 @@
+2.35.3
+======
+  * build: The TLS tests are now not built if you are building without
+    gnutls support. (Saleem Abdulrasool)
+
+  * gnutls: Several handshaking fixes:
+
+	* Fix a hang when doing a synchronous close() immediately
+          after cancelling an asynchronous handshake() (which would
+          happen in libsoup if you cancelled a message at the right
+          time). (#688751, Dan)
+
+	* Avoid an assertion when an implicit handshake fails
+	  (#689274, Stef)
+
+	* Fixed GTlsServerConnection:authentication-mode to work
+          again, and added a regression test for this. (#689259, Stef)
+
+	* Return the appropriate error
+          (G_TLS_ERROR_CERTIFICATE_REQUIRED) when a handshake fails
+          because the server required a certificate but none was
+          provided, and added a test for this. (#689260, Stef)
+
+	* Make g_io_stream_close() finish successfully after a failed
+          handshake (#689260, Stef)
+
+	* Make g_io_stream_close() finish successfully before a
+	  handshake (#689271, Stef)
+
+  * gnutls: Updated to be aware of G_IO_ERROR_BROKEN_PIPE in glib
+    2.35.3, which needs to be converted to G_TLS_ERROR_NOT_TLS in some
+    cases. (Previously this error showed up as just G_IO_ERROR_FAILED.)
+    (Dan)
+
+  * proxy/gnome: This is now only used in GNOME login sessions (as,
+    essentially, a more efficient version of the libproxy GNOME
+    backend); in non-GNOME sessions, gio will now fall back to the
+    libproxy plugin, allowing environment variables or other libproxy
+    settings backends to be used.
+
+  * New/Updated translations:
+	Czech, Hebrew, Lithuanian, Polish, Slovak, Spanish
+
 2.35.1
 ======
   * Update for glib 2.35.1; remove g_type_init() calls and port to
