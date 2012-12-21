@@ -149,6 +149,7 @@ main (int   argc,
   g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/proxy/gnome/.libs", TRUE);
   g_setenv ("GIO_USE_PROXY_RESOLVER", "gnome", TRUE);
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
+  g_setenv ("DESKTOP_SESSION", "gnome", TRUE);
 
   g_test_add_func ("/proxy/gnome/ignore", test_proxy_ignore);
 
