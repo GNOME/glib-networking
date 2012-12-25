@@ -2,7 +2,7 @@
 # Copyright (C) 2012 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
-# André Gondim <andregondim@ubuntu.com>, 2011.
+# André Gondim <In memoriam>, 2011.
 # Djavan Fagundes <djavan@comum.org>, 2011.
 # Jonh Wendell <jwendell@gnome.org>, 2012.
 # Rafael Ferreira <rafael.f.f1@gmail.com>, 2012.
@@ -12,9 +12,9 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-09-14 02:02+0000\n"
-"PO-Revision-Date: 2012-09-15 00:09-0300\n"
-"Last-Translator: Rafael Ferreira <rafael.f.f1@gmail.com>\n"
+"POT-Creation-Date: 2012-12-09 15:35+0000\n"
+"PO-Revision-Date: 2012-12-02 13:21-0300\n"
+"Last-Translator: Antonio Fernandes C. Neto <fernandesn@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -54,61 +54,65 @@ msgstr "Nenhum dado de certificado fornecido"
 msgid "Server required TLS certificate"
 msgstr "O servidor requer certificado TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#: ../tls/gnutls/gtlsconnection-gnutls.c:257
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Não foi possível criar conexão TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+#: ../tls/gnutls/gtlsconnection-gnutls.c:518
 msgid "Connection is closed"
 msgstr "A conexão está encerrada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+#: ../tls/gnutls/gtlsconnection-gnutls.c:580
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1417
 msgid "Operation would block"
 msgstr "A operação bloquearia"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
+#: ../tls/gnutls/gtlsconnection-gnutls.c:710
 msgid "Peer failed to perform TLS handshake"
 msgstr "Peer falhou ao realizar negociação TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
+#: ../tls/gnutls/gtlsconnection-gnutls.c:727
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "O peer requisitou uma negociação TLS ilegal"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
+#: ../tls/gnutls/gtlsconnection-gnutls.c:753
 msgid "TLS connection closed unexpectedly"
 msgstr "Conexão TLS fechou inesperadamente"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
+#: ../tls/gnutls/gtlsconnection-gnutls.c:763
+msgid "TLS connection peer did not send a certificate"
+msgstr "Conexão TLS não enviou um certificado"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1144
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1163
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Erro executando negociação TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
-msgid "Unacceptable TLS certificate"
-msgstr "Certificado TLS inaceitável"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1173
 msgid "Server did not return a valid TLS certificate"
 msgstr "Servidor não retornou certificado TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1248
+msgid "Unacceptable TLS certificate"
+msgstr "Certificado TLS inaceitável"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1440
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Erro ao ler dados do socket TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1469
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Erro ao gravar dados do socket TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1513
 msgid "Connection is already closed"
 msgstr "A conexão já está encerrada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1523
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Erro ao executar fechamento TLS: %s"
