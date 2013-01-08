@@ -1,14 +1,14 @@
 # Bulgarian translation of glib-networking po-file.
-# Copyright (C) 2011, 2012 Free Software Foundation
+# Copyright (C) 2011, 2012, 2013 Free Software Foundation
 # This file is distributed under the same license as the glib-networking package.
-# Alexander Shopov <ash@kambanaria.org>, 2011, 2012.
+# Alexander Shopov <ash@kambanaria.org>, 2011, 2012, 2013.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-20 06:11+0300\n"
-"PO-Revision-Date: 2012-09-20 06:11+0300\n"
+"POT-Creation-Date: 2013-01-08 21:50+0200\n"
+"PO-Revision-Date: 2013-01-08 21:50+0200\n"
 "Last-Translator:  Alexander Shopov <ash@kambanaria.org>\n"
 "Language-Team: Bulgarian <dict@fsa-bg.org>\n"
 "Language: bg\n"
@@ -49,61 +49,65 @@ msgstr "Липсват данни за сертификат"
 msgid "Server required TLS certificate"
 msgstr "Сървърът изисква сертификат за TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#: ../tls/gnutls/gtlsconnection-gnutls.c:257
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Не може да се създаде връзка по TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+#: ../tls/gnutls/gtlsconnection-gnutls.c:518
 msgid "Connection is closed"
 msgstr "Връзката е прекъсната"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+#: ../tls/gnutls/gtlsconnection-gnutls.c:580
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1417
 msgid "Operation would block"
 msgstr "Операцията ще блокира"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
+#: ../tls/gnutls/gtlsconnection-gnutls.c:710
 msgid "Peer failed to perform TLS handshake"
 msgstr "Отсрещната страна не осъществи ръкостискане по TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
+#: ../tls/gnutls/gtlsconnection-gnutls.c:727
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Отсрещната страна изиска неправилно ново ръкостискане по TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
+#: ../tls/gnutls/gtlsconnection-gnutls.c:753
 msgid "TLS connection closed unexpectedly"
 msgstr "Връзката по TLS неочаквано прекъсна"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
+#: ../tls/gnutls/gtlsconnection-gnutls.c:763
+msgid "TLS connection peer did not send a certificate"
+msgstr "Отсрещната страна за TLS не върна сертификат"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1144
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1163
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Грешка при ръкостискане по TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
-msgid "Unacceptable TLS certificate"
-msgstr "Неприемлив сертификат за TLS"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1173
 msgid "Server did not return a valid TLS certificate"
 msgstr "Сървърът върна неправилен сертификат за TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1248
+msgid "Unacceptable TLS certificate"
+msgstr "Неприемлив сертификат за TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1440
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Грешка при четене на данни по TLS от гнездо: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1469
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Грешка при запис на данни по TLS към гнездо: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1513
 msgid "Connection is already closed"
 msgstr "Връзката вече е прекъсната"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1523
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Грешка при прекъсване на TLS: %s"
