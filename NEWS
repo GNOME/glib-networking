@@ -1,3 +1,12 @@
+2.35.4
+======
+  * proxy/gnome: The tests should now work correctly even if
+    run from a non-GNOME environment. (Robert Ancell)
+
+  * Updated translations:
+	Brazilian Portuguese, Bulgarian, Estonian, Galician, Greek,
+	Hungarian, Slovenian
+
 2.35.3
 ======
   * build: The TLS tests are now not built if you are building without
