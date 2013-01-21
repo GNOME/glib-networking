@@ -1,14 +1,14 @@
 # Norwegian bokmål translation of glib-networking.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# Kjartan Maraas <kmaraas@gnome.org>, 2011-2012.
+# Kjartan Maraas <kmaraas@gnome.org>, 2011-2013.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: glib-networking 2.33.x\n"
+"Project-Id-Version: glib-networking 2.35.x\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-23 11:42+0200\n"
-"PO-Revision-Date: 2012-07-23 11:43+0200\n"
+"POT-Creation-Date: 2013-01-21 12:27+0100\n"
+"PO-Revision-Date: 2013-01-21 12:27+0100\n"
 "Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
 "Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
 "Language: \n"
@@ -48,61 +48,65 @@ msgstr "Ingen sertifikatdata oppgitt"
 msgid "Server required TLS certificate"
 msgstr "Tjener krever TLS-sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:248
+#: ../tls/gnutls/gtlsconnection-gnutls.c:257
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunne ikke lage TLS-tilkobling: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+#: ../tls/gnutls/gtlsconnection-gnutls.c:518
 msgid "Connection is closed"
 msgstr "Tilkoblingen er lukket"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:568
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+#: ../tls/gnutls/gtlsconnection-gnutls.c:580
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1417
 msgid "Operation would block"
 msgstr "Operasjonen ville blokkere"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:695
+#: ../tls/gnutls/gtlsconnection-gnutls.c:710
 msgid "Peer failed to perform TLS handshake"
 msgstr "Likemann feilet å utføre TLS-håndtrykk"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:727
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Likemann ba om ugyldig nytt TLS-håndtrykk"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:738
+#: ../tls/gnutls/gtlsconnection-gnutls.c:753
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-tilkobling ble lukket uventet"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
+#: ../tls/gnutls/gtlsconnection-gnutls.c:763
+msgid "TLS connection peer did not send a certificate"
+msgstr "Sidemann for TLS-tilkobling sendte ikke et sertifikat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1144
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1163
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Feil under utføring av TLS-håndtrykk: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
-msgid "Unacceptable TLS certificate"
-msgstr "Uakseptabelt TLS-sertifikat"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1173
 msgid "Server did not return a valid TLS certificate"
 msgstr "Tjener returnerte ikke et gyldig TLS-sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1248
+msgid "Unacceptable TLS certificate"
+msgstr "Uakseptabelt TLS-sertifikat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1440
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Feil under lesing av data fra TLS-plugg: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1469
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Feil under skriving av data til TLS-plugg: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1513
 msgid "Connection is already closed"
 msgstr "Tilkoblingen er allerede lukket"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1523
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Feil under utføring av lukking av TLS-tilkobling: %s"
