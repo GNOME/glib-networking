@@ -451,26 +451,49 @@ ignore_host (GProxyResolverGnome *resolver,
   return ignore;
 }
 
-static gchar **
-g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
-			       const gchar     *uri,
-			       GCancellable    *cancellable,
-			       GError         **error)
+static inline gchar **
+make_proxies (const gchar *proxy)
 {
-  GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (proxy_resolver);
+  gchar **proxies;
+
+  proxies = g_new (gchar *, 2);
+  proxies[0] = g_strdup (proxy);
+  proxies[1] = NULL;
+
+  return proxies;
+}
+
+/* Threadsafely determines what to do with @uri; returns %FALSE if an
+ * error occurs, %TRUE and an array of proxies if the mode is NONE or
+ * MANUAL, or if @uri is covered by ignore-hosts, or %TRUE and a
+ * (transfer-full) pacrunner and autoconfig url if the mode is AUTOMATIC.
+ */
+static gboolean
+g_proxy_resolver_gnome_lookup_internal (GProxyResolverGnome   *resolver,
+					const gchar           *uri,
+					gchar               ***out_proxies,
+					GDBusProxy           **out_pacrunner,
+					gchar                **out_autoconfig_url,
+					GCancellable          *cancellable,
+					GError               **error)
+{
   GSocketConnectable *addr = NULL;
   const gchar *scheme = NULL, *host = NULL;
-  const gchar *proxy = "direct://";
-  gchar **proxies = NULL;
   gushort port;
+
+  *out_proxies = NULL;
+  *out_pacrunner = NULL;
+  *out_autoconfig_url = NULL;
 
   g_mutex_lock (&resolver->lock);
   if (resolver->need_update)
     update_settings (resolver);
-  g_mutex_unlock (&resolver->lock);
 
   if (resolver->mode == G_DESKTOP_PROXY_MODE_NONE)
-    goto done;
+    {
+      *out_proxies = make_proxies ("direct://");
+      goto done;
+    }
 
   /* FIXME: use guri when it lands... */
   addr = g_network_address_parse_uri (uri, 0, error);
@@ -481,16 +504,80 @@ g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
   port = g_network_address_get_port (G_NETWORK_ADDRESS (addr));
 
   if (ignore_host (resolver, host, port))
-    goto done;
+    {
+      *out_proxies = make_proxies ("direct://");
+      goto done;
+    }
 
   if (resolver->pacrunner)
     {
+      *out_pacrunner = g_object_ref (resolver->pacrunner);
+      *out_autoconfig_url = g_strdup (resolver->autoconfig_url);
+      goto done;
+    }
+  else if (resolver->ftp_proxy &&
+	   (!strcmp (scheme, "ftp") || !strcmp (scheme, "ftps")))
+    {
+      *out_proxies = make_proxies (resolver->ftp_proxy);
+    }
+  else if (resolver->https_proxy && !strcmp (scheme, "https"))
+    {
+      *out_proxies = make_proxies (resolver->https_proxy);
+    }
+  else if (resolver->http_proxy &&
+      (!strcmp (scheme, "http") || !strcmp (scheme, "https")))
+    {
+      *out_proxies = make_proxies (resolver->http_proxy);
+    }
+  else if (resolver->socks_authority)
+    {
+      *out_proxies = g_new (gchar *, 4);
+      *out_proxies[0] = g_strdup_printf ("socks5://%s", resolver->socks_authority);
+      *out_proxies[1] = g_strdup_printf ("socks4a://%s", resolver->socks_authority);
+      *out_proxies[2] = g_strdup_printf ("socks4://%s", resolver->socks_authority);
+      *out_proxies[3] = NULL;
+    }
+  else if (resolver->use_same_proxy && resolver->http_proxy)
+    {
+      *out_proxies = make_proxies (resolver->http_proxy);
+    }
+  else
+    *out_proxies = make_proxies ("direct://");
+
+done:
+  if (addr)
+    g_object_unref (addr);
+  g_mutex_unlock (&resolver->lock);
+
+  if (*out_proxies || *out_pacrunner)
+    return TRUE;
+  else
+    return FALSE;
+}
+
+static gchar **
+g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
+			       const gchar     *uri,
+			       GCancellable    *cancellable,
+			       GError         **error)
+{
+  GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (proxy_resolver);
+  GDBusProxy *pacrunner;
+  gchar **proxies, *autoconfig_url;
+
+  if (!g_proxy_resolver_gnome_lookup_internal (resolver, uri,
+					       &proxies, &pacrunner, &autoconfig_url,
+					       cancellable, error))
+    return NULL;
+
+  if (pacrunner)
+    {
       GVariant *vproxies;
 
-      vproxies = g_dbus_proxy_call_sync (resolver->pacrunner,
+      vproxies = g_dbus_proxy_call_sync (pacrunner,
 					 "Lookup",
 					 g_variant_new ("(ss)",
-							resolver->autoconfig_url,
+							autoconfig_url,
 							uri),
 					 G_DBUS_CALL_FLAGS_NONE,
 					 -1,
@@ -500,42 +587,13 @@ g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
 	  g_variant_get (vproxies, "(^as)", &proxies);
 	  g_variant_unref (vproxies);
 	}
-    }
-  else if (resolver->ftp_proxy &&
-	   (!strcmp (scheme, "ftp") || !strcmp (scheme, "ftps")))
-    {
-      proxy = resolver->ftp_proxy;
-    }
-  else if (resolver->https_proxy && !strcmp (scheme, "https"))
-    {
-      proxy = resolver->https_proxy;
-    }
-  else if (resolver->http_proxy &&
-      (!strcmp (scheme, "http") || !strcmp (scheme, "https")))
-    {
-      proxy = resolver->http_proxy;
-    }
-  else if (resolver->socks_authority)
-    {
-      proxies = g_new0 (gchar *, 4);
-      proxies[0] = g_strdup_printf ("socks5://%s", resolver->socks_authority);
-      proxies[1] = g_strdup_printf ("socks4a://%s", resolver->socks_authority);
-      proxies[2] = g_strdup_printf ("socks4://%s", resolver->socks_authority);
-    }
-  else if (resolver->use_same_proxy && resolver->http_proxy)
-    {
-      proxy = resolver->http_proxy;
+      else
+	proxies = NULL;
+
+      g_object_unref (pacrunner);
+      g_free (autoconfig_url);
     }
 
-done:
-  if (addr)
-    g_object_unref (addr);
-
-  if (!proxies)
-    {
-      proxies = g_new0 (gchar *, 2);
-      proxies[0] = g_strdup (proxy);
-    }
   return proxies;
 }
 
@@ -571,35 +629,39 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
 {
   GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (proxy_resolver);
   GTask *task;
+  char **proxies, *autoconfig_url;
+  GDBusProxy *pacrunner;
+  GError *error = NULL;
 
   task = g_task_new (resolver, cancellable, callback, user_data);
 
-  if (resolver->pacrunner)
-    {
-      g_dbus_proxy_call (resolver->pacrunner,
-			 "Lookup",
-			 g_variant_new ("(ss)",
-					resolver->autoconfig_url,
-					uri),
-			 G_DBUS_CALL_FLAGS_NONE,
-			 -1,
-			 cancellable,
-			 got_autoconfig_proxies,
-			 task);
-    }
-  else
-    {
-      GError *error = NULL;
-      char **proxies;
+   if (!g_proxy_resolver_gnome_lookup_internal (resolver, uri,
+						&proxies, &pacrunner, &autoconfig_url,
+						cancellable, &error))
+     {
+       g_task_return_error (task, error);
+       g_object_unref (task);
+       return;
+     }
+   else if (proxies)
+     {
+       g_task_return_pointer (task, proxies, (GDestroyNotify)g_strfreev);
+       g_object_unref (task);
+       return;
+     }
 
-      proxies = g_proxy_resolver_gnome_lookup (proxy_resolver, uri,
-					       cancellable, &error);
-      if (proxies)
-	g_task_return_pointer (task, proxies, (GDestroyNotify)g_strfreev);
-      else
-	g_task_return_error (task, error);
-      g_object_unref (task);
-    }
+   g_dbus_proxy_call (pacrunner,
+		      "Lookup",
+		      g_variant_new ("(ss)",
+				     autoconfig_url,
+				     uri),
+		      G_DBUS_CALL_FLAGS_NONE,
+		      -1,
+		      cancellable,
+		      got_autoconfig_proxies,
+		      task);
+   g_object_unref (pacrunner);
+   g_free (autoconfig_url);
 }
 
 static gchar **
