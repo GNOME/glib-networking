@@ -45,6 +45,159 @@
 #define GNOME_PROXY_SOCKS_HOST_KEY        "host"
 #define GNOME_PROXY_SOCKS_PORT_KEY        "port"
 
+static void
+reset_proxy_settings (gpointer      fixture,
+		      gconstpointer user_data)
+{
+  GSettings *settings, *child;
+
+  settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
+  g_settings_reset (settings, GNOME_PROXY_MODE_KEY);
+  g_settings_reset (settings, GNOME_PROXY_USE_SAME_PROXY_KEY);
+
+  child = g_settings_get_child (settings, GNOME_PROXY_HTTP_CHILD_SCHEMA);
+  g_settings_reset (child, GNOME_PROXY_HTTP_HOST_KEY);
+  g_settings_reset (child, GNOME_PROXY_HTTP_PORT_KEY);
+  g_object_unref (child);
+
+  child = g_settings_get_child (settings, GNOME_PROXY_HTTPS_CHILD_SCHEMA);
+  g_settings_reset (child, GNOME_PROXY_HTTPS_HOST_KEY);
+  g_settings_reset (child, GNOME_PROXY_HTTPS_PORT_KEY);
+  g_object_unref (child);
+
+  child = g_settings_get_child (settings, GNOME_PROXY_FTP_CHILD_SCHEMA);
+  g_settings_reset (child, GNOME_PROXY_FTP_HOST_KEY);
+  g_settings_reset (child, GNOME_PROXY_FTP_PORT_KEY);
+  g_object_unref (child);
+
+  child = g_settings_get_child (settings, GNOME_PROXY_SOCKS_CHILD_SCHEMA);
+  g_settings_reset (child, GNOME_PROXY_SOCKS_HOST_KEY);
+  g_settings_reset (child, GNOME_PROXY_SOCKS_PORT_KEY);
+  g_object_unref (child);
+
+  g_object_unref (settings);
+}
+
+static void
+test_proxy_uri (gpointer      fixture,
+		gconstpointer user_data)
+{
+  GSettings *settings, *child;
+  GProxyResolver *resolver;
+  gchar **proxies;
+  GError *error = NULL;
+
+  settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
+  g_settings_set_enum (settings, GNOME_PROXY_MODE_KEY, G_DESKTOP_PROXY_MODE_MANUAL);
+  g_settings_set_boolean (settings, GNOME_PROXY_USE_SAME_PROXY_KEY, TRUE);
+
+  child = g_settings_get_child (settings, GNOME_PROXY_HTTP_CHILD_SCHEMA);
+  g_settings_set_string (child, GNOME_PROXY_HTTP_HOST_KEY, "proxy.example.com");
+  g_settings_set_int (child, GNOME_PROXY_HTTP_PORT_KEY, 8080);
+  g_object_unref (child);
+
+  child = g_settings_get_child (settings, GNOME_PROXY_HTTPS_CHILD_SCHEMA);
+  g_settings_set_string (child, GNOME_PROXY_HTTPS_HOST_KEY, "proxy-s.example.com");
+  g_settings_set_int (child, GNOME_PROXY_HTTPS_PORT_KEY, 7070);
+  g_object_unref (child);
+
+  child = g_settings_get_child (settings, GNOME_PROXY_FTP_CHILD_SCHEMA);
+  g_settings_set_string (child, GNOME_PROXY_FTP_HOST_KEY, "proxy-f.example.com");
+  g_settings_set_int (child, GNOME_PROXY_FTP_PORT_KEY, 6060);
+  g_object_unref (child);
+
+  g_object_unref (settings);
+
+  resolver = g_proxy_resolver_get_default ();
+
+  proxies = g_proxy_resolver_lookup (resolver, "http://one.example.com/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 1);
+  g_assert_cmpstr (proxies[0], ==, "http://proxy.example.com:8080");
+  g_strfreev (proxies);
+
+  proxies = g_proxy_resolver_lookup (resolver, "HTTPS://uppercase.example.com/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 1);
+  g_assert_cmpstr (proxies[0], ==, "http://proxy-s.example.com:7070");
+  g_strfreev (proxies);
+
+  /* Because we set use_same_proxy = TRUE, unknown protocols will use
+   * the http proxy by default.
+   */
+  proxies = g_proxy_resolver_lookup (resolver, "htt://missing-letter.example.com/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 1);
+  g_assert_cmpstr (proxies[0], ==, "http://proxy.example.com:8080");
+  g_strfreev (proxies);
+
+  proxies = g_proxy_resolver_lookup (resolver, "ftps://extra-letter.example.com/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 1);
+  g_assert_cmpstr (proxies[0], ==, "http://proxy.example.com:8080");
+  g_strfreev (proxies);
+
+  proxies = g_proxy_resolver_lookup (resolver, "ftp://five.example.com/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 1);
+  g_assert_cmpstr (proxies[0], ==, "ftp://proxy-f.example.com:6060");
+  g_strfreev (proxies);
+}
+
+static void
+test_proxy_socks (gpointer      fixture,
+		  gconstpointer user_data)
+{
+  GSettings *settings, *child;
+  GProxyResolver *resolver;
+  const gchar *ignore_hosts[2] = { "127.0.0.1", NULL };
+  gchar **proxies;
+  GError *error = NULL;
+
+  settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
+  g_settings_set_enum (settings, GNOME_PROXY_MODE_KEY, G_DESKTOP_PROXY_MODE_MANUAL);
+  g_settings_set (settings, GNOME_PROXY_IGNORE_HOSTS_KEY,
+		  "@as", g_variant_new_strv (ignore_hosts, -1));
+
+  child = g_settings_get_child (settings, GNOME_PROXY_SOCKS_CHILD_SCHEMA);
+  g_settings_set_string (child, GNOME_PROXY_SOCKS_HOST_KEY, "proxy.example.com");
+  g_settings_set_int (child, GNOME_PROXY_SOCKS_PORT_KEY, 1234);
+  g_object_unref (child);
+  g_object_unref (settings);
+
+  resolver = g_proxy_resolver_get_default ();
+
+  proxies = g_proxy_resolver_lookup (resolver, "http://one.example.com/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 3);
+  g_assert_cmpstr (proxies[0], ==, "socks5://proxy.example.com:1234");
+  g_assert_cmpstr (proxies[1], ==, "socks4a://proxy.example.com:1234");
+  g_assert_cmpstr (proxies[2], ==, "socks4://proxy.example.com:1234");
+  g_strfreev (proxies);
+
+  proxies = g_proxy_resolver_lookup (resolver, "wednesday://two.example.com/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 3);
+  g_assert_cmpstr (proxies[0], ==, "socks5://proxy.example.com:1234");
+  g_assert_cmpstr (proxies[1], ==, "socks4a://proxy.example.com:1234");
+  g_assert_cmpstr (proxies[2], ==, "socks4://proxy.example.com:1234");
+  g_strfreev (proxies);
+
+  proxies = g_proxy_resolver_lookup (resolver, "http://127.0.0.1/",
+                                     NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_strv_length (proxies), ==, 1);
+  g_assert_cmpstr (proxies[0], ==, "direct://");
+  g_strfreev (proxies);
+}
+
 static const char *ignore_hosts[] = {
   ".bbb.xx",
   "*.ccc.xx",
@@ -110,7 +263,8 @@ static const struct {
 static const int n_ignore_tests = G_N_ELEMENTS (ignore_tests);
 
 static void
-test_proxy_ignore (void)
+test_proxy_ignore (gpointer      fixture,
+		   gconstpointer user_data)
 {
   GSettings *settings, *http;
   GProxyResolver *resolver;
@@ -126,6 +280,9 @@ test_proxy_ignore (void)
   http = g_settings_get_child (settings, GNOME_PROXY_HTTP_CHILD_SCHEMA);
   g_settings_set_string (http, GNOME_PROXY_HTTP_HOST_KEY, "localhost");
   g_settings_set_int (http, GNOME_PROXY_HTTP_PORT_KEY, 8080);
+
+  g_object_unref (http);
+  g_object_unref (settings);
 
   resolver = g_proxy_resolver_get_default ();
 
@@ -151,7 +308,12 @@ main (int   argc,
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("DESKTOP_SESSION", "gnome", TRUE);
 
-  g_test_add_func ("/proxy/gnome/ignore", test_proxy_ignore);
+  g_test_add_vtable ("/proxy/gnome/uri", 0, NULL,
+		     reset_proxy_settings, test_proxy_uri, NULL);
+  g_test_add_vtable ("/proxy/gnome/socks", 0, NULL,
+		     reset_proxy_settings, test_proxy_socks, NULL);
+  g_test_add_vtable ("/proxy/gnome/ignore", 0, NULL,
+		     reset_proxy_settings, test_proxy_ignore, NULL);
 
   return g_test_run();
 }
