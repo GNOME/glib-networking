@@ -2,16 +2,18 @@
 # Copyright (C) 2012 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # Manoj K <manojkmohanme03107@gmail.com>, 2012.
+# Balasankar Chelamattath <c.balasankar@gmail.com>, 2012
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-03-20 10:32+0000\n"
-"PO-Revision-Date: 2012-03-20 10:32+0000\n"
-"Last-Translator: Manoj K <manojkmohanme03107@gmail.com>\n"
+"POT-Creation-Date: 2012-12-09 15:35+0000\n"
+"PO-Revision-Date: 2012-10-22 20:52+0530\n"
+"Last-Translator: Balasankar Chelamattath <c.balasankar@gmail.com>\n"
 "Language-Team: Malayalam <discuss@lists.smc.org.in>\n"
+"Language: ml\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -44,67 +46,93 @@ msgstr "%s :PEM രഹസ്യ കീ പാഴ്സ് ചെയ്യാന�
 msgid "No certificate data provided"
 msgstr "സാക്ഷ്യപത്രവിവരങ്ങള്‍ ലഭ്യമല്ല"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "സെര്‍വ്വരിന് TLS സാക്ഷ്യപത്രം ആവശ്യമാണ്. "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:257
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "%s :TLS കണക്ഷന്‍ നിര്‍മ്മിക്കാന്‍ സാധിച്ചില്ല"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:518
+msgid "Connection is closed"
+msgstr "ബന്ധം വിച്ഛേദിക്കപ്പെട്ടിരിക്കുന്നു"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:580
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1417
+msgid "Operation would block"
+msgstr "പ്രക്രിയ തടസ്സപ്പെടും"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:710
 msgid "Peer failed to perform TLS handshake"
 msgstr "TLS ഹാന്‍ഡ്ഷെയ്ക്ക് കാരണം പിയര്‍  പ്രകടനം പരാജയപ്പെട്ടു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:727
 msgid "Peer requested illegal TLS rehandshake"
-msgstr ""
+msgstr "പിയര്‍ നിയമാനുസൃതമല്ലാത്ത TLS ഹസ്തദാനം ആവശ്യപ്പെട്ടിരിക്കുന്നു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:753
 msgid "TLS connection closed unexpectedly"
-msgstr ""
+msgstr "TLS ബന്ധം അപ്രതീക്ഷിതമായി വിച്ഛേദിക്കപ്പെട്ടിരിക്കുന്നു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:763
+#, fuzzy
+#| msgid "Server required TLS certificate"
+msgid "TLS connection peer did not send a certificate"
+msgstr "സെര്‍വ്വരിന് TLS സാക്ഷ്യപത്രം ആവശ്യമാണ്. "
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1144
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1163
 #, c-format
 msgid "Error performing TLS handshake: %s"
-msgstr ""
+msgstr "%s: TLS ഹസ്തദാനം നടപ്പിലാക്കുന്നതില്‍ പിഴവ്"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1173
+#, fuzzy
+#| msgid "Server required TLS certificate"
+msgid "Server did not return a valid TLS certificate"
+msgstr "സെര്‍വ്വരിന് TLS സാക്ഷ്യപത്രം ആവശ്യമാണ്. "
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1248
 msgid "Unacceptable TLS certificate"
-msgstr ""
+msgstr "സ്വീകരിക്കാന്‍ പറ്റാത TLS സാക്ഷ്യപത്രം"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1440
 #, c-format
 msgid "Error reading data from TLS socket: %s"
-msgstr ""
+msgstr "%s: TLS സോക്കറ്റില്‍ നിന്നും ഡാറ്റ വായിക്കുന്നതില്‍ പിഴവ് "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1469
 #, c-format
 msgid "Error writing data to TLS socket: %s"
-msgstr ""
+msgstr "%s: TLS സോക്കറ്റിലേക്ക് ഡാറ്റ എഴുതുന്നതില്‍ പിഴവ്"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1513
+msgid "Connection is already closed"
+msgstr "ബന്ധം ഇതിനകം തന്നെ വിച്ഛേദിക്കപ്പെട്ടിരിക്കുന്നു"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1523
 #, c-format
 msgid "Error performing TLS close: %s"
-msgstr ""
+msgstr "%s: TLS അടയ്ക്കുന്നതില്‍ പരാജയപ്പെട്ടിരിക്കുന്നു"
 
 #: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
-msgstr ""
+msgstr "സാക്ഷ്യപത്രത്തിന്് സ്വകാര്യ താക്കോല്‍ ഇല്ല "
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
-msgstr ""
+msgstr "ഇത് ടോക്കണ്‍ പൂട്ടുന്നതിന് മുന്പായി PIN ശരിയായി കയറ്റാനുള്ള അവസാന അവസരമാണ്"
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr ""
+"ഒട്ടേറെ PIN ശ്രമങ്ങള്‍ പരാജയപ്പെട്ടു, അതിനാല് ഇനിയുള്ള പരാജയങ്ങള്ക്ക് ശേഷം ടോക്കണ്‍ പൂട്ടുന്നു"
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
