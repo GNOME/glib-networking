@@ -1,3 +1,27 @@
+2.35.6
+======
+  * proxy/gnome: Fixed several bugs:
+
+	* Multithreaded usage could result in crashes
+
+	* In "automatic" mode, synchronous lookups would obey
+	  ignore-hosts, but asynchronous lookups would not. (Now they
+	  both do.)
+
+	* lookup_async() would never notice if the proxy settings
+	  switched from "automatic" to "manual" or "none" (and would
+	  make a synchronous D-Bus call when switching in the other
+	  direction).
+
+	* If given an invalid URI, lookup_async() would return a
+	  successful result (and leak the GError that it was supposed
+	  to have returned), and lookup() would return both the error
+	  and the proxy (leaking one or the other, depending on how
+	  the caller behaved).
+
+  * Updated translations:
+	Italian, Malayalam, Norwegian bokmål, Serbian, Uyghur
+
 2.35.4
 ======
   * proxy/gnome: The tests should now work correctly even if
