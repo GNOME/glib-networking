@@ -93,7 +93,8 @@ teardown_connection (TestConnection *test, gconstpointer data)
       g_object_add_weak_pointer (G_OBJECT (test->server_connection),
 				 (gpointer *)&test->server_connection);
       g_object_unref (test->server_connection);
-      g_assert (test->server_connection == NULL);
+      while (test->server_connection)
+	g_main_context_iteration (NULL, FALSE);
     }
 
   if (test->client_connection)
@@ -102,11 +103,8 @@ teardown_connection (TestConnection *test, gconstpointer data)
       g_object_add_weak_pointer (G_OBJECT (test->client_connection),
 				 (gpointer *)&test->client_connection);
       g_object_unref (test->client_connection);
-
-#if 0
-      /* Temporarily disabled due to race condition */
-      g_assert (test->client_connection == NULL);
-#endif
+      while (test->client_connection)
+	g_main_context_iteration (NULL, FALSE);
     }
 
   if (test->database)
@@ -115,11 +113,8 @@ teardown_connection (TestConnection *test, gconstpointer data)
       g_object_add_weak_pointer (G_OBJECT (test->database),
 				 (gpointer *)&test->database);
       g_object_unref (test->database);
-
-#if 0
-      /* Temporarily disabled due to race condition */
-      g_assert (test->database == NULL);
-#endif
+      while (test->database)
+	g_main_context_iteration (NULL, FALSE);
     }
 
   g_object_unref (test->address);
@@ -360,6 +355,20 @@ start_echo_server_and_connect_to_it (TestConnection *test)
 }
 
 static void
+on_client_connection_close_finish (GObject        *object,
+				   GAsyncResult   *res,
+				   gpointer        user_data)
+{
+  TestConnection *test = user_data;
+  GError *error = NULL;
+
+  g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
+  g_assert_no_error (error);
+
+  g_main_loop_quit (test->loop);
+}
+
+static void
 on_input_read_finish (GObject        *object,
                       GAsyncResult   *res,
                       gpointer        user_data)
@@ -380,7 +389,8 @@ on_input_read_finish (GObject        *object,
       g_free (line);
     }
 
-  g_main_loop_quit (test->loop);
+  g_io_stream_close_async (test->client_connection, G_PRIORITY_DEFAULT,
+			   NULL, on_client_connection_close_finish, test);
 }
 
 static void
