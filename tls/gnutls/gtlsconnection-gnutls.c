@@ -189,6 +189,7 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 
   gnutls->priv->waiting_for_op = g_cancellable_new ();
   g_cancellable_cancel (gnutls->priv->waiting_for_op);
+  g_mutex_init (&gnutls->priv->op_mutex);
 }
 
 /* First field is "ssl3 only", second is "allow unsafe rehandshaking" */
@@ -308,6 +309,7 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_clear_error (&gnutls->priv->write_error);
 
   g_clear_object (&gnutls->priv->waiting_for_op);
+  g_mutex_clear (&gnutls->priv->op_mutex);
 
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
 }
