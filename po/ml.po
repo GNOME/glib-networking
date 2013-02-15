@@ -3,20 +3,23 @@
 # This file is distributed under the same license as the glib-networking package.
 # Manoj K <manojkmohanme03107@gmail.com>, 2012.
 # Balasankar Chelamattath <c.balasankar@gmail.com>, 2012
-#
+# Anish A <aneesh.nl@gmail.com>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-12-09 15:35+0000\n"
-"PO-Revision-Date: 2012-10-22 20:52+0530\n"
-"Last-Translator: Balasankar Chelamattath <c.balasankar@gmail.com>\n"
-"Language-Team: Malayalam <discuss@lists.smc.org.in>\n"
+"POT-Creation-Date: 2013-02-13 18:37+0000\n"
+"PO-Revision-Date: 2013-02-15 11:30+0530\n"
+"Last-Translator: Anish A <aneesh.nl@gmail.com>\n"
+"Language-Team: Swatantra Malayalam Computing\n"
 "Language: ml\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
+"X-Project-Style: gnome\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
@@ -50,69 +53,65 @@ msgstr "സാക്ഷ്യപത്രവിവരങ്ങള്‍ ലഭ�
 msgid "Server required TLS certificate"
 msgstr "സെര്‍വ്വരിന് TLS സാക്ഷ്യപത്രം ആവശ്യമാണ്. "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:257
+#: ../tls/gnutls/gtlsconnection-gnutls.c:258
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "%s :TLS കണക്ഷന്‍ നിര്‍മ്മിക്കാന്‍ സാധിച്ചില്ല"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:518
+#: ../tls/gnutls/gtlsconnection-gnutls.c:520
 msgid "Connection is closed"
 msgstr "ബന്ധം വിച്ഛേദിക്കപ്പെട്ടിരിക്കുന്നു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:580
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1417
+#: ../tls/gnutls/gtlsconnection-gnutls.c:582
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1419
 msgid "Operation would block"
 msgstr "പ്രക്രിയ തടസ്സപ്പെടും"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:710
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
 msgid "Peer failed to perform TLS handshake"
 msgstr "TLS ഹാന്‍ഡ്ഷെയ്ക്ക് കാരണം പിയര്‍  പ്രകടനം പരാജയപ്പെട്ടു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:727
+#: ../tls/gnutls/gtlsconnection-gnutls.c:729
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "പിയര്‍ നിയമാനുസൃതമല്ലാത്ത TLS ഹസ്തദാനം ആവശ്യപ്പെട്ടിരിക്കുന്നു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:753
+#: ../tls/gnutls/gtlsconnection-gnutls.c:755
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS ബന്ധം അപ്രതീക്ഷിതമായി വിച്ഛേദിക്കപ്പെട്ടിരിക്കുന്നു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:763
-#, fuzzy
-#| msgid "Server required TLS certificate"
+#: ../tls/gnutls/gtlsconnection-gnutls.c:765
 msgid "TLS connection peer did not send a certificate"
-msgstr "സെര്‍വ്വരിന് TLS സാക്ഷ്യപത്രം ആവശ്യമാണ്. "
+msgstr "TLS ബന്ധത്തിന്റെ പീയര്‍ സാക്ഷ്യപത്രം അയ്ച്ചില്ല"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1144
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1163
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1146
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1165
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "%s: TLS ഹസ്തദാനം നടപ്പിലാക്കുന്നതില്‍ പിഴവ്"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1173
-#, fuzzy
-#| msgid "Server required TLS certificate"
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1175
 msgid "Server did not return a valid TLS certificate"
-msgstr "സെര്‍വ്വരിന് TLS സാക്ഷ്യപത്രം ആവശ്യമാണ്. "
+msgstr "സെര്‍വ്വര്‍ സാധുവായ TLS സാക്ഷ്യപത്രം തന്നില്ല."
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1248
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1250
 msgid "Unacceptable TLS certificate"
 msgstr "സ്വീകരിക്കാന്‍ പറ്റാത TLS സാക്ഷ്യപത്രം"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1440
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1442
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "%s: TLS സോക്കറ്റില്‍ നിന്നും ഡാറ്റ വായിക്കുന്നതില്‍ പിഴവ് "
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1469
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1471
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "%s: TLS സോക്കറ്റിലേക്ക് ഡാറ്റ എഴുതുന്നതില്‍ പിഴവ്"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1513
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1515
 msgid "Connection is already closed"
 msgstr "ബന്ധം ഇതിനകം തന്നെ വിച്ഛേദിക്കപ്പെട്ടിരിക്കുന്നു"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1523
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1525
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "%s: TLS അടയ്ക്കുന്നതില്‍ പരാജയപ്പെട്ടിരിക്കുന്നു"
