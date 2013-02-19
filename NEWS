@@ -1,3 +1,16 @@
+2.35.8
+======
+  * proxy/gnome: ported to new GSimpleProxyResolver, and added more
+    tests
+
+  * gnutls: Fixed a small per-connection leak (#693718)
+
+  * tls/tests: Fixed several race conditions that caused spurious
+    failures. (#693720)
+
+  * Updated translations:
+	Malayalam
+
 2.35.6
 ======
   * proxy/gnome: Fixed several bugs:
