@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2013-01-08 19:50+0000\n"
-"PO-Revision-Date: 2011-01-31 15:04+0000\n"
-"Last-Translator: Gheyret Kenji <gheyret@yahoo.com>\n"
+"POT-Creation-Date: 2013-01-20 10:45+0000\n"
+"PO-Revision-Date: 2013-02-22 22:21+0900\n"
+"Last-Translator: Gheyret Kenji <gheyret@gmail.com>\n"
 "Language-Team: Uyghur Computer Science Association <UKIJ@yahoogroups.com>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -64,20 +64,19 @@ msgstr "مەشغۇلات توسۇلىدۇ"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:710
 msgid "Peer failed to perform TLS handshake"
-msgstr "Peer(باشقىلار) TLS بىلەن سالاملىشىشتا مەغلۇپ بولدى"
+msgstr "قارىشى تەرەپ TLS سالىمىدا مەغلۇپ بولدى"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:727
 msgid "Peer requested illegal TLS rehandshake"
-msgstr "Peer(باشقىلار) TLS بىلەن قايتا سالاملىشىشتا ناتوغرا سالام قىلدى"
+msgstr "Peer(باشقىلار) TLS قايتا سالىمىدا ناتوغرا سالام قىلدى"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:753
 msgid "TLS connection closed unexpectedly"
-msgstr "TLS باغلىنىشى ئويلىمىغان يەردىن تاقىلىپ قالدى"
+msgstr "قارىشى تەرەپ توغرا بولمىغان TLS سالىمىنى تەلەپ قىلدى"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:763
-#| msgid "TLS connection closed unexpectedly"
 msgid "TLS connection peer did not send a certificate"
-msgstr ""
+msgstr "TLS باغلىنىشىدىكى قارىشى تەرەپ گۇۋاھنامىنى ئەۋەتمىدى"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1144
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1163
@@ -86,7 +85,6 @@ msgid "Error performing TLS handshake: %s"
 msgstr "TLS بىلەن سالاملىشىشتا خاتالىق كۆرۈلدى: %s"
 
 #: ../tls/gnutls/gtlsconnection-gnutls.c:1173
-#| msgid "Server required TLS certificate"
 msgid "Server did not return a valid TLS certificate"
 msgstr "مۇلازىمېتىر ئىناۋەتلىك TLS گۇۋاھنامىسىنى قايتۇرمىدى"
 
