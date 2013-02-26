@@ -2,14 +2,14 @@
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
-# A S Alam <aalam@users.sf.net>, 2011, 2012.
+# A S Alam <aalam@users.sf.net>, 2011, 2012, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-07-18 21:47+0000\n"
-"PO-Revision-Date: 2012-09-14 07:31+0530\n"
+"POT-Creation-Date: 2012-11-29 22:09+0000\n"
+"PO-Revision-Date: 2013-02-26 07:18+0530\n"
 "Last-Translator: A S Alam <aalam@users.sf.net>\n"
 "Language-Team: Punjabi/Panjabi <punjabi-users@lists.sf.net>\n"
 "Language: paX-Generator: Lokalize 1.2\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 1.4\n"
+"X-Generator: Lokalize 1.5\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
@@ -51,62 +51,66 @@ msgstr "ਕੋਈ ਸਰਟੀਫਿਕੇਟ ਡਾਟਾ ਨਹੀਂ ਦਿ�
 msgid "Server required TLS certificate"
 msgstr "ਸਰਵਰ ਨੂੰ TLS ਸਰਟੀਫਿਕੇਤ ਚਾਹੀਦਾ ਹੈ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:248
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS ਕੁਨੈਕਸ਼ਨ ਬਣਾਇਆ ਨਹੀਂ ਜਾ ਸਕਿਆ: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
 msgid "Connection is closed"
 msgstr "ਕੁਨੈਕਸ਼ਨ ਬੰਦ ਕੀਤਾ ਗਿਆ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:568
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
 msgid "Operation would block"
 msgstr "ਕਾਰਵਾਈ ਰੋਕੀ ਜਾ ਸਕਦੀ ਹੈ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:695
+#: ../tls/gnutls/gtlsconnection-gnutls.c:703
 msgid "Peer failed to perform TLS handshake"
 msgstr "ਪੀਅਰ TLS ਹੈਂਡਸੇਕ ਕਰਨ ਲਈ ਫੇਲ੍ਹ ਹੈ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:720
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "ਪੀਅਰ ਨੇ ਗਲਤ TLS ਮੁੜ-ਹੈਂਡਸੇਕ ਲਈ ਮੰਗ ਕੀਤੀ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:738
+#: ../tls/gnutls/gtlsconnection-gnutls.c:746
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS ਕੁਨੈਕਸ਼ਨ ਅਚਾਨਕ ਬੰਦ ਹੋ ਗਿਆ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
+#: ../tls/gnutls/gtlsconnection-gnutls.c:756
+#| msgid "Server did not return a valid TLS certificate"
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS ਕੁਨੈਕਸ਼ਨ ਪੀਅਰ ਨੇ ਸਰਟੀਫਿਕੇਟ ਵਾਪਸ ਨਹੀਂ ਭੇਜਿਆ"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS ਹੈਂਡਸੇਕ ਕਰਨ ਦੌਰਾਨ ਗਲਤੀ: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
 msgid "Unacceptable TLS certificate"
 msgstr "ਨਾ-ਮਨਜ਼ੂਰ TLS ਸਰਟੀਫਿਕੇਟ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
-#| msgid "Server required TLS certificate"
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
 msgid "Server did not return a valid TLS certificate"
 msgstr "ਸਰਵਰ ਨੇ ਠੀਕ TLS ਸਰਟੀਫਿਕੇਟ ਵਾਪਸ ਨਹੀਂ ਕੀਤਾ ਹੈ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS ਸਾਕਟ ਤੋਂ ਡਾਟਾ ਪੜ੍ਹਨ ਲਈ ਫੇਲ੍ਹ: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS ਸਾਕਟ ਲਈ ਡਾਟਾ ਪੜ੍ਹਨ ਦੌਰਾਨ ਗਲਤੀ: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
 msgid "Connection is already closed"
 msgstr "ਕੁਨੈਕਸ਼ਨ ਪਹਿਲਾਂ ਹੀ ਬੰਦ ਹੈ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS ਬੰਦ ਕਰਨ ਗਲਤੀ: %s"
