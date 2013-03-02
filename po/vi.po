@@ -1,15 +1,15 @@
 # Vietnamese translation for glib-networking.
 # Copyright (C) 2011 glib-networking's Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-networking package.
-# Nguyễn Thái Ngọc Duy <pclouds@gmail.com>, 2011-2012.
+# Nguyễn Thái Ngọc Duy <pclouds@gmail.com>, 2011-2013.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-07-18 21:47+0000\n"
-"PO-Revision-Date: 2012-08-22 08:53+0700\n"
+"POT-Creation-Date: 2012-11-29 22:09+0000\n"
+"PO-Revision-Date: 2013-03-02 20:35+0700\n"
 "Last-Translator: Nguyễn Thái Ngọc Duy <pclouds@gmail.com>\n"
 "Language-Team: Vietnamese <gnomevi-list@lists.sourceforge.net>\n"
 "Language: vi\n"
@@ -50,62 +50,65 @@ msgstr "Chưa cung cấp thông tin chứng nhận"
 msgid "Server required TLS certificate"
 msgstr "Máy chủ yêu cầu chứng nhận TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:248
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Không thể tạo kết nối TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
 msgid "Connection is closed"
 msgstr "Kết nối đã đóng"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:568
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
 msgid "Operation would block"
 msgstr "Thao tác có thể ngăn các thao tác khác"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:695
+#: ../tls/gnutls/gtlsconnection-gnutls.c:703
 msgid "Peer failed to perform TLS handshake"
 msgstr "Bên kia không thực hiện bắt tay TLS được"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:720
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Bên kia yêu cầu bắt tay TLS lại không hợp lệ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:738
+#: ../tls/gnutls/gtlsconnection-gnutls.c:746
 msgid "TLS connection closed unexpectedly"
 msgstr "Kết nối TLS kết thúc bất ngờ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
+#: ../tls/gnutls/gtlsconnection-gnutls.c:756
+msgid "TLS connection peer did not send a certificate"
+msgstr "Phía bên kia kết nối TLS không gửi chứng nhận"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Lỗi thực hiện bắt tay TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
 msgid "Unacceptable TLS certificate"
 msgstr "Chứng nhận TLS không thể chấp nhận"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
-#| msgid "Server required TLS certificate"
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
 msgid "Server did not return a valid TLS certificate"
 msgstr "Máy chủ không trả về chứng nhận TLS hợp lệ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Lỗi đọc dữ liệu từ kết nối TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Lỗi đọc dữ liệu vào kết nối TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
 msgid "Connection is already closed"
 msgstr "Kết nối đã đóng rồi"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Lỗi đóng kết nối TLS: %s"
