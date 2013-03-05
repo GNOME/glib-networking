@@ -1,3 +1,13 @@
+2.35.9
+======
+  * Fixed one kind of handshake failure to return the correct error
+    code under gnutls 3.x (allowing libsoup to recognize the error and
+    do fallback to SSL 3.0). (#694812)
+
+  * Updated translations:
+	Chinese (traditional), French, German, Punjabi, Uyghur,
+	Vietnamese
+
 2.35.8
 ======
   * proxy/gnome: ported to new GSimpleProxyResolver, and added more
