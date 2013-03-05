@@ -749,7 +749,13 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 #endif
 	   )
     {
-      if (gnutls->priv->require_close_notify)
+      if (gnutls->priv->handshaking && !gnutls->priv->ever_handshaked)
+	{
+	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
+			       _("Peer failed to perform TLS handshake"));
+	  return GNUTLS_E_PULL_ERROR;
+	}
+      else if (gnutls->priv->require_close_notify)
 	{
 	  g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_EOF,
 			       _("TLS connection closed unexpectedly"));
