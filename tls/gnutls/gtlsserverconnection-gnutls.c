@@ -75,17 +75,11 @@ static void
 g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
 {
   gnutls_certificate_credentials_t creds;
-  gnutls_session_t session;
 
   gnutls->priv = G_TYPE_INSTANCE_GET_PRIVATE (gnutls, G_TYPE_TLS_SERVER_CONNECTION_GNUTLS, GTlsServerConnectionGnutlsPrivate);
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function (creds, g_tls_server_connection_gnutls_retrieve_function);
-
-  session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_db_set_retrieve_function (session, g_tls_server_connection_gnutls_db_retrieve);
-  gnutls_db_set_store_function (session, g_tls_server_connection_gnutls_db_store);
-  gnutls_db_set_remove_function (session, g_tls_server_connection_gnutls_db_remove);
 }
 
 static gboolean
@@ -93,11 +87,18 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
 					      GCancellable    *cancellable,
 					      GError         **error)
 {
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   GTlsCertificate *cert;
+  gnutls_session_t session;
 
   if (!g_tls_server_connection_gnutls_parent_initable_iface->
       init (initable, cancellable, error))
     return FALSE;
+
+  session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
+  gnutls_db_set_retrieve_function (session, g_tls_server_connection_gnutls_db_retrieve);
+  gnutls_db_set_store_function (session, g_tls_server_connection_gnutls_db_store);
+  gnutls_db_set_remove_function (session, g_tls_server_connection_gnutls_db_remove);
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
   if (cert && !g_tls_certificate_gnutls_has_key (G_TLS_CERTIFICATE_GNUTLS (cert)))

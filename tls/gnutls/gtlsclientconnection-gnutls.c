@@ -42,6 +42,8 @@ enum
   PROP_ACCEPTED_CAS
 };
 
+static void     g_tls_client_connection_gnutls_initable_interface_init (GInitableIface  *iface);
+
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
 
 static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             session,
@@ -51,7 +53,11 @@ static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t   
 							     int                          pk_algos_length,
 							     gnutls_retr2_st             *st);
 
+static GInitableIface *g_tls_client_connection_gnutls_parent_initable_iface;
+
 G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionGnutls, g_tls_client_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
+			 G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+						g_tls_client_connection_gnutls_initable_interface_init)
 			 G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
 						g_tls_client_connection_gnutls_client_connection_interface_init));
 
@@ -152,6 +158,30 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->finalize (object);
 }
 
+static gboolean
+g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
+					      GCancellable    *cancellable,
+					      GError         **error)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
+  gnutls_session_t session;
+  const gchar *hostname;
+
+  if (!g_tls_client_connection_gnutls_parent_initable_iface->
+      init (initable, cancellable, error))
+    return FALSE;
+
+  session = g_tls_connection_gnutls_get_session (gnutls);
+  hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
+  if (hostname)
+    {
+      gnutls_server_name_set (session, GNUTLS_NAME_DNS,
+                              hostname, strlen (hostname));
+    }
+
+  return TRUE;
+}
+
 static void
 g_tls_client_connection_gnutls_get_property (GObject    *object,
 					     guint       prop_id,
@@ -220,8 +250,13 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 	{
 	  gnutls_session_t session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
 
-	  gnutls_server_name_set (session, GNUTLS_NAME_DNS,
-				  hostname, strlen (hostname));
+	  /* This will only be triggered if the identity is set after
+	   * initialization */
+	  if (session)
+            {
+              gnutls_server_name_set (session, GNUTLS_NAME_DNS,
+                                      hostname, strlen (hostname));
+            }
 	}
       break;
 
@@ -416,4 +451,12 @@ static void
 g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface)
 {
   iface->copy_session_state = g_tls_client_connection_gnutls_copy_session_state;
+}
+
+static void
+g_tls_client_connection_gnutls_initable_interface_init (GInitableIface  *iface)
+{
+  g_tls_client_connection_gnutls_parent_initable_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = g_tls_client_connection_gnutls_initable_init;
 }

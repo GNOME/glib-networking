@@ -292,15 +292,14 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
 				       GError       **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
+  gboolean client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
+  guint flags = client ? GNUTLS_CLIENT : GNUTLS_SERVER;
   int status;
 
   g_return_val_if_fail (gnutls->priv->base_istream != NULL &&
 			gnutls->priv->base_ostream != NULL, FALSE);
 
-  /* Make sure gnutls->priv->session has been initialized (it may have
-   * already been initialized by a construct-time property setter).
-   */
-  g_tls_connection_gnutls_get_session (gnutls);
+  gnutls_init (&gnutls->priv->session, flags);
 
   status = gnutls_credentials_set (gnutls->priv->session,
 				   GNUTLS_CRD_CERTIFICATE,
@@ -521,18 +520,6 @@ g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *gnutls)
 gnutls_session_t
 g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
 {
-  /* Ideally we would initialize gnutls->priv->session from
-   * g_tls_connection_gnutls_init(), but we can't tell if it's a
-   * client or server connection at that point... And
-   * g_tls_connection_gnutls_initiable_init() is too late, because
-   * construct-time property setters may need to modify it.
-   */
-  if (!gnutls->priv->session)
-    {
-      gboolean client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
-      gnutls_init (&gnutls->priv->session, client ? GNUTLS_CLIENT : GNUTLS_SERVER);
-    }
-
   return gnutls->priv->session;
 }
 
