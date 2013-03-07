@@ -311,7 +311,7 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
 
   if (gnutls->priv->session_id)
     {
-      gnutls_datum session_datum;
+      gnutls_datum_t session_datum;
 
       if (!*inout_error &&
 	  gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (conn),

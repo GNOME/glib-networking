@@ -46,12 +46,12 @@ struct _GTlsBackendGnutls
 GType g_tls_backend_gnutls_get_type (void) G_GNUC_CONST;
 void  g_tls_backend_gnutls_register (GIOModule *module);
 
-void    g_tls_backend_gnutls_store_session  (gnutls_connection_end_t  type,
+void    g_tls_backend_gnutls_store_session  (unsigned int             type,
 					     GBytes                  *session_id,
 					     GBytes                  *session_data);
-void    g_tls_backend_gnutls_remove_session (gnutls_connection_end_t  type,
+void    g_tls_backend_gnutls_remove_session (unsigned int             type,
 					     GBytes                  *session_id);
-GBytes *g_tls_backend_gnutls_lookup_session (gnutls_connection_end_t  type,
+GBytes *g_tls_backend_gnutls_lookup_session (unsigned int             type,
 					     GBytes                  *session_id);
 
 G_END_DECLS

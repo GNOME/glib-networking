@@ -212,7 +212,7 @@ cache_data_free (gpointer data)
 }
 
 static GHashTable *
-get_session_cache (gnutls_connection_end_t type,
+get_session_cache (unsigned int            type,
 		   gboolean                create)
 {
   GHashTable **cache_p;
@@ -227,7 +227,7 @@ get_session_cache (gnutls_connection_end_t type,
 }
 
 void
-g_tls_backend_gnutls_store_session (gnutls_connection_end_t  type,
+g_tls_backend_gnutls_store_session (unsigned int             type,
 				    GBytes                  *session_id,
 				    GBytes                  *session_data)
 {
@@ -263,7 +263,7 @@ g_tls_backend_gnutls_store_session (gnutls_connection_end_t  type,
 }
 
 void
-g_tls_backend_gnutls_remove_session (gnutls_connection_end_t  type,
+g_tls_backend_gnutls_remove_session (unsigned int             type,
 				     GBytes                  *session_id)
 {
   GHashTable *cache;
@@ -278,7 +278,7 @@ g_tls_backend_gnutls_remove_session (gnutls_connection_end_t  type,
 }
 
 GBytes *
-g_tls_backend_gnutls_lookup_session (gnutls_connection_end_t  type,
+g_tls_backend_gnutls_lookup_session (unsigned int             type,
 				     GBytes                  *session_id)
 {
   GTlsBackendGnutlsCacheData *cache_data;

@@ -48,9 +48,9 @@ struct _GTlsConnectionGnutls
 
 GType g_tls_connection_gnutls_get_type (void) G_GNUC_CONST;
 
-gnutls_certificate_credentials g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);
-gnutls_session                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
-void                           g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
+gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);
+gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
+void                             g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
                                                                         gnutls_retr2_st      *st);
 
 gssize   g_tls_connection_gnutls_read          (GTlsConnectionGnutls  *gnutls,

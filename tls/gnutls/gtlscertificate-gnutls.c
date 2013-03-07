@@ -371,7 +371,7 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
                                     gnutls_retr2_st          *st)
 {
   gnutls_x509_crt_t cert;
-  gnutls_datum data;
+  gnutls_datum_t data;
   size_t size = 0;
 
   gnutls_x509_crt_export (gnutls->priv->cert, GNUTLS_X509_FMT_DER,
@@ -429,8 +429,8 @@ g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface)
 }
 
 GTlsCertificate *
-g_tls_certificate_gnutls_new (const gnutls_datum *datum,
-			      GTlsCertificate    *issuer)
+g_tls_certificate_gnutls_new (const gnutls_datum_t *datum,
+			      GTlsCertificate      *issuer)
 {
   GTlsCertificateGnutls *gnutls;
 
@@ -444,7 +444,7 @@ g_tls_certificate_gnutls_new (const gnutls_datum *datum,
 
 void
 g_tls_certificate_gnutls_set_data (GTlsCertificateGnutls *gnutls,
-                                   const gnutls_datum *datum)
+                                   const gnutls_datum_t  *datum)
 {
   g_return_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (gnutls));
   g_return_if_fail (!gnutls->priv->have_cert);

@@ -95,8 +95,8 @@ struct _GTlsConnectionGnutlsPrivate
   GPollableInputStream *base_istream;
   GPollableOutputStream *base_ostream;
 
-  gnutls_certificate_credentials creds;
-  gnutls_session session;
+  gnutls_certificate_credentials_t creds;
+  gnutls_session_t session;
 
   GTlsCertificate *certificate, *peer_certificate;
   GTlsCertificateFlags peer_certificate_errors;
@@ -464,13 +464,13 @@ g_tls_connection_gnutls_set_property (GObject      *object,
     }
 }
 
-gnutls_certificate_credentials
+gnutls_certificate_credentials_t
 g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *gnutls)
 {
   return gnutls->priv->creds;
 }
 
-gnutls_session
+gnutls_session_t
 g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
 {
   /* Ideally we would initialize gnutls->priv->session from
