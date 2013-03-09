@@ -1,16 +1,17 @@
 # Thai translation for glib-networking.
-# Copyright (C) 2011-2012 Free Software Foundation, Inc.
+# Copyright (C) 2011-2013 Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-networking package.
 # Unticha Pramgoed <unticha@gmail.com>, 2011-2012.
+# Theppitak Karoonboonyanan <thep@linux.thai.net>, 2013.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-09-20 05:26+0000\n"
-"PO-Revision-Date: 2012-09-22 22:18+0700\n"
-"Last-Translator: Unticha Pramgoed <unticha@gmail.com>\n"
+"POT-Creation-Date: 2012-11-29 22:09+0000\n"
+"PO-Revision-Date: 2013-03-09 11:45+0700\n"
+"Last-Translator: Theppitak Karoonboonyanan <thep@linux.thai.net>\n"
 "Language-Team: Thai <thai-l10n@googlegroups.com>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
@@ -59,52 +60,56 @@ msgstr "ไม่สามารถสร้างการเชื่อมต
 msgid "Connection is closed"
 msgstr "การเชื่อมต่อถูกปิดไปแล้ว"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
 msgid "Operation would block"
 msgstr "ปฏิบัติการจะบล็อค"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
+#: ../tls/gnutls/gtlsconnection-gnutls.c:703
 msgid "Peer failed to perform TLS handshake"
 msgstr "อีกฝ่ายหนึ่งดำเนินการ TLS handshake ไม่สำเร็จ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
+#: ../tls/gnutls/gtlsconnection-gnutls.c:720
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "อีกฝ่ายหนึ่งร้องขอ TLS rehandshake ไม่ถูกต้อง"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
+#: ../tls/gnutls/gtlsconnection-gnutls.c:746
 msgid "TLS connection closed unexpectedly"
 msgstr "การเชื่อมต่อ TLS ปิดอย่างกะทันหัน"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
+#: ../tls/gnutls/gtlsconnection-gnutls.c:756
+msgid "TLS connection peer did not send a certificate"
+msgstr "คู่สายการเชื่อมต่อ TLS ไม่ส่งใบรับรองมา"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "เกิดข้อผิดพลาดขณะดำเนินการ TLS handshake: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
 msgid "Unacceptable TLS certificate"
 msgstr "ใบรับรอง TLS ไม่เป็นที่ยอมรับ"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
 msgid "Server did not return a valid TLS certificate"
 msgstr "เซิร์ฟเวอร์ไม่คืนใบรับรอง TLS ที่ถูกต้อง"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "เกิดข้อผิดพลาดขณะอ่านข้อมูลจากซ็อกเก็ต TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "เกิดข้อผิดพลาดขณะเขียนข้อมูลลงซ็อกเก็ต TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
 msgid "Connection is already closed"
 msgstr "การเชื่อมต่อถูกปิดไปเรียบร้อยแล้ว"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "เกิดข้อผิดพลาดขณะดำเนินการปิด TLS: %s"
