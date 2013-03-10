@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-08-21 12:35+0000\n"
+"POT-Creation-Date: 2013-03-05 15:28+0000\n"
 "PO-Revision-Date: 2012-08-16 19:02+0200\n"
 "Last-Translator: Gil Forcada <gilforcada@guifi.net>\n"
 "Language-Team: Catalan <gnome-dl@llistes.softcatala.org>\n"
@@ -53,61 +53,67 @@ msgstr "No s'ha proporcionat cap dada per al certificat"
 msgid "Server required TLS certificate"
 msgstr "El servidor requereix un certificat TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#: ../tls/gnutls/gtlsconnection-gnutls.c:258
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "No s'ha pogut crear una connexió TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+#: ../tls/gnutls/gtlsconnection-gnutls.c:520
 msgid "Connection is closed"
 msgstr "La connexió està tancada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+#: ../tls/gnutls/gtlsconnection-gnutls.c:582
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1425
 msgid "Operation would block"
 msgstr "L'operació bloquejaria"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:755
 msgid "Peer failed to perform TLS handshake"
-msgstr "L'amfitrió no ha pogut realitzar l'encaixada TLS"
+msgstr "L'altre extrem de la connexió no ha pogut realitzar l'encaixada TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
+#: ../tls/gnutls/gtlsconnection-gnutls.c:729
 msgid "Peer requested illegal TLS rehandshake"
-msgstr "L'amfitrió ha sol·licitat una reencaixada TLS no vàlida"
+msgstr ""
+"L'altre extrem de la connexió ha sol·licitat una reencaixada TLS no vàlida"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
+#: ../tls/gnutls/gtlsconnection-gnutls.c:761
 msgid "TLS connection closed unexpectedly"
 msgstr "La connexió TLS s'ha tancat de manera inesperada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
+#: ../tls/gnutls/gtlsconnection-gnutls.c:771
+msgid "TLS connection peer did not send a certificate"
+msgstr "L'altre extrem de la connexió TLS no ha enviat cap certificat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1152
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "S'ha produït un error en realitzar l'encaixada TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
-msgid "Unacceptable TLS certificate"
-msgstr "No es pot acceptar el certificat TLS"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1181
 msgid "Server did not return a valid TLS certificate"
 msgstr "El servidor no ha retornat un certificat TLS vàlid"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1256
+msgid "Unacceptable TLS certificate"
+msgstr "No es pot acceptar el certificat TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1448
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "S'ha produït un error en llegir les dades del sòcol TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "S'ha produït un error en escriure les dades al sòcol TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1521
 msgid "Connection is already closed"
 msgstr "La connexió ja està tancada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1531
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "S'ha produït un error en realitzar el tancament TLS: %s"
