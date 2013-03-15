@@ -1,14 +1,14 @@
 # Portuguese translation for glib-networking.
-# Copyright © 2011, 2012 glib-networking
+# Copyright © 2011, 2012, 2013 glib-networking
 # This file is distributed under the same license as the glib-networking package.
-# Duarte Loreto <happyguy_pt@hotmail.com>, 2011, 2012.
-#
+# Duarte Loreto <happyguy_pt@hotmail.com>, 2011, 2012, 2013.
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: 3.6\n"
+"Project-Id-Version: 3.8\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-08-19 23:21+0100\n"
-"PO-Revision-Date: 2012-08-19 23:25+0000\n"
+"POT-Creation-Date: 2013-03-15 12:42+0000\n"
+"PO-Revision-Date: 2013-03-15 12:45+0000\n"
 "Last-Translator: Duarte Loreto <happyguy_pt@hotmail.com>\n"
 "Language-Team: Portuguese <gnome_pt@yahoogroups.com>\n"
 "Language: pt\n"
@@ -21,27 +21,27 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Erro interno do solucionador de proxies."
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:198
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Incapaz de processar o certificado DER: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:223
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Incapaz de processar o certificado PEM: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:260
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Incapaz de processar a chave privada DER: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:296
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Incapaz de processar a chave privada PEM: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:391
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Não foram indicados quaisquer dados de certificado"
 
@@ -49,61 +49,66 @@ msgstr "Não foram indicados quaisquer dados de certificado"
 msgid "Server required TLS certificate"
 msgstr "O servidor requer um certificado TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#: ../tls/gnutls/gtlsconnection-gnutls.c:258
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Incapaz de criar uma ligação TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+#: ../tls/gnutls/gtlsconnection-gnutls.c:520
 msgid "Connection is closed"
 msgstr "A ligação está fechada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+#: ../tls/gnutls/gtlsconnection-gnutls.c:582
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1425
 msgid "Operation would block"
 msgstr "Operação iria bloquear"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:755
 msgid "Peer failed to perform TLS handshake"
 msgstr "O destino falhao ao estabelecer a ligação (handshake) TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
+#: ../tls/gnutls/gtlsconnection-gnutls.c:729
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Destino requereu novo handshake TLS ilegal"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
+#: ../tls/gnutls/gtlsconnection-gnutls.c:761
 msgid "TLS connection closed unexpectedly"
 msgstr "Ligação TLS terminada inesperadamente"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
+#: ../tls/gnutls/gtlsconnection-gnutls.c:771
+msgid "TLS connection peer did not send a certificate"
+msgstr "O parceiro de ligação TLS não enviou um certificado"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1152
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Erro ao estabelecer a ligação TLS (handshake): %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
-msgid "Unacceptable TLS certificate"
-msgstr "Certificado TLS inaceitável"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1181
 msgid "Server did not return a valid TLS certificate"
 msgstr "O servidor não devolveu um certificado TLS válido"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1256
+msgid "Unacceptable TLS certificate"
+msgstr "Certificado TLS inaceitável"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1448
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Erro ao ler dados do socket TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Erro ao escrever dados no socket TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1521
 msgid "Connection is already closed"
 msgstr "A ligação já está fechada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1531
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Erro ao terminar a ligação TLS: %s"
@@ -117,20 +122,20 @@ msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
 msgstr ""
-"Esta é a última oportunidade para introduzir correctamente o PIN antes de "
-"que o token seja trancado."
+"Esta é a última oportunidade para introduzir corretamente o PIN antes de que "
+"o token seja trancado."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr ""
-"Foram introduzidos vários PINs incorrectos e o token será trancado caso "
+"Foram introduzidos vários PINs incorretos e o token será trancado caso "
 "ocorram mais falhas."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
-msgstr "O PIN introduzido está incorrecto."
+msgstr "O PIN introduzido está incorreto."
 
 #: ../tls/pkcs11/gpkcs11slot.c:446
 msgid "Module"
