@@ -1,20 +1,21 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>, 2012.
 #
+# Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>, 2012, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-02 20:28+0300\n"
-"PO-Revision-Date: 2012-09-02 20:31+0300\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-11-29 22:09+0000\n"
+"PO-Revision-Date: 2013-03-17 20:22+0200\n"
 "Last-Translator: Rūdolfs Mazurs <rudolfs.mazurs@gmail.com>\n"
-"Language-Team: Latviešu <lata-l10n@googlegroups.com>\n"
+"Language-Team: Latvian <lata-l10n@googlegroups.com>\n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Gtranslator 2.91.5\n"
+"X-Generator: Lokalize 1.4\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
 "2);\n"
 
@@ -59,52 +60,57 @@ msgstr "Neizdevās izveidot TLS savienojumu — %s"
 msgid "Connection is closed"
 msgstr "Savienojums ir aizvērts"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
 msgid "Operation would block"
 msgstr "Darbība bloķēs"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
+#: ../tls/gnutls/gtlsconnection-gnutls.c:703
 msgid "Peer failed to perform TLS handshake"
 msgstr "Dalībniekam neizdevās veikt TLS izaicinājumrokspiedienu"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
+#: ../tls/gnutls/gtlsconnection-gnutls.c:720
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Dalībnieks pieprasīja neatļautu TLS izaicinājumrokspiedienu"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
+#: ../tls/gnutls/gtlsconnection-gnutls.c:746
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS savienojums aizvērās negaidīti"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
+#: ../tls/gnutls/gtlsconnection-gnutls.c:756
+#| msgid "Server did not return a valid TLS certificate"
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS savienojuma dalībnieks neatsūtīja sertifikātu"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Kļūda, veicot TLS izaicinājumrokspiedienu — %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
 msgid "Unacceptable TLS certificate"
 msgstr "Nepieņemams TLS sertifikāts"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serveris neatgrieza derīgu TLS sertifikātu"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Kļūda, lasot datus no TLS ligzdas — %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Kļūda, rakstot datus TLS ligzdā — %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
 msgid "Connection is already closed"
 msgstr "Savienojums jau ir aizvērts"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Kļūda, veicot TLS aizvēršanu — %s"
@@ -147,3 +153,4 @@ msgstr "Ligzdas ID"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 ligzdas identifikators"
+
