@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Iñaki Larrañaga Murgoitio <dooteo@euskalgnu.org>, 2011, 2012.
+# Iñaki Larrañaga Murgoitio <dooteo@zundan.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: eu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-03 14:44+0100\n"
-"PO-Revision-Date: 2012-03-03 14:46+0100\n"
-"Last-Translator: Iñaki Larrañaga Murgoitio <dooteo@euskalgnu.org>\n"
-"Language-Team: Basque <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2013-03-20 09:36+0100\n"
+"PO-Revision-Date: 2013-03-04 23:35+0100\n"
+"Last-Translator: Iñaki Larrañaga Murgoitio <dooteo@zundan.com>\n"
+"Language-Team: Basque <itzulpena@euskalgnu.org>\n"
 "Language: eu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -47,48 +48,70 @@ msgstr "Ezin izan da PEM gako pribatua analizatu: %s"
 msgid "No certificate data provided"
 msgstr "Ez da ziurtagiriaren daturik eman"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:349
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "Zerbitzariak TLS ziurtagiria behar du"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:202
+#: ../tls/gnutls/gtlsconnection-gnutls.c:258
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Ezin izan da TLS konexioa sortu: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:481
+#: ../tls/gnutls/gtlsconnection-gnutls.c:520
+msgid "Connection is closed"
+msgstr "Konexioa itxi egin da"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:582
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1425
+msgid "Operation would block"
+msgstr "Eragiketa blokea daiteke"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:755
 msgid "Peer failed to perform TLS handshake"
 msgstr "Parekoak huts egin du TLS diosala lantzean"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:501
+#: ../tls/gnutls/gtlsconnection-gnutls.c:729
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Parekoak TLSren diosala ilegala eskatu du"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:519
+#: ../tls/gnutls/gtlsconnection-gnutls.c:761
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS konexioa ustekabean itxi da"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:814
-#: ../tls/gnutls/gtlsconnection-gnutls.c:840
+#: ../tls/gnutls/gtlsconnection-gnutls.c:771
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS konexioaren parekoak ez du ziurtagiria bidali"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1152
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Errorea TLS diosala lantzean: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1181
+msgid "Server did not return a valid TLS certificate"
+msgstr "Zerbitzariak ez du baliozko TLS ziurtagiria itzuli"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1256
 msgid "Unacceptable TLS certificate"
 msgstr "Onartu gabeko TLS ziurtagiria"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1027
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1448
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Errorea TLS socketetik datuak irakurtzean: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1053
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Errorea TLS socketean datuak idaztean: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1521
+msgid "Connection is already closed"
+msgstr "Konexioa jadanik itxita dago"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1531
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Errorea TLSren itxiera lantzean: %s"
@@ -108,8 +131,8 @@ msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr ""
-"Sartu diren hainbat PIN ez dira zuzenak, eta tokena blokeatu "
-"egin da hutsegite gehiagoren ondoren."
+"Sartu diren hainbat PIN ez dira zuzenak, eta tokena blokeatu egin da "
+"hutsegite gehiagoren ondoren."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -130,4 +153,3 @@ msgstr "Erretenaren IDa"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 erretenaren identifikatzailea"
-
