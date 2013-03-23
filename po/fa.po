@@ -1,22 +1,23 @@
 # Persian translation for glib-networking.
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
-# Arash Mousavi <mousavi.arash@gmail.com>, 2011.
+# Arash Mousavi <mousavi.arash@gmail.com>, 2011, 2013.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-03-31 22:22+0330\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2012-11-29 22:09+0000\n"
+"PO-Revision-Date: 2013-03-23 18:10+0330\n"
 "Last-Translator: Arash Mousavi <mousavi.arash@gmail.com>\n"
 "Language-Team: Persian\n"
+"Language: fa_IR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Persian\n"
-"X-Poedit-Country: IRAN, ISLAMIC REPUBLIC OF\n"
 "X-Poedit-SourceCharset: utf-8\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
@@ -46,63 +47,92 @@ msgstr "تجزیه کلید خصوصی PEM امکان‌پذیر نبود: %s"
 msgid "No certificate data provided"
 msgstr "هیچ اطلاعات گواهینامه‌ای ارائه نشده"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
 msgstr "کارگزار به گواهینامه TLS احتیاج دارد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "نمی‌توان اتصال TLS ایجاد کرد: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+msgid "Connection is closed"
+msgstr "اتصال بسته شده است"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
+msgid "Operation would block"
+msgstr "عملیات می‌تواند بلوکه شود"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:703
 msgid "Peer failed to perform TLS handshake"
 msgstr "برقراری TLS handshake توسط همتا شکست خورد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:720
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "همتا درخواست یک TLS rehandshake غیرقانونی کرده است"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:746
 msgid "TLS connection closed unexpectedly"
 msgstr "اتصال TLS بطور غیر منتظره‌ای شکست خورد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:756
+#| msgid "TLS connection closed unexpectedly"
+msgid "TLS connection peer did not send a certificate"
+msgstr "همتا اتصال TLS گواهینامه‌ای ارسال نکرد"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "خطا در هنگام انجام TLS handshake. خطا: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
 msgid "Unacceptable TLS certificate"
 msgstr "گواهینامه TLS غیر قابل پذیرش"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
+#| msgid "Server required TLS certificate"
+msgid "Server did not return a valid TLS certificate"
+msgstr "کارگزار گواهینامه TLS معتبری ارسال نکرد"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "خطا در هنگام هواندن اطلاعات از طریق سوکت TLS. خط: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "خطا در هنگام نوشتن اطلاعات در سوکت TLS. خطا: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
+msgid "Connection is already closed"
+msgstr "اتصال از قبل بسته شده است"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "خطا در هنگام انجام بستن TLS. خطا: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "گواهینامه هیچ کلید خصوصی‌ای ندارد"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
-msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
 msgstr "آخرین شانس برای صحیح وارد کردن PIN قبل از قفل شدن رمز است."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
-msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
-msgstr "تعدادی از تلاش‌های برای وارد کردن PIN شکست خورده است، و رمز پس از شکست‌های بعدی قفل خواهد شد."
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"تعدادی از تلاش‌های برای وارد کردن PIN شکست خورده است، و رمز پس از شکست‌های "
+"بعدی قفل خواهد شد."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -123,4 +153,3 @@ msgstr "شناسه‌ی جایگاه"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "شناساگر جایگاه PKCS#11"
-
