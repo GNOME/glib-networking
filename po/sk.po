@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-10-22 21:40+0000\n"
-"PO-Revision-Date: 2012-11-02 19:50+0000\n"
+"POT-Creation-Date: 2013-03-23 16:43+0000\n"
+"PO-Revision-Date: 2013-03-24 13:14+0100\n"
 "Last-Translator: Richard Stanislavský <kenny.vv@gmail.com>\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
 "Language: sk\n"
@@ -51,66 +51,66 @@ msgstr "Nie sú dostupné údaje certifikátu"
 msgid "Server required TLS certificate"
 msgstr "Server požaduje certifikát pre TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#: ../tls/gnutls/gtlsconnection-gnutls.c:258
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nepodarilo sa vytvoriť pripojenie s použitím TLS: %s"
 
-# PK: preco minuly cas?
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
-#, fuzzy
+#: ../tls/gnutls/gtlsconnection-gnutls.c:520
 msgid "Connection is closed"
-msgstr "Pripojenie bolo ukončené"
+msgstr "Pripojenie je ukončené"
 
-# PK: toto je zle
-# http://en.wikipedia.org/wiki/Non-blocking_algorithm
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1360
-#, fuzzy
+#: ../tls/gnutls/gtlsconnection-gnutls.c:582
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1425
 msgid "Operation would block"
-msgstr "Operácia by mala byť zablokovaná"
+msgstr "Operácia by blokovala"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:755
 msgid "Peer failed to perform TLS handshake"
 msgstr "Partner zlyhal pri vzájomnom spoznaní pomocou TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
+#: ../tls/gnutls/gtlsconnection-gnutls.c:729
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Partner žiadal nelegálne opätovné vzájomné spoznanie pomocou TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
+#: ../tls/gnutls/gtlsconnection-gnutls.c:761
 msgid "TLS connection closed unexpectedly"
 msgstr "Pripojenie pomocou TLS bolo nečakane ukončené"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1056
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1075
+#: ../tls/gnutls/gtlsconnection-gnutls.c:771
+msgid "TLS connection peer did not send a certificate"
+msgstr "Partner neposlal certifikát pre pripojenie TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1152
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Chyba vzájomného spoznania s použitím TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1211
-msgid "Unacceptable TLS certificate"
-msgstr "Neprijateľný certifikát pre TLS"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1222
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1181
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server nevrátil platný certifikát pre TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1383
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1256
+msgid "Unacceptable TLS certificate"
+msgstr "Neprijateľný certifikát pre TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1448
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Chyba pri čítaní údajov zo soketu s použitím TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1412
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Chyba pri zapisovaní údajov do soketu s použitím TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1456
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1521
 msgid "Connection is already closed"
 msgstr "Pripojenie je už ukončené"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1466
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1531
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Chyba pri uzatváraní spojenia s použitím TLS: %s"
