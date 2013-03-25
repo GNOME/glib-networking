@@ -25,7 +25,10 @@ TEST_PROGS +=              \
 	pkcs11-pin         \
 	pkcs11-slot
 
-INCLUDES += $(PKCS11_CFLAGS)
+INCLUDES +=			\
+	$(PKCS11_CFLAGS)	\
+	$(GNUTLS_CFLAGS)
+
 LDADD += $(top_builddir)/tls/pkcs11/libgiopkcs11.la $(PKCS11_LIBS)
 
 pkcs11_slot_SOURCES = pkcs11-slot.c \

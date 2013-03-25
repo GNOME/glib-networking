@@ -49,7 +49,7 @@ libgiognutls_la_SOURCES = 		\
 
 INCLUDES +=				\
 	$(P11_CFLAGS)			\
-	$(LIBGNUTLS_CFLAGS)		\
+	$(GNUTLS_CFLAGS)		\
 	$(NULL)
 
 libgiognutls_la_LDFLAGS = $(module_flags)
