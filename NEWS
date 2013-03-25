@@ -1,3 +1,10 @@
+2.36.0
+=======
+  * New/Updated translations:
+	Assamese, Basque, Belarusian, Catalan (Valencian), Catalan,
+	Danish, Finnish, Hindi, Korean, Latvian, Persian, Portuguese,
+	Russian, Slovak, Tadjik, Thai
+
 2.35.9
 ======
   * Fixed one kind of handshake failure to return the correct error
