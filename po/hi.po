@@ -3,23 +3,23 @@
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # Rajesh Ranjan <rranjan@redhat.com>, 2011.
-# chandankumar(ciypro) <chandankumar.093047@gmail.com>, 2012.
+# chandankumar(ciypro) <chandankumar.093047@gmail.com>, 2012, 2013.
 # rajesh <rajeshkajha@yahoo.com>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking.po.master.hi\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-07-18 21:47+0000\n"
-"PO-Revision-Date: 2012-09-19 17:39+0530\n"
-"Last-Translator: rajesh <rajeshkajha@yahoo.com>\n"
+"POT-Creation-Date: 2012-11-29 22:09+0000\n"
+"PO-Revision-Date: 2013-03-25 13:35+0000\n"
+"Last-Translator: chandankumar <chandankumar.093047@gmail.com>\n"
 "Language-Team: Hindi <kde-i18n-doc@kde.org>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 1.2\n"
+"X-Generator: Lokalize 1.5\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
@@ -53,62 +53,66 @@ msgstr "कोई प्रमाणपत्र आँकड़ा नहीं
 msgid "Server required TLS certificate"
 msgstr "सर्वर के लिए TLS प्रमाणपत्र चाहिए"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:248
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "टीएलएस कनेक्शन नहीं बना सका: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
 msgid "Connection is closed"
 msgstr "कनेक्शन बंद है"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:568
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
 msgid "Operation would block"
 msgstr "कार्य रोक दिया जाएगा"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:695
+#: ../tls/gnutls/gtlsconnection-gnutls.c:703
 msgid "Peer failed to perform TLS handshake"
 msgstr "TLS हैंडशेक करने में पीयर विफल रहा"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:720
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "पीयर ने TLS फिर हैंडशेक के लिए आग्रह किया"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:738
+#: ../tls/gnutls/gtlsconnection-gnutls.c:746
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS अप्रत्याशित रूप से बंद हो गया"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
+#: ../tls/gnutls/gtlsconnection-gnutls.c:756
+#| msgid "Server did not return a valid TLS certificate"
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS कनेक्शन सहकर्मी एक प्रमाण पत्र नहीं भेजा"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS हैंडशेक करने में त्रुटि: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
 msgid "Unacceptable TLS certificate"
 msgstr "अस्वीकार्य TLS प्रमाणपत्र"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
-#| msgid "Server required TLS certificate"
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
 msgid "Server did not return a valid TLS certificate"
 msgstr "सर्वर ने वैध TLS प्रमाणपत्र नहीं दिया है"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS सॉकेट से आँकड़ा पढ़ने में त्रुटि: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS सॉकेट से आँकड़ा लिखने में त्रुटि: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
 msgid "Connection is already closed"
 msgstr "कनेक्शन पहले से बंद है"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS बंद करने में त्रुटि: %s"
