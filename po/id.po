@@ -2,15 +2,15 @@
 # Copyright (C) 2011 THE glib-networking'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
-# Andika Triwidada <andika@gmail.com>, 2011, 2012.
+# Andika Triwidada <andika@gmail.com>, 2011, 2012, 2013.
 # Dirgita <dirgitadevina@yahoo.co.id>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-07-21 16:45+0000\n"
-"PO-Revision-Date: 2012-07-28 14:13+0700\n"
+"POT-Creation-Date: 2012-11-29 22:09+0000\n"
+"PO-Revision-Date: 2013-03-29 08:57+0700\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <gnome@i15n.org>\n"
 "Language: id\n"
@@ -18,9 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Poedit-Language: Indonesian\n"
-"X-Poedit-Country: INDONESIA\n"
-"X-Generator: Lokalize 1.2\n"
+"X-Generator: Poedit 1.5.5\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
@@ -54,61 +52,65 @@ msgstr "Data sertifikat tak disediakan"
 msgid "Server required TLS certificate"
 msgstr "Server memerlukan sertifikat TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:248
+#: ../tls/gnutls/gtlsconnection-gnutls.c:254
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Tak bisa membuat koneksi TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:508
+#: ../tls/gnutls/gtlsconnection-gnutls.c:514
 msgid "Connection is closed"
 msgstr "Koneksi ditutup"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:568
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1371
+#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
 msgid "Operation would block"
 msgstr "Operasi akan memblokir"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:695
+#: ../tls/gnutls/gtlsconnection-gnutls.c:703
 msgid "Peer failed to perform TLS handshake"
 msgstr "Peer gagal melakukan jabat tangan TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:720
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Peer meminta jabat tangan ulang TLS yang ilegal"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:738
+#: ../tls/gnutls/gtlsconnection-gnutls.c:746
 msgid "TLS connection closed unexpectedly"
 msgstr "Koneksi TLS tertutup tak disangka-sangka"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1049
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1068
+#: ../tls/gnutls/gtlsconnection-gnutls.c:756
+msgid "TLS connection peer did not send a certificate"
+msgstr "Pasangan koneksi TLS tak mengembalikan sertifikat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Galat melakukan jabat tangan TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1204
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
 msgid "Unacceptable TLS certificate"
 msgstr "Sertifikat TLS tak dapat diterima"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1215
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server tak mengembalikan sertifikat TLS yang valid"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1394
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Galat saat membaca data dari soket TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1423
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Galat saat menulis data ke soket TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1467
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
 msgid "Connection is already closed"
 msgstr "Koneksi telah ditutup"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Galat melaksanakan penutupan TLS: %s"
