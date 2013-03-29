@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <stdarg.h>
+#include <gnutls/dtls.h>
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
@@ -860,6 +861,14 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 		   gnutls_alert_get_name (gnutls_alert_get (gnutls->priv->session)));
       return status;
     }
+  else if (status == GNUTLS_E_LARGE_PACKET)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
+                   _("Message is too large for DTLS connection; maximum is "
+                     "%u bytes"),
+                   gnutls_dtls_get_data_mtu (gnutls->priv->session));
+      return status;
+    }
 
   if (error)
     {
@@ -1090,6 +1099,8 @@ set_gnutls_error (GTlsConnectionGnutls *gnutls,
     gnutls_transport_set_errno (gnutls->priv->session, EINTR);
   else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
     gnutls_transport_set_errno (gnutls->priv->session, EINTR);
+  else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE))
+    gnutls_transport_set_errno (gnutls->priv->session, EMSGSIZE);
   else
     gnutls_transport_set_errno (gnutls->priv->session, EIO);
 }
