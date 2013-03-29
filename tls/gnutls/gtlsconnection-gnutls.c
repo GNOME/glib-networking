@@ -584,7 +584,7 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 	}
 
       g_cancellable_make_pollfd (gnutls->priv->waiting_for_op, &fds[0]);
-      if (g_cancellable_make_pollfd (cancellable, &fds[0]))
+      if (g_cancellable_make_pollfd (cancellable, &fds[1]))
 	nfds = 2;
       else
 	nfds = 1;
