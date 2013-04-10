@@ -134,6 +134,7 @@ struct _GTlsConnectionGnutlsPrivate
   gboolean started_handshake, handshaking, ever_handshaked;
   GTask *implicit_handshake;
   GError *handshake_error;
+  GByteArray *app_data_buf;
 
   gboolean closing, closed;
 
@@ -296,6 +297,8 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_clear_object (&gnutls->priv->certificate);
   g_clear_object (&gnutls->priv->peer_certificate);
   g_clear_object (&gnutls->priv->peer_certificate_tmp);
+
+  g_clear_pointer (&gnutls->priv->app_data_buf, g_byte_array_unref);
 
 #ifdef HAVE_PKCS11
   p11_kit_pin_unregister_callback (gnutls->priv->interaction_id,
@@ -736,11 +739,6 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       g_mutex_unlock (&gnutls->priv->op_mutex);
       return status;
     }
-  else if (status == GNUTLS_E_GOT_APPLICATION_DATA)
-    {
-      if (gnutls->priv->handshaking && G_IS_TLS_SERVER_CONNECTION (gnutls))
-	return GNUTLS_E_AGAIN;
-    }
   else if (
 #ifdef GNUTLS_E_PREMATURE_TERMINATION
 	   status == GNUTLS_E_PREMATURE_TERMINATION
@@ -1167,6 +1165,20 @@ handshake_thread (GTask        *task,
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
   ret = gnutls_handshake (gnutls->priv->session);
+  if (ret == GNUTLS_E_GOT_APPLICATION_DATA)
+    {
+      guint8 buf[1024];
+
+      /* Got app data while waiting for rehandshake; buffer it and try again */
+      ret = gnutls_record_recv (gnutls->priv->session, buf, sizeof (buf));
+      if (ret > -1)
+	{
+	  if (!gnutls->priv->app_data_buf)
+	    gnutls->priv->app_data_buf = g_byte_array_new ();
+	  g_byte_array_append (gnutls->priv->app_data_buf, buf, ret);
+	  ret = GNUTLS_E_AGAIN;
+	}
+    }
   END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
 		 _("Error performing TLS handshake: %s"), &error);
 
@@ -1437,6 +1449,17 @@ g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
 			      GError               **error)
 {
   gssize ret;
+
+  if (gnutls->priv->app_data_buf && !gnutls->priv->handshaking)
+    {
+      ret = MIN (count, gnutls->priv->app_data_buf->len);
+      memcpy (buffer, gnutls->priv->app_data_buf->data, ret);
+      if (ret == gnutls->priv->app_data_buf->len)
+	g_clear_pointer (&gnutls->priv->app_data_buf, g_byte_array_unref);
+      else
+	g_byte_array_remove_range (gnutls->priv->app_data_buf, 0, ret);
+      return ret;
+    }
 
  again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ,
