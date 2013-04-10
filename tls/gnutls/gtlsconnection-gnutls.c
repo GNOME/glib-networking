@@ -547,7 +547,8 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 	    }
 	}
 
-      if (gnutls->priv->need_finish_handshake)
+      if (gnutls->priv->need_finish_handshake &&
+	  gnutls->priv->implicit_handshake)
 	{
 	  GError *my_error = NULL;
 	  gboolean success;

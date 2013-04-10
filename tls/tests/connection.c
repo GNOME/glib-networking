@@ -1006,6 +1006,60 @@ test_close_during_handshake (TestConnection *test,
   g_main_context_unref (context);
 }
 
+static void
+test_write_during_handshake (TestConnection *test,
+			    gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+  GMainContext *context;
+  GMainLoop *loop;
+  GOutputStream *ostream;
+
+  g_test_bug ("697754");
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  loop = g_main_loop_new (NULL, FALSE);
+  g_signal_connect (test->client_connection, "notify::accepted-cas",
+                    G_CALLBACK (quit_loop_on_notify), loop);
+
+  context = g_main_context_new ();
+  g_main_context_push_thread_default (context);
+  g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
+				    G_PRIORITY_DEFAULT,
+				    NULL, NULL, NULL);
+  g_main_context_pop_thread_default (context);
+
+  /* Now run the (default GMainContext) loop, which is needed for
+   * the server side of things. The client-side handshake will run in
+   * a thread, but its callback will never be invoked because its
+   * context isn't running.
+   */
+  g_main_loop_run (loop);
+  g_main_loop_unref (loop);
+
+  /* At this point handshake_thread() has started (and maybe
+   * finished), but handshake_thread_completed() (and thus
+   * finish_handshake()) has not yet run. Make sure close doesn't
+   * block.
+   */
+
+  ostream = g_io_stream_get_output_stream (test->client_connection);
+  g_output_stream_write (ostream, TEST_DATA, TEST_DATA_LENGTH,
+			 G_PRIORITY_DEFAULT, &error);
+  g_assert_no_error (error);
+
+  /* We have to let the handshake_async() call finish now, or
+   * teardown_connection() will assert.
+   */
+  g_main_context_iteration (context, TRUE);
+  g_main_context_unref (context);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -1049,6 +1103,8 @@ main (int   argc,
               setup_connection, test_close_immediately, teardown_connection);
   g_test_add ("/tls/connection/close-during-handshake", TestConnection, NULL,
               setup_connection, test_close_during_handshake, teardown_connection);
+  g_test_add ("/tls/connection/write-during-handshake", TestConnection, NULL,
+              setup_connection, test_write_during_handshake, teardown_connection);
 
   ret = g_test_run();
 
