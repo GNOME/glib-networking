@@ -3,22 +3,24 @@
 # This file is distributed under the same license as the glib-networking package.
 #
 # Muhammed Eken <gnome@m-eken.com>, 2011.
-# Muhammet Kara <muhammet.k@gmail.com>, 2011, 2012.
+# Ozan Çağlayan <ozancag@gmail.com>, 2013.
+# Muhammet Kara <muhammetk@gmail.com>, 2011, 2012, 2013.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2011-11-19 01:32+0000\n"
-"PO-Revision-Date: 2012-01-04 10:17+0000\n"
-"Last-Translator: Muhammet Kara <muhammet.k@gmail.com>\n"
-"Language-Team: Turkish <gnome-turk@gnome.org>\n"
+"POT-Creation-Date: 2013-04-03 16:39+0000\n"
+"PO-Revision-Date: 2013-04-08 12:09+0300\n"
+"Last-Translator: Muhammet Kara <muhammetk@gmail.com>\n"
+"Language-Team: Türkçe <gnome-turk@gnome.org>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"Language: tr\n"
-"X-Generator: Lokalize 1.2\n"
+"X-Generator: Gtranslator 2.91.5\n"
 
 #: ../proxy/libproxy/glibproxyresolver.c:150
 msgid "Proxy resolver internal error."
@@ -27,74 +29,96 @@ msgstr "Proxy çözücü iç hatası."
 #: ../tls/gnutls/gtlscertificate-gnutls.c:173
 #, c-format
 msgid "Could not parse DER certificate: %s"
-msgstr "DER sertifikası çözümlenemedi: %s"
+msgstr "DER sertifikası ayrıştırılamadı: %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:194
 #, c-format
 msgid "Could not parse PEM certificate: %s"
-msgstr "PEM sertifikası çözümlenemedi: %s"
+msgstr "PEM sertifikası ayrıştırılamadı: %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:225
 #, c-format
 msgid "Could not parse DER private key: %s"
-msgstr "DER özel anahtarı çözümlenemedi: %s"
+msgstr "DER özel anahtarı ayrıştırılamadı: %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:256
 #, c-format
 msgid "Could not parse PEM private key: %s"
-msgstr "PEM özel anahtarı çözümlenemedi: %s"
+msgstr "PEM özel anahtarı ayrıştırılamadı: %s"
 
 #: ../tls/gnutls/gtlscertificate-gnutls.c:296
 msgid "No certificate data provided"
 msgstr "Sertifika verisi sağlanmadı"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
 msgid "Server required TLS certificate"
-msgstr "Sunucu TLS sertifikası gerekli"
+msgstr "Sunucu TLS sertifikası talep etti"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:258
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS bağlantısı oluşturulamadı: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:520
+msgid "Connection is closed"
+msgstr "Bağlantı kapalı"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:582
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1425
+msgid "Operation would block"
+msgstr "Bloke eden işlem"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:712
+#: ../tls/gnutls/gtlsconnection-gnutls.c:755
 msgid "Peer failed to perform TLS handshake"
-msgstr "TLS eş anlaşması gerçekleştirilemedi"
+msgstr "Uç, TLS el sıkışmasını başaramadı"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:729
 msgid "Peer requested illegal TLS rehandshake"
-msgstr "Eş, kural dışı TLS anlaşması talep etti"
+msgstr "Uç, kural dışı TLS el sıkışması talep etti"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:761
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS bağlantısı beklenmedik şekilde sonlandı"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:771
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS bağlantı ucu sertifika göndermedi"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1152
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
 #, c-format
 msgid "Error performing TLS handshake: %s"
-msgstr "TLS anlaşmasında hata gerçekleşti: %s"
+msgstr "TLS el sıkışması sırasında hata: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1181
+msgid "Server did not return a valid TLS certificate"
+msgstr "Sunucu geçerli bir TLS sertifikası döndürmedi"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1256
 msgid "Unacceptable TLS certificate"
 msgstr "TLS sertifikası kabul edilemez"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1448
 #, c-format
 msgid "Error reading data from TLS socket: %s"
-msgstr "TLS soketinde veri okuma hatası: %s"
+msgstr "TLS soketinden veri okurken hata: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1477
 #, c-format
 msgid "Error writing data to TLS socket: %s"
-msgstr "TLS soketinde veri yazma hatası: %s"
+msgstr "TLS soketine veri yazarken hata: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1521
+msgid "Connection is already closed"
+msgstr "Bağlantı zaten kapalı"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1531
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS kapatma işleminde hata: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "Sertifikanın özel anahtarı yok"
 
@@ -103,20 +127,18 @@ msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
 msgstr ""
-"Bu, simge kilitlenmeden önce PIN kodunu doğru olarak girmek için son "
-"şansınızdır."
+"Bu, simge (token) kilitlenmeden önce PIN kodunu doğru girmeniz için son "
+"şanstır."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
-msgstr ""
-"PIN birden çok kez yanlış girildi, ve tekrar yanlış girilmesi halinde simge "
-"kilitlenecektir."
+msgstr "PIN daha fazla yanlış girilirse simge (token) kilitlenecektir."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
-msgstr "Girilen PIN hatalıdır."
+msgstr "Girilen PIN hatalı."
 
 #: ../tls/pkcs11/gpkcs11slot.c:446
 msgid "Module"
@@ -133,4 +155,3 @@ msgstr "Yuva Kimliği (Slot ID)"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 Yuva Tanımlayıcısı"
-
