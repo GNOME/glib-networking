@@ -1,7 +1,7 @@
 AC_PREREQ(2.65)
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_INIT([glib-networking],[2.36.0],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network])
+AC_INIT([glib-networking],[2.36.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network])
 
 AC_CONFIG_SRCDIR([proxy/libproxy/glibproxyresolver.h])
 AC_CONFIG_HEADERS([config.h])
