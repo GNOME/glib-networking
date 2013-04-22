@@ -225,13 +225,22 @@ update_settings (GProxyResolverGnome *resolver)
       resolver->pacrunner = NULL;
     }
 
-  if (resolver->mode != G_DESKTOP_PROXY_MODE_MANUAL)
-    return;
-
   ignore_hosts =
     g_settings_get_strv (resolver->proxy_settings, GNOME_PROXY_IGNORE_HOSTS_KEY);
   g_simple_proxy_resolver_set_ignore_hosts (simple, ignore_hosts);
   g_strfreev (ignore_hosts);
+
+  if (resolver->mode == G_DESKTOP_PROXY_MODE_AUTO)
+    {
+      /* We use the base_resolver to handle ignore_hosts in the AUTO case,
+       * so we have to set a non-"direct://" default proxy so we can distinguish
+       * the two cases.
+       */
+       g_simple_proxy_resolver_set_default_proxy (simple, "use-proxy:");
+    }
+
+  if (resolver->mode != G_DESKTOP_PROXY_MODE_MANUAL)
+    return;
 
   host = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_HOST_KEY);
   port = g_settings_get_int (resolver->http_settings, GNOME_PROXY_HTTP_PORT_KEY);
