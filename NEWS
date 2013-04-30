@@ -1,3 +1,26 @@
+2.37.1
+======
+  * gnutls: Fixed a bug that could cause hangs and/or bursts of CPU
+    usage in some cases. (#696881, Olivier Crête)
+
+  * gnutls: Fixed CFLAGS when building with gnutls in a different
+    prefix. (#696519, Emmanuel Pacaud)
+
+  * gnutls: Fixed a hang while rehandshaking with gnutls 3.x (#695062,
+    Dan)
+
+  * gnutls: Fixed a handshaking crash in multithreaded use (#697754,
+    Olivier Crête)
+
+  * proxy/gnome: Fix "automatic" mode, which was mistakenly being
+    treated as "none" (Dan)
+
+  * proxy/gnome: Use this in Unity sessions as well as GNOME ones.
+    (#698936, Iain Lane)
+
+  * New/Updated translations:
+	Friulian, Indonesian, Turkish
+
 2.36.0
 =======
   * New/Updated translations:
