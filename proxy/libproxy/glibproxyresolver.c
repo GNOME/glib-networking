@@ -128,29 +128,35 @@ free_libproxy_proxies (gchar **proxies)
   free (proxies);
 }
 
-static gchar **
-get_libproxy_proxies (GLibProxyResolver  *resolver,
-		      const gchar        *uri,
-		      GCancellable       *cancellable,
-		      GError            **error)
+static void
+get_libproxy_proxies (GTask        *task,
+		      gpointer      source_object,
+		      gpointer      task_data,
+		      GCancellable *cancellable)
 {
+  GLibProxyResolver *resolver = source_object;
+  const gchar *uri = task_data;
+  GError *error = NULL;
   gchar **proxies;
 
-  /* FIXME: this is not really cancellable; to do it right we'd
-   * need to run this function in a thread pool like GThreadedResolver.
-   */
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return NULL;
+  if (g_task_return_error_if_cancelled (task))
+    return;
 
   proxies = px_proxy_factory_get_proxies (resolver->factory, uri);
-  if (!proxies)
+  if (proxies)
     {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-			   _("Proxy resolver internal error."));
+      /* We always copy to be able to translate "socks" entry into
+       * three entries ("socks5", "socks4a", "socks4").
+       */
+      g_task_return_pointer (task, copy_proxies (proxies), (GDestroyNotify) g_strfreev);
+      free_libproxy_proxies (proxies);
     }
-
-  return proxies;
+  else
+    {
+      g_set_error_literal (&error, G_IO_ERROR, G_IO_ERROR_FAILED,
+			   _("Proxy resolver internal error."));
+      g_task_return_error (task, error);
+    }
 }
 
 static gchar **
@@ -159,48 +165,19 @@ g_libproxy_resolver_lookup (GProxyResolver  *iresolver,
 			    GCancellable    *cancellable,
 			    GError         **error)
 {
-  GLibProxyResolver *resolver;
+  GLibProxyResolver *resolver = G_LIBPROXY_RESOLVER (iresolver);
+  GTask *task;
   gchar **proxies;
 
-  g_return_val_if_fail (G_IS_LIBPROXY_RESOLVER (iresolver), NULL);
-  g_return_val_if_fail (uri != NULL, NULL);
+  task = g_task_new (resolver, cancellable, NULL, NULL);
+  g_task_set_task_data (task, g_strdup (uri), g_free);
+  g_task_set_return_on_cancel (task, TRUE);
 
-  resolver = G_LIBPROXY_RESOLVER (iresolver);
-
-  proxies = get_libproxy_proxies (resolver, uri, cancellable, error);
-
-  /* We always copy to be able to translate "socks" entry into
-   * three entries ("socks5", "socks4a", "socks4").
-   */
-  if (proxies)
-    {
-      gchar **copy;
-
-      copy = copy_proxies (proxies);
-      free_libproxy_proxies (proxies);
-      proxies = copy;
-    }
+  g_task_run_in_thread (task, get_libproxy_proxies);
+  proxies = g_task_propagate_pointer (task, error);
+  g_object_unref (task);
 
   return proxies;
-}
-
-static void
-_lookup_async (GTask        *task,
-	       gpointer      object,
-	       gpointer      task_data,
-	       GCancellable *cancellable)
-{
-  GLibProxyResolver *resolver = object;
-  gchar *uri = task_data;
-  GError *error = NULL;
-  gchar **proxies = NULL;
-
-  proxies = get_libproxy_proxies (resolver, uri, cancellable, &error);
-
-  if (error)
-    g_task_return_error (task, error);
-  else
-    g_task_return_pointer (task, proxies, (GDestroyNotify)free_libproxy_proxies);
 }
 
 static void
@@ -213,8 +190,9 @@ g_libproxy_resolver_lookup_async (GProxyResolver      *resolver,
   GTask *task;
 
   task = g_task_new (resolver, cancellable, callback, user_data);
-  g_task_set_task_data (task, g_strdup (uri), (GDestroyNotify) g_free);
-  g_task_run_in_thread (task, _lookup_async);
+  g_task_set_task_data (task, g_strdup (uri), g_free);
+  g_task_set_return_on_cancel (task, TRUE);
+  g_task_run_in_thread (task, get_libproxy_proxies);
   g_object_unref (task);
 }
 
