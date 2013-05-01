@@ -14,3 +14,9 @@ LDADD  = \
 if HAVE_GNOME_PROXY
 TEST_PROGS += gnome
 endif
+
+if HAVE_LIBPROXY
+TEST_PROGS += libproxy
+endif
+
+EXTRA_DIST = common.c
