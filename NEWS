@@ -1,3 +1,14 @@
+2.36.2
+======
+  * proxy/gnome: Fix "automatic" mode, which was mistakenly being
+    treated as "none" (Dan)
+
+  * proxy/gnome: Use this in Unity sessions as well as GNOME ones.
+    (#698936, Iain Lane)
+
+  * proxy/libproxy: Fix handling of SOCKS proxies (#699359, Dan)
+
+
 2.36.1
 ======
   * gnutls: Fixed a bug that could cause hangs and/or bursts of CPU
