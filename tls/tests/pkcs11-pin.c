@@ -44,8 +44,8 @@ static void
 teardown_pin (TestPin       *test,
               gconstpointer  unused)
 {
+  g_assert_cmpint (G_OBJECT (test->pin)->ref_count, ==, 1);
   g_object_unref (test->pin);
-  g_assert (!G_IS_OBJECT (test->pin));
 }
 
 static void
