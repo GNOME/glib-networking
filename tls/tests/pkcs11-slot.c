@@ -72,11 +72,11 @@ teardown_slot (TestSlot     *test,
 {
   CK_RV rv;
 
+  g_assert_cmpint (G_OBJECT (test->slot)->ref_count, ==, 1);
   g_object_unref (test->slot);
-  g_assert (!G_IS_OBJECT (test->slot));
 
+  g_assert_cmpint (G_OBJECT (test->not_present)->ref_count, ==, 1);
   g_object_unref (test->not_present);
-  g_assert (!G_IS_OBJECT (test->not_present));
 
   rv = p11_kit_finalize_module (&test->funcs);
   g_assert (rv == CKR_OK);
