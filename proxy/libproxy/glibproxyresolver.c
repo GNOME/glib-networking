@@ -173,7 +173,7 @@ g_libproxy_resolver_lookup (GProxyResolver  *iresolver,
   g_task_set_task_data (task, g_strdup (uri), g_free);
   g_task_set_return_on_cancel (task, TRUE);
 
-  g_task_run_in_thread (task, get_libproxy_proxies);
+  g_task_run_in_thread_sync (task, get_libproxy_proxies);
   proxies = g_task_propagate_pointer (task, error);
   g_object_unref (task);
 

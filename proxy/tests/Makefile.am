@@ -18,3 +18,5 @@ endif
 if HAVE_LIBPROXY
 TEST_PROGS += libproxy
 endif
+
+EXTRA_DIST = common.c
