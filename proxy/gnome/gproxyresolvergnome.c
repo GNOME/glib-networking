@@ -313,8 +313,14 @@ update_settings (GProxyResolverGnome *resolver)
 static gboolean
 g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
 {
-  return !g_strcmp0 (g_getenv ("DESKTOP_SESSION"), "gnome") ||
-         !g_strcmp0 (g_getenv ("DESKTOP_SESSION"), "ubuntu");
+  const char *session;
+
+  session = g_getenv ("DESKTOP_SESSION");
+  if (session == NULL)
+    return FALSE;
+
+  return g_str_has_prefix (session, "gnome") ||
+         strcmp (session, "ubuntu") == 0;
 }
 
 static inline gchar **
