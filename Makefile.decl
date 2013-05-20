@@ -33,13 +33,13 @@ test: test-nonrecursive
 
 # test-nonrecursive: run tests only in cwd
 test-nonrecursive: ${TEST_PROGS}
-	@test -z "${TEST_PROGS}" || ${TEST_ENVIRONMENT} ${GTESTER} --verbose ${TEST_PROGS}
+	@test -z "$(strip ${TEST_PROGS})" || ${TEST_ENVIRONMENT} ${GTESTER} --verbose ${TEST_PROGS}
 
 # test-report: run tests in subdirs and generate report
 # perf-report: run tests in subdirs with -m perf and generate report
 # full-report: like test-report: with -m perf and -m slow
 test-report perf-report full-report:	${TEST_PROGS}
-	@test -z "${TEST_PROGS}" || { \
+	@test -z "$(strip ${TEST_PROGS})" || { \
 	  case $@ in \
 	  test-report) test_options="-k";; \
 	  perf-report) test_options="-k -m=perf";; \
@@ -47,7 +47,7 @@ test-report perf-report full-report:	${TEST_PROGS}
 	  esac ; \
 	  if test -z "$$GTESTER_LOGDIR" ; then	\
 	    ${GTESTER} --verbose $$test_options -o test-report.xml ${TEST_PROGS} ; \
-	  elif test -n "${TEST_PROGS}" ; then \
+	  elif test -n "$(strip ${TEST_PROGS})" ; then \
 	    ${GTESTER} --verbose $$test_options -o `mktemp "$$GTESTER_LOGDIR/log-XXXXXX"` ${TEST_PROGS} ; \
 	  fi ; \
 	}
