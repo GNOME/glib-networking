@@ -1,3 +1,20 @@
+2.37.2
+======
+  * proxy/gnome: Improve session-type detection to include
+    gnome-classic and anything else starting with "gnome" (#700607,
+    Giovanni Campagna)
+
+  * proxy/libproxy: make SOCKS work when using the async API (#699359,
+    Dan)
+
+  * proxy/tests: make the libproxy test program use the just-built
+    plugin rather than the installed one. Oops (#700286, Iain Lane)
+
+  * proxy/tests: fix to not error out if neither proxy module is built
+    (#700628, Dan)
+
+  * tls/tests: fix a sporadic crash (Dan)
+
 2.37.1
 ======
   * gnutls: Fixed a bug that could cause hangs and/or bursts of CPU
