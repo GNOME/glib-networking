@@ -315,6 +315,9 @@ g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
 {
   const char *session;
 
+  if (g_getenv ("GNOME_DESKTOP_SESSION_ID"))
+    return TRUE;
+
   session = g_getenv ("DESKTOP_SESSION");
   if (session == NULL)
     return FALSE;
