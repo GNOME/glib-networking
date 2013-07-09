@@ -1,3 +1,9 @@
+2.37.4
+======
+  * proxy/gnome: further improve GNOME session detection (#701377)
+
+  * gnutls: don't crash if $G_TLS_GNUTS_PRIORITY is invalid (#701693)
+
 2.37.2
 ======
   * proxy/gnome: Improve session-type detection to include
