@@ -82,8 +82,7 @@ dnl *****************************
 dnl *** Checks for GNUTLS     ***
 dnl *****************************
 
-GNUTLS_MIN_REQUIRED=2.11.0
-GNUTLS_MIN_PKCS11=2.12.8
+GNUTLS_MIN_REQUIRED=3.0
 
 AC_ARG_WITH(gnutls,
     [AC_HELP_STRING([--with-gnutls],
@@ -141,7 +140,7 @@ AC_ARG_WITH(pkcs11,
 	                [with_pkcs11=check])
 if test "x$with_pkcs11" != "xno"; then
 	PKG_CHECK_MODULES(PKCS11,
-	                  [p11-kit-1 >= $P11_KIT_REQUIRED gnutls >= $GNUTLS_MIN_PKCS11],
+	                  [p11-kit-1 >= $P11_KIT_REQUIRED],
 	                  [with_pkcs11=yes
 	                   pkcs11_support=p11-kit
 	                   tls_support="${tls_support}gnutls-pkcs11 "
