@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.decl
+include $(top_srcdir)/glib-networking.mk
 
 AM_CPPFLAGS += $(LIBPROXY_CFLAGS)
 
@@ -36,7 +36,7 @@ service_in_files = org.gtk.GLib.PACRunner.service.in
 service_DATA = $(service_in_files:.service.in=.service)
 
 EXTRA_DIST += $(service_in_files)
-CLEANFILES = $(service_DATA)
+CLEANFILES += $(service_DATA)
 
 org.gtk.GLib.PACRunner.service: org.gtk.GLib.PACRunner.service.in Makefile
 	$(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@

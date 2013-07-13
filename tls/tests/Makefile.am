@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.decl
+include $(top_srcdir)/glib-networking.mk
 
 AM_CPPFLAGS +=					\
 	-I$(top_srcdir)/tls			\
@@ -6,12 +6,10 @@ AM_CPPFLAGS +=					\
 	-DSRCDIR=\""$(abs_srcdir)"\"		\
 	-DTOP_BUILDDIR=\""$(top_builddir)"\"
 
-noinst_PROGRAMS = $(TEST_PROGS)
-
 LDADD  = \
 	$(GLIB_LIBS)
 
-TEST_PROGS +=         \
+test_programs =       \
 	certificate   \
 	file-database \
 	connection    \
@@ -19,7 +17,7 @@ TEST_PROGS +=         \
 
 if HAVE_PKCS11
 
-TEST_PROGS +=              \
+test_programs +=           \
 	pkcs11-util        \
 	pkcs11-array       \
 	pkcs11-pin         \
@@ -36,9 +34,6 @@ pkcs11_slot_SOURCES = pkcs11-slot.c \
 	mock-interaction.c mock-interaction.h
 
 endif
-
-DISTCLEANFILES = \
-	$(NULL)
 
 EXTRA_DIST += \
 	files \

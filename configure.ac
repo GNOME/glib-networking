@@ -44,6 +44,8 @@ AC_SUBST(GIO_MODULE_DIR)
 AC_PATH_PROG(GIO_QUERYMODULES, gio-querymodules)
 AC_SUBST(GIO_QUERYMODULES)
 
+GLIB_TESTS
+
 dnl *****************************
 dnl *** Checks for LibProxy   ***
 dnl *****************************

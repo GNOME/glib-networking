@@ -1,4 +1,4 @@
-include $(top_srcdir)/Makefile.decl
+include $(top_srcdir)/glib-networking.mk
 
 giomodule_LTLIBRARIES = libgiognutls.la
 

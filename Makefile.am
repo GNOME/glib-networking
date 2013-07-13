@@ -1,5 +1,5 @@
 ## Process this file with automake to produce Makefile.in
-include $(top_srcdir)/Makefile.decl
+include $(top_srcdir)/glib-networking.mk
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 

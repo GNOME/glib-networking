@@ -6,7 +6,7 @@ Makefile
 *.o
 *.lo
 *.la
-*-marshal.[ch]
+*.test
 
 # autofoo stuff here
 compile
@@ -26,6 +26,7 @@ gtk-doc.make
 compile
 glib-lcov.info
 glib-lcov
+test-driver
 
 INSTALL
 ChangeLog
