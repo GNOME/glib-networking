@@ -47,7 +47,7 @@ libgiognutls_la_SOURCES = 		\
 	$(P11_SRCS) 			\
 	$(NULL)
 
-INCLUDES +=				\
+AM_CPPFLAGS +=				\
 	$(P11_CFLAGS)			\
 	$(GNUTLS_CFLAGS)		\
 	$(NULL)

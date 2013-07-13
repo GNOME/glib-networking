@@ -19,6 +19,6 @@ libgiopkcs11_la_LIBADD =			\
 	$(GLIB_LIBS)				\
 	$(NULL)
 
-INCLUDES +=					\
+AM_CPPFLAGS +=					\
 	$(PKCS11_CFLAGS)			\
 	-DG_DISABLE_DEPRECATED

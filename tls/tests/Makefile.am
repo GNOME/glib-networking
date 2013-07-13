@@ -1,6 +1,6 @@
 include $(top_srcdir)/Makefile.decl
 
-INCLUDES +=					\
+AM_CPPFLAGS +=					\
 	-I$(top_srcdir)/tls			\
 	-I$(top_builddir)/tls			\
 	-DSRCDIR=\""$(abs_srcdir)"\"		\
@@ -25,7 +25,7 @@ TEST_PROGS +=              \
 	pkcs11-pin         \
 	pkcs11-slot
 
-INCLUDES +=			\
+AM_CPPFLAGS +=			\
 	$(PKCS11_CFLAGS)	\
 	$(GNUTLS_CFLAGS)
 

@@ -1,6 +1,6 @@
 include $(top_srcdir)/Makefile.decl
 
-INCLUDES +=					\
+AM_CPPFLAGS +=					\
 	$(GSETTINGS_DESKTOP_SCHEMAS_CFLAGS)	\
 	-I$(top_srcdir)/proxy			\
 	-DSRCDIR=\""$(srcdir)"\"		\

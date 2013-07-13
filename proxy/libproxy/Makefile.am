@@ -1,6 +1,6 @@
 include $(top_srcdir)/Makefile.decl
 
-INCLUDES += $(LIBPROXY_CFLAGS)
+AM_CPPFLAGS += $(LIBPROXY_CFLAGS)
 
 giomodule_LTLIBRARIES = libgiolibproxy.la
 
