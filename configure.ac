@@ -84,7 +84,7 @@ dnl *****************************
 dnl *** Checks for GNUTLS     ***
 dnl *****************************
 
-GNUTLS_MIN_REQUIRED=3.0
+GNUTLS_MIN_REQUIRED=2.12.8
 
 AC_ARG_WITH(gnutls,
     [AC_HELP_STRING([--with-gnutls],
