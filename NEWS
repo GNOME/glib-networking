@@ -1,3 +1,11 @@
+2.37.5
+======
+  * gnutls: minimum version is now 2.12.8 (with 3.x preferred...)
+
+  * glib-networking now supports the --enable-installed-tests flag, to
+    install its test programs to run at other times (ie, after
+    updating glib)
+
 2.37.4
 ======
   * proxy/gnome: further improve GNOME session detection (#701377)
