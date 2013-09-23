@@ -1,3 +1,7 @@
+2.38.0
+======
+  * New stable release. (No changes since 2.37.5)
+
 2.37.5
 ======
   * gnutls: minimum version is now 2.12.8 (with 3.x preferred...)
