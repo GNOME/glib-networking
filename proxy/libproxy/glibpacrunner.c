@@ -49,7 +49,7 @@ got_proxies (GObject      *source,
 
   proxies = g_proxy_resolver_lookup_finish (resolver, result, &error);
   if (error)
-    g_dbus_method_invocation_take_error (invocation);
+    g_dbus_method_invocation_take_error (invocation, error);
   else
     {
       g_dbus_method_invocation_return_value (invocation,
