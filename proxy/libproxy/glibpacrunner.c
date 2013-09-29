@@ -48,11 +48,14 @@ got_proxies (GObject      *source,
   GError *error = NULL;
 
   proxies = g_proxy_resolver_lookup_finish (resolver, result, &error);
-  g_assert (!error);
-
-  g_dbus_method_invocation_return_value (invocation,
-					 g_variant_new ("(^as)", proxies));
-  g_strfreev (proxies);
+  if (error)
+    g_dbus_method_invocation_take_error (invocation);
+  else
+    {
+      g_dbus_method_invocation_return_value (invocation,
+					     g_variant_new ("(^as)", proxies));
+      g_strfreev (proxies);
+    }
 }
 
 static void
