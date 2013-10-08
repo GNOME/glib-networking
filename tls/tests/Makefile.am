@@ -35,6 +35,23 @@ pkcs11_slot_SOURCES = pkcs11-slot.c \
 
 endif
 
-EXTRA_DIST += \
-	files \
+testfilesdir = $(installed_testdir)/files
+testfiles_DATA =				\
+	files/ca.pem				\
+	files/ca-roots.pem			\
+	files/ca-verisign-sha1.pem		\
+	files/chain-with-verisign-md2.pem	\
+	files/client-and-key.pem		\
+	files/client-future.pem			\
+	files/client-past.pem			\
+	files/client.pem			\
+	files/non-ca.pem			\
+	files/server-and-key.pem		\
+	files/server.der			\
+	files/server-key.der			\
+	files/server-key.pem			\
+	files/server.pem			\
+	files/server-self.pem			\
 	$(NULL)
+
+EXTRA_DIST += $(testfiles_DATA)

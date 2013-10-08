@@ -24,8 +24,6 @@
 #include <sys/types.h>
 #include <string.h>
 
-#define TEST_FILE(name) (SRCDIR "/files/" name)
-
 typedef struct {
   GTlsBackend *backend;
   GType cert_gtype;
@@ -41,30 +39,34 @@ static void
 setup_certificate (TestCertificate *test, gconstpointer data)
 {
   GError *error = NULL;
-  gchar *contents;
+  gchar *file, *contents;
   gsize length;
 
   test->backend = g_tls_backend_get_default ();
   test->cert_gtype = g_tls_backend_get_certificate_type (test->backend);
 
-  g_file_get_contents (TEST_FILE ("server.pem"), &test->cert_pem,
-                       &test->cert_pem_length, &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server.pem", NULL);
+  g_file_get_contents (file, &test->cert_pem, &test->cert_pem_length, &error);
+  g_free (file);
   g_assert_no_error (error);
 
-  g_file_get_contents (TEST_FILE ("server.der"),
-		       &contents, &length, &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server.der", NULL);
+  g_file_get_contents (file, &contents, &length, &error);
+  g_free (file);
   g_assert_no_error (error);
 
   test->cert_der = g_byte_array_new ();
   g_byte_array_append (test->cert_der, (guint8 *)contents, length);
   g_free (contents);
 
-  g_file_get_contents (TEST_FILE ("server-key.pem"), &test->key_pem,
-                       &test->key_pem_length, &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server-key.pem", NULL);
+  g_file_get_contents (file, &test->key_pem, &test->key_pem_length, &error);
+  g_free (file);
   g_assert_no_error (error);
 
-  g_file_get_contents (TEST_FILE ("server-key.der"),
-                       &contents, &length, &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server-key.der", NULL);
+  g_file_get_contents (file, &contents, &length, &error);
+  g_free (file);
   g_assert_no_error (error);
 
   test->key_der = g_byte_array_new ();
@@ -174,8 +176,11 @@ test_create_certificate_with_issuer (TestCertificate   *test,
 {
   GTlsCertificate *cert, *issuer, *check;
   GError *error = NULL;
+  gchar *file;
 
-  issuer = g_tls_certificate_new_from_file (TEST_FILE ("ca.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/ca.pem", NULL);
+  issuer = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (issuer));
 
@@ -215,19 +220,24 @@ setup_verify (TestVerify     *test,
               gconstpointer   data)
 {
   GError *error = NULL;
+  gchar *file;
 
-  test->cert = g_tls_certificate_new_from_file (TEST_FILE ("server.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server.pem", NULL);
+  test->cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (test->cert));
 
   test->identity = g_network_address_new ("server.example.com", 80);
 
-  test->anchor = g_tls_certificate_new_from_file (TEST_FILE ("ca.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/ca.pem", NULL);
+  test->anchor = g_tls_certificate_new_from_file (file, &error);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (test->anchor));
-  test->database = g_tls_file_database_new (TEST_FILE ("ca.pem"), &error);
+  test->database = g_tls_file_database_new (file, &error);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_DATABASE (test->database));
+  g_free (file);
 }
 
 static void
@@ -293,9 +303,12 @@ test_verify_certificate_bad_ca (TestVerify      *test,
   GTlsCertificateFlags errors;
   GTlsCertificate *cert;
   GError *error = NULL;
+  gchar *file;
 
   /* Use a client certificate as the CA, which is wrong */
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("client.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
@@ -312,9 +325,12 @@ test_verify_certificate_bad_before (TestVerify      *test,
   GTlsCertificateFlags errors;
   GTlsCertificate *cert;
   GError *error = NULL;
+  gchar *file;
 
   /* This is a certificate in the future */
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("client-future.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-future.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
@@ -331,9 +347,12 @@ test_verify_certificate_bad_expired (TestVerify      *test,
   GTlsCertificateFlags errors;
   GTlsCertificate *cert;
   GError *error = NULL;
+  gchar *file;
 
   /* This is a certificate in the future */
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("client-past.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-past.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
@@ -352,13 +371,18 @@ test_verify_certificate_bad_combo (TestVerify      *test,
   GSocketConnectable *identity;
   GTlsCertificateFlags errors;
   GError *error = NULL;
+  gchar *file;
 
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("client-past.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-past.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
   /* Unrelated cert used as certificate authority */
-  cacert = g_tls_certificate_new_from_file (TEST_FILE ("server-self.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server-self.pem", NULL);
+  cacert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cacert));
 
@@ -386,14 +410,21 @@ test_certificate_is_same (void)
   GTlsCertificate *two;
   GTlsCertificate *three;
   GError *error = NULL;
+  gchar *file;
 
-  one = g_tls_certificate_new_from_file (TEST_FILE ("client.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client.pem", NULL);
+  one = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
 
-  two = g_tls_certificate_new_from_file (TEST_FILE ("client-and-key.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-and-key.pem", NULL);
+  two = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
 
-  three = g_tls_certificate_new_from_file (TEST_FILE ("server.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server.pem", NULL);
+  three = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
 
   g_assert (g_tls_certificate_is_same (one, two) == TRUE);

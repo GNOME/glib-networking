@@ -28,8 +28,6 @@
 #include <sys/types.h>
 #include <string.h>
 
-#define TEST_FILE(name) (SRCDIR "/files/" name)
-
 /* -----------------------------------------------------------------------------
  * CERTIFICATE VERIFY
  */
@@ -45,14 +43,19 @@ setup_verify (TestVerify     *test,
               gconstpointer   data)
 {
   GError *error = NULL;
+  gchar *file;
 
-  test->cert = g_tls_certificate_new_from_file (TEST_FILE ("server.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server.pem", NULL);
+  test->cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (test->cert));
 
   test->identity = g_network_address_new ("server.example.com", 80);
 
-  test->database = g_tls_file_database_new (TEST_FILE ("ca.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/ca.pem", NULL);
+  test->database = g_tls_file_database_new (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_DATABASE (test->database));
 }
@@ -124,9 +127,12 @@ test_verify_database_bad_ca (TestVerify      *test,
   GTlsCertificateFlags errors;
   GTlsCertificate *cert;
   GError *error = NULL;
+  gchar *file;
 
   /* Use another certificate which isn't in our CA list */
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("server-self.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server-self.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
@@ -146,9 +152,12 @@ test_verify_database_bad_before (TestVerify      *test,
   GTlsCertificateFlags errors;
   GTlsCertificate *cert;
   GError *error = NULL;
+  gchar *file;
 
   /* This is a certificate in the future */
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("client-future.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-future.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
@@ -168,9 +177,12 @@ test_verify_database_bad_expired (TestVerify      *test,
   GTlsCertificateFlags errors;
   GTlsCertificate *cert;
   GError *error = NULL;
+  gchar *file;
 
   /* This is a certificate in the future */
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("client-past.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-past.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
@@ -191,8 +203,11 @@ test_verify_database_bad_combo (TestVerify      *test,
   GSocketConnectable *identity;
   GTlsCertificateFlags errors;
   GError *error = NULL;
+  gchar *file;
 
-  cert = g_tls_certificate_new_from_file (TEST_FILE ("server-self.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/server-self.pem", NULL);
+  cert = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
@@ -267,18 +282,21 @@ test_verify_with_incorrect_root_in_chain (void)
   GTlsCertificate *chain;
   GSocketConnectable *identity;
   GTlsCertificateFlags errors;
+  gchar *file;
 
   /*
    * This database contains a single anchor certificate of:
    * C = US, O = "VeriSign, Inc.", OU = Class 3 Public Primary Certification Authority
    */
-  database = g_tls_file_database_new (TEST_FILE ("ca-verisign-sha1.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/ca-verisign-sha1.pem", NULL);
+  database = g_tls_file_database_new (file, &error);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_DATABASE (database));
 
-  ca_verisign_sha1 = g_tls_certificate_new_from_file (TEST_FILE ("ca-verisign-sha1.pem"), &error);
+  ca_verisign_sha1 = g_tls_certificate_new_from_file (file, &error);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (ca_verisign_sha1));
+  g_free (file);
 
   /*
    * This certificate chain contains a root certificate with that same issuer, public key:
@@ -288,7 +306,9 @@ test_verify_with_incorrect_root_in_chain (void)
    * verify this chain as valid, since the issuer fields and signatures should chain up
    * to the certificate in our database.
    */
-  chain = load_certificate_chain (TEST_FILE ("chain-with-verisign-md2.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/chain-with-verisign-md2.pem", NULL);
+  chain = load_certificate_chain (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (chain));
 
@@ -319,7 +339,7 @@ test_verify_with_incorrect_root_in_chain (void)
 
 typedef struct {
   GTlsDatabase *database;
-  const gchar *path;
+  gchar *path;
 } TestFileDatabase;
 
 static void
@@ -328,7 +348,7 @@ setup_file_database (TestFileDatabase *test,
 {
   GError *error = NULL;
 
-  test->path = TEST_FILE ("ca-roots.pem");
+  test->path = g_test_build_filename (G_TEST_DIST, "files/ca-roots.pem", NULL);
   test->database = g_tls_file_database_new (test->path, &error);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_DATABASE (test->database));
@@ -338,6 +358,7 @@ static void
 teardown_file_database (TestFileDatabase *test,
                         gconstpointer     data)
 {
+  g_free (test->path);
   g_assert (G_IS_TLS_DATABASE (test->database));
   g_object_add_weak_pointer (G_OBJECT (test->database),
 			     (gpointer *)&test->database);
@@ -353,6 +374,7 @@ test_file_database_handle (TestFileDatabase *test,
   GTlsCertificate *check;
   GError *error = NULL;
   gchar *handle;
+  gchar *file;
 
   /*
    * ca.pem is in the ca-roots.pem that the test->database represents.
@@ -360,7 +382,9 @@ test_file_database_handle (TestFileDatabase *test,
    * is 'in' the database.
    */
 
-  certificate = g_tls_certificate_new_from_file (TEST_FILE ("ca.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/ca.pem", NULL);
+  certificate = g_tls_certificate_new_from_file (file, &error);
+  g_free (file);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (certificate));
 
@@ -403,15 +427,18 @@ test_anchors_property (void)
   GTlsDatabase *database;
   gchar *anchor_filename = NULL;
   GError *error = NULL;
+  gchar *file;
 
-  database = g_tls_file_database_new (TEST_FILE ("ca.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/ca.pem", NULL);
+  database = g_tls_file_database_new (file, &error);
   g_assert_no_error (error);
 
   g_object_get (database, "anchors", &anchor_filename, NULL);
-  g_assert_cmpstr (anchor_filename, ==, TEST_FILE ("ca.pem"));
+  g_assert_cmpstr (anchor_filename, ==, file);
   g_free (anchor_filename);
 
   g_object_unref (database);
+  g_free (file);
 }
 
 static gboolean
@@ -456,8 +483,11 @@ test_lookup_certificates_issued_by (void)
   GByteArray *issuer_dn;
   GTlsDatabase *database;
   GError *error = NULL;
+  gchar *file;
 
-  database = g_tls_file_database_new (TEST_FILE ("non-ca.pem"), &error);
+  file = g_test_build_filename (G_TEST_DIST, "files/non-ca.pem", NULL);
+  database = g_tls_file_database_new (file, &error);
+  g_free (file);
   g_assert_no_error (error);
 
   issuer_dn = g_byte_array_new ();
@@ -472,11 +502,21 @@ test_lookup_certificates_issued_by (void)
 
   g_assert_cmpuint (g_list_length (certificates), ==, 4);
 
-  g_assert (certificate_is_in_list (certificates, TEST_FILE ("client.pem")));
-  g_assert (certificate_is_in_list (certificates, TEST_FILE ("client-future.pem")));
-  g_assert (certificate_is_in_list (certificates, TEST_FILE ("client-past.pem")));
-  g_assert (certificate_is_in_list (certificates, TEST_FILE ("server.pem")));
-  g_assert (!certificate_is_in_list (certificates, TEST_FILE ("server-self.pem")));
+  file = g_test_build_filename (G_TEST_DIST, "files/client.pem", NULL);
+  g_assert (certificate_is_in_list (certificates, file));
+  g_free (file);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-future.pem", NULL);
+  g_assert (certificate_is_in_list (certificates, file));
+  g_free (file);
+  file = g_test_build_filename (G_TEST_DIST, "files/client-past.pem", NULL);
+  g_assert (certificate_is_in_list (certificates, file));
+  g_free (file);
+  file = g_test_build_filename (G_TEST_DIST, "files/server.pem", NULL);
+  g_assert (certificate_is_in_list (certificates, file));
+  g_free (file);
+  file = g_test_build_filename (G_TEST_DIST, "files/server-self.pem", NULL);
+  g_assert (!certificate_is_in_list (certificates, file));
+  g_free (file);
 
   g_list_free_full (certificates, g_object_unref);
   g_object_unref (database);
