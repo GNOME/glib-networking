@@ -24,6 +24,29 @@
 #include <sys/types.h>
 #include <string.h>
 
+static const gchar *
+tls_test_file_path (const char *name)
+{
+  const gchar *const_path;
+  gchar *path;
+
+  path = g_test_build_filename (G_TEST_DIST, "files", name, NULL);
+  if (!g_path_is_absolute (path))
+    {
+      gchar *cwd, *abs;
+
+      cwd = g_get_current_dir ();
+      abs = g_build_filename (cwd, path, NULL);
+      g_free (cwd);
+      g_free (path);
+      path = abs;
+    }
+
+  const_path = g_intern_string (path);
+  g_free (path);
+  return const_path;
+}
+
 #define TEST_DATA "You win again, gravity!\n"
 #define TEST_DATA_LENGTH 24
 
@@ -202,11 +225,8 @@ on_incoming_connection (GSocketService     *service,
   GOutputStream *stream;
   GTlsCertificate *cert;
   GError *error = NULL;
-  gchar *file;
 
-  file = g_test_build_filename (G_TEST_DIST, "files/server-and-key.pem", NULL);
-  cert = g_tls_certificate_new_from_file (file, &error);
-  g_free (file);
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
   g_assert_no_error (error);
 
   test->server_connection = g_tls_server_connection_new (G_IO_STREAM (connection),
@@ -278,11 +298,8 @@ run_echo_server (GThreadedSocketService *service,
   GOutputStream *ostream;
   gssize nread, nwrote, total;
   gchar buf[128];
-  gchar *file;
 
-  file = g_test_build_filename (G_TEST_DIST, "files/server-and-key.pem", NULL);
-  cert = g_tls_certificate_new_from_file (file, &error);
-  g_free (file);
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
   g_assert_no_error (error);
 
   test->server_connection = g_tls_server_connection_new (G_IO_STREAM (connection),
@@ -439,11 +456,8 @@ test_verified_connection (TestConnection *test,
 {
   GIOStream *connection;
   GError *error = NULL;
-  gchar *file;
 
-  file = g_test_build_filename (G_TEST_DIST, "files/ca-roots.pem", NULL);
-  test->database = g_tls_file_database_new (file, &error);
-  g_free (file);
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert (test->database);
 
@@ -485,11 +499,8 @@ test_client_auth_connection (TestConnection *test,
   GTlsCertificate *cert;
   GTlsCertificate *peer;
   gboolean cas_changed;
-  gchar *file;
 
-  file = g_test_build_filename (G_TEST_DIST, "files/ca-roots.pem", NULL);
-  test->database = g_tls_file_database_new (file, &error);
-  g_free (file);
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert (test->database);
 
@@ -501,9 +512,7 @@ test_client_auth_connection (TestConnection *test,
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
 
-  file = g_test_build_filename (G_TEST_DIST, "files/client-and-key.pem", NULL);
-  cert = g_tls_certificate_new_from_file (file, &error);
-  g_free (file);
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
   g_assert_no_error (error);
 
   g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
@@ -545,11 +554,8 @@ test_client_auth_failure (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
   gboolean accepted_changed;
-  gchar *file;
 
-  file = g_test_build_filename (G_TEST_DIST, "files/ca-roots.pem", NULL);
-  test->database = g_tls_file_database_new (file, &error);
-  g_free (file);
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert (test->database);
 
