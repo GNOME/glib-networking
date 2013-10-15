@@ -1,3 +1,14 @@
+2.38.1
+======
+  * glibpacrunner: Don't crash if there is an internal libproxy error.
+    (rhbz #866927)
+
+  * tls/tests: Fix installed tests to not accidentally depend on
+    having the source tree still exist. (#709628)
+
+  * Updated translations:
+	Tajik
+
 2.38.0
 ======
   * New stable release. (No changes since 2.37.5)
