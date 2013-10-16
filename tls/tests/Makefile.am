@@ -35,8 +35,7 @@ pkcs11_slot_SOURCES = pkcs11-slot.c \
 
 endif
 
-testfilesdir = $(installed_testdir)/files
-testfiles_DATA =				\
+testfiles_data =				\
 	files/ca.pem				\
 	files/ca-roots.pem			\
 	files/ca-verisign-sha1.pem		\
@@ -54,4 +53,9 @@ testfiles_DATA =				\
 	files/server-self.pem			\
 	$(NULL)
 
-EXTRA_DIST += $(testfiles_DATA)
+if ENABLE_INSTALLED_TESTS
+testfilesdir = $(installed_testdir)/files
+testfiles_DATA = $(testfiles_data)
+endif
+
+EXTRA_DIST += $(testfiles_data)
