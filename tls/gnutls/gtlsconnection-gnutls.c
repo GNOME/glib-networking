@@ -727,7 +727,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 
   if (my_error)
     {
-      if (!g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+      if (!g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK) &&
+          !g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
 	G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
       g_propagate_error (error, my_error);
       return status;
@@ -993,6 +994,8 @@ set_gnutls_error (GTlsConnectionGnutls *gnutls,
   if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     gnutls_transport_set_errno (gnutls->priv->session, EINTR);
   else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+    gnutls_transport_set_errno (gnutls->priv->session, EINTR);
+  else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
     gnutls_transport_set_errno (gnutls->priv->session, EINTR);
   else
     gnutls_transport_set_errno (gnutls->priv->session, EIO);
