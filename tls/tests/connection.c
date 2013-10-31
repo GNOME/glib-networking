@@ -250,7 +250,7 @@ on_incoming_connection (GSocketService     *service,
   stream = g_io_stream_get_output_stream (test->server_connection);
 
   g_output_stream_write_async (stream, TEST_DATA,
-			       test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH,
+                               test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH,
                                G_PRIORITY_DEFAULT, NULL,
                                on_output_write_finish, test);
   return FALSE;
@@ -1177,6 +1177,80 @@ test_write_during_handshake (TestConnection *test,
   g_main_context_unref (context);
 }
 
+static gboolean
+async_implicit_handshake_dispatch (GPollableInputStream *stream,
+                                   gpointer user_data)
+{
+  TestConnection *test = user_data;
+  GError *error = NULL;
+  gchar buffer[TEST_DATA_LENGTH];
+  gssize size;
+  gboolean keep_running;
+
+  size = g_pollable_input_stream_read_nonblocking (stream, buffer,
+                                                   TEST_DATA_LENGTH,
+                                                   NULL, &error);
+
+  keep_running = (-1 == size);
+
+  if (keep_running)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK);
+  else
+    {
+      g_assert_no_error (error);
+      g_assert_cmpint (size, ==, TEST_DATA_LENGTH);
+      g_main_loop_quit (test->loop);
+    }
+
+  return keep_running;
+}
+
+static void
+test_async_implicit_handshake (TestConnection *test, gconstpointer   data)
+{
+  GTlsCertificateFlags flags;
+  GIOStream *stream;
+  GInputStream *input_stream;
+  GSource *input_source;
+  GError *error = NULL;
+
+  g_test_bug ("710691");
+
+  stream = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (stream, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (stream);
+
+  flags = G_TLS_CERTIFICATE_VALIDATE_ALL &
+    ~(G_TLS_CERTIFICATE_UNKNOWN_CA | G_TLS_CERTIFICATE_BAD_IDENTITY);
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                flags);
+
+  /**
+   * Create a source from the client's input stream. The dispatch
+   * callback will be called a first time, which will perform a
+   * non-blocking read triggering the asynchronous implicit
+   * handshaking.
+   */
+  input_stream = g_io_stream_get_input_stream (test->client_connection);
+  input_source =
+    g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (input_stream),
+                                           NULL);
+
+  g_source_set_callback (input_source,
+                         (GSourceFunc) async_implicit_handshake_dispatch,
+                         test, NULL);
+
+  g_source_attach (input_source, NULL);
+
+  g_main_loop_run (test->loop);
+
+  g_io_stream_close (G_IO_STREAM (test->client_connection), NULL, &error);
+  g_assert_no_error (error);
+  g_object_unref (test->client_connection);
+  test->client_connection = NULL;
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -1215,17 +1289,19 @@ main (int   argc,
   g_test_add ("/tls/connection/simultaneous-async", TestConnection, NULL,
               setup_connection, test_simultaneous_async, teardown_connection);
   g_test_add ("/tls/connection/simultaneous-sync", TestConnection, NULL,
-	      setup_connection, test_simultaneous_sync, teardown_connection);
+              setup_connection, test_simultaneous_sync, teardown_connection);
   g_test_add ("/tls/connection/simultaneous-async-rehandshake", TestConnection, NULL,
               setup_connection, test_simultaneous_async_rehandshake, teardown_connection);
   g_test_add ("/tls/connection/simultaneous-sync-rehandshake", TestConnection, NULL,
-	      setup_connection, test_simultaneous_sync_rehandshake, teardown_connection);
+              setup_connection, test_simultaneous_sync_rehandshake, teardown_connection);
   g_test_add ("/tls/connection/close-immediately", TestConnection, NULL,
               setup_connection, test_close_immediately, teardown_connection);
   g_test_add ("/tls/connection/close-during-handshake", TestConnection, NULL,
               setup_connection, test_close_during_handshake, teardown_connection);
   g_test_add ("/tls/connection/write-during-handshake", TestConnection, NULL,
               setup_connection, test_write_during_handshake, teardown_connection);
+  g_test_add ("/tls/connection/async-implicit-handshake", TestConnection, NULL,
+              setup_connection, test_async_implicit_handshake, teardown_connection);
 
   ret = g_test_run();
 
