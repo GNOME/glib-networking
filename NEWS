@@ -1,3 +1,9 @@
+2.38.2
+======
+  * tls/tests: Fix to previous installed-tests fix, which resulted
+    in some files getting installed even when installed tests weren't
+    enabled. (#710197)
+
 2.38.1
 ======
   * glibpacrunner: Don't crash if there is an internal libproxy error.
