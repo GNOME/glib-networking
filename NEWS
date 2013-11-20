@@ -1,3 +1,20 @@
+2.39.1
+======
+  * tls/gnutls: Use g_tls_interaction_invoke_request_certificate()
+    when processing a certificate request. (#637257, Stef Walter)
+
+  * tls/gnutls: Handle G_IO_ERROR_TIMED_OUT on a GTlsConnection
+    correctly rather than reporting "The specified session has
+    been invalidated for some reason". (#710700, Aleix Concillo
+    Flaque)
+
+  * tls/tests: Fix to previous installed-tests fix, which resulted
+    in some files getting installed even when installed tests weren't
+    enabled. (#710197)
+
+  * tls/tests: add a test for a fix made in glib (#710691, Aleix
+    Conchillo Flaque).
+
 2.38.1
 ======
   * glibpacrunner: Don't crash if there is an internal libproxy error.
