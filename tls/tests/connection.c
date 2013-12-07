@@ -79,22 +79,9 @@ typedef struct {
 static void
 setup_connection (TestConnection *test, gconstpointer data)
 {
-  GInetAddress *inet;
-  guint16 port;
-
   test->context = g_main_context_default ();
   test->loop = g_main_loop_new (test->context, FALSE);
-
   test->auth_mode = G_TLS_AUTHENTICATION_NONE;
-
-  /* This is where the server listens and the client connects */
-  port = g_random_int_range (50000, 65000);
-  inet = g_inet_address_new_from_string ("127.0.0.1");
-  test->address = G_SOCKET_ADDRESS (g_inet_socket_address_new (inet, port));
-  g_object_unref (inet);
-
-  /* The identity matches the server certificate */
-  test->identity = g_network_address_new ("server.example.com", port);
 }
 
 static void
@@ -145,11 +132,34 @@ teardown_connection (TestConnection *test, gconstpointer data)
 	g_main_context_iteration (NULL, FALSE);
     }
 
-  g_object_unref (test->address);
-  g_object_unref (test->identity);
+  g_clear_object (&test->address);
+  g_clear_object (&test->identity);
   g_main_loop_unref (test->loop);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
+}
+
+static void
+start_server (TestConnection *test)
+{
+  GInetAddress *inet;
+  GSocketAddress *addr;
+  GInetSocketAddress *iaddr;
+  GError *error = NULL;
+
+  inet = g_inet_address_new_from_string ("127.0.0.1");
+  addr = g_inet_socket_address_new (inet, 0);
+  g_object_unref (inet);
+
+  g_socket_listener_add_address (G_SOCKET_LISTENER (test->service), addr,
+                                 G_SOCKET_TYPE_STREAM, G_SOCKET_PROTOCOL_TCP,
+                                 NULL, &test->address, &error);
+  g_assert_no_error (error);
+
+  /* The hostname in test->identity matches the server certificate. */
+  iaddr = G_INET_SOCKET_ADDRESS (test->address);
+  test->identity = g_network_address_new ("server.example.com",
+					  g_inet_socket_address_get_port (iaddr));
 }
 
 static gboolean
@@ -268,14 +278,8 @@ static void
 start_async_server_service (TestConnection *test, GTlsAuthenticationMode auth_mode,
                             gboolean should_close)
 {
-  GError *error = NULL;
-
   test->service = g_socket_service_new ();
-  g_socket_listener_add_address (G_SOCKET_LISTENER (test->service),
-                                 G_SOCKET_ADDRESS (test->address),
-                                 G_SOCKET_TYPE_STREAM, G_SOCKET_PROTOCOL_TCP,
-                                 NULL, NULL, &error);
-  g_assert_no_error (error);
+  start_server (test);
 
   test->auth_mode = auth_mode;
   g_signal_connect (test->service, "incoming", G_CALLBACK (on_incoming_connection), test);
@@ -364,14 +368,8 @@ run_echo_server (GThreadedSocketService *service,
 static void
 start_echo_server_service (TestConnection *test)
 {
-  GError *error = NULL;
-
   test->service = g_threaded_socket_service_new (5);
-  g_socket_listener_add_address (G_SOCKET_LISTENER (test->service),
-                                 G_SOCKET_ADDRESS (test->address),
-                                 G_SOCKET_TYPE_STREAM, G_SOCKET_PROTOCOL_TCP,
-                                 NULL, NULL, &error);
-  g_assert_no_error (error);
+  start_server (test);
 
   g_signal_connect (test->service, "run", G_CALLBACK (run_echo_server), test);
 }
