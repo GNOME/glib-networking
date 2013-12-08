@@ -70,7 +70,7 @@ typedef struct {
   gboolean expect_server_error;
   GError *server_error;
   gboolean server_should_close;
-  gboolean server_closed;
+  gboolean server_running;
 
   char buf[128];
   gssize nread, nwrote;
@@ -84,6 +84,21 @@ setup_connection (TestConnection *test, gconstpointer data)
   test->auth_mode = G_TLS_AUTHENTICATION_NONE;
 }
 
+/* Waits about 10 seconds for @var to be NULL/FALSE */
+#define WAIT_UNTIL_UNSET(var)				\
+  if (var)						\
+    {							\
+      int i;						\
+							\
+      for (i = 0; i < 13 && (var); i++)			\
+	{						\
+	  g_usleep (1000 * (1 << i));			\
+	  g_main_context_iteration (NULL, FALSE);	\
+	}						\
+							\
+      g_assert (!(var));				\
+    }
+
 static void
 teardown_connection (TestConnection *test, gconstpointer data)
 {
@@ -95,41 +110,33 @@ teardown_connection (TestConnection *test, gconstpointer data)
        */
       g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
       g_object_unref (test->service);
-      while (test->service)
-	g_main_context_iteration (NULL, FALSE);
+      WAIT_UNTIL_UNSET (test->service);
     }
 
   if (test->server_connection)
     {
-      while (!test->server_closed)
-	g_main_context_iteration (NULL, FALSE);
+      WAIT_UNTIL_UNSET (test->server_running);
 
-      g_assert (G_IS_TLS_SERVER_CONNECTION (test->server_connection));
       g_object_add_weak_pointer (G_OBJECT (test->server_connection),
 				 (gpointer *)&test->server_connection);
       g_object_unref (test->server_connection);
-      while (test->server_connection)
-	g_main_context_iteration (NULL, FALSE);
+      WAIT_UNTIL_UNSET (test->server_connection);
     }
 
   if (test->client_connection)
     {
-      g_assert (G_IS_TLS_CLIENT_CONNECTION (test->client_connection));
       g_object_add_weak_pointer (G_OBJECT (test->client_connection),
 				 (gpointer *)&test->client_connection);
       g_object_unref (test->client_connection);
-      while (test->client_connection)
-	g_main_context_iteration (NULL, FALSE);
+      WAIT_UNTIL_UNSET (test->client_connection);
     }
 
   if (test->database)
     {
-      g_assert (G_IS_TLS_DATABASE (test->database));
       g_object_add_weak_pointer (G_OBJECT (test->database),
 				 (gpointer *)&test->database);
       g_object_unref (test->database);
-      while (test->database)
-	g_main_context_iteration (NULL, FALSE);
+      WAIT_UNTIL_UNSET (test->database);
     }
 
   g_clear_object (&test->address);
@@ -160,6 +167,8 @@ start_server (TestConnection *test)
   iaddr = G_INET_SOCKET_ADDRESS (test->address);
   test->identity = g_network_address_new ("server.example.com",
 					  g_inet_socket_address_get_port (iaddr));
+
+  test->server_running = TRUE;
 }
 
 static gboolean
@@ -206,7 +215,7 @@ on_server_close_finish (GObject        *object,
     g_assert (error != NULL);
   else
     g_assert_no_error (error);
-  test->server_closed = TRUE;
+  test->server_running = FALSE;
 }
 
 static void
@@ -362,7 +371,7 @@ run_echo_server (GThreadedSocketService *service,
 
   g_io_stream_close (test->server_connection, NULL, &error);
   g_assert_no_error (error);
-  test->server_closed = TRUE;
+  test->server_running = FALSE;
 }
 
 static void
