@@ -21,6 +21,7 @@
 #include "glib.h"
 
 #include <errno.h>
+#include <stdarg.h>
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
@@ -667,10 +668,19 @@ begin_gnutls_io (GTlsConnectionGnutls  *gnutls,
 
 static int
 end_gnutls_io (GTlsConnectionGnutls  *gnutls,
-	       GIOCondition           direction,
-	       int                    status,
-	       const char            *errmsg,
-	       GError               **error)
+               GIOCondition           direction,
+               int                    status,
+               GError               **error,
+               const char            *err_fmt,
+               ...) G_GNUC_PRINTF(5, 6);
+
+static int
+end_gnutls_io (GTlsConnectionGnutls  *gnutls,
+               GIOCondition           direction,
+               int                    status,
+               GError               **error,
+               const char            *err_fmt,
+               ...)
 {
   GError *my_error = NULL;
 
@@ -781,8 +791,11 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 
   if (error)
     {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   errmsg, gnutls_strerror (status));
+      va_list ap;
+
+      va_start (ap, err_fmt);
+      *error = g_error_new_valist (G_TLS_ERROR, G_TLS_ERROR_MISC, err_fmt, ap);
+      va_end (ap);
     }
   return status;
 }
@@ -792,7 +805,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   do {
 
 #define END_GNUTLS_IO(gnutls, direction, ret, errmsg, err)		\
-  } while ((ret = end_gnutls_io (gnutls, direction, ret, errmsg, err)) == GNUTLS_E_AGAIN);
+  } while ((ret = end_gnutls_io (gnutls, direction, ret, err, errmsg, gnutls_strerror (ret))) == GNUTLS_E_AGAIN);
 
 gboolean
 g_tls_connection_gnutls_check (GTlsConnectionGnutls  *gnutls,
