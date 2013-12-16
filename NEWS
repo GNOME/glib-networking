@@ -1,3 +1,13 @@
+2.39.3
+======
+  * tls/tests: Fix one sporadic bug in the connection test (#720081)
+    and make it properly fail rather than hanging forever when another
+    sporadic bug happens (which I don't actually know the cause of)
+    (#719727)
+
+  * tls/gnutls: Fix for -Werror=format-nonliteral (#720081, Ryan
+    Lortie)
+
 2.39.1
 ======
   * tls/gnutls: Use g_tls_interaction_invoke_request_certificate()
