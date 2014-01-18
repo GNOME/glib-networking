@@ -1179,6 +1179,17 @@ quit_loop_on_notify (GObject *obj,
 }
 
 static void
+handshake_completed (GObject      *object,
+		     GAsyncResult *result,
+		     gpointer      user_data)
+{
+  gboolean *complete = user_data;
+
+  *complete = TRUE;
+  return;
+}
+
+static void
 test_close_during_handshake (TestConnection *test,
 			     gconstpointer   data)
 {
@@ -1186,6 +1197,7 @@ test_close_during_handshake (TestConnection *test,
   GError *error = NULL;
   GMainContext *context;
   GMainLoop *loop;
+  gboolean handshake_complete = FALSE;
 
   g_test_bug ("688751");
 
@@ -1202,8 +1214,8 @@ test_close_during_handshake (TestConnection *test,
   context = g_main_context_new ();
   g_main_context_push_thread_default (context);
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
-				    G_PRIORITY_DEFAULT,
-				    NULL, NULL, NULL);
+				    G_PRIORITY_DEFAULT, NULL,
+				    handshake_completed, &handshake_complete);
   g_main_context_pop_thread_default (context);
 
   /* Now run the (default GMainContext) loop, which is needed for
@@ -1225,7 +1237,8 @@ test_close_during_handshake (TestConnection *test,
   /* We have to let the handshake_async() call finish now, or
    * teardown_connection() will assert.
    */
-  g_main_context_iteration (context, TRUE);
+  while (!handshake_complete)
+    g_main_context_iteration (context, TRUE);
   g_main_context_unref (context);
 }
 
@@ -1238,6 +1251,7 @@ test_write_during_handshake (TestConnection *test,
   GMainContext *context;
   GMainLoop *loop;
   GOutputStream *ostream;
+  gboolean handshake_complete = FALSE;
 
   g_test_bug ("697754");
 
@@ -1253,8 +1267,8 @@ test_write_during_handshake (TestConnection *test,
   context = g_main_context_new ();
   g_main_context_push_thread_default (context);
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
-				    G_PRIORITY_DEFAULT,
-				    NULL, NULL, NULL);
+				    G_PRIORITY_DEFAULT, NULL,
+				    handshake_completed, &handshake_complete);
   g_main_context_pop_thread_default (context);
 
   /* Now run the (default GMainContext) loop, which is needed for
@@ -1279,7 +1293,8 @@ test_write_during_handshake (TestConnection *test,
   /* We have to let the handshake_async() call finish now, or
    * teardown_connection() will assert.
    */
-  g_main_context_iteration (context, TRUE);
+  while (!handshake_complete)
+    g_main_context_iteration (context, TRUE);
   g_main_context_unref (context);
 }
 
