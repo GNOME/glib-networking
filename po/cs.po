@@ -124,14 +124,14 @@ msgstr "Certifikát nemá soukromý klíč"
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
-msgstr "Máte poslední pokus zadat PIN správně, pak bude kupon zablokován."
+msgstr "Máte poslední pokus zadat PIN správně, pak bude tiket zablokován."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr ""
-"Několik pokusů PIN bylo nesprávných a po dalším neúspěchu bude kupon "
+"Několik pokusů PIN bylo nesprávných a po dalším neúspěchu bude tiket "
 "zablokován."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
