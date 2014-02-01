@@ -37,7 +37,7 @@ AM_PATH_GLIB_2_0(2.39.1,,AC_MSG_ERROR(GLIB not found),gio)
 GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_40"
 
 GIO_MODULE_DIR=$($PKG_CONFIG --variable giomoduledir gio-2.0)
-AS_IF([test "x$GIO_MODULE_DIR" = "x"],
+AS_IF([test "$GIO_MODULE_DIR" = ""],
       [AC_MSG_FAILURE(GIO_MODULE_DIR is missing from gio-2.0.pc)])
 AC_SUBST(GIO_MODULE_DIR)
 
@@ -55,12 +55,12 @@ AC_ARG_WITH(libproxy,
                     [support for libproxy @<:@default=check@:>@])],
     [],
     [with_libproxy=check])
-AS_IF([test "x$with_libproxy" != "xno"],
+AS_IF([test "$with_libproxy" != "no"],
     [PKG_CHECK_MODULES(LIBPROXY, [libproxy-1.0 >= 0.3.1],
         [with_libproxy=yes; proxy_support=libproxy],
-        [AS_IF([test "x$with_libproxy" = "xyes"],
+        [AS_IF([test "$with_libproxy" = "yes"],
                [AC_MSG_FAILURE("$LIBPROXY_PKG_ERRORS")])])])
-AM_CONDITIONAL(HAVE_LIBPROXY, [test "x$with_libproxy" = "xyes"])
+AM_CONDITIONAL(HAVE_LIBPROXY, [test "$with_libproxy" = "yes"])
 AC_SUBST(LIBPROXY_CFLAGS)
 AC_SUBST(LIBPROXY_LIBS)
 
@@ -72,12 +72,12 @@ AC_ARG_WITH(gnome-proxy,
                     [support for GNOME proxy configuration @<:@default=check@:>@])],
     [],
     [with_gnome_proxy=check])
-AS_IF([test "x$with_gnome_proxy" != "xno"],
+AS_IF([test "$with_gnome_proxy" != "no"],
     [PKG_CHECK_MODULES(GSETTINGS_DESKTOP_SCHEMAS, [gsettings-desktop-schemas],
         [with_gnome_proxy=yes; proxy_support="gnome $proxy_support"],
-	[AS_IF([test "x$with_gnome_proxy" = "xyes"],
+	[AS_IF([test "$with_gnome_proxy" = "yes"],
                [AC_MSG_FAILURE("$GSETTINGS_DESKTOP_SCHEMAS_PKG_ERRORS")])])])
-AM_CONDITIONAL(HAVE_GNOME_PROXY, [test "x$with_gnome_proxy" = "xyes"])
+AM_CONDITIONAL(HAVE_GNOME_PROXY, [test "$with_gnome_proxy" = "yes"])
 AC_SUBST(GSETTINGS_DESKTOP_SCHEMAS_CFLAGS)
 
 dnl *****************************
@@ -91,19 +91,19 @@ AC_ARG_WITH(gnutls,
                     [support for GNUTLS @<:@default=yes@:>@])],
     [],
     [with_gnutls=yes])
-if test "x$with_gnutls" != "xno"; then
+if test "$with_gnutls" != "no"; then
 	PKG_CHECK_MODULES(GNUTLS,
 	                  [gnutls >= $GNUTLS_MIN_REQUIRED],
 	                  [with_gnutls=yes
 	                   tls_support="${tls_support}gnutls "],
-	                  [AS_IF([test "x$with_gnutls" = "xyes"],
+	                  [AS_IF([test "$with_gnutls" = "yes"],
 	                         [AC_MSG_FAILURE("$GNUTLS_PKG_ERRORS")])])
 fi
-AM_CONDITIONAL(HAVE_GNUTLS, [test "x$with_gnutls" = "xyes"])
+AM_CONDITIONAL(HAVE_GNUTLS, [test "$with_gnutls" = "yes"])
 AC_SUBST(GNUTLS_CFLAGS)
 AC_SUBST(GNUTLS_LIBS)
 
-if test "x$with_gnutls" = "xyes"; then
+if test "$with_gnutls" = "yes"; then
     AC_MSG_CHECKING([location of system Certificate Authority list])
     AC_ARG_WITH(ca-certificates,
 		[AC_HELP_STRING([--with-ca-certificates=@<:@path@:>@],
@@ -140,20 +140,20 @@ AC_ARG_WITH(pkcs11,
 	                [support for pkcs11 @<:@default=check@:>@])],
 	                [],
 	                [with_pkcs11=check])
-if test "x$with_pkcs11" != "xno"; then
+if test "$with_pkcs11" != "no"; then
 	PKG_CHECK_MODULES(PKCS11,
 	                  [p11-kit-1 >= $P11_KIT_REQUIRED],
 	                  [with_pkcs11=yes
 	                   pkcs11_support=p11-kit
 	                   tls_support="${tls_support}gnutls-pkcs11 "
 	                   AC_DEFINE_UNQUOTED([HAVE_PKCS11], [1], [Building with PKCS#11 support])],
-	                  [AS_IF([test "x$with_pkcs11" = "xyes"],
+	                  [AS_IF([test "$with_pkcs11" = "yes"],
 	                         [AC_MSG_FAILURE("$PKCS11_PKG_ERRORS")])
 	                   pkcs11_support=no])
 else
 	pkcs11_support=no
 fi
-AM_CONDITIONAL(HAVE_PKCS11, [test "x$with_pkcs11" = "xyes"])
+AM_CONDITIONAL(HAVE_PKCS11, [test "$with_pkcs11" = "yes"])
 AC_SUBST(PKCS11_CFLAGS)
 AC_SUBST(PKCS11_LIBS)
 
@@ -166,7 +166,7 @@ AC_ARG_ENABLE(gcov,
 		 [Enable gcov]),
   [use_gcov=$enableval], [use_gcov=no])
 
-if test "x$use_gcov" = "xyes"; then
+if test "$use_gcov" = "yes"; then
   dnl we need gcc:
   if test "$GCC" != "yes"; then
     AC_MSG_ERROR([GCC is required for --enable-gcov])
