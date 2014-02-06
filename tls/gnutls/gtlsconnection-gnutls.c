@@ -860,6 +860,10 @@ gnutls_source_sync (GTlsConnectionGnutlsSource *gnutls_source)
   GTlsConnectionGnutls *gnutls = gnutls_source->gnutls;
   gboolean io_waiting, op_waiting;
 
+  /* Was the source destroyed earlier in this main context iteration? */
+  if (g_source_is_destroyed ((GSource *) gnutls_source))
+    return;
+
   g_mutex_lock (&gnutls->priv->op_mutex);
   if (((gnutls_source->condition & G_IO_IN) && gnutls->priv->reading) ||
       ((gnutls_source->condition & G_IO_OUT) && gnutls->priv->writing) ||
