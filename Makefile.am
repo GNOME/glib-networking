@@ -33,3 +33,8 @@ uninstall-hook:
 	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \
 		$(GIO_QUERYMODULES) $(GIO_MODULE_DIR) ;           \
 	fi
+
+EXTRA_DIST +=		\
+	tap-driver.sh	\
+	tap-test	\
+	$(NULL)
