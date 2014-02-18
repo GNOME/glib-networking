@@ -1,3 +1,15 @@
+2.39.90
+=======
+  * tls/gnutls: Avoid trying to update a destroyed GSource (#723774,
+    Philip Withnall)
+
+  * tls/tests: Fix another flaky test (#722336)
+
+  * tests: use the TAP driver
+
+  * Updated translations:
+	Chinese, Czech
+
 2.39.3
 ======
   * tls/tests: Fix one sporadic bug in the connection test (#720081)
