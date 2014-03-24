@@ -1,3 +1,7 @@
+2.40.0
+======
+  * New stable release. (No changes since 2.39.90)
+
 2.39.90
 =======
   * tls/gnutls: Avoid trying to update a destroyed GSource (#723774,
