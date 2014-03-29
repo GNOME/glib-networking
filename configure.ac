@@ -253,7 +253,7 @@ echo     "  TLS support:       ${tls_support:-no}"
 if test "$tls_support" != "no"; then
     echo "  PKCS#11 Support:   $pkcs11_support"
     echo "  TLS CA file:       ${with_ca_certificates:-(none)}"
-    if test -n "$with_ca_certificates"; then
+    if test "x$with_ca_certificates" != xno -a -n "$with_ca_certificates"; then
 	if ! test -f "$with_ca_certificates"; then
 	    AC_MSG_WARN([Specified certificate authority file '$with_ca_certificates' does not exist])
 	fi
