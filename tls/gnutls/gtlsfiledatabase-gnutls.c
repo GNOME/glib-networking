@@ -603,8 +603,11 @@ g_tls_file_database_gnutls_initable_init (GInitable    *initable,
                                     (GDestroyNotify)g_bytes_unref,
                                     (GDestroyNotify)g_bytes_unref);
 
-  result = load_anchor_file (self->priv->anchor_filename, subjects, issuers,
-                             complete, error);
+  if (self->priv->anchor_filename)
+    result = load_anchor_file (self->priv->anchor_filename, subjects, issuers,
+        complete, error);
+  else
+    result = TRUE;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     result = FALSE;
