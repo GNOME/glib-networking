@@ -40,6 +40,16 @@
 #include "pkcs11/gpkcs11pin.h"
 #endif
 
+#ifdef G_OS_WIN32
+#include <winsock2.h>
+#include <winerror.h>
+
+/* It isn’t clear whether MinGW always defines EMSGSIZE. */
+#ifndef EMSGSIZE
+#define EMSGSIZE WSAEMSGSIZE
+#endif
+#endif
+
 #include <glib/gi18n-lib.h>
 
 static ssize_t g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
