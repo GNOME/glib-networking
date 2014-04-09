@@ -220,6 +220,30 @@ test_create_certificate_with_issuer (TestCertificate   *test,
   g_assert (issuer == NULL);
 }
 
+static void
+test_create_list (void)
+{
+  GList *list;
+  GError *error = NULL;
+
+  list = g_tls_certificate_list_new_from_file (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (g_list_length (list), ==, 8);
+
+  g_list_free_full (list, g_object_unref);
+}
+
+static void
+test_create_list_bad (void)
+{
+  GList *list;
+  GError *error = NULL;
+
+  list = g_tls_certificate_list_new_from_file (tls_test_file_path ("ca-roots-bad.pem"), &error);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_null (list);
+}
+
 /* -----------------------------------------------------------------------------
  * CERTIFICATE VERIFY
  */
@@ -449,6 +473,8 @@ main (int   argc,
               setup_certificate, test_create_with_key_der, teardown_certificate);
   g_test_add ("/tls/certificate/create-with-issuer", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_issuer, teardown_certificate);
+  g_test_add_func ("/tls/certificate/create-list", test_create_list);
+  g_test_add_func ("/tls/certificate/create-list-bad", test_create_list_bad);
 
   g_test_add ("/tls/certificate/verify-good", TestVerify, NULL,
               setup_verify, test_verify_certificate_good, teardown_verify);
