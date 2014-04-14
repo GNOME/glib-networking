@@ -1,3 +1,11 @@
+2.40.1
+======
+
+  * tls/gnutls: g_tls_backend_get_default_database() should never
+    return %NULL; if glib-networking was built without a
+    ca-certificates file, then the default GTlsDatabase should just be
+    empty. (#727282, Olivier Crête)
+
 2.40.0
 ======
   * New stable release. (No changes since 2.39.90)
