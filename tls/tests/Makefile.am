@@ -17,6 +17,9 @@ test_programs =       \
 	connection    \
 	$(NULL)
 
+connection_SOURCES = connection.c \
+	mock-interaction.c mock-interaction.h
+
 if HAVE_PKCS11
 
 test_programs +=           \
@@ -32,9 +35,6 @@ LDADD += $(top_builddir)/tls/pkcs11/libgiopkcs11.la $(PKCS11_LIBS)
 
 pkcs11_slot_SOURCES = pkcs11-slot.c \
 	mock-pkcs11.c mock-pkcs11.h \
-	mock-interaction.c mock-interaction.h
-
-connection_SOURCES = connection.c \
 	mock-interaction.c mock-interaction.h
 
 endif
