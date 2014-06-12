@@ -1,22 +1,25 @@
 # Swedish translation for glib-networking.
-# Copyright (C) 2011 Free Software Foundation, Inc.
+# Copyright © 2011, 2014 Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-networking package.
 # Daniel Nylander <po@danielnylander.se>, 2011.
+# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2014.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-25 09:51+0100\n"
-"PO-Revision-Date: 2011-11-25 09:54+0100\n"
-"Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2014-05-16 17:51+0000\n"
+"PO-Revision-Date: 2014-05-17 00:56+0100\n"
+"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
-"Language: \n"
+"Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.4\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:150
+#: ../proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
 msgstr "Internt fel i proxyuppslag."
 
@@ -44,63 +47,93 @@ msgstr "Kunde inte tolka privat PEM-nyckel: %s"
 msgid "No certificate data provided"
 msgstr "Inget certifikatdata tillhandahölls"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:385
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:324
 msgid "Server required TLS certificate"
 msgstr "Servern krävde TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:279
+#: ../tls/gnutls/gtlsconnection-gnutls.c:267
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunde inte skapa TLS-anslutning: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:558
+#: ../tls/gnutls/gtlsconnection-gnutls.c:531
+msgid "Connection is closed"
+msgstr "Anslutningen är stängd"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1465
+msgid "Operation would block"
+msgstr "Operationen skulle blockera"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:733
+#: ../tls/gnutls/gtlsconnection-gnutls.c:772
 msgid "Peer failed to perform TLS handshake"
 msgstr "Motparten misslyckades med att genomföra TLS-handskakning"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
+#: ../tls/gnutls/gtlsconnection-gnutls.c:751
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Motparten begärde otillåten TLS-återhandskakning"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:778
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-anslutningen stängdes oväntat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:888
-#: ../tls/gnutls/gtlsconnection-gnutls.c:914
+#: ../tls/gnutls/gtlsconnection-gnutls.c:788
+#| msgid "TLS connection closed unexpectedly"
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS-anslutningens motpart sände inte ett certifikat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1178
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1211
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fel vid genomförande av TLS-handskakning: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:962
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
+#| msgid "Server required TLS certificate"
+msgid "Server did not return a valid TLS certificate"
+msgstr "Servern returnerade inte ett giltigt TLS-certifikat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1296
 msgid "Unacceptable TLS certificate"
 msgstr "Ej acceptabelt TLS-certifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1099
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1499
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Fel vid läsning av data från TLS-uttag: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1125
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1528
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Fel vid skrivning av data till TLS-uttag: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1171
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1572
+msgid "Connection is already closed"
+msgstr "Anslutningen är redan stängd"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1582
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fel vid genomförande av TLS-stängning: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:138
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
 msgid "Certificate has no private key"
 msgstr "Certifikatet har ingen privat nyckel"
 
 #: ../tls/pkcs11/gpkcs11pin.c:108
-msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
 msgstr "Detta är sista försöket att ange PIN-koden korrekt innan kortet låses."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
-msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
-msgstr "Flera PIN-kodsförsök har varit felaktiga och kortet kommer att låsas vid ytterligare felaktiga försök."
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"Flera PIN-kodsförsök har varit felaktiga och kortet kommer att låsas vid "
+"ytterligare felaktiga försök."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
@@ -121,4 +154,3 @@ msgstr "Plats-id"
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11-platsidentifierare"
-
