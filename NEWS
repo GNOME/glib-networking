@@ -1,3 +1,17 @@
+2.41.3
+======
+  * tls/gnutls: g_tls_backend_get_default_database() should never
+    return %NULL; if glib-networking was built without a
+    ca-certificates file, then the default GTlsDatabase should just be
+    empty. (#727282, Olivier Crête)
+
+  * tls/gnutls: If a server's certificate includes an issuer chain, we
+    now send the entire chain to the client. (#724708, Aleix Conchillo
+    Flaqué)
+
+  * Updated translations:
+	Swedish
+
 2.40.0
 ======
   * New stable release. (No changes since 2.39.90)
