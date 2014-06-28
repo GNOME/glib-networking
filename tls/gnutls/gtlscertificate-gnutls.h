@@ -71,6 +71,10 @@ void                         g_tls_certificate_gnutls_set_issuer      (GTlsCerti
 
 GTlsCertificateGnutls*       g_tls_certificate_gnutls_steal_issuer    (GTlsCertificateGnutls *gnutls);
 
+GTlsCertificateGnutls*       g_tls_certificate_gnutls_build_chain     (const gnutls_datum_t  *certs,
+                                                                       guint                  num_certs,
+                                                                       gnutls_x509_crt_fmt_t  format);
+
 G_END_DECLS
 
 #endif /* __G_TLS_CERTIFICATE_GNUTLS_H___ */

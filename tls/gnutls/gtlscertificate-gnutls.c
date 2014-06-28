@@ -649,3 +649,101 @@ g_tls_certificate_gnutls_get_bytes (GTlsCertificateGnutls *gnutls)
   g_object_get (gnutls, "certificate", &array, NULL);
   return g_byte_array_free_to_bytes (array);
 }
+
+static gnutls_x509_crt_t *
+convert_data_to_gnutls_certs (const gnutls_datum_t  *certs,
+                              guint                  num_certs,
+                              gnutls_x509_crt_fmt_t  format)
+{
+  gnutls_x509_crt_t *gnutls_certs;
+  guint i;
+
+  gnutls_certs = g_new (gnutls_x509_crt_t, num_certs);
+
+  for (i = 0; i < num_certs; i++)
+    {
+      if (gnutls_x509_crt_init (&gnutls_certs[i]) < 0)
+        {
+          i--;
+          goto error;
+        }
+    }
+
+  for (i = 0; i < num_certs; i++)
+    {
+      if (gnutls_x509_crt_import (gnutls_certs[i], &certs[i], format) < 0)
+        {
+          i = num_certs - 1;
+          goto error;
+        }
+    }
+
+  return gnutls_certs;
+
+error:
+  for (; i != G_MAXUINT; i--)
+    gnutls_x509_crt_deinit (gnutls_certs[i]);
+  g_free (gnutls_certs);
+  return NULL;
+}
+
+GTlsCertificateGnutls *
+g_tls_certificate_gnutls_build_chain (const gnutls_datum_t  *certs,
+                                      guint                  num_certs,
+                                      gnutls_x509_crt_fmt_t  format)
+{
+  GPtrArray *glib_certs;
+  gnutls_x509_crt_t *gnutls_certs;
+  GTlsCertificateGnutls *issuer;
+  GTlsCertificateGnutls *result;
+  guint i, j;
+
+  g_return_val_if_fail (certs, NULL);
+
+  gnutls_certs = convert_data_to_gnutls_certs (certs, num_certs, format);
+  if (!gnutls_certs)
+    return NULL;
+
+  glib_certs = g_ptr_array_new_full (num_certs, g_object_unref);
+  for (i = 0; i < num_certs; i++)
+    g_ptr_array_add (glib_certs, g_tls_certificate_gnutls_new (&certs[i], NULL));
+
+  /* Some servers send certs out of order, or will send duplicate
+   * certs, so we need to be careful when assigning the issuer of
+   * our new GTlsCertificateGnutls.
+   */
+  for (i = 0; i < num_certs; i++)
+    {
+      issuer = NULL;
+
+      if (i < num_certs - 1 &&
+          gnutls_x509_crt_check_issuer (gnutls_certs[i], gnutls_certs[i + 1]))
+        {
+          issuer = glib_certs->pdata[i + 1];
+        }
+      else
+        {
+          for (j = 0; j < num_certs; j++)
+            {
+              if (j != i &&
+                  gnutls_x509_crt_check_issuer (gnutls_certs[i], gnutls_certs[j]))
+                {
+                  issuer = glib_certs->pdata[j];
+                  break;
+                }
+            }
+        }
+
+      if (issuer)
+        g_tls_certificate_gnutls_set_issuer (glib_certs->pdata[i], issuer);
+    }
+
+  result = g_object_ref (glib_certs->pdata[0]);
+  g_ptr_array_unref (glib_certs);
+
+  for (i = 0; i < num_certs; i++)
+    gnutls_x509_crt_deinit (gnutls_certs[i]);
+  g_free (gnutls_certs);
+
+  return result;
+}

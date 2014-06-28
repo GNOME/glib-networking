@@ -1072,29 +1072,22 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
   return ret;
 }
 
-
 static GTlsCertificate *
 get_peer_certificate_from_session (GTlsConnectionGnutls *gnutls)
 {
-  GTlsCertificate *chain, *cert;
   const gnutls_datum_t *certs;
+  GTlsCertificateGnutls *chain;
   unsigned int num_certs;
-  int i;
 
   certs = gnutls_certificate_get_peers (gnutls->priv->session, &num_certs);
   if (!certs || !num_certs)
     return NULL;
 
-  chain = NULL;
-  for (i = num_certs - 1; i >= 0; i--)
-    {
-      cert = g_tls_certificate_gnutls_new (&certs[i], chain);
-      if (chain)
-	g_object_unref (chain);
-      chain = cert;
-    }
+  chain = g_tls_certificate_gnutls_build_chain (certs, num_certs, GNUTLS_X509_FMT_DER);
+  if (!chain)
+    return NULL;
 
-  return chain;
+  return G_TLS_CERTIFICATE (chain);
 }
 
 static GTlsCertificateFlags
