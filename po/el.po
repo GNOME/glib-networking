@@ -7,21 +7,21 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&k"
-"eywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-11-29 22:09+0000\n"
-"PO-Revision-Date: 2012-12-24 17:24+0300\n"
-"Last-Translator: Dimitris Spingos (Δημήτρης Σπίγγος) <dmtrs32@gmail.com>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2014-07-09 05:52+0000\n"
+"PO-Revision-Date: 2014-07-09 14:43+0200\n"
+"Last-Translator: Tom Tryfonidis <tomtryf@gmail.com>\n"
 "Language-Team: team@gnome.gr\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Virtaal 0.7.1\n"
+"X-Generator: Poedit 1.6.5\n"
 "X-Project-Style: gnome\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:150
+#: ../proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
 msgstr "Εσωτερικό σφάλμα επίλυσης διαμεσολαβητή."
 
@@ -49,70 +49,70 @@ msgstr "Αδυναμία ανάλυσης ιδιωτικού κλειδιού PE
 msgid "No certificate data provided"
 msgstr "Δεν παρέχονται δεδομένα πιστοποιητικού"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:324
 msgid "Server required TLS certificate"
 msgstr "Ο διακομιστής απαίτησε πιστοποιητικό TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#: ../tls/gnutls/gtlsconnection-gnutls.c:267
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Αδύνατη η δημιουργία σύνδεσης TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+#: ../tls/gnutls/gtlsconnection-gnutls.c:531
 msgid "Connection is closed"
 msgstr "Η σύνδεση έκλεισε"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
+#: ../tls/gnutls/gtlsconnection-gnutls.c:594
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1465
 msgid "Operation would block"
 msgstr "Η λειτουργία θα μπλοκαριστεί"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:703
+#: ../tls/gnutls/gtlsconnection-gnutls.c:733
+#: ../tls/gnutls/gtlsconnection-gnutls.c:772
 msgid "Peer failed to perform TLS handshake"
-msgstr "Ο άλλος υπολογιστής απέτυχε να εκτελέσει «χειραψία» TLS"
+msgstr "Ο ομότιμος υπολογιστής απέτυχε να εκτελέσει «χειραψία» TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:720
+#: ../tls/gnutls/gtlsconnection-gnutls.c:751
 msgid "Peer requested illegal TLS rehandshake"
-msgstr "Ο άλλος υπολογιστής απαίτησε παράτυπη «χειραψία» TLS"
+msgstr "Ο ομότιμος υπολογιστής απαίτησε παράτυπη «χειραψία» TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:746
+#: ../tls/gnutls/gtlsconnection-gnutls.c:778
 msgid "TLS connection closed unexpectedly"
 msgstr "Η σύνδεση TLS τερματίστηκε απρόσμενα"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:756
-#| msgid "Server did not return a valid TLS certificate"
+#: ../tls/gnutls/gtlsconnection-gnutls.c:788
 msgid "TLS connection peer did not send a certificate"
 msgstr "Η ομότιμη σύνδεση TLS δεν έστειλε πιστοποιητικό"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1178
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1211
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Σφάλμα κατά τη «χειραψία» TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
-msgid "Unacceptable TLS certificate"
-msgstr "Μη αποδεκτό πιστοποιητικό TLS"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
 msgid "Server did not return a valid TLS certificate"
 msgstr "Ο διακομιστής δεν επέστρεψε ένα έγκυρο πιστοποιητικό TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1296
+msgid "Unacceptable TLS certificate"
+msgstr "Μη αποδεκτό πιστοποιητικό TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1499
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Σφάλμα κατά την ανάγνωση δεδομένων από την υποδοχή TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1528
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Σφάλμα κατά την εγγραφή δεδομένων στην υποδοχή TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1572
 msgid "Connection is already closed"
 msgstr "Η σύνδεση έχει ήδη κλείσει"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1582
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Σφάλμα κατά το κλείσιμο TLS: %s"
@@ -127,19 +127,19 @@ msgid ""
 "locked."
 msgstr ""
 "Αυτή είναι η τελευταία σας ευκαιρία να πληκτρολογήσετε σωστά το PIN πριν να "
-"κλειδωθεί το token."
+"κλειδωθεί το διακριτικό."
 
 #: ../tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr ""
-"Αρκετές προσπάθειες PIN ήταν εσφαλμένες, και το token θα κλειδωθεί μετά από "
-"περαιτέρω αποτυχίες."
+"Αρκετές προσπάθειες PIN ήταν εσφαλμένες, και το διακριτικό θα κλειδωθεί μετά "
+"από περαιτέρω αποτυχίες."
 
 #: ../tls/pkcs11/gpkcs11pin.c:112
 msgid "The PIN entered is incorrect."
-msgstr "Το PIN που εισάγατε δεν είναι έγκυρο."
+msgstr "Δεν είναι έγκυρο το PIN που πληκτρολογήσατε."
 
 #: ../tls/pkcs11/gpkcs11slot.c:446
 msgid "Module"
@@ -151,7 +151,7 @@ msgstr "Δείκτης αρθρώματος PKCS#11"
 
 #: ../tls/pkcs11/gpkcs11slot.c:454
 msgid "Slot ID"
-msgstr "ID υποδοχής"
+msgstr "Αναγνωριστικό υποδοχής"
 
 #: ../tls/pkcs11/gpkcs11slot.c:455
 msgid "PKCS#11 Slot Identifier"
