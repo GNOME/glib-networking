@@ -49,3 +49,5 @@ proxy/tests/libproxy
 /tls/tests/pkcs11-pin
 /tls/tests/pkcs11-slot
 /tls/tests/pkcs11-util
+/tls/tests/files/server-csr.pem
+/tls/tests/files/client-csr.pem
