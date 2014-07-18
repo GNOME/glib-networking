@@ -307,6 +307,7 @@ static void
 test_verify_certificate_good (TestVerify      *test,
                               gconstpointer    data)
 {
+  GSocketConnectable *identity;
   GTlsCertificateFlags errors;
 
   errors = g_tls_certificate_verify (test->cert, test->identity, test->anchor);
@@ -314,6 +315,11 @@ test_verify_certificate_good (TestVerify      *test,
 
   errors = g_tls_certificate_verify (test->cert, NULL, test->anchor);
   g_assert_cmpuint (errors, ==, 0);
+
+  identity = g_network_address_new ("192.168.1.10", 80);
+  errors = g_tls_certificate_verify (test->cert, identity, test->anchor);
+  g_assert_cmpuint (errors, ==, 0);
+  g_object_unref (identity);
 }
 
 static void
