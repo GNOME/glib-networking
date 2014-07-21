@@ -308,6 +308,7 @@ test_verify_certificate_good (TestVerify      *test,
                               gconstpointer    data)
 {
   GSocketConnectable *identity;
+  GSocketAddress *addr;
   GTlsCertificateFlags errors;
 
   errors = g_tls_certificate_verify (test->cert, test->identity, test->anchor);
@@ -320,6 +321,11 @@ test_verify_certificate_good (TestVerify      *test,
   errors = g_tls_certificate_verify (test->cert, identity, test->anchor);
   g_assert_cmpuint (errors, ==, 0);
   g_object_unref (identity);
+
+  addr = g_inet_socket_address_new_from_string ("192.168.1.10", 80);
+  errors = g_tls_certificate_verify (test->cert, G_SOCKET_CONNECTABLE (addr), test->anchor);
+  g_assert_cmpuint (errors, ==, 0);
+  g_object_unref (addr);
 }
 
 static void
@@ -328,13 +334,22 @@ test_verify_certificate_bad_identity (TestVerify      *test,
 {
   GSocketConnectable *identity;
   GTlsCertificateFlags errors;
+  GSocketAddress *addr;
 
   identity = g_network_address_new ("other.example.com", 80);
-
   errors = g_tls_certificate_verify (test->cert, identity, test->anchor);
   g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_BAD_IDENTITY);
-
   g_object_unref (identity);
+
+  identity = g_network_address_new ("127.0.0.1", 80);
+  errors = g_tls_certificate_verify (test->cert, identity, test->anchor);
+  g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_BAD_IDENTITY);
+  g_object_unref (identity);
+
+  addr = g_inet_socket_address_new_from_string ("127.0.0.1", 80);
+  errors = g_tls_certificate_verify (test->cert, G_SOCKET_CONNECTABLE (addr), test->anchor);
+  g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_BAD_IDENTITY);
+  g_object_unref (addr);
 }
 
 static void
