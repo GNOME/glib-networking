@@ -1,3 +1,16 @@
+2.41.4
+======
+  * tls/gnutls: certificates with IP address subject altnames are now
+    supported (#726596, Aleix Conchillo Flaqué)
+
+  * tls/tests: added a script to re-generate the certificates, and
+    regenerated them (since the key for the existing CA certificate
+    had been lost, so it wasn't possible to add new test certificates,
+    eg, for IP SAN). (#733365, Aleix Conchillo Flaqué)
+
+  * Updated translations:
+	Greek
+
 2.41.3
 ======
   * tls/gnutls: g_tls_backend_get_default_database() should never
