@@ -12,6 +12,7 @@ Currently it contains a GNUTLS-based implementation of GTlsBackend, a libproxy-b
 
   <download-page rdf:resource="http://download.gnome.org/sources/glib-networking" />
   <bug-database rdf:resource="http://bugzilla.gnome.org/browse.cgi?product=glib" />
+  <category rdf:resource="http://api.gnome.org/doap-extensions#core" />
 
   <maintainer>
     <foaf:Person>
