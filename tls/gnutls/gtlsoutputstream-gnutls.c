@@ -31,7 +31,7 @@ G_DEFINE_TYPE_WITH_CODE (GTlsOutputStreamGnutls, g_tls_output_stream_gnutls, G_T
 
 struct _GTlsOutputStreamGnutlsPrivate
 {
-  GTlsConnectionGnutls *conn;
+  GWeakRef weak_conn;
 };
 
 static void
@@ -39,14 +39,19 @@ g_tls_output_stream_gnutls_dispose (GObject *object)
 {
   GTlsOutputStreamGnutls *stream = G_TLS_OUTPUT_STREAM_GNUTLS (object);
 
-  if (stream->priv->conn)
-    {
-      g_object_remove_weak_pointer (G_OBJECT (stream->priv->conn),
-				    (gpointer *)&stream->priv->conn);
-      stream->priv->conn = NULL;
-    }
+  g_weak_ref_set (&stream->priv->weak_conn, NULL);
 
   G_OBJECT_CLASS (g_tls_output_stream_gnutls_parent_class)->dispose (object);
+}
+
+static void
+g_tls_output_stream_gnutls_finalize (GObject *object)
+{
+  GTlsOutputStreamGnutls *stream = G_TLS_OUTPUT_STREAM_GNUTLS (object);
+
+  g_weak_ref_clear (&stream->priv->weak_conn);
+
+  G_OBJECT_CLASS (g_tls_output_stream_gnutls_parent_class)->finalize (object);
 }
 
 static gssize
@@ -57,22 +62,33 @@ g_tls_output_stream_gnutls_write (GOutputStream  *stream,
 				  GError        **error)
 {
   GTlsOutputStreamGnutls *tls_stream = G_TLS_OUTPUT_STREAM_GNUTLS (stream);
+  GTlsConnectionGnutls *conn;
+  gssize ret;
 
-  g_return_val_if_fail (tls_stream->priv->conn != NULL, -1);
+  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  g_return_val_if_fail (conn != NULL, -1);
 
-  return g_tls_connection_gnutls_write (tls_stream->priv->conn,
-					buffer, count, TRUE,
-					cancellable, error);
+  ret = g_tls_connection_gnutls_write (conn, buffer, count, TRUE,
+                                       cancellable, error);
+  g_object_unref (conn);
+  return ret;
 }
 
 static gboolean
 g_tls_output_stream_gnutls_pollable_is_writable (GPollableOutputStream *pollable)
 {
   GTlsOutputStreamGnutls *tls_stream = G_TLS_OUTPUT_STREAM_GNUTLS (pollable);
+  GTlsConnectionGnutls *conn;
+  gboolean ret;
 
-  g_return_val_if_fail (tls_stream->priv->conn != NULL, FALSE);
+  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  g_return_val_if_fail (conn != NULL, FALSE);
 
-  return g_tls_connection_gnutls_check (tls_stream->priv->conn, G_IO_OUT); 
+  ret = g_tls_connection_gnutls_check (conn, G_IO_OUT);
+
+  g_object_unref (conn);
+
+  return ret;
 }
 
 static GSource *
@@ -80,12 +96,17 @@ g_tls_output_stream_gnutls_pollable_create_source (GPollableOutputStream *pollab
 						   GCancellable         *cancellable)
 {
   GTlsOutputStreamGnutls *tls_stream = G_TLS_OUTPUT_STREAM_GNUTLS (pollable);
+  GTlsConnectionGnutls *conn;
+  GSource *ret;
 
-  g_return_val_if_fail (tls_stream->priv->conn != NULL, NULL);
+  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  g_return_val_if_fail (conn != NULL, NULL);
 
-  return g_tls_connection_gnutls_create_source (tls_stream->priv->conn,
-						G_IO_OUT,
-						cancellable);
+  ret = g_tls_connection_gnutls_create_source (conn,
+                                               G_IO_OUT,
+                                               cancellable);
+  g_object_unref (conn);
+  return ret;
 }
 
 static gssize
@@ -95,10 +116,16 @@ g_tls_output_stream_gnutls_pollable_write_nonblocking (GPollableOutputStream  *p
 						       GError                **error)
 {
   GTlsOutputStreamGnutls *tls_stream = G_TLS_OUTPUT_STREAM_GNUTLS (pollable);
+  GTlsConnectionGnutls *conn;
+  gssize ret;
 
-  return g_tls_connection_gnutls_write (tls_stream->priv->conn,
-					buffer, size, FALSE,
-					NULL, error);
+  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  g_return_val_if_fail (conn != NULL, -1);
+
+  ret = g_tls_connection_gnutls_write (conn, buffer, size, FALSE, NULL, error);
+
+  g_object_unref (conn);
+  return ret;
 }
 
 static void
@@ -110,6 +137,7 @@ g_tls_output_stream_gnutls_class_init (GTlsOutputStreamGnutlsClass *klass)
   g_type_class_add_private (klass, sizeof (GTlsOutputStreamGnutlsPrivate));
 
   gobject_class->dispose = g_tls_output_stream_gnutls_dispose;
+  gobject_class->finalize = g_tls_output_stream_gnutls_finalize;
 
   output_stream_class->write_fn = g_tls_output_stream_gnutls_write;
 }
@@ -134,9 +162,7 @@ g_tls_output_stream_gnutls_new (GTlsConnectionGnutls *conn)
   GTlsOutputStreamGnutls *tls_stream;
 
   tls_stream = g_object_new (G_TYPE_TLS_OUTPUT_STREAM_GNUTLS, NULL);
-  tls_stream->priv->conn = conn;
-  g_object_add_weak_pointer (G_OBJECT (conn),
-			     (gpointer *)&tls_stream->priv->conn);
+  g_weak_ref_init (&tls_stream->priv->weak_conn, conn);
 
   return G_OUTPUT_STREAM (tls_stream);
 }
