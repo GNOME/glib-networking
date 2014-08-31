@@ -1561,10 +1561,8 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
 
   if (gnutls->priv->closed)
     {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
-			   _("Connection is already closed"));
       yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_CLOSE);
-      return FALSE;
+      return TRUE;
     }
 
   if (gnutls->priv->ever_handshaked)
