@@ -1,3 +1,12 @@
+2.41.92
+=======
+  * tls/gnutls: Incorrectly-ordered certificate chains are now
+    accepted (#683266, Michael Catanzaro)
+
+  * tls/gnutls: Closing an already-closed GTlsConnection now correctly
+    returns TRUE rather than G_IO_ERROR_CLOSED (#735754, Olivier
+    Crête)
+
 2.41.4
 ======
   * tls/gnutls: certificates with IP address subject altnames are now
