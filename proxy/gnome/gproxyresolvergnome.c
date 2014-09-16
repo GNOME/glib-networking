@@ -472,6 +472,7 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
   GError *error = NULL;
 
   task = g_task_new (resolver, cancellable, callback, user_data);
+  g_task_set_source_tag (task, g_proxy_resolver_gnome_lookup_async);
 
    if (!g_proxy_resolver_gnome_lookup_internal (resolver, uri,
 						&proxies, &pacrunner, &autoconfig_url,

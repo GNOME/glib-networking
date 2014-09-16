@@ -170,6 +170,7 @@ g_libproxy_resolver_lookup (GProxyResolver  *iresolver,
   gchar **proxies;
 
   task = g_task_new (resolver, cancellable, NULL, NULL);
+  g_task_set_source_tag (task, g_libproxy_resolver_lookup);
   g_task_set_task_data (task, g_strdup (uri), g_free);
   g_task_set_return_on_cancel (task, TRUE);
 
@@ -190,6 +191,7 @@ g_libproxy_resolver_lookup_async (GProxyResolver      *resolver,
   GTask *task;
 
   task = g_task_new (resolver, cancellable, callback, user_data);
+  g_task_set_source_tag (task, g_libproxy_resolver_lookup_async);
   g_task_set_task_data (task, g_strdup (uri), g_free);
   g_task_set_return_on_cancel (task, TRUE);
   g_task_run_in_thread (task, get_libproxy_proxies);
