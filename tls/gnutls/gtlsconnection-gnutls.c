@@ -1312,6 +1312,7 @@ g_tls_connection_gnutls_handshake (GTlsConnection   *conn,
   GError *my_error = NULL;
 
   task = g_task_new (conn, cancellable, NULL, NULL);
+  g_task_set_source_tag (task, g_tls_connection_gnutls_handshake);
   begin_handshake (gnutls);
   g_task_run_in_thread_sync (task, handshake_thread);
   success = finish_handshake (gnutls, task, &my_error);
@@ -1397,12 +1398,14 @@ g_tls_connection_gnutls_handshake_async (GTlsConnection       *conn,
   GTask *thread_task, *caller_task;
 
   caller_task = g_task_new (conn, cancellable, callback, user_data);
+  g_task_set_source_tag (caller_task, g_tls_connection_gnutls_handshake_async);
   g_task_set_priority (caller_task, io_priority);
 
   begin_handshake (G_TLS_CONNECTION_GNUTLS (conn));
 
   thread_task = g_task_new (conn, cancellable,
 			    handshake_thread_completed, caller_task);
+  g_task_set_source_tag (thread_task, g_tls_connection_gnutls_handshake_async);
   g_task_set_priority (thread_task, io_priority);
   g_task_run_in_thread (thread_task, async_handshake_thread);
   g_object_unref (thread_task);
@@ -1427,6 +1430,8 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
   /* We have op_mutex */
 
   gnutls->priv->implicit_handshake = g_task_new (gnutls, cancellable, NULL, NULL);
+  g_task_set_source_tag (gnutls->priv->implicit_handshake,
+                         do_implicit_handshake);
 
   begin_handshake (gnutls);
 
@@ -1616,6 +1621,7 @@ g_tls_connection_gnutls_close_async (GIOStream           *stream,
   GTask *task;
 
   task = g_task_new (stream, cancellable, callback, user_data);
+  g_task_set_source_tag (task, g_tls_connection_gnutls_close_async);
   g_task_set_priority (task, io_priority);
   g_task_run_in_thread (task, close_thread);
   g_object_unref (task);
