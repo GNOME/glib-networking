@@ -1670,6 +1670,7 @@ on_pin_prompt_callback (const char     *pinfile,
       pin = NULL;
       break;
     case G_TLS_INTERACTION_UNHANDLED:
+    default:
       pin = NULL;
       break;
     case G_TLS_INTERACTION_HANDLED:

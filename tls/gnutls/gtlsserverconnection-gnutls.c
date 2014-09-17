@@ -178,6 +178,7 @@ g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
     case G_TLS_AUTHENTICATION_REQUIRED:
       req_mode = GNUTLS_CERT_REQUIRE;
       break;
+    case G_TLS_AUTHENTICATION_NONE:
     default:
       req_mode = GNUTLS_CERT_IGNORE;
       break;
