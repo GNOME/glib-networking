@@ -585,10 +585,10 @@ claim_op (GTlsConnectionGnutls    *gnutls,
       return FALSE;
     }
 
-  if (op != G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE &&
-      op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE)
+  if (op != G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE)
     {
-      if (gnutls->priv->need_handshake)
+      if (op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE &&
+          gnutls->priv->need_handshake)
 	{
 	  gnutls->priv->need_handshake = FALSE;
 	  gnutls->priv->handshaking = TRUE;
@@ -612,12 +612,15 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 	  g_clear_object (&gnutls->priv->implicit_handshake);
 	  g_mutex_lock (&gnutls->priv->op_mutex);
 
-	  if (!success || g_cancellable_set_error_if_cancelled (cancellable, &my_error))
+	  if (op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE &&
+	      (!success || g_cancellable_set_error_if_cancelled (cancellable, &my_error)))
 	    {
 	      g_propagate_error (error, my_error);
 	      g_mutex_unlock (&gnutls->priv->op_mutex);
 	      return FALSE;
 	    }
+
+          g_clear_error (&my_error);
 	}
     }
 
