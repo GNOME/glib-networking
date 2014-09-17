@@ -37,11 +37,11 @@
 #include "pkcs11/gpkcs11util.h"
 #include "pkcs11/pkcs11-trust-assertions.h"
 
-const static CK_ATTRIBUTE_TYPE CERTIFICATE_ATTRIBUTE_TYPES[] = {
+static const CK_ATTRIBUTE_TYPE CERTIFICATE_ATTRIBUTE_TYPES[] = {
     CKA_ID, CKA_LABEL, CKA_CLASS, CKA_VALUE
 };
 
-const static CK_ATTRIBUTE_TYPE KEY_ATTRIBUTE_TYPES[] = {
+static const CK_ATTRIBUTE_TYPE KEY_ATTRIBUTE_TYPES[] = {
     CKA_ID, CKA_LABEL, CKA_CLASS, CKA_KEY_TYPE
 };
 
