@@ -118,7 +118,7 @@ bytes_multi_table_lookup_ref_all (GHashTable *table,
 {
   GPtrArray *multi;
   GList *list = NULL;
-  gint i;
+  guint i;
 
   multi = g_hash_table_lookup (table, key);
   if (multi == NULL)
