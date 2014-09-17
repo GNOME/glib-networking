@@ -319,6 +319,14 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_clear_error (&gnutls->priv->read_error);
   g_clear_error (&gnutls->priv->write_error);
 
+  /* This must always be NULL at this, as it holds a referehce to @gnutls as
+   * its source object. However, we clear it anyway just in case this changes
+   * in future. */
+  g_clear_object (&gnutls->priv->implicit_handshake);
+
+  g_clear_object (&gnutls->priv->read_cancellable);
+  g_clear_object (&gnutls->priv->write_cancellable);
+
   g_clear_object (&gnutls->priv->waiting_for_op);
   g_mutex_clear (&gnutls->priv->op_mutex);
 
