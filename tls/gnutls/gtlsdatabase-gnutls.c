@@ -144,6 +144,7 @@ build_certificate_chain (GTlsDatabaseGnutls      *self,
                   g_tls_certificate_gnutls_set_issuer (previous, G_TLS_CERTIFICATE_GNUTLS (issuer));
                   certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
                   certificate_is_from_db = TRUE;
+                  g_object_unref (issuer);
                   continue;
                 }
             }
