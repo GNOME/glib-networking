@@ -240,7 +240,7 @@ load_certificate_chain (const char  *filename,
                         GError     **error)
 {
   GList *certificates;
-  GTlsCertificate *chain = NULL;
+  GTlsCertificate *chain = NULL, *prev_chain = NULL;
   GTlsBackend *backend;
   GByteArray *der;
   GList *l;
@@ -253,12 +253,14 @@ load_certificate_chain (const char  *filename,
   certificates = g_list_reverse (certificates);
   for (l = certificates; l != NULL; l = g_list_next (l))
     {
+      prev_chain = chain;
       g_object_get (l->data, "certificate", &der, NULL);
       chain = g_object_new (g_tls_backend_get_certificate_type (backend),
                             "certificate", der,
-                            "issuer", chain,
+                            "issuer", prev_chain,
                             NULL);
       g_byte_array_unref (der);
+      g_clear_object (&prev_chain);
     }
 
   g_list_free_full (certificates, g_object_unref);
@@ -501,7 +503,6 @@ test_lookup_certificates_issued_by (void)
 
   g_list_free_full (certificates, g_object_unref);
   g_object_unref (database);
-  g_byte_array_unref (issuer_dn);
 }
 
 static void

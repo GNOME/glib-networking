@@ -161,6 +161,8 @@ mock_interaction_finalize (GObject *object)
   MockInteraction *self = MOCK_INTERACTION (object);
 
   g_free (self->static_password);
+  g_clear_object (&self->static_certificate);
+  g_clear_error (&self->static_error);
 
   G_OBJECT_CLASS (mock_interaction_parent_class)->finalize (object);
 }

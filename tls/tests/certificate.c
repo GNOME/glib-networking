@@ -295,6 +295,7 @@ test_create_list_bad (void)
   list = g_tls_certificate_list_new_from_file (tls_test_file_path ("ca-roots-bad.pem"), &error);
   g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
   g_assert_null (list);
+  g_error_free (error);
 }
 
 /* -----------------------------------------------------------------------------

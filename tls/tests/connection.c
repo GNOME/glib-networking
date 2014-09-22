@@ -163,6 +163,8 @@ start_server (TestConnection *test)
                                  NULL, &test->address, &error);
   g_assert_no_error (error);
 
+  g_object_unref (addr);
+
   /* The hostname in test->identity matches the server certificate. */
   iaddr = G_INET_SOCKET_ADDRESS (test->address);
   test->identity = g_network_address_new ("server.example.com",
@@ -1315,7 +1317,10 @@ async_implicit_handshake_dispatch (GPollableInputStream *stream,
   keep_running = (-1 == size);
 
   if (keep_running)
-    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK);
+    {
+      g_assert_error (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK);
+      g_error_free (error);
+    }
   else
     {
       g_assert_no_error (error);
