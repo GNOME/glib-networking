@@ -126,6 +126,86 @@ g_tls_input_stream_gnutls_pollable_read_nonblocking (GPollableInputStream  *poll
   return ret;
 }
 
+static gboolean
+g_tls_input_stream_gnutls_close (GInputStream            *stream,
+                                 GCancellable             *cancellable,
+                                 GError                  **error)
+{
+  GTlsInputStreamGnutls *tls_stream = G_TLS_INPUT_STREAM_GNUTLS (stream);
+  GIOStream *conn;
+  gboolean ret;
+
+  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+
+  /* Special case here because this is called by the finalize
+   * of the main GTlsConnection object.
+   */
+  if (conn == NULL)
+    return TRUE;
+
+  ret = g_tls_connection_gnutls_close_internal (conn, G_TLS_DIRECTION_READ,
+                                                cancellable, error);
+
+  g_object_unref (conn);
+  return ret;
+}
+
+/* We do async close as synchronous-in-a-thread so we don't need to
+ * implement G_IO_IN/G_IO_OUT flip-flopping just for this one case
+ * (since handshakes are also done synchronously now).
+ */
+static void
+close_thread (GTask        *task,
+              gpointer      object,
+              gpointer      task_data,
+              GCancellable *cancellable)
+{
+  GTlsInputStreamGnutls *tls_stream = object;
+  GError *error = NULL;
+  GIOStream *conn;
+
+  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+
+  if (conn && !g_tls_connection_gnutls_close_internal (conn,
+                                                       G_TLS_DIRECTION_READ,
+                                                       cancellable, &error))
+    g_task_return_error (task, error);
+  else
+    g_task_return_boolean (task, TRUE);
+
+  if (conn)
+    g_object_unref (conn);
+}
+
+
+static void
+g_tls_input_stream_gnutls_close_async (GInputStream            *stream,
+                                       int                       io_priority,
+                                       GCancellable             *cancellable,
+                                       GAsyncReadyCallback       callback,
+                                       gpointer                  user_data)
+{
+  GTask *task;
+
+  task = g_task_new (stream, cancellable, callback, user_data);
+  g_task_set_source_tag (task, g_tls_input_stream_gnutls_close_async);
+  g_task_set_priority (task, io_priority);
+  g_task_run_in_thread (task, close_thread);
+  g_object_unref (task);
+}
+
+static gboolean
+g_tls_input_stream_gnutls_close_finish (GInputStream            *stream,
+                                        GAsyncResult             *result,
+                                        GError                  **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, stream), FALSE);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) ==
+                        g_tls_input_stream_gnutls_close_async, FALSE);
+
+  return g_task_propagate_boolean (G_TASK (result), error);
+}
+
 static void
 g_tls_input_stream_gnutls_class_init (GTlsInputStreamGnutlsClass *klass)
 {
@@ -138,6 +218,9 @@ g_tls_input_stream_gnutls_class_init (GTlsInputStreamGnutlsClass *klass)
   gobject_class->finalize = g_tls_input_stream_gnutls_finalize;
 
   input_stream_class->read_fn = g_tls_input_stream_gnutls_read;
+  input_stream_class->close_fn = g_tls_input_stream_gnutls_close;
+  input_stream_class->close_async = g_tls_input_stream_gnutls_close_async;
+  input_stream_class->close_finish = g_tls_input_stream_gnutls_close_finish;
 }
 
 static void
