@@ -150,7 +150,10 @@ struct _GTlsConnectionGnutlsPrivate
   GError *handshake_error;
   GByteArray *app_data_buf;
 
-  gboolean closing, closed;
+  /* read_closed means the read direction has closed; write_closed similarly.
+   * If (and only if) both are set, the entire GTlsConnection is closed. */
+  gboolean read_closing, read_closed;
+  gboolean write_closing, write_closed;
 
   GInputStream *tls_istream;
   GOutputStream *tls_ostream;
@@ -571,7 +574,12 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 
   g_mutex_lock (&gnutls->priv->op_mutex);
 
-  if (gnutls->priv->closing || gnutls->priv->closed)
+  if (((op == G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE ||
+        op == G_TLS_CONNECTION_GNUTLS_OP_READ) &&
+       (gnutls->priv->read_closing || gnutls->priv->read_closed)) ||
+      ((op == G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE ||
+        op == G_TLS_CONNECTION_GNUTLS_OP_WRITE) &&
+       (gnutls->priv->write_closing || gnutls->priv->write_closed)))
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
 			   _("Connection is closed"));
@@ -671,9 +679,11 @@ claim_op (GTlsConnectionGnutls    *gnutls,
       gnutls->priv->need_handshake = FALSE;
     }
   if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH ||
-      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ ||
+      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ)
+    gnutls->priv->read_closing = TRUE;
+  if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH ||
       op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE)
-    gnutls->priv->closing = TRUE;
+    gnutls->priv->write_closing = TRUE;
 
   if (op != G_TLS_CONNECTION_GNUTLS_OP_WRITE)
     gnutls->priv->reading = TRUE;
@@ -693,9 +703,11 @@ yield_op (GTlsConnectionGnutls   *gnutls,
   if (op == G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE)
     gnutls->priv->handshaking = FALSE;
   if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH ||
-      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ ||
+      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ)
+    gnutls->priv->read_closing = FALSE;
+  if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH ||
       op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE)
-    gnutls->priv->closing = FALSE;
+    gnutls->priv->write_closing = FALSE;
 
   if (op != G_TLS_CONNECTION_GNUTLS_OP_WRITE)
     gnutls->priv->reading = FALSE;
@@ -881,7 +893,11 @@ g_tls_connection_gnutls_check (GTlsConnectionGnutls  *gnutls,
   /* If a handshake or close is in progress, then tls_istream and
    * tls_ostream are blocked, regardless of the base stream status.
    */
-  if (gnutls->priv->handshaking || gnutls->priv->closing)
+  if (gnutls->priv->handshaking)
+    return FALSE;
+
+  if (((condition & G_IO_IN) && gnutls->priv->read_closing) ||
+      ((condition & G_IO_OUT) && gnutls->priv->write_closing))
     return FALSE;
 
   if (condition & G_IO_IN)
@@ -1611,45 +1627,76 @@ g_tls_connection_gnutls_get_output_stream (GIOStream *stream)
 
 gboolean
 g_tls_connection_gnutls_close_internal (GIOStream     *stream,
+                                        GTlsDirection  direction,
                                         GCancellable  *cancellable,
                                         GError       **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (stream);
   GTlsConnectionGnutlsOp op;
-  gboolean success;
+  gboolean success = TRUE;
   int ret = 0;
+  GError *gnutls_error = NULL, *stream_error = NULL;
 
-  op = G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH;
+  /* This can be called from g_io_stream_close(), g_input_stream_close() or
+   * g_output_stream_close(). In all cases, we only do the gnutls_bye() for
+   * writing. The difference is how we set the flags on this class and how
+   * the underlying stream is closed.
+   */
+
+  g_return_val_if_fail (direction != G_TLS_DIRECTION_NONE, FALSE);
+
+  if (direction == G_TLS_DIRECTION_BOTH)
+    op = G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH;
+  else if (direction == G_TLS_DIRECTION_READ)
+    op = G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ;
+  else
+    op = G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE;
 
   if (!claim_op (gnutls, op, TRUE, cancellable, error))
     return FALSE;
 
-  if (gnutls->priv->closed)
-    {
-      yield_op (gnutls, op);
-      return TRUE;
-    }
-
-  if (gnutls->priv->ever_handshaked)
+  if (gnutls->priv->ever_handshaked && !gnutls->priv->write_closed &&
+      direction & G_TLS_DIRECTION_WRITE)
     {
       BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
       ret = gnutls_bye (gnutls->priv->session, GNUTLS_SHUT_WR);
       END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-		     _("Error performing TLS close: %s"), error);
+		     _("Error performing TLS close: %s"), &gnutls_error);
+
+      gnutls->priv->write_closed = TRUE;
     }
 
-  gnutls->priv->closed = TRUE;
+  if (!gnutls->priv->read_closed && direction & G_TLS_DIRECTION_READ)
+    gnutls->priv->read_closed = TRUE;
 
+  /* Close the underlying streams. Do this even if the gnutls_bye() call failed,
+   * as the parent GIOStream will have set its internal closed flag and hence
+   * this implementation will never be called again. */
+  if (direction == G_TLS_DIRECTION_BOTH)
+    success = g_io_stream_close (gnutls->priv->base_io_stream,
+                                 cancellable, &stream_error);
+  else if (direction & G_TLS_DIRECTION_READ)
+    success = g_input_stream_close (g_io_stream_get_input_stream (gnutls->priv->base_io_stream),
+                                    cancellable, &stream_error);
+  else if (direction & G_TLS_DIRECTION_WRITE)
+    success = g_output_stream_close (g_io_stream_get_output_stream (gnutls->priv->base_io_stream),
+                                     cancellable, &stream_error);
+
+  yield_op (gnutls, op);
+
+  /* Propagate errors. */
   if (ret != 0)
     {
-      yield_op (gnutls, op);
-      return FALSE;
+      g_propagate_error (error, gnutls_error);
+      g_clear_error (&stream_error);
+    }
+  else if (!success)
+    {
+      g_propagate_error (error, stream_error);
+      g_clear_error (&gnutls_error);
     }
 
-  success = g_io_stream_close (gnutls->priv->base_io_stream,
-			       cancellable, error);
-  yield_op (gnutls, op);
-  return success;
+  return success && (ret == 0);
 }
 
 static gboolean
@@ -1658,6 +1705,7 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
                                GError       **error)
 {
 	return g_tls_connection_gnutls_close_internal (stream,
+	                                               G_TLS_DIRECTION_BOTH,
 	                                               cancellable, error);
 }
 
@@ -1674,7 +1722,7 @@ close_thread (GTask        *task,
   GIOStream *stream = object;
   GError *error = NULL;
 
-  if (!g_tls_connection_gnutls_close_internal (stream,
+  if (!g_tls_connection_gnutls_close_internal (stream, G_TLS_DIRECTION_BOTH,
                                                cancellable, &error))
     g_task_return_error (task, error);
   else
