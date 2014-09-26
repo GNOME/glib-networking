@@ -79,6 +79,10 @@ GSource *g_tls_connection_gnutls_create_source (GTlsConnectionGnutls  *gnutls,
 						GIOCondition           condition,
 						GCancellable          *cancellable);
 
+gboolean g_tls_connection_gnutls_close_internal (GIOStream            *stream,
+                                                 GCancellable         *cancellable,
+                                                 GError              **error);
+
 G_END_DECLS
 
 #endif /* __G_TLS_CONNECTION_GNUTLS_H___ */

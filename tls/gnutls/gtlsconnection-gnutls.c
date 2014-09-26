@@ -1609,10 +1609,10 @@ g_tls_connection_gnutls_get_output_stream (GIOStream *stream)
   return gnutls->priv->tls_ostream;
 }
 
-static gboolean
-g_tls_connection_gnutls_close (GIOStream     *stream,
-			       GCancellable  *cancellable,
-			       GError       **error)
+gboolean
+g_tls_connection_gnutls_close_internal (GIOStream     *stream,
+                                        GCancellable  *cancellable,
+                                        GError       **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (stream);
   GTlsConnectionGnutlsOp op;
@@ -1652,6 +1652,15 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
   return success;
 }
 
+static gboolean
+g_tls_connection_gnutls_close (GIOStream     *stream,
+                               GCancellable  *cancellable,
+                               GError       **error)
+{
+	return g_tls_connection_gnutls_close_internal (stream,
+	                                               cancellable, error);
+}
+
 /* We do async close as synchronous-in-a-thread so we don't need to
  * implement G_IO_IN/G_IO_OUT flip-flopping just for this one case
  * (since handshakes are also done synchronously now).
@@ -1665,7 +1674,8 @@ close_thread (GTask        *task,
   GIOStream *stream = object;
   GError *error = NULL;
 
-  if (!g_tls_connection_gnutls_close (stream, cancellable, &error))
+  if (!g_tls_connection_gnutls_close_internal (stream,
+                                               cancellable, &error))
     g_task_return_error (task, error);
   else
     g_task_return_boolean (task, TRUE);
