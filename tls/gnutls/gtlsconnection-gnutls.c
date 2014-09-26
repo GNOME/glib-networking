@@ -124,9 +124,9 @@ struct _GTlsConnectionGnutlsPrivate
   gboolean database_is_unset;
 
   /* need_handshake means the next claim_op() will get diverted into
-   * an implicit handshake (unless it's an OP_HANDSHAKE or OP_CLOSE).
+   * an implicit handshake (unless it's an OP_HANDSHAKE or OP_CLOSE*).
    * need_finish_handshake means the next claim_op() will get diverted
-   * into finish_handshake() (unless it's an OP_CLOSE).
+   * into finish_handshake() (unless it's an OP_CLOSE*).
    *
    * handshaking is TRUE as soon as a handshake thread is queued. For
    * a sync handshake it becomes FALSE after finish_handshake()
@@ -553,7 +553,9 @@ typedef enum {
   G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE,
   G_TLS_CONNECTION_GNUTLS_OP_READ,
   G_TLS_CONNECTION_GNUTLS_OP_WRITE,
-  G_TLS_CONNECTION_GNUTLS_OP_CLOSE,
+  G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ,
+  G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE,
+  G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH,
 } GTlsConnectionGnutlsOp;
 
 static gboolean
@@ -577,7 +579,10 @@ claim_op (GTlsConnectionGnutls    *gnutls,
       return FALSE;
     }
 
-  if (gnutls->priv->handshake_error && op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE)
+  if (gnutls->priv->handshake_error &&
+      op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH &&
+      op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ &&
+      op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE)
     {
       if (error)
 	*error = g_error_copy (gnutls->priv->handshake_error);
@@ -587,7 +592,9 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 
   if (op != G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE)
     {
-      if (op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE &&
+      if (op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH &&
+          op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ &&
+          op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE &&
           gnutls->priv->need_handshake)
 	{
 	  gnutls->priv->need_handshake = FALSE;
@@ -612,7 +619,9 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 	  g_clear_object (&gnutls->priv->implicit_handshake);
 	  g_mutex_lock (&gnutls->priv->op_mutex);
 
-	  if (op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE &&
+	  if (op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH &&
+	      op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ &&
+	      op != G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE &&
 	      (!success || g_cancellable_set_error_if_cancelled (cancellable, &my_error)))
 	    {
 	      g_propagate_error (error, my_error);
@@ -661,7 +670,9 @@ claim_op (GTlsConnectionGnutls    *gnutls,
       gnutls->priv->handshaking = TRUE;
       gnutls->priv->need_handshake = FALSE;
     }
-  if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE)
+  if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH ||
+      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ ||
+      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE)
     gnutls->priv->closing = TRUE;
 
   if (op != G_TLS_CONNECTION_GNUTLS_OP_WRITE)
@@ -681,7 +692,9 @@ yield_op (GTlsConnectionGnutls   *gnutls,
 
   if (op == G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE)
     gnutls->priv->handshaking = FALSE;
-  if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE)
+  if (op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH ||
+      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_READ ||
+      op == G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE)
     gnutls->priv->closing = FALSE;
 
   if (op != G_TLS_CONNECTION_GNUTLS_OP_WRITE)
@@ -1602,16 +1615,18 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
 			       GError       **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (stream);
+  GTlsConnectionGnutlsOp op;
   gboolean success;
   int ret = 0;
 
-  if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_CLOSE,
-		 TRUE, cancellable, error))
+  op = G_TLS_CONNECTION_GNUTLS_OP_CLOSE_BOTH;
+
+  if (!claim_op (gnutls, op, TRUE, cancellable, error))
     return FALSE;
 
   if (gnutls->priv->closed)
     {
-      yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_CLOSE);
+      yield_op (gnutls, op);
       return TRUE;
     }
 
@@ -1627,13 +1642,13 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
 
   if (ret != 0)
     {
-      yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_CLOSE);
+      yield_op (gnutls, op);
       return FALSE;
     }
 
   success = g_io_stream_close (gnutls->priv->base_io_stream,
 			       cancellable, error);
-  yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_CLOSE);
+  yield_op (gnutls, op);
   return success;
 }
 
