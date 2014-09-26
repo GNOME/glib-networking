@@ -1661,6 +1661,59 @@ test_close_during_handshake (TestConnection *test,
 }
 
 static void
+test_output_stream_close_during_handshake (TestConnection *test,
+                                           gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+  GMainContext *context;
+  GMainLoop *loop;
+  gboolean handshake_complete = FALSE;
+
+  g_test_bug ("688751");
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED, TRUE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  loop = g_main_loop_new (NULL, FALSE);
+  g_signal_connect (test->client_connection, "notify::accepted-cas",
+                    G_CALLBACK (quit_loop_on_notify), loop);
+
+  context = g_main_context_new ();
+  g_main_context_push_thread_default (context);
+  g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
+				    G_PRIORITY_DEFAULT, NULL,
+				    handshake_completed, &handshake_complete);
+  g_main_context_pop_thread_default (context);
+
+  /* Now run the (default GMainContext) loop, which is needed for
+   * the server side of things. The client-side handshake will run in
+   * a thread, but its callback will never be invoked because its
+   * context isn't running.
+   */
+  g_main_loop_run (loop);
+  g_main_loop_unref (loop);
+
+  /* At this point handshake_thread() has started (and maybe
+   * finished), but handshake_thread_completed() (and thus
+   * finish_handshake()) has not yet run. Make sure close doesn't
+   * block.
+   */
+  g_output_stream_close (g_io_stream_get_output_stream (test->client_connection), NULL, &error);
+  g_assert_no_error (error);
+
+  /* We have to let the handshake_async() call finish now, or
+   * teardown_connection() will assert.
+   */
+  while (!handshake_complete)
+    g_main_context_iteration (context, TRUE);
+  g_main_context_unref (context);
+}
+
+
+static void
 test_write_during_handshake (TestConnection *test,
 			    gconstpointer   data)
 {
@@ -1853,6 +1906,64 @@ test_fallback_subprocess (TestConnection *test,
   g_assert_no_error (error);
 }
 
+static void
+test_output_stream_close (TestConnection *test,
+                          gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+  gboolean ret;
+  gboolean handshake_complete = FALSE;
+  gssize size;
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  /* No validation at all in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+
+  g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
+                                    G_PRIORITY_DEFAULT, NULL,
+                                    handshake_completed, &handshake_complete);
+
+  while (!handshake_complete)
+    g_main_context_iteration (NULL, TRUE);
+
+  ret = g_output_stream_close (g_io_stream_get_output_stream (test->client_connection),
+      NULL, &error);
+  g_assert_no_error (error);
+  g_assert (ret);
+
+
+  /* Verify that double close returns TRUE */
+  ret = g_output_stream_close (g_io_stream_get_output_stream (test->client_connection),
+      NULL, &error);
+  g_assert_no_error (error);
+  g_assert (ret);
+
+  size = g_output_stream_write (g_io_stream_get_output_stream (test->client_connection),
+                                "data", 4, NULL, &error);
+  g_assert (size == -1);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CLOSED);
+  g_clear_error (&error);
+
+  /* We closed the output stream, but not the input stream, so receiving
+   * data should still work.
+   */
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  ret = g_io_stream_close (test->client_connection, NULL, &error);
+  g_assert_no_error (error);
+  g_assert (ret);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -1933,10 +2044,14 @@ main (int   argc,
               setup_connection, test_close_immediately, teardown_connection);
   g_test_add ("/tls/connection/close-during-handshake", TestConnection, NULL,
               setup_connection, test_close_during_handshake, teardown_connection);
+  g_test_add ("/tls/connection/close-output-stream-during-handshake", TestConnection, NULL,
+              setup_connection, test_output_stream_close_during_handshake, teardown_connection);
   g_test_add ("/tls/connection/write-during-handshake", TestConnection, NULL,
               setup_connection, test_write_during_handshake, teardown_connection);
   g_test_add ("/tls/connection/async-implicit-handshake", TestConnection, NULL,
               setup_connection, test_async_implicit_handshake, teardown_connection);
+  g_test_add ("/tls/connection/output-stream-close", TestConnection, NULL,
+              setup_connection, test_output_stream_close, teardown_connection);
 
   g_test_add_data_func ("/tls/connection/fallback/SSL", PRIORITY_SSL_FALLBACK, test_fallback);
   g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_SSL_FALLBACK,
