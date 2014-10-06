@@ -221,6 +221,59 @@ test_create_certificate_with_issuer (TestCertificate   *test,
 }
 
 static void
+test_create_certificate_chain (void)
+{
+  GTlsCertificate *cert, *intermediate, *root;
+  GError *error = NULL;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("chain.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (G_IS_TLS_CERTIFICATE (cert));
+
+  intermediate = g_tls_certificate_get_issuer (cert);
+  g_assert (G_IS_TLS_CERTIFICATE (intermediate));
+
+  root = g_tls_certificate_get_issuer (intermediate);
+  g_assert (G_IS_TLS_CERTIFICATE (root));
+
+  g_assert (g_tls_certificate_get_issuer (root) == NULL);
+
+  g_object_unref (cert);
+}
+
+static void
+test_create_certificate_no_chain (void)
+{
+  GTlsCertificate *cert, *issuer;
+  GError *error = NULL;
+  gchar *cert_pem;
+  gsize cert_pem_length;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("non-ca.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (G_IS_TLS_CERTIFICATE (cert));
+
+  issuer = g_tls_certificate_get_issuer (cert);
+  g_assert (issuer == NULL);
+  g_object_unref (cert);
+
+  /* Truncate a valid chain certificate file. We should only get the
+   * first certificate.
+   */
+  g_file_get_contents (tls_test_file_path ("chain.pem"), &cert_pem,
+                       &cert_pem_length, &error);
+  g_assert_no_error (error);
+
+  cert = g_tls_certificate_new_from_pem (cert_pem, cert_pem_length - 100, &error);
+  g_assert_no_error (error);
+  g_assert (G_IS_TLS_CERTIFICATE (cert));
+
+  issuer = g_tls_certificate_get_issuer (cert);
+  g_assert (issuer == NULL);
+  g_object_unref (cert);
+}
+
+static void
 test_create_list (void)
 {
   GList *list;
@@ -494,6 +547,8 @@ main (int   argc,
               setup_certificate, test_create_with_key_der, teardown_certificate);
   g_test_add ("/tls/certificate/create-with-issuer", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_issuer, teardown_certificate);
+  g_test_add_func ("/tls/certificate/create-chain", test_create_certificate_chain);
+  g_test_add_func ("/tls/certificate/create-no-chain", test_create_certificate_no_chain);
   g_test_add_func ("/tls/certificate/create-list", test_create_list);
   g_test_add_func ("/tls/certificate/create-list-bad", test_create_list_bad);
 

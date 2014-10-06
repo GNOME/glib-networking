@@ -29,7 +29,10 @@ echo
 
 read -p "Press [Enter] key to continue..." key
 
-# Create serial file
+#######################################################################
+### Root CA
+#######################################################################
+
 echo "00" > serial
 
 msg "Creating CA private key"
@@ -37,6 +40,10 @@ openssl genrsa -out ca-key.pem 1024
 
 msg "Creating CA certificate"
 openssl req -x509 -new -config ssl/ca.conf -days 10950 -key ca-key.pem -out ca.pem
+
+#######################################################################
+### Server
+#######################################################################
 
 msg "Creating server private key"
 openssl genrsa -out server-key.pem 512
@@ -57,8 +64,16 @@ openssl x509 -in server.pem -outform DER -out server.der
 msg "Converting server private key from PEM to DER"
 openssl rsa -in server-key.pem -outform DER -out server-key.der
 
+#######################################################################
+### Server (self-signed)
+#######################################################################
+
 msg "Creating server self-signed certificate"
 openssl x509 -req -days 9125 -in server-csr.pem -signkey server-key.pem -out server-self.pem
+
+#######################################################################
+### Client
+#######################################################################
 
 msg "Creating client private key"
 openssl genrsa -out client-key.pem 2048
@@ -87,6 +102,10 @@ openssl x509 -req -in client-csr.pem -days 365 -startdate -enddate -CA ca.pem -C
 sudo hwclock -s
 touch client-future.pem
 
+#######################################################################
+### Concatenate all non-CA certificates
+#######################################################################
+
 msg "Concatenating all non-CA certificates into a single file"
 echo "client.pem:" > non-ca.pem
 cat client.pem >> non-ca.pem
@@ -103,5 +122,43 @@ echo >> non-ca.pem
 echo "server-self.pem:" >> non-ca.pem
 cat server-self.pem >> non-ca.pem
 
-# We don't need the serial file anymore
+#######################################################################
+### Intermediate CA
+#######################################################################
+
+echo "00" > intermediate-serial
+
+msg "Creating intermediate CA private key"
+openssl genrsa -out intermediate-ca-key.pem 512
+
+msg "Creating intermediate CA certificate request"
+openssl req -config ssl/intermediate-ca.conf -key intermediate-ca-key.pem -new -out intermediate-ca-csr.pem
+
+msg "Creating intermediate CA certificate"
+openssl x509 -req -in intermediate-ca-csr.pem -days 9125 -CA ca.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/intermediate-ca.conf -extensions v3_req_ext -out intermediate-ca.pem
+
+#######################################################################
+### Server (signed by Intermediate CA)
+#######################################################################
+
+msg "Creating server (intermediate CA) private key"
+openssl genrsa -out server-intermediate-key.pem 512
+
+msg "Creating server (intermediate CA) certificate request"
+openssl req -config ssl/server-intermediate.conf -key server-intermediate-key.pem -new -out server-intermediate-csr.pem
+
+msg "Creating server (intermediate CA) certificate"
+openssl x509 -req -in server-intermediate-csr.pem -days 9125 -CA intermediate-ca.pem -CAkey intermediate-ca-key.pem -CAserial intermediate-serial -extfile ssl/server-intermediate.conf -extensions v3_req_ext -out server-intermediate.pem
+
+msg "Concatenating server (intermediate CA) chain into a file"
+cat server-intermediate.pem > chain.pem
+cat intermediate-ca.pem >> chain.pem
+cat ca.pem >> chain.pem
+
+#######################################################################
+### Cleanup
+#######################################################################
+
+# We don't need the serial files anymore
 rm -f serial
+rm -f intermediate-serial
