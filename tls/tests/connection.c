@@ -1377,11 +1377,90 @@ test_async_implicit_handshake (TestConnection *test, gconstpointer   data)
   test->client_connection = NULL;
 }
 
+static void
+quit_on_handshake_complete (GObject      *object,
+			    GAsyncResult *result,
+			    gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  GError *error = NULL;
+
+  g_tls_connection_handshake_finish (G_TLS_CONNECTION (object), result, &error);
+  g_assert_no_error (error);
+
+  g_main_loop_quit (test->loop);
+  return;
+}
+
+#define PRIORITY_SSL_FALLBACK "NORMAL:+VERS-SSL3.0"
+#define PRIORITY_TLS_FALLBACK "NORMAL:+VERS-TLS-ALL:-VERS-SSL3.0"
+
+static void
+test_fallback (gconstpointer data)
+{
+  const char *priority_string = (const char *) data;
+  char *test_name;
+
+  test_name = g_strdup_printf ("/tls/connection/fallback/subprocess/%s", priority_string);
+  g_test_trap_subprocess (test_name, 0, 0);
+  g_test_trap_assert_passed ();
+  g_free (test_name);
+}
+
+static void
+test_fallback_subprocess (TestConnection *test,
+			  gconstpointer   data)
+{
+  GIOStream *connection;
+  GTlsConnection *tlsconn;
+  GError *error = NULL;
+
+  connection = start_echo_server_and_connect_to_it (test);
+  test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
+  g_assert_no_error (error);
+  tlsconn = G_TLS_CONNECTION (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+  g_tls_client_connection_set_use_ssl3 (G_TLS_CLIENT_CONNECTION (test->client_connection),
+					TRUE);
+  g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
+				    quit_on_handshake_complete, test);
+  g_main_loop_run (test->loop);
+
+  /* In 2.42 we don't have the API to test that the correct version was negotiated,
+   * so we merely test that the connection succeeded at all.
+   */
+
+  g_io_stream_close (test->client_connection, NULL, &error);
+  g_assert_no_error (error);
+}
+
 int
 main (int   argc,
       char *argv[])
 {
   int ret;
+  int i;
+
+  /* Check if this is a subprocess, and set G_TLS_GNUTLS_PRIORITY
+   * appropriately if so.
+   */
+  for (i = 1; i < argc - 1; i++)
+    {
+      if (!strcmp (argv[i], "-p"))
+	{
+	  const char *priority = argv[i + 1];
+
+	  priority = strrchr (priority, '/');
+	  if (priority++ &&
+	      (g_str_has_prefix (priority, "NORMAL:") ||
+	       g_str_has_prefix (priority, "NONE:")))
+	    g_setenv ("G_TLS_GNUTLS_PRIORITY", priority, TRUE);
+	  break;
+	}
+    }
 
   g_test_init (&argc, &argv, NULL);
   g_test_bug_base ("http://bugzilla.gnome.org/");
@@ -1430,6 +1509,15 @@ main (int   argc,
               setup_connection, test_write_during_handshake, teardown_connection);
   g_test_add ("/tls/connection/async-implicit-handshake", TestConnection, NULL,
               setup_connection, test_async_implicit_handshake, teardown_connection);
+
+  g_test_add_data_func ("/tls/connection/fallback/SSL", PRIORITY_SSL_FALLBACK, test_fallback);
+  g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_SSL_FALLBACK,
+	      TestConnection, NULL,
+              setup_connection, test_fallback_subprocess, teardown_connection);
+  g_test_add_data_func ("/tls/connection/fallback/TLS", PRIORITY_TLS_FALLBACK, test_fallback);
+  g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_TLS_FALLBACK,
+	      TestConnection, NULL,
+              setup_connection, test_fallback_subprocess, teardown_connection);
 
   ret = g_test_run();
 

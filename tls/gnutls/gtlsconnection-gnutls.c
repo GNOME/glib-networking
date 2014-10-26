@@ -194,15 +194,16 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
   g_mutex_init (&gnutls->priv->op_mutex);
 }
 
-/* First field is "ssl3 only", second is "allow unsafe rehandshaking" */
+/* First field is "fallback", second is "allow unsafe rehandshaking" */
 static gnutls_priority_t priorities[2][2];
 
 static void
 g_tls_connection_gnutls_init_priorities (void)
 {
   const gchar *base_priority;
-  gchar *ssl3_priority, *unsafe_rehandshake_priority, *ssl3_unsafe_rehandshake_priority;
-  int ret;
+  gchar *fallback_priority, *unsafe_rehandshake_priority, *fallback_unsafe_rehandshake_priority;
+  const guint *protos;
+  int ret, i, nprotos, fallback_proto;
 
   base_priority = g_getenv ("G_TLS_GNUTLS_PRIORITY");
   if (!base_priority)
@@ -215,31 +216,53 @@ g_tls_connection_gnutls_init_priorities (void)
       gnutls_priority_init (&priorities[FALSE][FALSE], base_priority, NULL);
     }
 
-  ssl3_priority = g_strdup_printf ("%s:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0", base_priority);
   unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION", base_priority);
-  ssl3_unsafe_rehandshake_priority = g_strdup_printf ("%s:!VERS-TLS1.2:!VERS-TLS1.1:!VERS-TLS1.0:%%UNSAFE_RENEGOTIATION", base_priority);
-
-  gnutls_priority_init (&priorities[TRUE][FALSE], ssl3_priority, NULL);
-  gnutls_priority_init (&priorities[FALSE][TRUE], unsafe_rehandshake_priority, NULL);
-  gnutls_priority_init (&priorities[TRUE][TRUE], ssl3_unsafe_rehandshake_priority, NULL);
-
-  g_free (ssl3_priority);
+  ret = gnutls_priority_init (&priorities[FALSE][TRUE], unsafe_rehandshake_priority, NULL);
+  g_warn_if_fail (ret == 0);
   g_free (unsafe_rehandshake_priority);
-  g_free (ssl3_unsafe_rehandshake_priority);
+
+  /* Figure out the lowest SSl/TLS version supported by base_priority */
+  nprotos = gnutls_priority_protocol_list (priorities[FALSE][FALSE], &protos);
+  fallback_proto = G_MAXUINT;
+  for (i = 0; i < nprotos; i++)
+    {
+      if (protos[i] < fallback_proto)
+	fallback_proto = protos[i];
+    }
+  if (fallback_proto == G_MAXUINT)
+    {
+      g_warning ("All GNUTLS protocol versions disabled?");
+      fallback_priority = g_strdup (base_priority);
+    }
+  else
+    {
+      fallback_priority = g_strdup_printf ("%s:!VERS-TLS-ALL:+VERS-%s",
+					   base_priority,
+					   gnutls_protocol_get_name (fallback_proto));
+    }
+  fallback_unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION",
+							  fallback_priority);
+
+  ret = gnutls_priority_init (&priorities[TRUE][FALSE], fallback_priority, NULL);
+  g_warn_if_fail (ret == 0);
+  ret = gnutls_priority_init (&priorities[TRUE][TRUE], fallback_unsafe_rehandshake_priority, NULL);
+  g_warn_if_fail (ret == 0);
+  g_free (fallback_priority);
+  g_free (fallback_unsafe_rehandshake_priority);
 }
 
 static void
 g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
 {
-  gboolean use_ssl3, unsafe_rehandshake;
+  gboolean fallback, unsafe_rehandshake;
 
   if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
-    use_ssl3 = g_tls_client_connection_get_use_ssl3 (G_TLS_CLIENT_CONNECTION (gnutls));
+    fallback = g_tls_client_connection_get_use_ssl3 (G_TLS_CLIENT_CONNECTION (gnutls));
   else
-    use_ssl3 = FALSE;
+    fallback = FALSE;
   unsafe_rehandshake = (gnutls->priv->rehandshake_mode == G_TLS_REHANDSHAKE_UNSAFELY);
   gnutls_priority_set (gnutls->priv->session,
-		       priorities[use_ssl3][unsafe_rehandshake]);
+		       priorities[fallback][unsafe_rehandshake]);
 }
 
 static gboolean
