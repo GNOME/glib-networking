@@ -1,3 +1,21 @@
+2.43.1
+======
+
+  * The GTlsClientConnection "use-ssl3" property now falls back to TLS
+    1.0 if SSL 3.0 has been disabled, rather than just failing. Also,
+    we now use the gnutls %LATEST_RECORD_VERSION option by default (to
+    allow connecting to certain servers that were incorrectly patched
+    for the POODLE attack), but also make sure to remove that option
+    in the fallback ("use-ssl3") mode (to allow connecting to other
+    servers that are differently broken). (#738633, #740087, Dan
+    Winship)
+
+  * tls/gnutls: Miscellaneous warning, debugging, and leak fixes
+    (#736757, #736809, #737106, Philip Withnall)
+
+  * New/updated translations:
+	Kazakh
+
 2.42.0
 ======
   * New stable release. (No changes since 2.41.92)
