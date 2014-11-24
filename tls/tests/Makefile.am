@@ -43,6 +43,7 @@ testfiles_data =				\
 	files/ca-roots.pem			\
 	files/ca-roots-bad.pem			\
 	files/ca-verisign-sha1.pem		\
+	files/chain.pem				\
 	files/chain-with-verisign-md2.pem	\
 	files/client-and-key.pem		\
 	files/client-future.pem			\
