@@ -1,13 +1,15 @@
 include $(top_srcdir)/glib-networking.mk
 
 AM_CPPFLAGS +=					\
+	$(GNUTLS_CFLAGS)			\
 	-I$(top_srcdir)/tls			\
 	-I$(top_builddir)/tls			\
 	-DSRCDIR=\""$(abs_srcdir)"\"		\
 	-DTOP_BUILDDIR=\""$(top_builddir)"\"
 
 LDADD  = \
-	$(GLIB_LIBS)
+	$(GLIB_LIBS) \
+	$(GNUTLS_LIBS)
 
 test_programs =       \
 	certificate   \
@@ -24,8 +26,7 @@ test_programs +=           \
 	pkcs11-slot
 
 AM_CPPFLAGS +=			\
-	$(PKCS11_CFLAGS)	\
-	$(GNUTLS_CFLAGS)
+	$(PKCS11_CFLAGS)
 
 LDADD += $(top_builddir)/tls/pkcs11/libgiopkcs11.la $(PKCS11_LIBS)
 
