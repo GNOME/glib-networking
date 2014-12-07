@@ -24,6 +24,7 @@
 #include "mock-interaction.h"
 
 #include <gio/gio.h>
+#include <gnutls/gnutls.h>
 
 #include <sys/types.h>
 #include <string.h>
@@ -1048,10 +1049,28 @@ test_simultaneous_async (TestConnection *test,
   g_assert_cmpstr (test->buf, ==, TEST_DATA);
 }
 
+static gboolean
+check_gnutls_has_rehandshaking_bug (void)
+{
+  const char *version = gnutls_check_version (NULL);
+
+  return (!strcmp (version, "3.1.27") ||
+	  !strcmp (version, "3.1.28") ||
+	  !strcmp (version, "3.2.19") ||
+	  !strcmp (version, "3.3.8") ||
+	  !strcmp (version, "3.3.9"));
+}
+
 static void
 test_simultaneous_async_rehandshake (TestConnection *test,
 				     gconstpointer   data)
 {
+  if (check_gnutls_has_rehandshaking_bug ())
+    {
+      g_test_skip ("test would fail due to gnutls bug 108690");
+      return;
+    }
+
   test->rehandshake = TRUE;
   test_simultaneous_async (test, data);
 }
@@ -1146,6 +1165,12 @@ static void
 test_simultaneous_sync_rehandshake (TestConnection *test,
 				    gconstpointer   data)
 {
+  if (check_gnutls_has_rehandshaking_bug ())
+    {
+      g_test_skip ("test would fail due to gnutls bug 108690");
+      return;
+    }
+
   test->rehandshake = TRUE;
   test_simultaneous_sync (test, data);
 }
