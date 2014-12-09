@@ -1058,7 +1058,8 @@ check_gnutls_has_rehandshaking_bug (void)
 	  !strcmp (version, "3.1.28") ||
 	  !strcmp (version, "3.2.19") ||
 	  !strcmp (version, "3.3.8") ||
-	  !strcmp (version, "3.3.9"));
+	  !strcmp (version, "3.3.9") ||
+          !strcmp (version, "3.3.10"));
 }
 
 static void
