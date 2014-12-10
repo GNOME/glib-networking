@@ -226,6 +226,12 @@ test_create_certificate_chain (void)
   GTlsCertificate *cert, *intermediate, *root;
   GError *error = NULL;
 
+  if (glib_check_version (2, 43, 0))
+    {
+      g_test_skip ("This test requires glib 2.43");
+      return;
+    }
+
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("chain.pem"), &error);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
