@@ -29,10 +29,13 @@
 #include "gtlscertificate-gnutls.h"
 #include <glib/gi18n-lib.h>
 
+#define MAX_SERVER_NAME_LEN 255
+
 enum
 {
   PROP_0,
-  PROP_AUTHENTICATION_MODE
+  PROP_AUTHENTICATION_MODE,
+  PROP_SERVER_IDENTITY
 };
 
 static void     g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface);
@@ -45,6 +48,8 @@ static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t   
                                                              const gnutls_pk_algorithm_t *pk_algos,
                                                              int                          pk_algos_length,
                                                              gnutls_retr2_st             *st);
+
+static int g_tls_server_connection_gnutls_server_name_cb    (gnutls_session_t             session);
 
 static int            g_tls_server_connection_gnutls_db_store    (void            *user_data,
 								  gnutls_datum_t   key,
@@ -66,6 +71,7 @@ G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnu
 struct _GTlsServerConnectionGnutlsPrivate
 {
   GTlsAuthenticationMode authentication_mode;
+  char *server_identity;
 };
 
 static void
@@ -121,6 +127,10 @@ g_tls_server_connection_gnutls_get_property (GObject    *object,
       g_value_set_enum (value, gnutls->priv->authentication_mode);
       break;
       
+    case PROP_SERVER_IDENTITY:
+      g_value_set_string (value, gnutls->priv->server_identity);
+      break;
+      
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -140,9 +150,24 @@ g_tls_server_connection_gnutls_set_property (GObject      *object,
       gnutls->priv->authentication_mode = g_value_get_enum (value);
       break;
 
+    case PROP_SERVER_IDENTITY:
+      g_clear_pointer (&gnutls->priv->server_identity, g_free);
+      gnutls->priv->server_identity = g_value_dup_string (value);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
+}
+
+static void
+g_tls_server_connection_gnutls_finalize (GObject *object)
+{
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (object);
+
+  g_free (gnutls->priv->server_identity);
+
+  G_OBJECT_CLASS (g_tls_server_connection_gnutls_parent_class)->finalize (object);
 }
 
 static int
@@ -185,13 +210,48 @@ g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
     }
 
   session = g_tls_connection_gnutls_get_session (conn);
+
   gnutls_certificate_server_set_request (session, req_mode);
+  gnutls_handshake_set_post_client_hello_function (session, g_tls_server_connection_gnutls_server_name_cb);
+
+  g_clear_pointer (&gnutls->priv->server_identity, g_free);
 }
 
 static void
 g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
 						 GError               **inout_error)
 {
+}
+
+static int 
+g_tls_server_connection_gnutls_server_name_cb (gnutls_session_t session)
+{
+  GTlsServerConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
+  gchar name[MAX_SERVER_NAME_LEN];
+  gsize length = MAX_SERVER_NAME_LEN;
+  guint type;
+  int ret;
+
+  ret = gnutls_server_name_get (session, name, &length, &type, 0);
+  if (ret == 0 && type == GNUTLS_NAME_DNS)
+    {
+      if (gnutls->priv->server_identity)
+	g_free (gnutls->priv->server_identity);
+      gnutls->priv->server_identity = g_strdup (name);
+      g_object_notify (G_OBJECT (gnutls), "server-identity");
+    }
+  else if (ret == GNUTLS_E_SHORT_MEMORY_BUFFER)
+    g_warning ("ignoring too-long SNI name");
+
+  return 0;
+}
+
+static const char *
+g_tls_server_connection_gnutls_get_server_identity (GTlsServerConnection *conn)
+{
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (conn);
+
+  return gnutls->priv->server_identity;
 }
 
 /* Session cache management */
@@ -262,17 +322,20 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
 
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
+  gobject_class->finalize     = g_tls_server_connection_gnutls_finalize;
 
   connection_gnutls_class->failed           = g_tls_server_connection_gnutls_failed;
   connection_gnutls_class->begin_handshake  = g_tls_server_connection_gnutls_begin_handshake;
   connection_gnutls_class->finish_handshake = g_tls_server_connection_gnutls_finish_handshake;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
+  g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
 }
 
 static void
 g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface)
 {
+  iface->get_server_identity = g_tls_server_connection_gnutls_get_server_identity;
 }
 
 static void

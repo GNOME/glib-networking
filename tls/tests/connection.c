@@ -72,6 +72,7 @@ typedef struct {
   GError *server_error;
   gboolean server_should_close;
   gboolean server_running;
+  gboolean do_sni;
 
   char buf[128];
   gssize nread, nwrote;
@@ -251,6 +252,36 @@ on_output_write_finish (GObject        *object,
     close_server_connection (test);
 }
 
+static void
+on_received_server_identity (GObject    *object,
+			     GParamSpec *pspec,
+			     gpointer    user_data)
+{
+  TestConnection *test = user_data;
+  const gchar *identity;
+  GTlsCertificate *cert;
+  GError *error = NULL;
+
+  identity = g_tls_server_connection_get_server_identity (G_TLS_SERVER_CONNECTION (object));
+
+  if (!test->do_sni)
+    {
+      g_assert_cmpstr (identity, ==, "server.example.com");
+      return;
+    }
+
+  if (!strcmp (identity, "other.example.com"))
+    {
+      cert = g_tls_certificate_new_from_files (tls_test_file_path ("other.pem"),
+					       tls_test_file_path ("other-key.pem"),
+					       &error);
+      g_assert_no_error (error);
+
+      g_tls_connection_set_certificate (G_TLS_CONNECTION (test->server_connection), cert);
+      g_object_unref (cert);
+    }
+}
+
 static gboolean
 on_incoming_connection (GSocketService     *service,
                         GSocketConnection  *connection,
@@ -270,9 +301,12 @@ on_incoming_connection (GSocketService     *service,
   g_assert_no_error (error);
   g_object_unref (cert);
 
+
   g_object_set (test->server_connection, "authentication-mode", test->auth_mode, NULL);
   g_signal_connect (test->server_connection, "accept-certificate",
                     G_CALLBACK (on_accept_certificate), test);
+  g_signal_connect (test->server_connection, "notify::server-identity", 
+		    G_CALLBACK (on_received_server_identity), test);
 
   if (test->database)
     g_tls_connection_set_database (G_TLS_CONNECTION (test->server_connection), test->database);
@@ -767,6 +801,9 @@ test_failed_connection (TestConnection *test,
   g_object_unref (bad_addr);
   g_assert_no_error (error);
   g_object_unref (connection);
+
+  /* Set this so that on_received_server_identity() won't assert */
+  test->do_sni = TRUE;
 
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
 				    G_PRIORITY_DEFAULT, NULL,
@@ -1462,6 +1499,41 @@ test_fallback_subprocess (TestConnection *test,
   g_assert_no_error (error);
 }
 
+static void
+test_sni (TestConnection *test,
+	  gconstpointer   data)
+{
+  const char *identity = (const char *) data;
+  GIOStream *connection;
+  GError *error = NULL;
+
+  test->do_sni = TRUE;
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+
+  test->identity = g_network_address_new (identity, 80);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  if (!strcmp (identity, "fail.example.com"))
+    {
+      g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+      g_assert_no_error (test->server_error);
+    }
+  else
+    {
+      g_assert_no_error (test->read_error);
+      g_assert_no_error (test->server_error);
+    }
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -1543,6 +1615,13 @@ main (int   argc,
   g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_TLS_FALLBACK,
 	      TestConnection, NULL,
               setup_connection, test_fallback_subprocess, teardown_connection);
+
+  g_test_add ("/tls/connection/sni/server", TestConnection, "server.example.com",
+              setup_connection, test_sni, teardown_connection);
+  g_test_add ("/tls/connection/sni/other", TestConnection, "other.example.com",
+              setup_connection, test_sni, teardown_connection);
+  g_test_add ("/tls/connection/sni/fail", TestConnection, "fail.example.com",
+              setup_connection, test_sni, teardown_connection);
 
   ret = g_test_run();
 
