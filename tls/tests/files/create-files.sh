@@ -72,6 +72,19 @@ msg "Converting server private key from PEM to DER"
 openssl rsa -in server-key.pem -outform DER -out server-key.der
 
 #######################################################################
+### Other server
+#######################################################################
+
+msg "Creating other server private key"
+openssl genrsa -out other-key.pem 512
+
+msg "Creating other server certificate request"
+openssl req -config ssl/other.conf -key other-key.pem -new -out other-csr.pem
+
+msg "Creating other server certificate"
+openssl x509 -req -in other-csr.pem -days 9125 -CA ca.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/other.conf -extensions v3_req_ext -out other.pem
+
+#######################################################################
 ### Server (self-signed)
 #######################################################################
 
@@ -125,6 +138,9 @@ cat client-past.pem >> non-ca.pem
 echo >> non-ca.pem
 echo "server.pem:" >> non-ca.pem
 cat server.pem >> non-ca.pem
+echo >> non-ca.pem
+echo "other.pem:" >> non-ca.pem
+cat other.pem >> non-ca.pem
 echo >> non-ca.pem
 echo "server-self.pem:" >> non-ca.pem
 cat server-self.pem >> non-ca.pem

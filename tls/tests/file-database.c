@@ -493,12 +493,13 @@ test_lookup_certificates_issued_by (void)
 
   g_byte_array_unref (issuer_dn);
 
-  g_assert_cmpuint (g_list_length (certificates), ==, 4);
+  g_assert_cmpuint (g_list_length (certificates), ==, 5);
 
   g_assert (certificate_is_in_list (certificates, tls_test_file_path ("client.pem")));
   g_assert (certificate_is_in_list (certificates, tls_test_file_path ("client-future.pem")));
   g_assert (certificate_is_in_list (certificates, tls_test_file_path ("client-past.pem")));
   g_assert (certificate_is_in_list (certificates, tls_test_file_path ("server.pem")));
+  g_assert (certificate_is_in_list (certificates, tls_test_file_path ("other.pem")));
   g_assert (!certificate_is_in_list (certificates, tls_test_file_path ("server-self.pem")));
 
   g_list_free_full (certificates, g_object_unref);
