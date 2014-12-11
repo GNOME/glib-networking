@@ -16,13 +16,9 @@ echo "a couple of certificates (sudo password will be requested). This"
 echo "is because it uses the OpenSSL x509 utility instead of the ca"
 echo "utility which allows to set a starting date for the certificates."
 echo
-echo "A few manual changes need to be made. The first certificate"
-echo "in ca-roots.pem and ca-roots-bad.pem need to be replaced by"
-echo "the contents of ca.pem."
-echo
-echo "Also, file-database.c:test_lookup_certificates_issued_by has"
-echo "an ISSUER variable that needs to be changed by the CA identifier"
-echo "(read the comment in that function)."
+echo "If you change this script, run 'make check' afterward, as some"
+echo "of the tests depend on things like exactly how many certificates"
+echo "are in each file."
 echo
 echo "                   *** IMPORTANT ***"
 echo
@@ -40,6 +36,17 @@ openssl genrsa -out ca-key.pem 1024
 
 msg "Creating CA certificate"
 openssl req -x509 -new -config ssl/ca.conf -days 10950 -key ca-key.pem -out ca.pem
+
+msg "Updating ca-roots.pem and ca-roots-bad.pem"
+(awk '/BEGIN/ { ended=1; } { if (!ended) { print; } }' ca-roots.pem;
+    cat ca.pem
+    awk '{ if (started) { print; } } /END/ { started=1; }' ca-roots.pem) > ca-roots.pem.new
+mv ca-roots.pem.new ca-roots.pem
+
+(awk '/BEGIN/ { ended=1; } { if (!ended) { print; } }' ca-roots-bad.pem;
+    cat ca.pem
+    awk '{ if (started) { print; } } /END/ { started=1; }' ca-roots-bad.pem) > ca-roots-bad.pem.new
+mv ca-roots-bad.pem.new ca-roots-bad.pem
 
 #######################################################################
 ### Server
@@ -159,6 +166,7 @@ cat ca.pem >> chain.pem
 ### Cleanup
 #######################################################################
 
-# We don't need the serial files anymore
+# We don't need the serial files or CSRs anymore
 rm -f serial
 rm -f intermediate-serial
+rm -f *-csr.pem
