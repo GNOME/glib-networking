@@ -327,18 +327,28 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
 
   if (gnutls->priv->session_id)
     {
-      gnutls_datum_t session_datum;
-
-      if (!*inout_error &&
-	  gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (conn),
-				    &session_datum) == 0)
+      if (!*inout_error)
 	{
-	  GBytes *session_data = g_bytes_new_with_free_func (session_datum.data, session_datum.size,
-							     (GDestroyNotify)gnutls_free, session_datum.data);
+          if (!gnutls_session_is_resumed (g_tls_connection_gnutls_get_session (conn)))
+            {
+              gnutls_datum_t session_datum;
 
-	  g_tls_backend_gnutls_store_session (GNUTLS_CLIENT, gnutls->priv->session_id,
-					      session_data);
-	  g_bytes_unref (session_data);
+              if (gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (conn),
+                                            &session_datum) == 0)
+                {
+                  GBytes *session_data = g_bytes_new_with_free_func (session_datum.data,
+                                                                     session_datum.size,
+                                                                     (GDestroyNotify)gnutls_free,
+                                                                     session_datum.data);
+
+                  g_tls_backend_gnutls_store_session (GNUTLS_CLIENT,
+                                                      gnutls->priv->session_id,
+                                                      session_data);
+                  g_bytes_unref (session_data);
+                }
+              else
+                g_tls_backend_gnutls_remove_session (GNUTLS_CLIENT, gnutls->priv->session_id);
+            }
 	}
       else
 	g_tls_backend_gnutls_remove_session (GNUTLS_CLIENT, gnutls->priv->session_id);
