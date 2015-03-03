@@ -1,3 +1,21 @@
+2.43.91
+=======
+  * tls/gnutls: Removed a workaround for connecting to servers with
+    weak DH parameters, which was apparently only needed because
+    gnutls was prioritizing DHE over RSA. (Michael Catanzaro)
+    (https://bugzilla.redhat.com/show_bug.cgi?id=1177964#c8)
+
+  * tls/gnutls: We now require gnutls 3.x again. (In fact, 2.42.1
+    and 2.43.1 accidentally used a 3.x-only function, so we already
+    required it, we were just failing to declare that fact.)
+
+  * tls/tests: Skip certain tests when running against old gnutls or
+    GLib releases. (glib-networking 2.43.91 itself does not require
+    GLib 2.43, but one of the test cases does.)
+
+  * Updated translations:
+	Friulian
+
 2.43.1
 ======
 
