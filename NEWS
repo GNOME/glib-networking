@@ -1,3 +1,11 @@
+2.43.92
+=======
+  * Fix TLS session caching when using session tickets (#745099, Ross
+    Lagerwall)
+
+  * Updated translations:
+	Bosnian
+
 2.43.91
 =======
   * tls/gnutls: Removed a workaround for connecting to servers with
