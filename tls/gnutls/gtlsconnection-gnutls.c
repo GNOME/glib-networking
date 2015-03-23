@@ -87,7 +87,8 @@ enum
   PROP_CERTIFICATE,
   PROP_INTERACTION,
   PROP_PEER_CERTIFICATE,
-  PROP_PEER_CERTIFICATE_ERRORS
+  PROP_PEER_CERTIFICATE_ERRORS,
+  PROP_CONNECTION_INFO
 };
 
 struct _GTlsConnectionGnutlsPrivate
@@ -372,6 +373,102 @@ g_tls_connection_gnutls_finalize (GObject *object)
 }
 
 static void
+get_connection_info (GTlsConnectionGnutls *gnutls,
+		     GValue               *value)
+{
+  GVariantBuilder builder;
+  gnutls_protocol_t proto;
+  GTlsVersion version;
+  gnutls_kx_algorithm_t kx, cur_kx;
+  gnutls_cipher_algorithm_t cipher, cur_cipher;
+  gnutls_mac_algorithm_t mac, cur_mac;
+  char *cipher_suite, *p;
+  int dh_prime_size;
+
+  /* Unfortunately GNUTLS doesn't provide any API for this...
+   * If this becomes a problem, we could snoop the version
+   * from g_tls_connection_gnutls_pull_func()...
+   */
+  switch (gnutls_protocol_get_version (gnutls->priv->session))
+    {
+    case GNUTLS_SSL3:
+      version = G_TLS_VERSION_SSL_3_0;
+    case GNUTLS_TLS1_0:
+      version = G_TLS_VERSION_TLS_1_0;
+    case GNUTLS_TLS1_1:
+      version = G_TLS_VERSION_TLS_1_1;
+    case GNUTLS_TLS1_2:
+      version = G_TLS_VERSION_TLS_1_2;
+    case GNUTLS_DTLS1_0:
+      version = G_TLS_VERSION_DTLS_1_0;
+    case GNUTLS_DTLS1_2:
+      version = G_TLS_VERSION_DTLS_1_2;
+    case GNUTLS_VERSION_UNKNOWN:
+      g_value_set_variant (value, NULL);
+      return;
+    default:
+      g_warning ("Unrecognized gnutls_protocol_t value!");
+      version = G_TLS_VERSION_INVALID;
+    }
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&builder, "{sv}",
+			 "version",
+			 g_variant_new_int16 (version));
+
+  cur_kx = gnutls_kx_get (gnutls->priv->session);
+  cur_cipher = gnutls_cipher_get (gnutls->priv->session);
+  cur_mac = gnutls_mac_get (gnutls->priv->session);
+
+  g_variant_builder_add (&builder, "{sv}",
+			 "key-exchange", 
+			 g_variant_new_string (gnutls_kx_get_name (cur_kx)));
+  g_variant_builder_add (&builder, "{sv}",
+			 "cipher", 
+			 g_variant_new_string (gnutls_cipher_get_name (cur_cipher)));
+  g_variant_builder_add (&builder, "{sv}",
+			 "key-size", 
+			 g_variant_new_int32 (gnutls_cipher_get_key_size (cur_cipher)));
+  g_variant_builder_add (&builder, "{sv}",
+			 "mac", 
+			 g_variant_new_string (gnutls_mac_get_name (cur_mac)));
+  g_variant_builder_add (&builder, "{sv}",
+			 "mac-size", 
+			 g_variant_new_int32 (gnutls_mac_get_key_size (cur_mac)));
+
+  /* The names returned by gnutls_cipher_suite_info() aren't in
+   * the form used in the spec.
+   */
+  cipher_suite = g_strdup_printf ("%s_%s_WITH_%s_%s",
+				  version == G_TLS_VERSION_SSL3 ? "SSL" : "TLS",
+				  gnutls_kx_get_name (cur_kx),
+				  gnutls_cipher_get_name (cur_cipher),
+				  gnutls_mac_get_name (cur_mac));
+  for (p = cipher_suite; *p; p++)
+    {
+      if (*p == '-')
+	*p = '_';
+    }
+  g_variant_builder_add (&builder, "{sv}",
+			 "cipher-suite", 
+			 g_variant_new_take_string (cipher_suite));
+
+  dh_prime_size = gnutls_dh_get_prime_bits (gnutls->priv->session);
+  if (dh_prime_size) 
+    {
+      g_variant_builder_add (&builder, "{sv}",
+			     "dh-prime-size", 
+			     g_variant_new_int32 (dh_prime_size));
+    }
+
+  g_variant_builder_add (&builder, "{sv}",
+			 "ext-renegotiation-info", 
+			 g_variant_new_boolean (gnutls_safe_renegotiation_status (gnutls->priv->session) != 0));
+
+  g_value_take_variant (value, g_variant_builder_end (&builder));
+}
+
+static void
 g_tls_connection_gnutls_get_property (GObject    *object,
 				      guint       prop_id,
 				      GValue     *value,
@@ -422,6 +519,13 @@ g_tls_connection_gnutls_get_property (GObject    *object,
 
     case PROP_PEER_CERTIFICATE_ERRORS:
       g_value_set_flags (value, gnutls->priv->peer_certificate_errors);
+      break;
+
+    case PROP_CONNECTION_INFO:
+      if (!gnutls->priv->ever_handshaked)
+	g_value_set_variant (value, NULL);
+      else
+	get_connection_info (gnutls, value);
       break;
 
     default:
@@ -1768,6 +1872,10 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
+  g_object_class_override_property (gobject_class, PROP_VERSION, "version");
+  g_object_class_override_property (gobject_class, PROP_VERSION_NAME, "version-name");
+  g_object_class_override_property (gobject_class, PROP_CIPHER_SUITE, "cipher-suite");
+  g_object_class_override_property (gobject_class, PROP_CIPHER_SUITE_NAME, "cipher-suite-name");
 }
 
 static void

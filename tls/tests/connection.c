@@ -1417,25 +1417,28 @@ quit_on_handshake_complete (GObject      *object,
   return;
 }
 
+typedef struct {
+  GTlsVersion version;
+  const char *version_name;
+} TestVersionData;
+
+static void
+test_priority_string (gconstpointer data)
+{
+  const char *subtest_name = (const char *) data;
+
+  g_test_trap_subprocess (subtest_name, 0, 0);
+  g_test_trap_assert_passed ();
+}
+
 #define PRIORITY_SSL_FALLBACK "NORMAL:+VERS-SSL3.0"
 #define PRIORITY_TLS_FALLBACK "NORMAL:+VERS-TLS-ALL:-VERS-SSL3.0"
 
 static void
-test_fallback (gconstpointer data)
-{
-  const char *priority_string = (const char *) data;
-  char *test_name;
-
-  test_name = g_strdup_printf ("/tls/connection/fallback/subprocess/%s", priority_string);
-  g_test_trap_subprocess (test_name, 0, 0);
-  g_test_trap_assert_passed ();
-  g_free (test_name);
-}
-
-static void
 test_fallback_subprocess (TestConnection *test,
-			  gconstpointer   data)
+			  gconstpointer   test_data)
 {
+  const TestVersionData *data = (const TestVersionData *) test_data;
   GIOStream *connection;
   GTlsConnection *tlsconn;
   GError *error = NULL;
@@ -1446,6 +1449,9 @@ test_fallback_subprocess (TestConnection *test,
   tlsconn = G_TLS_CONNECTION (test->client_connection);
   g_object_unref (connection);
 
+  g_assert_cmpint (g_tls_connection_get_version (tlsconn), ==, G_TLS_VERSION_INVALID);
+  g_assert_cmpstr (g_tls_connection_get_version_name (tlsconn), ==, NULL);
+
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 0);
   g_tls_client_connection_set_use_ssl3 (G_TLS_CLIENT_CONNECTION (test->client_connection),
@@ -1454,9 +1460,79 @@ test_fallback_subprocess (TestConnection *test,
 				    quit_on_handshake_complete, test);
   g_main_loop_run (test->loop);
 
-  /* In 2.42 we don't have the API to test that the correct version was negotiated,
-   * so we merely test that the connection succeeded at all.
-   */
+  g_assert_cmpint (g_tls_connection_get_version (tlsconn), ==, data->version);
+  g_assert_cmpstr (g_tls_connection_get_version_name (tlsconn), ==, data->version_name);
+
+  g_io_stream_close (test->client_connection, NULL, &error);
+  g_assert_no_error (error);
+}
+
+#define PRIORITY_TLS_1_0_ONLY "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0"
+#define PRIORITY_TLS_1_1_ONLY "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1"
+#define PRIORITY_RSA_ONLY "NONE:+VERS-TLS-ALL:+RSA:+AES-256-CBC:+SHA256:+SIGN-ALL:+COMP-NULL"
+
+static void
+test_version (TestConnection *test,
+	      gconstpointer   test_data)
+{
+  const TestVersionData *data = (const TestVersionData *) test_data;
+  GIOStream *connection;
+  GTlsConnection *tlsconn;
+  GError *error = NULL;
+
+  connection = start_echo_server_and_connect_to_it (test);
+  test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
+  g_assert_no_error (error);
+  tlsconn = G_TLS_CONNECTION (test->client_connection);
+  g_object_unref (connection);
+
+  g_assert_cmpint (g_tls_connection_get_version (tlsconn), ==, G_TLS_VERSION_INVALID);
+  g_assert_cmpstr (g_tls_connection_get_version_name (tlsconn), ==, NULL);
+
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+  g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
+				    quit_on_handshake_complete, test);
+  g_main_loop_run (test->loop);
+
+  g_assert_cmpint (g_tls_connection_get_version (tlsconn), ==, data->version);
+  g_assert_cmpstr (g_tls_connection_get_version_name (tlsconn), ==, data->version_name);
+
+  g_io_stream_close (test->client_connection, NULL, &error);
+  g_assert_no_error (error);
+}
+
+typedef struct {
+  guint cipher_suite;
+  const char *cipher_suite_name;
+} TestCipherSuiteData;
+
+static void
+test_cipher_suite (TestConnection *test,
+		   gconstpointer   test_data)
+{
+  const TestCipherSuiteData *data = (const TestCipherSuiteData *) test_data;
+  GIOStream *connection;
+  GTlsConnection *tlsconn;
+  GError *error = NULL;
+
+  connection = start_echo_server_and_connect_to_it (test);
+  test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
+  g_assert_no_error (error);
+  tlsconn = G_TLS_CONNECTION (test->client_connection);
+  g_object_unref (connection);
+
+  g_assert_cmpint (g_tls_connection_get_cipher_suite (tlsconn), ==, 0x0000);
+  g_assert_cmpstr (g_tls_connection_get_cipher_suite_name (tlsconn), ==, "TLS_NULL_WITH_NULL_NULL");
+
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+  g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
+				    quit_on_handshake_complete, test);
+  g_main_loop_run (test->loop);
+
+  g_assert_cmpint (g_tls_connection_get_cipher_suite (tlsconn), ==, data->cipher_suite);
+  g_assert_cmpstr (g_tls_connection_get_cipher_suite_name (tlsconn), ==, data->cipher_suite_name);
 
   g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
@@ -1535,14 +1611,48 @@ main (int   argc,
   g_test_add ("/tls/connection/async-implicit-handshake", TestConnection, NULL,
               setup_connection, test_async_implicit_handshake, teardown_connection);
 
-  g_test_add_data_func ("/tls/connection/fallback/SSL", PRIORITY_SSL_FALLBACK, test_fallback);
-  g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_SSL_FALLBACK,
-	      TestConnection, NULL,
-              setup_connection, test_fallback_subprocess, teardown_connection);
-  g_test_add_data_func ("/tls/connection/fallback/TLS", PRIORITY_TLS_FALLBACK, test_fallback);
-  g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_TLS_FALLBACK,
-	      TestConnection, NULL,
-              setup_connection, test_fallback_subprocess, teardown_connection);
+  {
+    TestVersionData ssl3 = { G_TLS_VERSION_SSL_3_0, "SSL3.0" };
+    TestVersionData tls10 = { G_TLS_VERSION_TLS_1_0, "TLS1.0" };
+    TestVersionData tls11 = { G_TLS_VERSION_TLS_1_1, "TLS1.1" };
+
+    g_test_add_data_func ("/tls/connection/fallback/SSL",
+			  "/tls/connection/fallback/subprocess/" PRIORITY_SSL_FALLBACK,
+			  test_priority_string);
+    g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_SSL_FALLBACK,
+		TestConnection, &ssl3,
+		setup_connection, test_fallback_subprocess, teardown_connection);
+    g_test_add_data_func ("/tls/connection/fallback/TLS",
+			  "/tls/connection/fallback/subprocess/" PRIORITY_TLS_FALLBACK,
+			  test_priority_string);
+    g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_TLS_FALLBACK,
+		TestConnection, &tls10,
+		setup_connection, test_fallback_subprocess, teardown_connection);
+
+    g_test_add_data_func ("/tls/connection/version/TLS1.0",
+			  "/tls/connection/version/TLS1.0/subprocess/" PRIORITY_TLS_1_0_ONLY,
+			  test_priority_string);
+    g_test_add ("/tls/connection/version/TLS1.0/subprocess/" PRIORITY_TLS_1_0_ONLY,
+		TestConnection, &tls10,
+		setup_connection, test_version, teardown_connection);
+    g_test_add_data_func ("/tls/connection/version/TLS1.1",
+			  "/tls/connection/version/TLS1.1/subprocess/" PRIORITY_TLS_1_1_ONLY,
+			  test_priority_string);
+    g_test_add ("/tls/connection/version/TLS1.1/subprocess/" PRIORITY_TLS_1_1_ONLY,
+		TestConnection, &tls11,
+		setup_connection, test_version, teardown_connection);
+  }
+
+  {
+    TestCipherSuiteData rsa = { 0x003D, "TLS_RSA_WITH_AES_256_CBC_SHA256" };
+
+    g_test_add_data_func ("/tls/connection/cipher-suite/RSA",
+			  "/tls/connection/cipher-suite/RSA/subprocess/" PRIORITY_RSA_ONLY,
+			  test_priority_string);
+    g_test_add ("/tls/connection/cipher-suite/RSA/subprocess/" PRIORITY_RSA_ONLY,
+		TestConnection, &rsa,
+		setup_connection, test_cipher_suite, teardown_connection);
+  }
 
   ret = g_test_run();
 
