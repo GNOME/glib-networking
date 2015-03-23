@@ -1,3 +1,7 @@
+2.44.0
+======
+  * New stable release. (No changes since 2.43.92)
+
 2.43.92
 =======
   * Fix TLS session caching when using session tickets (#745099, Ross
