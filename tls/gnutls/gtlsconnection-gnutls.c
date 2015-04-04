@@ -105,6 +105,7 @@ struct _GTlsConnectionGnutlsPrivate
   GTlsCertificate *peer_certificate_tmp;
   GTlsCertificateFlags peer_certificate_errors_tmp;
 
+  GVariant *requirements;
   gboolean require_close_notify;
   GTlsRehandshakeMode rehandshake_mode;
   gboolean is_system_certdb;
@@ -195,6 +196,36 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
   g_mutex_init (&gnutls->priv->op_mutex);
 }
 
+static gboolean
+get_min_max_versions (gnutls_priority_t  priority,
+		      gnutls_protocol_t *min_proto,
+		      gnutls_protocol_t *max_proto)
+{
+  gboolean got_proto = FALSE;
+  const guint *protos;
+  int i, nprotos;
+
+  if (min_proto)
+    *min_proto = GNUTLS_VERSION_MAX;
+  if (max_proto)
+    *max_proto = GNUTLS_SSL3;
+
+  nprotos = gnutls_priority_protocol_list (priority, &protos);
+  for (i = 0; i < nprotos; i++)
+    {
+      if (g_str_has_prefix (gnutls_protocol_get_name (protos[i], "DTLS")))
+	continue;
+      got_proto = TRUE;
+
+      if (min_proto && protos[i] < *min_proto)
+	*min_proto = protos[i];
+      if (max_proto && protos[i] > *max_proto)
+	*max_proto = protos[i];
+    }
+
+  return !got_proto;
+}
+
 /* First field is "fallback", second is "allow unsafe rehandshaking" */
 static gnutls_priority_t priorities[2][2];
 
@@ -205,8 +236,8 @@ g_tls_connection_gnutls_init_priorities (void)
 {
   const gchar *base_priority;
   gchar *fallback_priority, *unsafe_rehandshake_priority, *fallback_unsafe_rehandshake_priority;
-  const guint *protos;
-  int ret, i, nprotos, fallback_proto;
+  gnutls_protocol_t fallback_proto;
+  int ret;
 
   base_priority = g_getenv ("G_TLS_GNUTLS_PRIORITY");
   if (!base_priority)
@@ -225,14 +256,7 @@ g_tls_connection_gnutls_init_priorities (void)
   g_free (unsafe_rehandshake_priority);
 
   /* Figure out the lowest SSl/TLS version supported by base_priority */
-  nprotos = gnutls_priority_protocol_list (priorities[FALSE][FALSE], &protos);
-  fallback_proto = G_MAXUINT;
-  for (i = 0; i < nprotos; i++)
-    {
-      if (protos[i] < fallback_proto)
-	fallback_proto = protos[i];
-    }
-  if (fallback_proto == G_MAXUINT)
+  if (!get_min_max_versions (priorities[FALSE][FALSE], &fallback_proto, NULL))
     {
       g_warning ("All GNUTLS protocol versions disabled?");
       fallback_priority = g_strdup (base_priority);
@@ -267,8 +291,8 @@ g_tls_connection_gnutls_init_priorities (void)
   g_free (fallback_unsafe_rehandshake_priority);
 }
 
-static void
-g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
+static gnutls_priority_t
+g_tls_connection_gnutls_get_handshake_priority (GTlsConnectionGnutls *gnutls)
 {
   gboolean fallback, unsafe_rehandshake;
 
@@ -277,8 +301,7 @@ g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
   else
     fallback = FALSE;
   unsafe_rehandshake = (gnutls->priv->rehandshake_mode == G_TLS_REHANDSHAKE_UNSAFELY);
-  gnutls_priority_set (gnutls->priv->session,
-		       priorities[fallback][unsafe_rehandshake]);
+  return priorities[fallback][unsafe_rehandshake];
 }
 
 static gboolean
@@ -369,46 +392,74 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_clear_object (&gnutls->priv->waiting_for_op);
   g_mutex_clear (&gnutls->priv->op_mutex);
 
+  g_clear_pointer (&gnutls->priv->requirements, g_variant_unref);
+
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
 }
 
-static void
-get_connection_info (GTlsConnectionGnutls *gnutls,
-		     GValue               *value)
+static GTlsVersion
+g_tls_version_from_gnutls (gnutls_protocol_t proto)
 {
-  GVariantBuilder builder;
-  gnutls_protocol_t proto;
-  GTlsVersion version;
-  gnutls_kx_algorithm_t kx, cur_kx;
-  gnutls_cipher_algorithm_t cipher, cur_cipher;
-  gnutls_mac_algorithm_t mac, cur_mac;
-  char *cipher_suite, *p;
-  int dh_prime_size;
-
   /* Unfortunately GNUTLS doesn't provide any API for this...
    * If this becomes a problem, we could snoop the version
    * from g_tls_connection_gnutls_pull_func()...
    */
-  switch (gnutls_protocol_get_version (gnutls->priv->session))
+  switch (proto)
     {
     case GNUTLS_SSL3:
-      version = G_TLS_VERSION_SSL_3_0;
+      return G_TLS_VERSION_SSL_3_0;
     case GNUTLS_TLS1_0:
-      version = G_TLS_VERSION_TLS_1_0;
+      return G_TLS_VERSION_TLS_1_0;
     case GNUTLS_TLS1_1:
-      version = G_TLS_VERSION_TLS_1_1;
+      return G_TLS_VERSION_TLS_1_1;
     case GNUTLS_TLS1_2:
-      version = G_TLS_VERSION_TLS_1_2;
-    case GNUTLS_DTLS1_0:
-      version = G_TLS_VERSION_DTLS_1_0;
-    case GNUTLS_DTLS1_2:
-      version = G_TLS_VERSION_DTLS_1_2;
-    case GNUTLS_VERSION_UNKNOWN:
-      g_value_set_variant (value, NULL);
-      return;
-    default:
+      return G_TLS_VERSION_TLS_1_2;
+    }
+
+  return G_TLS_VERSION_INVALID;
+}
+
+/* The names returned by gnutls_cipher_suite_info() aren't in the form
+ * used in the spec.
+ */
+static char *
+ciphersuite_name (gnutls_protocol_t         version,
+		  gnutls_kx_algorithm_t     kx,
+		  gnutls_cipher_algorithm_t cipher,
+		  gnutls_mac_algorithm_t    mac)
+{
+  char *name, *p;
+
+  name = g_strdup_printf ("%s_%s_WITH_%s_%s",
+			  version == GNUTLS_SSL3 ? "SSL" : "TLS",
+			  gnutls_kx_get_name (kx),
+			  gnutls_cipher_get_name (cipher),
+			  gnutls_mac_get_name (mac));
+  for (p = name; *p; p++)
+    {
+      if (*p == '-')
+	*p = '_';
+    }
+
+  return name;
+}
+
+static GVariant *
+get_connection_info (GTlsConnectionGnutls *gnutls)
+{
+  GVariantBuilder builder;
+  GTlsVersion version;
+  gnutls_kx_algorithm_t kx, cur_kx;
+  gnutls_cipher_algorithm_t cipher, cur_cipher;
+  gnutls_mac_algorithm_t mac, cur_mac;
+  char *cipher_suite;
+  int dh_prime_size;
+
+  version = g_tls_version_from_gnutls (gnutls_protocol_get_version (gnutls->priv->session));
+  if (version == G_TLS_VERSION_INVALID)
+    {
       g_warning ("Unrecognized gnutls_protocol_t value!");
-      version = G_TLS_VERSION_INVALID;
+      return NULL;
     }
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
@@ -436,19 +487,8 @@ get_connection_info (GTlsConnectionGnutls *gnutls,
 			 "mac-size", 
 			 g_variant_new_int32 (gnutls_mac_get_key_size (cur_mac)));
 
-  /* The names returned by gnutls_cipher_suite_info() aren't in
-   * the form used in the spec.
-   */
-  cipher_suite = g_strdup_printf ("%s_%s_WITH_%s_%s",
-				  version == G_TLS_VERSION_SSL3 ? "SSL" : "TLS",
-				  gnutls_kx_get_name (cur_kx),
-				  gnutls_cipher_get_name (cur_cipher),
-				  gnutls_mac_get_name (cur_mac));
-  for (p = cipher_suite; *p; p++)
-    {
-      if (*p == '-')
-	*p = '_';
-    }
+  cipher_suite = ciphersuite_name (gnutls_protocol_get_version (gnutls->priv->session),
+				   cur_kx, cur_cipher, cur_mac);
   g_variant_builder_add (&builder, "{sv}",
 			 "cipher-suite", 
 			 g_variant_new_take_string (cipher_suite));
@@ -464,6 +504,110 @@ get_connection_info (GTlsConnectionGnutls *gnutls,
   g_variant_builder_add (&builder, "{sv}",
 			 "ext-renegotiation-info", 
 			 g_variant_new_boolean (gnutls_safe_renegotiation_status (gnutls->priv->session) != 0));
+
+  return g_variant_builder_end (&builder);
+}
+
+static GVariant *
+get_connection_requirements (GTlsConnectionGnutls *gnutls)
+{
+  GVariantBuilder builder;
+  gnutls_priority_t priority;
+  GTlsVersion min_version, max_version;
+  int num, i, ret;
+  const guint *list;
+  gsize size, min_key_size = G_MAXINT, min_mac_size = G_MAXINT;
+
+  priority = g_tls_connection_gnutls_get_handshake_priority (gnutls);
+  if (!get_min_max_versions (priority, &min_proto, &max_proto))
+    return NULL;
+  min_version = g_tls_version_from_gnutls (min_proto);
+  max_version = g_tls_version_from_gnutls (max_proto);
+  if (min_version == G_TLS_VERSION_INVALID ||
+      max_version == G_TLS_VERSION_INVALID)
+    return FALSE;
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&builder, "{sv}",
+			 "min-version",
+			 g_variant_new_int16 (min_version));
+  g_variant_builder_add (&builder, "{sv}",
+			 "max-version",
+			 g_variant_new_int16 (max_version));
+
+  num = gnutls_priority_kx_list (priority, &list);
+  g_variant_builder_init (&as_builder, G_VARIANT_TYPE ("as"));
+  for (i = 0; i < num; i++)
+    g_variant_builder_add (&as_builder, "s", gnutls_kx_get_name (list[i]));
+  g_variant_builder_add (&builder, "{sv}",
+			 "key-exchange",
+			 g_variant_builder_end (&as_builder));
+
+  num = gnutls_priority_cipher_list (priority, &list);
+  g_variant_builder_init (&as_builder, G_VARIANT_TYPE ("as"));
+  for (i = 0; i < num; i++)
+    {
+      size = gnutls_cipher_get_key_size (list[i]);
+      if (size < min_key_size)
+	min_key_size = size;
+
+      g_variant_builder_add (&as_builder, "s", gnutls_cipher_get_name (list[i]));
+    }
+  g_variant_builder_add (&builder, "{sv}",
+			 "cipher",
+			 g_variant_builder_end (&as_builder));
+
+  num = gnutls_priority_mac_list (priority, &list);
+  g_variant_builder_init (&as_builder, G_VARIANT_TYPE ("as"));
+  for (i = 0; i < num; i++)
+    {
+      size = gnutls_mac_get_key_size (list[i]);
+      if (size < min_mac_size)
+	min_mac_size = size;
+
+      g_variant_builder_add (&as_builder, "s", gnutls_mac_get_name (list[i]));
+    }
+  g_variant_builder_add (&builder, "{sv}",
+			 "mac",
+			 g_variant_builder_end (&as_builder));
+
+  g_variant_builder_init (&as_builder, G_VARIANT_TYPE ("as"));
+  for (i = 0, ret = 0; ret != GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE; i++)
+    {
+      ret = gnutls_priority_get_cipher_suite_index (priority, i, &num);
+      if (ret == 0)
+	{
+	  guchar id[2];
+	  gnutls_kx_algorithm_t kx;
+	  gnutls_cipher_algorithm_t cipher;
+	  gnutls_mac_algorithm_t mac;
+	  gnutls_protocol_t version;
+	  char *name;
+
+	  gnutls_cipher_suite_info (num, &id, &kx, &cipher, &mac, &version);
+	  name = ciphersuite_name (version, kx, cipher, mac);
+	  g_variant_builder_add (&as_builder, "s", name);
+	  g_free (name);
+	}
+    }
+  g_variant_builder_add (&builder, "{sv}",
+			 "ciphersuite",
+			 g_variant_builder_end (&as_builder));
+
+  g_variant_builder_add (&builder, "{sv}",
+			 "min-key-size",
+			 g_variant_new_int32 (min_key_size));
+  g_variant_builder_add (&builder, "{sv}",
+			 "min-mac-size",
+			 g_variant_new_int32 (min_mac_size));
+
+  dh_prime_size = gnutls_dh_get_prime_bits (gnutls->priv->session);
+  if (dh_prime_size)
+    {
+      g_variant_builder_add (&builder, "{sv}",
+			     "min-dh-prime-size",
+			     g_variant_new_int32 (dh_prime_size));
+    }
 
   g_value_take_variant (value, g_variant_builder_end (&builder));
 }
@@ -525,7 +669,7 @@ g_tls_connection_gnutls_get_property (GObject    *object,
       if (!gnutls->priv->ever_handshaked)
 	g_value_set_variant (value, NULL);
       else
-	get_connection_info (gnutls, value);
+	g_value_take_variant (value, get_connection_info (gnutls));
       break;
 
     default:
@@ -1332,7 +1476,8 @@ handshake_thread (GTask        *task,
   g_clear_object (&gnutls->priv->peer_certificate);
   gnutls->priv->peer_certificate_errors = 0;
 
-  g_tls_connection_gnutls_set_handshake_priority (gnutls);
+  gnutls_priority_set (gnutls->priv->session,
+		       g_tls_connection_gnutls_get_handshake_priority (gnutls));
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
   ret = gnutls_handshake (gnutls->priv->session);
