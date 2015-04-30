@@ -1,3 +1,9 @@
+2.45.1
+======
+  * tls/gnutls: Implement g_tls_client_connection_copy_session_state(),
+    to allow implementing FTP-over-TLS in gvfs. (#745255, Ross
+    Lagerwall)
+
 2.44.0
 ======
   * New stable release. (No changes since 2.43.92)
