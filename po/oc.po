@@ -1,0 +1,152 @@
+# Occitan (post 1500) translation for glib-networking
+# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# This file is distributed under the same license as the glib-networking package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# Cédric Valmary (Tot en òc) <cvalmary@yahoo.fr>, 2015.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2015-03-31 15:51+0000\n"
+"PO-Revision-Date: 2015-05-21 20:24+0200\n"
+"Last-Translator: Cédric Valmary (Tot en òc) <cvalmary@yahoo.fr>\n"
+"Language-Team: Tot en òc (totenoc.eu)\n"
+"Language: oc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
+"X-Launchpad-Export-Date: 2015-05-21 17:44+0000\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:157
+msgid "Proxy resolver internal error."
+msgstr "Error intèrna del resolvedor de servidor mandatari."
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Impossible d'analisar lo certificat DER : %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Impossible d'analisar lo certificat PEM : %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Impossible d'analisar la clau privada DER : %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Impossible d'analisar la clau privada PEM : %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
+msgid "No certificate data provided"
+msgstr "Cap de donada de certificat pas provesida"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:324
+msgid "Server required TLS certificate"
+msgstr "Lo servidor requerís un certificat TLS"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:305
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Impossible de crear una connexion TLS : %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:572
+msgid "Connection is closed"
+msgstr "La connexion es tampada"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:635
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1504
+msgid "Operation would block"
+msgstr "L'operacion se poiriá blocar"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:774
+#: ../tls/gnutls/gtlsconnection-gnutls.c:813
+msgid "Peer failed to perform TLS handshake"
+msgstr "La negociacion TLS amb lo servidor par a fracassat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:792
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Lo servidor par a demandat una renegociacion TLS pas autorizada"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:819
+msgid "TLS connection closed unexpectedly"
+msgstr "La connexion TLS es estada tampada d'un biais imprevist"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:829
+msgid "TLS connection peer did not send a certificate"
+msgstr "Lo par TLS a pas mandat cap de certificat"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1212
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1245
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Error al moment de la negociacion TLS : %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1255
+msgid "Server did not return a valid TLS certificate"
+msgstr "Lo servidor a pas renviat cap de certificat TLS valid"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1330
+msgid "Unacceptable TLS certificate"
+msgstr "Certificat TLS inacceptable"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1538
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Error al moment de la lectura de donadas del connectador TLS : %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1567
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Error al moment de l'escritura de donadas sul connectador TLS : %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1619
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Error al moment de la tampadura TLS : %s"
+
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+msgid "Certificate has no private key"
+msgstr "Lo certificat a pas cap de clau privada"
+
+#: ../tls/pkcs11/gpkcs11pin.c:108
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
+msgstr ""
+"Es la darrièra chança d'entrar lo PIN corrècte abans que la carta de piuse "
+"siá varrolhada."
+
+#: ../tls/pkcs11/gpkcs11pin.c:110
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"Mantun PIN incorrèctes son estats picats, tota novèla error provocarà lo "
+"varrolhatge de la carta de piuse."
+
+#: ../tls/pkcs11/gpkcs11pin.c:112
+msgid "The PIN entered is incorrect."
+msgstr "Lo PIN picat es incorrècte."
+
+#: ../tls/pkcs11/gpkcs11slot.c:446
+msgid "Module"
+msgstr "Modul"
+
+#: ../tls/pkcs11/gpkcs11slot.c:447
+msgid "PKCS#11 Module Pointer"
+msgstr "Puntador de modul PKCS#11"
+
+#: ../tls/pkcs11/gpkcs11slot.c:454
+msgid "Slot ID"
+msgstr "ID del connectador"
+
+#: ../tls/pkcs11/gpkcs11slot.c:455
+msgid "PKCS#11 Slot Identifier"
+msgstr "Identificant d'emplaçament PKCS#11"
