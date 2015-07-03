@@ -1,6 +1,7 @@
 /* GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2009 Red Hat, Inc
+ * Copyright 2015, 2016 Collabora, Ltd.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,6 +33,7 @@
 #include "gtlsconnection-gnutls.h"
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
+#include "gtlsclientconnection-gnutls.h"
 #include "gtlsinputstream-gnutls.h"
 #include "gtlsoutputstream-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
@@ -53,6 +55,35 @@
 
 #include <glib/gi18n-lib.h>
 
+/*
+ * GTlsConnectionGnutls is the base abstract implementation of TLS and DTLS
+ * support, for both the client and server side of a connection. The choice
+ * between TLS and DTLS is made by setting the base-io-stream or
+ * base-socket properties — exactly one of them must be set at
+ * construction time.
+ *
+ * Client and server specific code is in the GTlsClientConnectionGnutls and
+ * GTlsServerConnectionGnutls concrete subclasses, although the line about where
+ * code is put is a little blurry, and there are various places in
+ * GTlsConnectionGnutls which check G_IS_TLS_CLIENT_CONNECTION(self) to switch
+ * to a client-only code path.
+ *
+ * This abstract class implements a lot of interfaces:
+ *  • Derived from GTlsConnection (itself from GIOStream), for TLS and streaming
+ *    communications.
+ *  • Implements GDtlsConnection and GDatagramBased, for DTLS and datagram
+ *    communications.
+ *  • Implements GInitable for failable GnuTLS initialisation.
+ *
+ * The GTlsClientConnectionGnutls and GTlsServerConnectionGnutls subclasses are
+ * both derived from GTlsConnectionGnutls (and hence GIOStream), and both
+ * implement the relevant TLS and DTLS interfaces:
+ *  • GTlsClientConnection
+ *  • GDtlsClientConnection
+ *  • GTlsServerConnection
+ *  • GDtlsServerConnection
+ */
+
 static ssize_t g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
 						  const void             *buf,
 						  size_t                  buflen);
@@ -68,6 +99,8 @@ static void     g_tls_connection_gnutls_initable_iface_init (GInitableIface  *if
 static gboolean g_tls_connection_gnutls_initable_init       (GInitable       *initable,
 							     GCancellable    *cancellable,
 							     GError         **error);
+static void     g_tls_connection_gnutls_dtls_connection_iface_init (GDtlsConnectionInterface *iface);
+static void     g_tls_connection_gnutls_datagram_based_iface_init  (GDatagramBasedInterface  *iface);
 
 #ifdef HAVE_PKCS11
 static P11KitPin*    on_pin_prompt_callback  (const char     *pinfile,
@@ -90,6 +123,10 @@ static gboolean finish_handshake (GTlsConnectionGnutls  *gnutls,
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION,
 				  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
 							 g_tls_connection_gnutls_initable_iface_init);
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_DATAGRAM_BASED,
+                                                         g_tls_connection_gnutls_datagram_based_iface_init);
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CONNECTION,
+                                                         g_tls_connection_gnutls_dtls_connection_iface_init);
 				  g_tls_connection_gnutls_init_priorities ();
 				  );
 
@@ -97,7 +134,10 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls,
 enum
 {
   PROP_0,
+  /* For this class: */
   PROP_BASE_IO_STREAM,
+  PROP_BASE_SOCKET,
+  /* For GTlsConnection and GDtlsConnection: */
   PROP_REQUIRE_CLOSE_NOTIFY,
   PROP_REHANDSHAKE_MODE,
   PROP_USE_SYSTEM_CERTDB,
@@ -105,14 +145,29 @@ enum
   PROP_CERTIFICATE,
   PROP_INTERACTION,
   PROP_PEER_CERTIFICATE,
-  PROP_PEER_CERTIFICATE_ERRORS
+  PROP_PEER_CERTIFICATE_ERRORS,
 };
 
 struct _GTlsConnectionGnutlsPrivate
 {
+  /* When operating in stream mode.
+   * Mutually exclusive with base_socket.
+   */
   GIOStream *base_io_stream;
   GPollableInputStream *base_istream;
   GPollableOutputStream *base_ostream;
+
+  /* When operating in stream mode; when operating in datagram mode, the
+   * GTlsConnectionGnutls itself is the DTLS GDatagramBased (and uses
+   * base_socket for its underlying I/O):
+   */
+  GInputStream *tls_istream;
+  GOutputStream *tls_ostream;
+
+  /* When operating in datagram mode.
+   * Mutually exclusive with base_io_stream.
+   */
+  GDatagramBased *base_socket;
 
   gnutls_certificate_credentials_t creds;
   gnutls_session_t session;
@@ -159,9 +214,6 @@ struct _GTlsConnectionGnutlsPrivate
    * If (and only if) both are set, the entire GTlsConnection is closed. */
   gboolean read_closing, read_closed;
   gboolean write_closing, write_closed;
-
-  GInputStream *tls_istream;
-  GOutputStream *tls_ostream;
 
   GTlsInteraction *interaction;
   gchar *interaction_id;
@@ -292,6 +344,12 @@ g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
 }
 
 static gboolean
+g_tls_connection_gnutls_is_dtls (GTlsConnectionGnutls *gnutls)
+{
+  return (gnutls->priv->base_socket != NULL);
+}
+
+static gboolean
 g_tls_connection_gnutls_initable_init (GInitable     *initable,
 				       GCancellable  *cancellable,
 				       GError       **error)
@@ -301,8 +359,14 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   guint flags = client ? GNUTLS_CLIENT : GNUTLS_SERVER;
   int status;
 
-  g_return_val_if_fail (gnutls->priv->base_istream != NULL &&
-			gnutls->priv->base_ostream != NULL, FALSE);
+  g_return_val_if_fail ((gnutls->priv->base_istream == NULL) ==
+                        (gnutls->priv->base_ostream == NULL), FALSE);
+  g_return_val_if_fail ((gnutls->priv->base_socket == NULL) !=
+                        (gnutls->priv->base_istream == NULL), FALSE);
+
+  /* Check whether to use DTLS or TLS. */
+  if (g_tls_connection_gnutls_is_dtls (gnutls))
+    flags |= GNUTLS_DATAGRAM;
 
   gnutls_init (&gnutls->priv->session, flags);
 
@@ -325,8 +389,12 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
                                               g_tls_connection_gnutls_pull_timeout_func);
   gnutls_transport_set_ptr (gnutls->priv->session, gnutls);
 
-  gnutls->priv->tls_istream = g_tls_input_stream_gnutls_new (gnutls);
-  gnutls->priv->tls_ostream = g_tls_output_stream_gnutls_new (gnutls);
+  /* Create output streams if operating in streaming mode. */
+  if (!(flags & GNUTLS_DATAGRAM))
+    {
+      gnutls->priv->tls_istream = g_tls_input_stream_gnutls_new (gnutls);
+      gnutls->priv->tls_ostream = g_tls_output_stream_gnutls_new (gnutls);
+    }
 
   return TRUE;
 }
@@ -337,6 +405,7 @@ g_tls_connection_gnutls_finalize (GObject *object)
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
 
   g_clear_object (&gnutls->priv->base_io_stream);
+  g_clear_object (&gnutls->priv->base_socket);
 
   g_clear_object (&gnutls->priv->tls_istream);
   g_clear_object (&gnutls->priv->tls_ostream);
@@ -391,6 +460,10 @@ g_tls_connection_gnutls_get_property (GObject    *object,
     {
     case PROP_BASE_IO_STREAM:
       g_value_set_object (value, gnutls->priv->base_io_stream);
+      break;
+
+    case PROP_BASE_SOCKET:
+      g_value_set_object (value, gnutls->priv->base_socket);
       break;
 
     case PROP_REQUIRE_CLOSE_NOTIFY:
@@ -451,6 +524,9 @@ g_tls_connection_gnutls_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_BASE_IO_STREAM:
+      g_assert (g_value_get_object (value) == NULL ||
+                gnutls->priv->base_socket == NULL);
+
       if (gnutls->priv->base_io_stream)
 	{
 	  g_object_unref (gnutls->priv->base_io_stream);
@@ -470,6 +546,14 @@ g_tls_connection_gnutls_set_property (GObject      *object,
       if (G_IS_POLLABLE_OUTPUT_STREAM (ostream) &&
 	  g_pollable_output_stream_can_poll (G_POLLABLE_OUTPUT_STREAM (ostream)))
 	gnutls->priv->base_ostream = G_POLLABLE_OUTPUT_STREAM (ostream);
+      break;
+
+    case PROP_BASE_SOCKET:
+      g_assert (g_value_get_object (value) == NULL ||
+                gnutls->priv->base_io_stream == NULL);
+
+      g_clear_object (&gnutls->priv->base_socket);
+      gnutls->priv->base_socket = g_value_dup_object (value);
       break;
 
     case PROP_REQUIRE_CLOSE_NOTIFY:
@@ -888,6 +972,25 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 #define END_GNUTLS_IO(gnutls, direction, ret, errmsg, err)		\
   } while ((ret = end_gnutls_io (gnutls, direction, ret, err, errmsg, gnutls_strerror (ret))) == GNUTLS_E_AGAIN);
 
+/* Checks whether the underlying base stream or GDatagramBased meets
+ * @condition. */
+static gboolean
+g_tls_connection_gnutls_base_check (GTlsConnectionGnutls  *gnutls,
+                                    GIOCondition           condition)
+{
+  if (g_tls_connection_gnutls_is_dtls (gnutls))
+    return g_datagram_based_condition_check (gnutls->priv->base_socket,
+                                             condition);
+  else if (condition & G_IO_IN)
+    return g_pollable_input_stream_is_readable (gnutls->priv->base_istream);
+  else if (condition & G_IO_OUT)
+    return g_pollable_output_stream_is_writable (gnutls->priv->base_ostream);
+  else
+    g_assert_not_reached ();
+}
+
+/* Checks whether the (D)TLS stream meets @condition; not the underlying base
+ * stream or GDatagramBased. */
 gboolean
 g_tls_connection_gnutls_check (GTlsConnectionGnutls  *gnutls,
 			       GIOCondition           condition)
@@ -906,17 +1009,18 @@ g_tls_connection_gnutls_check (GTlsConnectionGnutls  *gnutls,
       ((condition & G_IO_OUT) && gnutls->priv->write_closing))
     return FALSE;
 
-  if (condition & G_IO_IN)
-    return g_pollable_input_stream_is_readable (gnutls->priv->base_istream);
-  else
-    return g_pollable_output_stream_is_writable (gnutls->priv->base_ostream);
+  /* Defer to the base stream or GDatagramBased. */
+  return g_tls_connection_gnutls_base_check (gnutls, condition);
 }
 
 typedef struct {
   GSource               source;
 
   GTlsConnectionGnutls *gnutls;
-  GObject              *stream;
+  /* Either a GDatagramBased (datagram mode), or a GPollableInputStream or
+   * GPollableOutputStream (streaming mode):
+   */
+  GObject              *base;
 
   GSource              *child_source;
   GIOCondition          condition;
@@ -979,9 +1083,11 @@ gnutls_source_sync (GTlsConnectionGnutlsSource *gnutls_source)
 
   if (op_waiting)
     gnutls_source->child_source = g_cancellable_source_new (gnutls->priv->waiting_for_op);
-  else if (io_waiting && G_IS_POLLABLE_INPUT_STREAM (gnutls_source->stream))
+  else if (io_waiting && G_IS_DATAGRAM_BASED (gnutls_source->base))
+    gnutls_source->child_source = g_datagram_based_create_source (gnutls->priv->base_socket, gnutls_source->condition, NULL);
+  else if (io_waiting && G_IS_POLLABLE_INPUT_STREAM (gnutls_source->base))
     gnutls_source->child_source = g_pollable_input_stream_create_source (gnutls->priv->base_istream, NULL);
-  else if (io_waiting && G_IS_POLLABLE_OUTPUT_STREAM (gnutls_source->stream))
+  else if (io_waiting && G_IS_POLLABLE_OUTPUT_STREAM (gnutls_source->base))
     gnutls_source->child_source = g_pollable_output_stream_create_source (gnutls->priv->base_ostream, NULL);
   else
     gnutls_source->child_source = g_timeout_source_new (0);
@@ -995,11 +1101,17 @@ gnutls_source_dispatch (GSource     *source,
 			GSourceFunc  callback,
 			gpointer     user_data)
 {
-  GPollableSourceFunc func = (GPollableSourceFunc)callback;
-  GTlsConnectionGnutlsSource *gnutls_source = (GTlsConnectionGnutlsSource *)source;
+  GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc) callback;
+  GPollableSourceFunc pollable_func = (GPollableSourceFunc) callback;
+  GTlsConnectionGnutlsSource *gnutls_source = (GTlsConnectionGnutlsSource *) source;
   gboolean ret;
 
-  ret = (*func) (gnutls_source->stream, user_data);
+  if (G_IS_DATAGRAM_BASED (gnutls_source->base))
+    ret = (*datagram_based_func) (G_DATAGRAM_BASED (gnutls_source->base),
+                                  gnutls_source->condition, user_data);
+  else
+    ret = (*pollable_func) (gnutls_source->base, user_data);
+
   if (ret)
     gnutls_source_sync (gnutls_source);
 
@@ -1039,13 +1151,51 @@ g_tls_connection_gnutls_source_closure_callback (GObject  *stream,
   return result;
 }
 
-static GSourceFuncs gnutls_source_funcs =
+static gboolean
+g_tls_connection_gnutls_source_dtls_closure_callback (GObject  *stream,
+                                                      GIOCondition condition,
+                                                      gpointer  data)
+{
+  GClosure *closure = data;
+
+  GValue param[2] = { G_VALUE_INIT, G_VALUE_INIT };
+  GValue result_value = G_VALUE_INIT;
+  gboolean result;
+
+  g_value_init (&result_value, G_TYPE_BOOLEAN);
+
+  g_value_init (&param[0], G_TYPE_DATAGRAM_BASED);
+  g_value_set_object (&param[0], stream);
+  g_value_init (&param[1], G_TYPE_IO_CONDITION);
+  g_value_set_flags (&param[1], condition);
+
+  g_closure_invoke (closure, &result_value, 2, param, NULL);
+
+  result = g_value_get_boolean (&result_value);
+  g_value_unset (&result_value);
+  g_value_unset (&param[0]);
+  g_value_unset (&param[1]);
+
+  return result;
+}
+
+static GSourceFuncs gnutls_tls_source_funcs =
 {
   gnutls_source_prepare,
   gnutls_source_check,
   gnutls_source_dispatch,
   gnutls_source_finalize,
   (GSourceFunc)g_tls_connection_gnutls_source_closure_callback,
+  (GSourceDummyMarshal)g_cclosure_marshal_generic
+};
+
+static GSourceFuncs gnutls_dtls_source_funcs =
+{
+  gnutls_source_prepare,
+  gnutls_source_check,
+  gnutls_source_dispatch,
+  gnutls_source_finalize,
+  (GSourceFunc)g_tls_connection_gnutls_source_dtls_closure_callback,
   (GSourceDummyMarshal)g_cclosure_marshal_generic
 };
 
@@ -1057,15 +1207,28 @@ g_tls_connection_gnutls_create_source (GTlsConnectionGnutls  *gnutls,
   GSource *source, *cancellable_source;
   GTlsConnectionGnutlsSource *gnutls_source;
 
-  source = g_source_new (&gnutls_source_funcs, sizeof (GTlsConnectionGnutlsSource));
+  if (g_tls_connection_gnutls_is_dtls (gnutls))
+    {
+      source = g_source_new (&gnutls_dtls_source_funcs,
+                             sizeof (GTlsConnectionGnutlsSource));
+    }
+  else
+    {
+      source = g_source_new (&gnutls_tls_source_funcs,
+                             sizeof (GTlsConnectionGnutlsSource));
+    }
   g_source_set_name (source, "GTlsConnectionGnutlsSource");
   gnutls_source = (GTlsConnectionGnutlsSource *)source;
   gnutls_source->gnutls = g_object_ref (gnutls);
   gnutls_source->condition = condition;
-  if (condition & G_IO_IN)
-    gnutls_source->stream = G_OBJECT (gnutls->priv->tls_istream);
-  else if (condition & G_IO_OUT)
-    gnutls_source->stream = G_OBJECT (gnutls->priv->tls_ostream);
+  if (g_tls_connection_gnutls_is_dtls (gnutls))
+    gnutls_source->base = G_OBJECT (gnutls);
+  else if (gnutls->priv->tls_istream != NULL && condition & G_IO_IN)
+    gnutls_source->base = G_OBJECT (gnutls->priv->tls_istream);
+  else if (gnutls->priv->tls_ostream != NULL && condition & G_IO_OUT)
+    gnutls_source->base = G_OBJECT (gnutls->priv->tls_ostream);
+  else
+    g_assert_not_reached ();
 
   gnutls_source->op_waiting = (gboolean) -1;
   gnutls_source->io_waiting = (gboolean) -1;
@@ -1080,6 +1243,83 @@ g_tls_connection_gnutls_create_source (GTlsConnectionGnutls  *gnutls,
     }
 
   return source;
+}
+
+static GSource *
+g_tls_connection_gnutls_dtls_create_source (GDatagramBased  *datagram_based,
+                                            GIOCondition     condition,
+                                            GCancellable    *cancellable)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (datagram_based);
+
+  return g_tls_connection_gnutls_create_source (gnutls, condition, cancellable);
+}
+
+static GIOCondition
+g_tls_connection_gnutls_condition_check (GDatagramBased  *datagram_based,
+                                         GIOCondition     condition)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (datagram_based);
+
+  return (g_tls_connection_gnutls_check (gnutls, condition)) ? condition : 0;
+}
+
+static gboolean
+g_tls_connection_gnutls_condition_wait (GDatagramBased  *datagram_based,
+                                        GIOCondition     condition,
+                                        gint64           timeout,
+                                        GCancellable    *cancellable,
+                                        GError         **error)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (datagram_based);
+  GPollFD fds[2];
+  guint n_fds;
+  gint result;
+  gint64 start_time;
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
+
+  /* Convert from microseconds to milliseconds. */
+  if (timeout != -1)
+    timeout = timeout / 1000;
+
+  start_time = g_get_monotonic_time ();
+
+  g_cancellable_make_pollfd (gnutls->priv->waiting_for_op, &fds[0]);
+  n_fds = 1;
+
+  if (g_cancellable_make_pollfd (cancellable, &fds[1]))
+    n_fds++;
+
+  while (!g_tls_connection_gnutls_condition_check (datagram_based, condition) &&
+         !g_cancellable_is_cancelled (cancellable))
+    {
+      result = g_poll (fds, n_fds, timeout);
+      if (result == 0)
+        break;
+      if (result != -1 || errno != EINTR)
+        continue;
+
+      if (timeout != -1)
+        {
+          timeout -= (g_get_monotonic_time () - start_time) / 1000;
+          if (timeout < 0)
+            timeout = 0;
+        }
+    }
+
+  if (n_fds > 1)
+    g_cancellable_release_fd (cancellable);
+
+  if (result == 0)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
+                           _("Socket I/O timed out"));
+      return FALSE;
+    }
+
+  return !g_cancellable_set_error_if_cancelled (cancellable, error);
 }
 
 static void
@@ -1121,11 +1361,28 @@ g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
    */
   g_clear_error (&gnutls->priv->read_error);
 
-  ret = g_pollable_stream_read (G_INPUT_STREAM (gnutls->priv->base_istream),
-				buf, buflen,
-				gnutls->priv->read_blocking,
-				gnutls->priv->read_cancellable,
-				&gnutls->priv->read_error);
+  if (g_tls_connection_gnutls_is_dtls (gnutls))
+    {
+      GInputVector vector = { buf, buflen };
+      GInputMessage message = { NULL, &vector, 1, 0, 0, NULL, NULL };
+
+      ret = g_datagram_based_receive_messages (gnutls->priv->base_socket,
+                                               &message, 1, 0,
+                                               gnutls->priv->read_blocking ? -1 : 0,
+                                               gnutls->priv->read_cancellable,
+                                               &gnutls->priv->read_error);
+
+      if (ret > 0)
+        ret = message.bytes_received;
+    }
+  else
+    {
+      ret = g_pollable_stream_read (G_INPUT_STREAM (gnutls->priv->base_istream),
+                                    buf, buflen,
+                                    gnutls->priv->read_blocking,
+                                    gnutls->priv->read_cancellable,
+                                    &gnutls->priv->read_error);
+    }
 
   if (ret < 0)
     set_gnutls_error (gnutls, gnutls->priv->read_error);
@@ -1148,11 +1405,29 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
   /* See comment in pull_func. */
   g_clear_error (&gnutls->priv->write_error);
 
-  ret = g_pollable_stream_write (G_OUTPUT_STREAM (gnutls->priv->base_ostream),
-				 buf, buflen,
-				 gnutls->priv->write_blocking,
-				 gnutls->priv->write_cancellable,
-				 &gnutls->priv->write_error);
+  if (g_tls_connection_gnutls_is_dtls (gnutls))
+    {
+      GOutputVector vector = { buf, buflen };
+      GOutputMessage message = { NULL, &vector, 1, 0, NULL, 0 };
+
+      ret = g_datagram_based_send_messages (gnutls->priv->base_socket,
+                                            &message, 1, 0,
+                                            gnutls->priv->write_blocking ? -1 : 0,
+                                            gnutls->priv->write_cancellable,
+                                            &gnutls->priv->write_error);
+
+      if (ret > 0)
+        ret = message.bytes_sent;
+    }
+  else
+    {
+      ret = g_pollable_stream_write (G_OUTPUT_STREAM (gnutls->priv->base_ostream),
+                                     buf, buflen,
+                                     gnutls->priv->write_blocking,
+                                     gnutls->priv->write_cancellable,
+                                     &gnutls->priv->write_error);
+    }
+
   if (ret < 0)
     set_gnutls_error (gnutls, gnutls->priv->write_error);
 
@@ -1160,8 +1435,20 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
 }
 
 static gboolean
-read_cb (GPollableInputStream *istream,
-         gpointer              user_data)
+read_pollable_cb (GPollableInputStream *istream,
+                  gpointer              user_data)
+{
+  gboolean *read_done = user_data;
+
+  *read_done = TRUE;
+
+  return G_SOURCE_CONTINUE;
+}
+
+static gboolean
+read_datagram_based_cb (GDatagramBased *datagram_based,
+                        GIOCondition    condition,
+                        gpointer        user_data)
 {
   gboolean *read_done = user_data;
 
@@ -1175,43 +1462,52 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
                                            unsigned int           ms)
 {
   GTlsConnectionGnutls *gnutls = transport_data;
-  GMainContext *ctx = NULL;
-  GSource *read_source;
-  gboolean read_done = FALSE;
-  GPollableInputStream *pollable_stream;
-
-  pollable_stream = G_POLLABLE_INPUT_STREAM (gnutls->priv->base_istream);
 
   /* Fast path. */
-  if (g_pollable_input_stream_is_readable (pollable_stream) ||
+  if (g_tls_connection_gnutls_base_check (gnutls, G_IO_IN) ||
       g_cancellable_is_cancelled (gnutls->priv->read_cancellable))
     return 1;
-  else if (ms == 0)
-    return 0;
 
-  /* Slow path: wait for readability. */
-  ctx = g_main_context_new ();
+  /* If @ms is 0, GnuTLS wants an instant response, so there’s no need to
+   * construct and query a #GSource. */
+  if (ms > 0)
+    {
+      GMainContext *ctx = NULL;
+      GSource *read_source;
+      gboolean read_done = FALSE;
 
-  read_source = g_pollable_input_stream_create_source (pollable_stream,
-                                                       gnutls->priv->read_cancellable);
-  g_source_set_ready_time (read_source, g_get_monotonic_time () + ms * 1000);
-  g_source_set_callback (read_source, (GSourceFunc) read_cb,
-                         &read_done, NULL);
-  g_source_attach (read_source, ctx);
+      ctx = g_main_context_new ();
 
-  while (!read_done)
-    g_main_context_iteration (ctx, TRUE);
+      if (g_tls_connection_gnutls_is_dtls (gnutls))
+        {
+          read_source = g_datagram_based_create_source (gnutls->priv->base_socket, G_IO_IN, NULL);
+          g_source_set_callback (read_source, (GSourceFunc) read_datagram_based_cb,
+                                 &read_done, NULL);
+        }
+      else
+        {
+          read_source = g_pollable_input_stream_create_source (gnutls->priv->base_istream, NULL);
+          g_source_set_callback (read_source, (GSourceFunc) read_pollable_cb,
+                                 &read_done, NULL);
+        }
 
-  g_source_destroy (read_source);
+      g_source_set_ready_time (read_source, g_get_monotonic_time () + ms * 1000);
+      g_source_attach (read_source, ctx);
 
-  g_main_context_unref (ctx);
-  g_source_unref (read_source);
+      while (!read_done)
+        g_main_context_iteration (ctx, TRUE);
 
-  /* If @read_source was dispatched due to cancellation, the resulting error
-   * will be handled in g_tls_connection_gnutls_pull_func(). */
-  if (g_pollable_input_stream_is_readable (pollable_stream) ||
-      g_cancellable_is_cancelled (gnutls->priv->read_cancellable))
-    return 1;
+      g_source_destroy (read_source);
+
+      g_main_context_unref (ctx);
+      g_source_unref (read_source);
+
+      /* If @read_source was dispatched due to cancellation, the resulting error
+       * will be handled in g_tls_connection_gnutls_pull_func(). */
+      if (g_tls_connection_gnutls_base_check (gnutls, G_IO_IN) ||
+          g_cancellable_is_cancelled (gnutls->priv->read_cancellable))
+        return 1;
+    }
 
   return 0;
 }
@@ -1245,10 +1541,13 @@ verify_peer_certificate (GTlsConnectionGnutls *gnutls,
   gboolean is_client;
 
   is_client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
-  if (is_client)
+
+  if (!is_client)
+    peer_identity = NULL;
+  else if (!g_tls_connection_gnutls_is_dtls (gnutls))
     peer_identity = g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (gnutls));
   else
-    peer_identity = NULL;
+    peer_identity = g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (gnutls));
 
   errors = 0;
 
@@ -1381,8 +1680,14 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
 
   if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
     {
-      GTlsCertificateFlags validation_flags =
-	g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (gnutls));
+      GTlsCertificateFlags validation_flags;
+
+      if (!g_tls_connection_gnutls_is_dtls (gnutls))
+        validation_flags =
+          g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (gnutls));
+      else
+        validation_flags =
+          g_dtls_client_connection_get_validation_flags (G_DTLS_CLIENT_CONNECTION (gnutls));
 
       if ((peer_certificate_errors & validation_flags) == 0)
 	accepted = TRUE;
@@ -1462,6 +1767,15 @@ g_tls_connection_gnutls_handshake (GTlsConnection   *conn,
   if (my_error)
     g_propagate_error (error, my_error);
   return success;
+}
+
+static gboolean
+g_tls_connection_gnutls_dtls_handshake (GDtlsConnection       *conn,
+                                        GCancellable          *cancellable,
+                                        GError               **error)
+{
+  return g_tls_connection_gnutls_handshake (G_TLS_CONNECTION (conn),
+                                            cancellable, error);
 }
 
 /* In the async version we use two GTasks; one to run handshake_thread() and
@@ -1560,6 +1874,26 @@ g_tls_connection_gnutls_handshake_finish (GTlsConnection       *conn,
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
+static void
+g_tls_connection_gnutls_dtls_handshake_async (GDtlsConnection       *conn,
+                                              int                    io_priority,
+                                              GCancellable          *cancellable,
+                                              GAsyncReadyCallback    callback,
+                                              gpointer               user_data)
+{
+  g_tls_connection_gnutls_handshake_async (G_TLS_CONNECTION (conn), io_priority,
+                                           cancellable, callback, user_data);
+}
+
+static gboolean
+g_tls_connection_gnutls_dtls_handshake_finish (GDtlsConnection       *conn,
+                                               GAsyncResult          *result,
+                                               GError               **error)
+{
+  return g_tls_connection_gnutls_handshake_finish (G_TLS_CONNECTION (conn),
+                                                   result, error);
+}
+
 static gboolean
 do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
 		       gboolean               blocking,
@@ -1645,6 +1979,87 @@ g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
     return -1;
 }
 
+static gint
+g_tls_connection_gnutls_receive_messages (GDatagramBased  *datagram_based,
+                                          GInputMessage   *messages,
+                                          guint            num_messages,
+                                          gint             flags,
+                                          gint64           timeout,
+                                          GCancellable    *cancellable,
+                                          GError         **error)
+{
+  GTlsConnectionGnutls *gnutls;
+  guint i;
+  GError *child_error = NULL;
+
+  gnutls = G_TLS_CONNECTION_GNUTLS (datagram_based);
+
+  if (flags != G_SOCKET_MSG_NONE)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                   _("Receive flags are not supported"));
+      return -1;
+    }
+
+  for (i = 0; i < num_messages && child_error == NULL; i++)
+    {
+      GInputMessage *message = &messages[i];
+      gssize n_bytes_read;
+
+      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored read function.
+       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
+      g_assert (message->num_vectors == 1);
+
+      n_bytes_read = g_tls_connection_gnutls_read (gnutls,
+                                                   message->vectors[0].buffer,
+                                                   message->vectors[0].size,
+                                                   timeout != 0,
+                                                   cancellable,
+                                                   &child_error);
+
+      if (message->address != NULL)
+        *message->address = NULL;
+      message->flags = G_SOCKET_MSG_NONE;
+      if (message->control_messages != NULL)
+        *message->control_messages = NULL;
+      message->num_control_messages = 0;
+
+      if (n_bytes_read > 0)
+        {
+          message->bytes_received = n_bytes_read;
+        }
+      else if (n_bytes_read == 0)
+        {
+          /* EOS. */
+          break;
+        }
+      else if (i > 0 &&
+               (g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK) ||
+                g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_TIMED_OUT)))
+        {
+          /* Blocked or timed out after receiving some messages successfully. */
+          g_clear_error (&child_error);
+          break;
+        }
+      else
+        {
+          /* Error, including G_IO_ERROR_WOULD_BLOCK or G_IO_ERROR_TIMED_OUT on
+           * the first message; or G_IO_ERROR_CANCELLED at any time. */
+          break;
+        }
+    }
+
+  if (child_error != NULL)
+    {
+      g_propagate_error (error, child_error);
+      return -1;
+    }
+
+  return i;
+}
+
 gssize
 g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
 			       const void            *buffer,
@@ -1674,6 +2089,76 @@ g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
     return -1;
 }
 
+static gint
+g_tls_connection_gnutls_send_messages (GDatagramBased  *datagram_based,
+                                       GOutputMessage  *messages,
+                                       guint            num_messages,
+                                       gint             flags,
+                                       gint64           timeout,
+                                       GCancellable    *cancellable,
+                                       GError         **error)
+{
+  GTlsConnectionGnutls *gnutls;
+  guint i;
+  GError *child_error = NULL;
+
+  gnutls = G_TLS_CONNECTION_GNUTLS (datagram_based);
+
+  if (flags != G_SOCKET_MSG_NONE)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                   _("Send flags are not supported"));
+      return -1;
+    }
+
+  for (i = 0; i < num_messages && child_error == NULL; i++)
+    {
+      GOutputMessage *message = &messages[i];
+      gssize n_bytes_sent;
+
+      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored write function.
+       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
+      /* TODO: gnutls_record_cork(), gnutls_record_uncork(), 3.3.0 */
+      g_assert (message->num_vectors == 1);
+
+      n_bytes_sent = g_tls_connection_gnutls_write (gnutls,
+                                                    message->vectors[0].buffer,
+                                                    message->vectors[0].size,
+                                                    timeout != 0,
+                                                    cancellable,
+                                                    &child_error);
+
+      if (n_bytes_sent >= 0)
+        {
+          message->bytes_sent = n_bytes_sent;
+        }
+      else if (i > 0 &&
+               (g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK) ||
+                g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_TIMED_OUT)))
+        {
+          /* Blocked or timed out after sending some messages successfully. */
+          g_clear_error (&child_error);
+          break;
+        }
+      else
+        {
+          /* Error, including G_IO_ERROR_WOULD_BLOCK or G_IO_ERROR_TIMED_OUT
+           * on the first message; or G_IO_ERROR_CANCELLED at any time. */
+          break;
+        }
+    }
+
+  if (child_error != NULL)
+    {
+      g_propagate_error (error, child_error);
+      return -1;
+    }
+
+  return i;
+}
+
 static GInputStream  *
 g_tls_connection_gnutls_get_input_stream (GIOStream *stream)
 {
@@ -1693,6 +2178,7 @@ g_tls_connection_gnutls_get_output_stream (GIOStream *stream)
 gboolean
 g_tls_connection_gnutls_close_internal (GIOStream     *stream,
                                         GTlsDirection  direction,
+                                        gint64         timeout,
                                         GCancellable  *cancellable,
                                         GError       **error)
 {
@@ -1702,11 +2188,13 @@ g_tls_connection_gnutls_close_internal (GIOStream     *stream,
   int ret = 0;
   GError *gnutls_error = NULL, *stream_error = NULL;
 
-  /* This can be called from g_io_stream_close(), g_input_stream_close() or
-   * g_output_stream_close(). In all cases, we only do the gnutls_bye() for
-   * writing. The difference is how we set the flags on this class and how
-   * the underlying stream is closed.
+  /* This can be called from g_io_stream_close(), g_input_stream_close(),
+   * g_output_stream_close() or g_tls_connection_close(). In all cases, we only
+   * do the gnutls_bye() for writing. The difference is how we set the flags on
+   * this class and how the underlying stream is closed.
    */
+
+  /* FIXME: This does not properly support the @timeout parameter. */
 
   g_return_val_if_fail (direction != G_TLS_DIRECTION_NONE, FALSE);
 
@@ -1737,15 +2225,29 @@ g_tls_connection_gnutls_close_internal (GIOStream     *stream,
   /* Close the underlying streams. Do this even if the gnutls_bye() call failed,
    * as the parent GIOStream will have set its internal closed flag and hence
    * this implementation will never be called again. */
-  if (direction == G_TLS_DIRECTION_BOTH)
-    success = g_io_stream_close (gnutls->priv->base_io_stream,
-                                 cancellable, &stream_error);
-  else if (direction & G_TLS_DIRECTION_READ)
-    success = g_input_stream_close (g_io_stream_get_input_stream (gnutls->priv->base_io_stream),
-                                    cancellable, &stream_error);
-  else if (direction & G_TLS_DIRECTION_WRITE)
-    success = g_output_stream_close (g_io_stream_get_output_stream (gnutls->priv->base_io_stream),
+  if (gnutls->priv->base_io_stream != NULL)
+    {
+      if (direction == G_TLS_DIRECTION_BOTH)
+        success = g_io_stream_close (gnutls->priv->base_io_stream,
                                      cancellable, &stream_error);
+      else if (direction & G_TLS_DIRECTION_READ)
+        success = g_input_stream_close (g_io_stream_get_input_stream (gnutls->priv->base_io_stream),
+                                        cancellable, &stream_error);
+      else if (direction & G_TLS_DIRECTION_WRITE)
+        success = g_output_stream_close (g_io_stream_get_output_stream (gnutls->priv->base_io_stream),
+                                         cancellable, &stream_error);
+    }
+  else if (g_tls_connection_gnutls_is_dtls (gnutls))
+    {
+      /* We do not close underlying #GDatagramBaseds. There is no
+       * g_datagram_based_close() method since different datagram-based
+       * protocols vary wildly in how they close. */
+      success = TRUE;
+    }
+  else
+    {
+      g_assert_not_reached ();
+    }
 
   yield_op (gnutls, op);
 
@@ -1770,8 +2272,29 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
                                GError       **error)
 {
   return g_tls_connection_gnutls_close_internal (stream,
-	                                         G_TLS_DIRECTION_BOTH,
-	                                         cancellable, error);
+                                                 G_TLS_DIRECTION_BOTH,
+                                                 -1,  /* blocking */
+                                                 cancellable, error);
+}
+
+static gboolean
+g_tls_connection_gnutls_dtls_shutdown (GDtlsConnection  *conn,
+				       gboolean          shutdown_read,
+				       gboolean          shutdown_write,
+                                       GCancellable     *cancellable,
+                                       GError          **error)
+{
+  GTlsDirection direction = G_TLS_DIRECTION_NONE;
+
+  if (shutdown_read)
+    direction |= G_TLS_DIRECTION_READ;
+  if (shutdown_write)
+    direction |= G_TLS_DIRECTION_WRITE;
+
+  return g_tls_connection_gnutls_close_internal (G_IO_STREAM (conn),
+                                                 direction,
+                                                 -1,  /* blocking */
+                                                 cancellable, error);
 }
 
 /* We do async close as synchronous-in-a-thread so we don't need to
@@ -1785,9 +2308,13 @@ close_thread (GTask        *task,
 	      GCancellable *cancellable)
 {
   GIOStream *stream = object;
+  GTlsDirection direction;
   GError *error = NULL;
 
-  if (!g_tls_connection_gnutls_close_internal (stream, G_TLS_DIRECTION_BOTH,
+  direction = GPOINTER_TO_INT (g_task_get_task_data (task));
+
+  if (!g_tls_connection_gnutls_close_internal (stream, direction,
+                                               -1,  /* blocking */
                                                cancellable, &error))
     g_task_return_error (task, error);
   else
@@ -1795,19 +2322,33 @@ close_thread (GTask        *task,
 }
 
 static void
-g_tls_connection_gnutls_close_async (GIOStream           *stream,
-				     int                  io_priority,
-				     GCancellable        *cancellable,
-				     GAsyncReadyCallback  callback,
-				     gpointer             user_data)
+g_tls_connection_gnutls_close_internal_async (GIOStream           *stream,
+                                              GTlsDirection        direction,
+                                              int                  io_priority,
+                                              GCancellable        *cancellable,
+                                              GAsyncReadyCallback  callback,
+                                              gpointer             user_data)
 {
   GTask *task;
 
   task = g_task_new (stream, cancellable, callback, user_data);
-  g_task_set_source_tag (task, g_tls_connection_gnutls_close_async);
+  g_task_set_source_tag (task, g_tls_connection_gnutls_close_internal_async);
   g_task_set_priority (task, io_priority);
+  g_task_set_task_data (task, GINT_TO_POINTER (direction), NULL);
   g_task_run_in_thread (task, close_thread);
   g_object_unref (task);
+}
+
+static void
+g_tls_connection_gnutls_close_async (GIOStream           *stream,
+                                     int                  io_priority,
+                                     GCancellable        *cancellable,
+                                     GAsyncReadyCallback  callback,
+                                     gpointer             user_data)
+{
+  g_tls_connection_gnutls_close_internal_async (stream, G_TLS_DIRECTION_BOTH,
+                                                io_priority, cancellable,
+                                                callback, user_data);
 }
 
 static gboolean
@@ -1816,6 +2357,37 @@ g_tls_connection_gnutls_close_finish (GIOStream           *stream,
 				      GError             **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, stream), FALSE);
+
+  return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+static void
+g_tls_connection_gnutls_dtls_shutdown_async (GDtlsConnection     *conn,
+					     gboolean             shutdown_read,
+					     gboolean             shutdown_write,
+                                             int                  io_priority,
+                                             GCancellable        *cancellable,
+                                             GAsyncReadyCallback  callback,
+                                             gpointer             user_data)
+{
+  GTlsDirection direction = G_TLS_DIRECTION_NONE;
+
+  if (shutdown_read)
+    direction |= G_TLS_DIRECTION_READ;
+  if (shutdown_write)
+    direction |= G_TLS_DIRECTION_WRITE;
+
+  g_tls_connection_gnutls_close_internal_async (G_IO_STREAM (conn), direction,
+						io_priority, cancellable,
+                                                callback, user_data);
+}
+
+static gboolean
+g_tls_connection_gnutls_dtls_shutdown_finish (GDtlsConnection  *conn,
+                                              GAsyncResult     *result,
+                                              GError          **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, conn), FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
 }
@@ -1896,7 +2468,9 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   iostream_class->close_async       = g_tls_connection_gnutls_close_async;
   iostream_class->close_finish      = g_tls_connection_gnutls_close_finish;
 
+  /* For GTlsConnection and GDtlsConnection: */
   g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");
+  g_object_class_override_property (gobject_class, PROP_BASE_SOCKET, "base-socket");
   g_object_class_override_property (gobject_class, PROP_REQUIRE_CLOSE_NOTIFY, "require-close-notify");
   g_object_class_override_property (gobject_class, PROP_REHANDSHAKE_MODE, "rehandshake-mode");
   g_object_class_override_property (gobject_class, PROP_USE_SYSTEM_CERTDB, "use-system-certdb");
@@ -1911,6 +2485,27 @@ static void
 g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface)
 {
   iface->init = g_tls_connection_gnutls_initable_init;
+}
+
+static void
+g_tls_connection_gnutls_dtls_connection_iface_init (GDtlsConnectionInterface *iface)
+{
+  iface->handshake = g_tls_connection_gnutls_dtls_handshake;
+  iface->handshake_async = g_tls_connection_gnutls_dtls_handshake_async;
+  iface->handshake_finish = g_tls_connection_gnutls_dtls_handshake_finish;
+  iface->shutdown = g_tls_connection_gnutls_dtls_shutdown;
+  iface->shutdown_async = g_tls_connection_gnutls_dtls_shutdown_async;
+  iface->shutdown_finish = g_tls_connection_gnutls_dtls_shutdown_finish;
+}
+
+static void
+g_tls_connection_gnutls_datagram_based_iface_init (GDatagramBasedInterface *iface)
+{
+  iface->receive_messages = g_tls_connection_gnutls_receive_messages;
+  iface->send_messages = g_tls_connection_gnutls_send_messages;
+  iface->create_source = g_tls_connection_gnutls_dtls_create_source;
+  iface->condition_check = g_tls_connection_gnutls_condition_check;
+  iface->condition_wait = g_tls_connection_gnutls_condition_wait;
 }
 
 gboolean

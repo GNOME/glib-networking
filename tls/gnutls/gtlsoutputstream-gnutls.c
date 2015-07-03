@@ -146,6 +146,7 @@ g_tls_output_stream_gnutls_close (GOutputStream            *stream,
     return TRUE;
 
   ret = g_tls_connection_gnutls_close_internal (conn, G_TLS_DIRECTION_WRITE,
+                                                -1,  /* blocking */
                                                 cancellable, error);
 
   g_object_unref (conn);
@@ -170,6 +171,7 @@ close_thread (GTask        *task,
 
   if (conn && !g_tls_connection_gnutls_close_internal (conn,
                                                        G_TLS_DIRECTION_WRITE,
+                                                       -1,  /* blocking */
                                                        cancellable, &error))
     g_task_return_error (task, error);
   else

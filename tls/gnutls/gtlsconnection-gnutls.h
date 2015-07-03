@@ -96,6 +96,7 @@ typedef enum {
 
 gboolean g_tls_connection_gnutls_close_internal (GIOStream            *stream,
                                                  GTlsDirection         direction,
+                                                 gint64                timeout,
                                                  GCancellable         *cancellable,
                                                  GError              **error);
 

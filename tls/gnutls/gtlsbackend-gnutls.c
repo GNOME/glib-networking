@@ -167,6 +167,8 @@ g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface)
   iface->get_server_connection_type = g_tls_server_connection_gnutls_get_type;
   iface->get_file_database_type =     g_tls_file_database_gnutls_get_type;
   iface->get_default_database =       g_tls_backend_gnutls_get_default_database;
+  iface->get_dtls_client_connection_type = g_tls_client_connection_gnutls_get_type;
+  iface->get_dtls_server_connection_type = g_tls_server_connection_gnutls_get_type;
 }
 
 /* Session cache support; all the details are sort of arbitrary. Note

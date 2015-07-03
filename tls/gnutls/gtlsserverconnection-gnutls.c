@@ -64,6 +64,8 @@ G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnu
 						g_tls_server_connection_gnutls_initable_interface_init)
 			 G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
 						g_tls_server_connection_gnutls_server_connection_interface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_SERVER_CONNECTION,
+                                                NULL)
 )
 
 struct _GTlsServerConnectionGnutlsPrivate
