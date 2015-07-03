@@ -87,6 +87,9 @@
 static ssize_t g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
 						  const void             *buf,
 						  size_t                  buflen);
+static ssize_t g_tls_connection_gnutls_vec_push_func (gnutls_transport_ptr_t  transport_data,
+                                                      const giovec_t         *iov,
+                                                      int                     iovcnt);
 static ssize_t g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
 						  void                   *buf,
 						  size_t                  buflen);
@@ -388,6 +391,13 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   gnutls_transport_set_pull_timeout_function (gnutls->priv->session,
                                               g_tls_connection_gnutls_pull_timeout_func);
   gnutls_transport_set_ptr (gnutls->priv->session, gnutls);
+
+  /* GDatagramBased supports vectored I/O; GPollableOutputStream does not. */
+  if (gnutls->priv->base_socket != NULL)
+    {
+      gnutls_transport_set_vec_push_function (gnutls->priv->session,
+                                              g_tls_connection_gnutls_vec_push_func);
+    }
 
   /* Create output streams if operating in streaming mode. */
   if (!(flags & GNUTLS_DATAGRAM))
@@ -1429,6 +1439,63 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
     }
 
   if (ret < 0)
+    set_gnutls_error (gnutls, gnutls->priv->write_error);
+
+  return ret;
+}
+
+static ssize_t
+g_tls_connection_gnutls_vec_push_func (gnutls_transport_ptr_t  transport_data,
+                                       const giovec_t         *iov,
+                                       int                     iovcnt)
+{
+  GTlsConnectionGnutls *gnutls = transport_data;
+  ssize_t ret;
+  GOutputMessage message = { NULL, };
+  GOutputVector *vectors;
+
+  /* This function should only be set if we’re using base_socket. */
+  g_assert (gnutls->priv->base_socket != NULL);
+
+  /* See comment in pull_func. */
+  g_clear_error (&gnutls->priv->write_error);
+
+  /* this entire expression will be evaluated at compile time */
+  if (sizeof *iov == sizeof *vectors &&
+      sizeof iov->iov_base == sizeof vectors->buffer &&
+      G_STRUCT_OFFSET (giovec_t, iov_base) ==
+      G_STRUCT_OFFSET (GOutputVector, buffer) &&
+      sizeof iov->iov_len == sizeof vectors->size &&
+      G_STRUCT_OFFSET (giovec_t, iov_len) ==
+      G_STRUCT_OFFSET (GOutputVector, size))
+    /* ABI is compatible */
+    {
+      message.vectors = (GOutputVector *) iov;
+      message.num_vectors = iovcnt;
+    }
+  else
+    /* ABI is incompatible */
+    {
+      gint i;
+
+      message.vectors = g_newa (GOutputVector, iovcnt);
+      for (i = 0; i < iovcnt; i++)
+        {
+          message.vectors[i].buffer = (void *) iov[i].iov_base;
+          message.vectors[i].size = iov[i].iov_len;
+        }
+      message.num_vectors = iovcnt;
+    }
+
+  ret = g_datagram_based_send_messages (gnutls->priv->base_socket,
+                                        &message, 1, 0,
+                                        gnutls->priv->write_blocking,
+                                        gnutls->priv->write_cancellable,
+                                        &gnutls->priv->write_error);
+
+  if (ret > 0)
+    ret = message.bytes_sent;
+  else if (ret < 0)
     set_gnutls_error (gnutls, gnutls->priv->write_error);
 
   return ret;
