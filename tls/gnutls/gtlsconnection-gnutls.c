@@ -647,8 +647,11 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 	nfds = 2;
       else
 	nfds = 1;
+
       g_poll (fds, nfds, -1);
-      g_cancellable_release_fd (cancellable);
+
+      if (nfds > 1)
+        g_cancellable_release_fd (cancellable);
 
       goto try_again;
     }
