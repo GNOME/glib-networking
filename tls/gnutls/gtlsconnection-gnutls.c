@@ -254,6 +254,8 @@ g_tls_connection_gnutls_init_priorities (void)
       fallback_priority = g_strdup_printf ("%s:%%COMPAT:!VERS-TLS-ALL:+VERS-%s",
 					   cleaned_base,
 					   gnutls_protocol_get_name (fallback_proto));
+
+      g_free (cleaned_base);
     }
   fallback_unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION",
 							  fallback_priority);
