@@ -375,6 +375,7 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
   gnutls_datum_t data;
   guint num_certs = 0;
   size_t size = 0;
+  int status;
 
   /* We will do this loop twice. It's probably more efficient than
    * re-allocating memory.
@@ -401,7 +402,8 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
                               data.data, &size);
 
       gnutls_x509_crt_init (&cert);
-      gnutls_x509_crt_import (cert, &data, GNUTLS_X509_FMT_DER);
+      status = gnutls_x509_crt_import (cert, &data, GNUTLS_X509_FMT_DER);
+      g_warn_if_fail (status == 0);
       g_free (data.data);
 
       st->cert.x509[st->ncerts] = cert;

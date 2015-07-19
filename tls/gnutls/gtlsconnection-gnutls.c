@@ -215,7 +215,8 @@ g_tls_connection_gnutls_init_priorities (void)
     {
       g_warning ("G_TLS_GNUTLS_PRIORITY is invalid; ignoring!");
       base_priority = DEFAULT_BASE_PRIORITY;
-      gnutls_priority_init (&priorities[FALSE][FALSE], base_priority, NULL);
+      ret = gnutls_priority_init (&priorities[FALSE][FALSE], base_priority, NULL);
+      g_warn_if_fail (ret == 0);
     }
 
   unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION", base_priority);
