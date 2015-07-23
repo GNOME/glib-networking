@@ -2046,6 +2046,97 @@ g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
     return -1;
 }
 
+static gsize
+input_vectors_from_gnutls_datum_t (GInputVector          *vectors,
+                                   guint                  num_vectors,
+                                   const gnutls_datum_t  *datum)
+{
+  guint i;
+  gsize total = 0;
+
+  /* Copy into the receive vectors. */
+  for (i = 0; i < num_vectors && total < datum->size; i++)
+    {
+      gsize count;
+      GInputVector *vec = &vectors[i];
+
+      count = MIN (vec->size, datum->size - total);
+
+      memcpy (vec->buffer, datum->data + total, count);
+      total += count;
+    }
+
+  g_assert (total <= datum->size);
+
+  return total;
+}
+
+static gssize
+g_tls_connection_gnutls_read_message (GTlsConnectionGnutls  *gnutls,
+                                      GInputVector          *vectors,
+                                      guint                  num_vectors,
+                                      gint64                 timeout,
+                                      GCancellable          *cancellable,
+                                      GError               **error)
+{
+  guint i;
+  gssize ret;
+  gnutls_packet_t packet = { 0, };
+
+  /* Copy data out of the app data buffer first. */
+  if (gnutls->priv->app_data_buf && !gnutls->priv->handshaking)
+    {
+      ret = 0;
+
+      for (i = 0; i < num_vectors; i++)
+        {
+          gsize count;
+          GInputVector *vec = &vectors[i];
+
+          count = MIN (vec->size, gnutls->priv->app_data_buf->len);
+          ret += count;
+
+          memcpy (vec->buffer, gnutls->priv->app_data_buf->data, count);
+          if (count == gnutls->priv->app_data_buf->len)
+            g_clear_pointer (&gnutls->priv->app_data_buf, g_byte_array_unref);
+          else
+            g_byte_array_remove_range (gnutls->priv->app_data_buf, 0, count);
+        }
+
+      return ret;
+    }
+
+ again:
+  if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ,
+		 timeout != 0, cancellable, error))
+    return -1;
+
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout != 0, cancellable);
+
+  /* Receive the entire datagram (zero-copy). */
+  ret = gnutls_record_recv_packet (gnutls->priv->session, &packet);
+
+  if (ret > 0)
+    {
+      gnutls_datum_t data = { 0, };
+
+      gnutls_packet_get (packet, &data, NULL);
+      ret = input_vectors_from_gnutls_datum_t (vectors, num_vectors, &data);
+      gnutls_packet_deinit (packet);
+    }
+
+  END_GNUTLS_IO (gnutls, G_IO_IN, ret, _("Error reading data from TLS socket: %s"), error);
+
+  yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ);
+
+  if (ret >= 0)
+    return ret;
+  else if (ret == GNUTLS_E_REHANDSHAKE)
+    goto again;
+  else
+    return -1;
+}
+
 static gint
 g_tls_connection_gnutls_receive_messages (GDatagramBased  *datagram_based,
                                           GInputMessage   *messages,
@@ -2073,16 +2164,12 @@ g_tls_connection_gnutls_receive_messages (GDatagramBased  *datagram_based,
       GInputMessage *message = &messages[i];
       gssize n_bytes_read;
 
-      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored read function.
-       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
-      g_assert (message->num_vectors == 1);
-
-      n_bytes_read = g_tls_connection_gnutls_read (gnutls,
-                                                   message->vectors[0].buffer,
-                                                   message->vectors[0].size,
-                                                   timeout != 0,
-                                                   cancellable,
-                                                   &child_error);
+      n_bytes_read = g_tls_connection_gnutls_read_message (gnutls,
+                                                           message->vectors,
+                                                           message->num_vectors,
+                                                           timeout,
+                                                           cancellable,
+                                                           &child_error);
 
       if (message->address != NULL)
         *message->address = NULL;
@@ -2156,6 +2243,69 @@ g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
     return -1;
 }
 
+static gssize
+g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
+                                       GOutputVector         *vectors,
+                                       guint                  num_vectors,
+                                       gint64                 timeout,
+                                       GCancellable          *cancellable,
+                                       GError               **error)
+{
+  gssize ret;
+  guint i;
+  gsize total_message_size;
+
+ again:
+  if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE,
+                 timeout != 0, cancellable, error))
+    return -1;
+
+  /* Calculate the total message size and check it’s not too big. */
+  for (i = 0, total_message_size = 0; i < num_vectors; i++)
+    total_message_size += vectors[i].size;
+
+  if (gnutls_dtls_get_data_mtu (gnutls->priv->session) < total_message_size)
+    {
+      ret = GNUTLS_E_LARGE_PACKET;
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
+                   _("Message of size %lu bytes is too large for "
+                     "DTLS connection, maximum is %u bytes"),
+                   total_message_size,
+                   (guint) gnutls_dtls_get_data_mtu (gnutls->priv->session));
+      goto done;
+    }
+
+  /* Queue up the data from all the vectors. */
+  gnutls_record_cork (gnutls->priv->session);
+
+  for (i = 0; i < num_vectors; i++)
+    {
+      ret = gnutls_record_send (gnutls->priv->session,
+                                vectors[i].buffer, vectors[i].size);
+
+      if (ret < 0 || ret < vectors[i].size)
+        {
+          /* Uncork to restore state, then bail. The peer will receive a
+           * truncated datagram. */
+          break;
+        }
+    }
+
+  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout != 0, cancellable);
+  ret = gnutls_record_uncork (gnutls->priv->session, 0  /* flags */);
+  END_GNUTLS_IO (gnutls, G_IO_OUT, ret, _("Error writing data to TLS socket: %s"), error);
+
+ done:
+  yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE);
+
+  if (ret >= 0)
+    return ret;
+  else if (ret == GNUTLS_E_REHANDSHAKE)
+    goto again;
+  else
+    return -1;
+}
+
 static gint
 g_tls_connection_gnutls_send_messages (GDatagramBased  *datagram_based,
                                        GOutputMessage  *messages,
@@ -2183,17 +2333,12 @@ g_tls_connection_gnutls_send_messages (GDatagramBased  *datagram_based,
       GOutputMessage *message = &messages[i];
       gssize n_bytes_sent;
 
-      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored write function.
-       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
-      /* TODO: gnutls_record_cork(), gnutls_record_uncork(), 3.3.0 */
-      g_assert (message->num_vectors == 1);
-
-      n_bytes_sent = g_tls_connection_gnutls_write (gnutls,
-                                                    message->vectors[0].buffer,
-                                                    message->vectors[0].size,
-                                                    timeout != 0,
-                                                    cancellable,
-                                                    &child_error);
+      n_bytes_sent = g_tls_connection_gnutls_write_message (gnutls,
+                                                            message->vectors,
+                                                            message->num_vectors,
+                                                            timeout,
+                                                            cancellable,
+                                                            &child_error);
 
       if (n_bytes_sent >= 0)
         {

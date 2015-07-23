@@ -214,11 +214,11 @@ on_rehandshake_finish (GObject        *object,
 {
   TestConnection *test = user_data;
   GError *error = NULL;
-  GOutputVector vector = {
-    TEST_DATA + TEST_DATA_LENGTH / 2,
-    TEST_DATA_LENGTH / 2
+  GOutputVector vectors[2] = {
+    { TEST_DATA + TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH / 4 },
+    { TEST_DATA + 3 * TEST_DATA_LENGTH / 4, TEST_DATA_LENGTH / 4},
   };
-  GOutputMessage message = { NULL, &vector, 1, 0, NULL, 0 };
+  GOutputMessage message = { NULL, vectors, G_N_ELEMENTS (vectors), 0, NULL, 0 };
   gint n_sent;
 
   g_dtls_connection_handshake_finish (G_DTLS_CONNECTION (object), res, &error);
@@ -404,8 +404,11 @@ read_test_data_async (TestConnection *test)
   gchar *check;
   GError *error = NULL;
   guint8 buf[TEST_DATA_LENGTH * 2];
-  GInputVector vector = { &buf, sizeof (buf) };
-  GInputMessage message = { NULL, &vector, 1, 0, 0, NULL, NULL };
+  GInputVector vectors[2] = {
+    { &buf, sizeof (buf) / 2 },
+    { &buf + sizeof (buf) / 2, sizeof (buf) / 2 },
+  };
+  GInputMessage message = { NULL, vectors, G_N_ELEMENTS (vectors), 0, 0, NULL, NULL };
   gint n_read;
 
   do

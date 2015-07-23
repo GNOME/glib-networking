@@ -65,7 +65,7 @@ enable_tls_support = get_option('tls_support')
 enable_pkcs11_support = false
 
 if enable_tls_support
-  gnutls_dep = dependency('gnutls', version: '>= 3.0', required: true)
+  gnutls_dep = dependency('gnutls', version: '>= 3.3.5', required: true)
 
   msg = 'location of system Certificate Authority list: '
   res = run_command(join_paths(meson.source_root(), 'find-ca-certificates'), get_option('ca_certificates_path'))
