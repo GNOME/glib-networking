@@ -70,13 +70,13 @@ gboolean g_tls_connection_gnutls_request_certificate (GTlsConnectionGnutls  *gnu
 gssize   g_tls_connection_gnutls_read          (GTlsConnectionGnutls  *gnutls,
 						void                  *buffer,
 						gsize                  size,
-						gboolean               blocking,
+						gint64                 timeout,
 						GCancellable          *cancellable,
 						GError               **error);
 gssize   g_tls_connection_gnutls_write         (GTlsConnectionGnutls  *gnutls,
 						const void            *buffer,
 						gsize                  size,
-						gboolean               blocking,
+						gint64                 timeout,
 						GCancellable          *cancellable,
 						GError               **error);
 

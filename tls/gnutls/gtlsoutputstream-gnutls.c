@@ -68,7 +68,7 @@ g_tls_output_stream_gnutls_write (GOutputStream  *stream,
   conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
   g_return_val_if_fail (conn != NULL, -1);
 
-  ret = g_tls_connection_gnutls_write (conn, buffer, count, TRUE,
+  ret = g_tls_connection_gnutls_write (conn, buffer, count, -1  /* blocking */,
                                        cancellable, error);
   g_object_unref (conn);
   return ret;
@@ -122,7 +122,8 @@ g_tls_output_stream_gnutls_pollable_write_nonblocking (GPollableOutputStream  *p
   conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
   g_return_val_if_fail (conn != NULL, -1);
 
-  ret = g_tls_connection_gnutls_write (conn, buffer, size, FALSE, NULL, error);
+  ret = g_tls_connection_gnutls_write (conn, buffer, size,
+                                       0  /* non-blocking */, NULL, error);
 
   g_object_unref (conn);
   return ret;

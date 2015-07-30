@@ -116,7 +116,7 @@ static P11KitPin*    on_pin_prompt_callback  (const char     *pinfile,
 static void g_tls_connection_gnutls_init_priorities (void);
 
 static gboolean do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
-				       gboolean               blocking,
+				       gint64                 timeout,
 				       GCancellable          *cancellable,
 				       GError               **error);
 static gboolean finish_handshake (GTlsConnectionGnutls  *gnutls,
@@ -225,12 +225,12 @@ struct _GTlsConnectionGnutlsPrivate
   GCancellable *waiting_for_op;
 
   gboolean      reading;
-  gboolean      read_blocking;
+  gint64        read_timeout;
   GError       *read_error;
   GCancellable *read_cancellable;
 
   gboolean      writing;
-  gboolean      write_blocking;
+  gint64        write_timeout;
   GError       *write_error;
   GCancellable *write_cancellable;
 
@@ -652,7 +652,7 @@ typedef enum {
 static gboolean
 claim_op (GTlsConnectionGnutls    *gnutls,
 	  GTlsConnectionGnutlsOp   op,
-	  gboolean                 blocking,
+	  gint64                   timeout,
 	  GCancellable            *cancellable,
 	  GError                 **error)
 {
@@ -695,7 +695,7 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 	{
 	  gnutls->priv->need_handshake = FALSE;
 	  gnutls->priv->handshaking = TRUE;
-	  if (!do_implicit_handshake (gnutls, blocking, cancellable, error))
+	  if (!do_implicit_handshake (gnutls, timeout, cancellable, error))
 	    {
 	      g_mutex_unlock (&gnutls->priv->op_mutex);
 	      return FALSE;
@@ -735,12 +735,14 @@ claim_op (GTlsConnectionGnutls    *gnutls,
     {
       GPollFD fds[2];
       int nfds;
+      gint64 start_time;
+      gint result;
 
       g_cancellable_reset (gnutls->priv->waiting_for_op);
 
       g_mutex_unlock (&gnutls->priv->op_mutex);
 
-      if (!blocking)
+      if (timeout == 0)
 	{
 	  g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK,
 			       _("Operation would block"));
@@ -753,10 +755,40 @@ claim_op (GTlsConnectionGnutls    *gnutls,
       else
 	nfds = 1;
 
-      g_poll (fds, nfds, -1);
+      /* Convert from microseconds to milliseconds. */
+      if (timeout != -1)
+        timeout = timeout / 1000;
+
+      /* Poll until cancellation or the timeout is reached. */
+      start_time = g_get_monotonic_time ();
+
+      while (!g_cancellable_is_cancelled (gnutls->priv->waiting_for_op) &&
+             !g_cancellable_is_cancelled (cancellable))
+        {
+          result = g_poll (fds, nfds, timeout);
+
+          if (result == 0)
+            break;
+          if (result != -1 || errno != EINTR)
+            continue;
+
+          if (timeout != -1)
+            {
+              timeout -= (g_get_monotonic_time () - start_time) / 1000;
+              if (timeout < 0)
+                timeout = 0;
+            }
+        }
 
       if (nfds > 1)
         g_cancellable_release_fd (cancellable);
+
+      if (result == 0)
+        {
+          g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
+                               _("Socket I/O timed out"));
+          return FALSE;
+        }
 
       goto try_again;
     }
@@ -809,21 +841,21 @@ yield_op (GTlsConnectionGnutls   *gnutls,
 static void
 begin_gnutls_io (GTlsConnectionGnutls  *gnutls,
 		 GIOCondition           direction,
-		 gboolean               blocking,
+		 gint64                 timeout,
 		 GCancellable          *cancellable)
 {
   g_assert (direction & (G_IO_IN | G_IO_OUT));
 
   if (direction & G_IO_IN)
     {
-      gnutls->priv->read_blocking = blocking;
+      gnutls->priv->read_timeout = timeout;
       gnutls->priv->read_cancellable = cancellable;
       g_clear_error (&gnutls->priv->read_error);
     }
 
   if (direction & G_IO_OUT)
     {
-      gnutls->priv->write_blocking = blocking;
+      gnutls->priv->write_timeout = timeout;
       gnutls->priv->write_cancellable = cancellable;
       g_clear_error (&gnutls->priv->write_error);
     }
@@ -975,8 +1007,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   return status;
 }
 
-#define BEGIN_GNUTLS_IO(gnutls, direction, blocking, cancellable)	\
-  begin_gnutls_io (gnutls, direction, blocking, cancellable);		\
+#define BEGIN_GNUTLS_IO(gnutls, direction, timeout, cancellable)	\
+  begin_gnutls_io (gnutls, direction, timeout, cancellable);		\
   do {
 
 #define END_GNUTLS_IO(gnutls, direction, ret, errmsg, err)		\
@@ -1378,7 +1410,7 @@ g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
 
       ret = g_datagram_based_receive_messages (gnutls->priv->base_socket,
                                                &message, 1, 0,
-                                               gnutls->priv->read_blocking ? -1 : 0,
+                                               gnutls->priv->read_timeout,
                                                gnutls->priv->read_cancellable,
                                                &gnutls->priv->read_error);
 
@@ -1389,7 +1421,7 @@ g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
     {
       ret = g_pollable_stream_read (G_INPUT_STREAM (gnutls->priv->base_istream),
                                     buf, buflen,
-                                    gnutls->priv->read_blocking,
+                                    (gnutls->priv->read_timeout != 0),
                                     gnutls->priv->read_cancellable,
                                     &gnutls->priv->read_error);
     }
@@ -1422,7 +1454,7 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
 
       ret = g_datagram_based_send_messages (gnutls->priv->base_socket,
                                             &message, 1, 0,
-                                            gnutls->priv->write_blocking ? -1 : 0,
+                                            gnutls->priv->write_timeout,
                                             gnutls->priv->write_cancellable,
                                             &gnutls->priv->write_error);
 
@@ -1433,7 +1465,7 @@ g_tls_connection_gnutls_push_func (gnutls_transport_ptr_t  transport_data,
     {
       ret = g_pollable_stream_write (G_OUTPUT_STREAM (gnutls->priv->base_ostream),
                                      buf, buflen,
-                                     gnutls->priv->write_blocking,
+                                     (gnutls->priv->write_timeout != 0),
                                      gnutls->priv->write_cancellable,
                                      &gnutls->priv->write_error);
     }
@@ -1489,7 +1521,7 @@ g_tls_connection_gnutls_vec_push_func (gnutls_transport_ptr_t  transport_data,
 
   ret = g_datagram_based_send_messages (gnutls->priv->base_socket,
                                         &message, 1, 0,
-                                        gnutls->priv->write_blocking,
+                                        gnutls->priv->write_timeout,
                                         gnutls->priv->write_cancellable,
                                         &gnutls->priv->write_error);
 
@@ -1524,6 +1556,16 @@ read_datagram_based_cb (GDatagramBased *datagram_based,
   return G_SOURCE_CONTINUE;
 }
 
+static gboolean
+read_timeout_cb (gpointer user_data)
+{
+  gboolean *timed_out = user_data;
+
+  *timed_out = TRUE;
+
+  return G_SOURCE_REMOVE;
+}
+
 static int
 g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data,
                                            unsigned int           ms)
@@ -1540,11 +1582,19 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
   if (ms > 0)
     {
       GMainContext *ctx = NULL;
-      GSource *read_source;
-      gboolean read_done = FALSE;
+      GSource *read_source = NULL, *timeout_source = NULL;
+      gboolean read_done = FALSE, timed_out = FALSE;
 
       ctx = g_main_context_new ();
 
+      /* Create a timeout source. */
+      timeout_source = g_timeout_source_new (ms);
+      g_source_set_callback (timeout_source, (GSourceFunc) read_timeout_cb,
+                             &timed_out, NULL);
+
+      /* Create a read source. We cannot use g_source_set_ready_time() on this
+       * to combine it with the @timeout_source, as that could mess with the
+       * internals of the #GDatagramBased’s #GSource implementation. */
       if (g_tls_connection_gnutls_is_dtls (gnutls))
         {
           read_source = g_datagram_based_create_source (gnutls->priv->base_socket, G_IO_IN, NULL);
@@ -1558,16 +1608,18 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
                                  &read_done, NULL);
         }
 
-      g_source_set_ready_time (read_source, g_get_monotonic_time () + ms * 1000);
       g_source_attach (read_source, ctx);
+      g_source_attach (timeout_source, ctx);
 
-      while (!read_done)
+      while (!read_done && !timed_out)
         g_main_context_iteration (ctx, TRUE);
 
       g_source_destroy (read_source);
+      g_source_destroy (timeout_source);
 
       g_main_context_unref (ctx);
       g_source_unref (read_source);
+      g_source_unref (timeout_source);
 
       /* If @read_source was dispatched due to cancellation, the resulting error
        * will be handled in g_tls_connection_gnutls_pull_func(). */
@@ -1662,7 +1714,7 @@ handshake_thread (GTask        *task,
   gnutls->priv->started_handshake = FALSE;
 
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE,
-		 TRUE, cancellable, &error))
+		 -1  /* blocking */, cancellable, &error))
     {
       g_task_return_error (task, error);
       return;
@@ -1675,7 +1727,8 @@ handshake_thread (GTask        *task,
   if (!is_client && gnutls->priv->ever_handshaked &&
       !gnutls->priv->implicit_handshake)
     {
-      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, -1  /* blocking */,
+                       cancellable);
       ret = gnutls_rehandshake (gnutls->priv->session);
       END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
 		     _("Error performing TLS handshake: %s"), &error);
@@ -1694,7 +1747,7 @@ handshake_thread (GTask        *task,
 
   g_tls_connection_gnutls_set_handshake_priority (gnutls);
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, -1  /* blocking */, cancellable);
   ret = gnutls_handshake (gnutls->priv->session);
   if (ret == GNUTLS_E_GOT_APPLICATION_DATA)
     {
@@ -1963,7 +2016,7 @@ g_tls_connection_gnutls_dtls_handshake_finish (GDtlsConnection       *conn,
 
 static gboolean
 do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
-		       gboolean               blocking,
+		       gint64                 timeout,
 		       GCancellable          *cancellable,
 		       GError               **error)
 {
@@ -1975,7 +2028,8 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
 
   begin_handshake (gnutls);
 
-  if (blocking)
+  /* FIXME: Support (timeout > 0). */
+  if (timeout != 0)
     {
       GError *my_error = NULL;
       gboolean success;
@@ -2010,7 +2064,7 @@ gssize
 g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
 			      void                  *buffer,
 			      gsize                  count,
-			      gboolean               blocking,
+			      gint64                 timeout,
 			      GCancellable          *cancellable,
 			      GError               **error)
 {
@@ -2029,10 +2083,10 @@ g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
 
  again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ,
-		 blocking, cancellable, error))
+		 timeout, cancellable, error))
     return -1;
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, blocking, cancellable);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
   ret = gnutls_record_recv (gnutls->priv->session, buffer, count);
   END_GNUTLS_IO (gnutls, G_IO_IN, ret, _("Error reading data from TLS socket: %s"), error);
 
@@ -2108,10 +2162,10 @@ g_tls_connection_gnutls_read_message (GTlsConnectionGnutls  *gnutls,
 
  again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ,
-		 timeout != 0, cancellable, error))
+		 timeout, cancellable, error))
     return -1;
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout != 0, cancellable);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
 
   /* Receive the entire datagram (zero-copy). */
   ret = gnutls_record_recv_packet (gnutls->priv->session, &packet);
@@ -2218,7 +2272,7 @@ gssize
 g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
 			       const void            *buffer,
 			       gsize                  count,
-			       gboolean               blocking,
+			       gint64                 timeout,
 			       GCancellable          *cancellable,
 			       GError               **error)
 {
@@ -2226,10 +2280,10 @@ g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
 
  again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE,
-		 blocking, cancellable, error))
+		 timeout, cancellable, error))
     return -1;
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, blocking, cancellable);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
   ret = gnutls_record_send (gnutls->priv->session, buffer, count);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, _("Error writing data to TLS socket: %s"), error);
 
@@ -2257,7 +2311,7 @@ g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
 
  again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE,
-                 timeout != 0, cancellable, error))
+                 timeout, cancellable, error))
     return -1;
 
   /* Calculate the total message size and check it’s not too big. */
@@ -2291,7 +2345,7 @@ g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
         }
     }
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout != 0, cancellable);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
   ret = gnutls_record_uncork (gnutls->priv->session, 0  /* flags */);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, _("Error writing data to TLS socket: %s"), error);
 
@@ -2406,8 +2460,6 @@ g_tls_connection_gnutls_close_internal (GIOStream     *stream,
    * this class and how the underlying stream is closed.
    */
 
-  /* FIXME: This does not properly support the @timeout parameter. */
-
   g_return_val_if_fail (direction != G_TLS_DIRECTION_NONE, FALSE);
 
   if (direction == G_TLS_DIRECTION_BOTH)
@@ -2417,13 +2469,13 @@ g_tls_connection_gnutls_close_internal (GIOStream     *stream,
   else
     op = G_TLS_CONNECTION_GNUTLS_OP_CLOSE_WRITE;
 
-  if (!claim_op (gnutls, op, TRUE, cancellable, error))
+  if (!claim_op (gnutls, op, timeout, cancellable, error))
     return FALSE;
 
   if (gnutls->priv->ever_handshaked && !gnutls->priv->write_closed &&
       direction & G_TLS_DIRECTION_WRITE)
     {
-      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
       ret = gnutls_bye (gnutls->priv->session, GNUTLS_SHUT_WR);
       END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
 		     _("Error performing TLS close: %s"), &gnutls_error);
