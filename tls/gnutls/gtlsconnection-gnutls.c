@@ -1277,7 +1277,7 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
 			 GTlsCertificate      *peer_certificate,
 			 GTlsCertificateFlags  peer_certificate_errors)
 {
-  gboolean accepted;
+  gboolean accepted = FALSE;
 
   if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
     {
@@ -1286,14 +1286,9 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
 
       if ((peer_certificate_errors & validation_flags) == 0)
 	accepted = TRUE;
-      else
-	{
-	  accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
-							       peer_certificate,
-							       peer_certificate_errors);
-	}
     }
-  else
+
+  if (!accepted)
     {
       accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
 							   peer_certificate,
