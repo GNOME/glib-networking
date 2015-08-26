@@ -8,6 +8,9 @@
  * your option) any later version.
  *
  * See the included COPYING file for more information.
+ *
+ * In addition, when the library is used with OpenSSL, a special
+ * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
 #ifndef __G_TLS_BACKEND_GNUTLS_H__

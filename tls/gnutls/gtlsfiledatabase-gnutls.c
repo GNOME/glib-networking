@@ -16,6 +16,9 @@
  * Public License along with this library; if not, see
  * <http://www.gnu.org/licenses/>.
  *
+ * In addition, when the library is used with OpenSSL, a special
+ * exception applies. Refer to the LICENSE_EXCEPTION file for details.
+ *
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
 

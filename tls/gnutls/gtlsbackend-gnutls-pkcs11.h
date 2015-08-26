@@ -9,6 +9,9 @@
  *
  * See the included COPYING file for more information.
  *
+ * In addition, when the library is used with OpenSSL, a special
+ * exception applies. Refer to the LICENSE_EXCEPTION file for details.
+ *
  * Author: Stef Walter <stef@collabora.co.uk>
  */
 

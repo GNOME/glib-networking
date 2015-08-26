@@ -10,6 +10,9 @@
  * WITHOUT ANY WARRANTY, to the extent permitted by law; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.
+ *
+ * In addition, when the library is used with OpenSSL, a special
+ * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
 /*
