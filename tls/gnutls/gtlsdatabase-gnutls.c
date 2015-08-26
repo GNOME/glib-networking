@@ -35,12 +35,14 @@
 
 G_DEFINE_ABSTRACT_TYPE (GTlsDatabaseGnutls, g_tls_database_gnutls, G_TYPE_TLS_DATABASE);
 
+#define BUILD_CERTIFICATE_CHAIN_RECURSION_LIMIT 10
+
 enum {
   STATUS_FAILURE,
   STATUS_INCOMPLETE,
   STATUS_SELFSIGNED,
-  STATUS_PINNED,
   STATUS_ANCHORED,
+  STATUS_RECURSION_LIMIT_REACHED
 };
 
 static void
@@ -58,138 +60,111 @@ is_self_signed (GTlsCertificateGnutls *certificate)
 
 static gint
 build_certificate_chain (GTlsDatabaseGnutls      *self,
-                         GTlsCertificateGnutls   *chain,
+                         GTlsCertificateGnutls   *certificate,
+                         GTlsCertificateGnutls   *previous,
+                         gboolean                 certificate_is_from_db,
+                         guint                    recursion_depth,
                          const gchar             *purpose,
                          GSocketConnectable      *identity,
                          GTlsInteraction         *interaction,
-                         GTlsDatabaseVerifyFlags  flags,
                          GCancellable            *cancellable,
                          GTlsCertificateGnutls  **anchor,
                          GError                 **error)
 {
-
-  GTlsCertificateGnutls *certificate;
-  GTlsCertificateGnutls *previous;
   GTlsCertificate *issuer;
-  gboolean certificate_is_from_db;
+  gint status;
 
-  g_assert (anchor);
-  g_assert (chain);
-  g_assert (purpose);
-  g_assert (error);
-  g_assert (!*error);
+  if (recursion_depth++ > BUILD_CERTIFICATE_CHAIN_RECURSION_LIMIT)
+    return STATUS_RECURSION_LIMIT_REACHED;
 
-  /*
-   * Remember that the first certificate never changes in the chain.
-   * When we find a self-signed, pinned or anchored certificate, all
-   * issuers are truncated from the chain.
-   */
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return STATUS_FAILURE;
 
-  *anchor = NULL;
-  previous = NULL;
-  certificate = chain;
-  certificate_is_from_db = FALSE;
-
-  /* First check for pinned certificate */
+  /* Look up whether this certificate is an anchor */
   if (g_tls_database_gnutls_lookup_assertion (self, certificate,
-                                              G_TLS_DATABASE_GNUTLS_PINNED_CERTIFICATE,
+                                              G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE,
                                               purpose, identity, cancellable, error))
     {
       g_tls_certificate_gnutls_set_issuer (certificate, NULL);
-      return STATUS_PINNED;
+      *anchor = certificate;
+      return STATUS_ANCHORED;
     }
   else if (*error)
     {
       return STATUS_FAILURE;
     }
 
-  for (;;)
+  /* Is it self-signed? */
+  if (is_self_signed (certificate))
     {
-      if (g_cancellable_set_error_if_cancelled (cancellable, error))
-        return STATUS_FAILURE;
-
-      /* Look up whether this certificate is an anchor */
-      if (g_tls_database_gnutls_lookup_assertion (self, certificate,
-                                                  G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE,
-                                                  purpose, identity, cancellable, error))
-        {
-          g_tls_certificate_gnutls_set_issuer (certificate, NULL);
-          *anchor = certificate;
-          return STATUS_ANCHORED;
-        }
-      else if (*error)
-        {
-          return STATUS_FAILURE;
-        }
-
-      /* Is it self-signed? */
-      if (is_self_signed (certificate))
-        {
-          /*
-           * Since at this point we would fail with 'self-signed', can we replace
-           * this certificate with one from the database and do better?
-           */
-          if (previous && !certificate_is_from_db)
-            {
-              issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (self),
-                                                                 G_TLS_CERTIFICATE (previous),
-                                                                 interaction,
-                                                                 G_TLS_DATABASE_LOOKUP_NONE,
-                                                                 cancellable, error);
-              if (*error)
-                {
-                  return STATUS_FAILURE;
-                }
-              else if (issuer)
-                {
-                  /* Replaced with certificate in the db, restart step again with this certificate */
-                  g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
-                  g_tls_certificate_gnutls_set_issuer (previous, G_TLS_CERTIFICATE_GNUTLS (issuer));
-                  certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
-                  certificate_is_from_db = TRUE;
-                  g_object_unref (issuer);
-                  continue;
-                }
-            }
-
-          g_tls_certificate_gnutls_set_issuer (certificate, NULL);
-          return STATUS_SELFSIGNED;
-        }
-
-      previous = certificate;
-
-      /* Bring over the next certificate in the chain */
-      issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (certificate));
-      if (issuer)
-        {
-          g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
-          certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
-          certificate_is_from_db = FALSE;
-        }
-
-      /* Search for the next certificate in chain */
-      else
+      /*
+       * Since at this point we would fail with 'self-signed', can we replace
+       * this certificate with one from the database and do better?
+       */
+      if (previous && !certificate_is_from_db)
         {
           issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (self),
-                                                             G_TLS_CERTIFICATE (certificate),
+                                                             G_TLS_CERTIFICATE (previous),
                                                              interaction,
                                                              G_TLS_DATABASE_LOOKUP_NONE,
                                                              cancellable, error);
           if (*error)
-            return STATUS_FAILURE;
-          else if (!issuer)
-            return STATUS_INCOMPLETE;
+            {
+              return STATUS_FAILURE;
+            }
+          else if (issuer)
+            {
+              /* Replaced with certificate in the db, restart step again with this certificate */
+              g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
+              certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
+              g_tls_certificate_gnutls_set_issuer (previous, certificate);
+              g_object_unref (issuer);
 
-          /* Found a certificate in chain, use for next step */
-          g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
-          g_tls_certificate_gnutls_set_issuer (certificate, G_TLS_CERTIFICATE_GNUTLS (issuer));
-          certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
-          certificate_is_from_db = TRUE;
-          g_object_unref (issuer);
+              return build_certificate_chain (self, certificate, previous, TRUE, recursion_depth,
+                                              purpose, identity, interaction, cancellable, anchor, error);
+            }
+        }
+
+      g_tls_certificate_gnutls_set_issuer (certificate, NULL);
+      return STATUS_SELFSIGNED;
+    }
+
+  previous = certificate;
+
+  /* Bring over the next certificate in the chain */
+  issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (certificate));
+  if (issuer)
+    {
+      g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
+      certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
+
+      status = build_certificate_chain (self, certificate, previous, FALSE, recursion_depth,
+                                        purpose, identity, interaction, cancellable, anchor, error);
+      if (status != STATUS_INCOMPLETE)
+        {
+          return status;
         }
     }
 
-  g_assert_not_reached ();
+  /* Search for the next certificate in chain */
+  issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (self),
+                                                     G_TLS_CERTIFICATE (certificate),
+                                                     interaction,
+                                                     G_TLS_DATABASE_LOOKUP_NONE,
+                                                     cancellable, error);
+  if (*error)
+    return STATUS_FAILURE;
+
+  if (!issuer)
+    return STATUS_INCOMPLETE;
+
+  g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
+  g_tls_certificate_gnutls_set_issuer (certificate, G_TLS_CERTIFICATE_GNUTLS (issuer));
+  certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
+  g_object_unref (issuer);
+
+  return build_certificate_chain (self, certificate, previous, TRUE, recursion_depth,
+                                  purpose, identity, interaction, cancellable, anchor, error);
 }
 
 static GTlsCertificateFlags
@@ -254,33 +229,49 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase           *database,
 {
   GTlsDatabaseGnutls *self;
   GTlsCertificateFlags result;
+  GTlsCertificateGnutls *certificate;
   GError *err = NULL;
   GTlsCertificateGnutls *anchor;
   guint gnutls_result;
   gnutls_x509_crt_t *certs, *anchors;
   guint certs_length, anchors_length;
   gint status, gerr;
+  guint recursion_depth = 0;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (chain),
                         G_TLS_CERTIFICATE_GENERIC_ERROR);
+  g_assert (purpose);
 
   self = G_TLS_DATABASE_GNUTLS (database);
-  anchor = NULL;
+  certificate = G_TLS_CERTIFICATE_GNUTLS (chain);
 
-  status = build_certificate_chain (self, G_TLS_CERTIFICATE_GNUTLS (chain), purpose,
-                                    identity, interaction, flags, cancellable, &anchor, &err);
-  if (status == STATUS_FAILURE)
+  /* First check for pinned certificate */
+  if (g_tls_database_gnutls_lookup_assertion (self, certificate,
+                                              G_TLS_DATABASE_GNUTLS_PINNED_CERTIFICATE,
+                                              purpose, identity, cancellable, &err))
+    {
+      /*
+       * A pinned certificate is verified on its own, without any further
+       * verification.
+       */
+      g_tls_certificate_gnutls_set_issuer (certificate, NULL);
+      return 0;
+    }
+
+  if (err)
     {
       g_propagate_error (error, err);
       return G_TLS_CERTIFICATE_GENERIC_ERROR;
     }
 
-  /*
-   * A pinned certificate is verified on its own, without any further
-   * verification.
-   */
-  if (status == STATUS_PINNED)
-      return 0;
+  anchor = NULL;
+  status = build_certificate_chain (self, certificate, NULL, FALSE, recursion_depth,
+                                    purpose, identity, interaction, cancellable, &anchor, &err);
+  if (status == STATUS_FAILURE)
+    {
+      g_propagate_error (error, err);
+      return G_TLS_CERTIFICATE_GENERIC_ERROR;
+    }
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
