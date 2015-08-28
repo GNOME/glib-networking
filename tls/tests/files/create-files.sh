@@ -5,6 +5,8 @@ msg() {
   echo "* $1 ..."
 }
 
+cd `dirname $0`
+
 echo
 echo "This script re-generates all private keys and certificates"
 echo "needed to run the Unit Test."
