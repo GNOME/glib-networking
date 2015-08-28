@@ -466,7 +466,14 @@ certificate_is_in_list (GList *certificates,
 static void
 test_lookup_certificates_issued_by (void)
 {
-  /* This data is generated from the frob-certificate test tool in gcr library */
+  /* This data is generated from the frob-certificate test tool in gcr library.
+   * To regenerate (from e.g. a directory containing gcr and glib-networking):
+   *
+   * $ gcr/frob-certificate glib-networking/tls/tests/files/ca.pem
+   *
+   * Then copy the hex that is printed after "subject" (not "issuer"!) and add
+   * the missing 'x's.
+   */
   const guchar ISSUER[] = "\x30\x81\x86\x31\x13\x30\x11\x06\x0A\x09\x92\x26\x89\x93\xF2"
                           "\x2C\x64\x01\x19\x16\x03\x43\x4F\x4D\x31\x17\x30\x15\x06\x0A"
                           "\x09\x92\x26\x89\x93\xF2\x2C\x64\x01\x19\x16\x07\x45\x58\x41"
