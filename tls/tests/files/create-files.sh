@@ -24,7 +24,7 @@ echo "the contents of ca.pem."
 echo
 echo "Also, file-database.c:test_lookup_certificates_issued_by has"
 echo "an ISSUER variable that needs to be changed by the CA identifier"
-echo "(read the comment in that function)."
+echo "(read the comment in that function) if you modify this script."
 echo
 echo "                   *** IMPORTANT ***"
 echo
