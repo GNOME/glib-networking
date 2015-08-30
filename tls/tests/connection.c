@@ -765,6 +765,141 @@ test_verified_unordered_chain (TestConnection *test,
 }
 
 static void
+test_verified_chain_with_alternative_ca_cert (TestConnection *test,
+					      gconstpointer   data)
+{
+  GTlsBackend *backend;
+  GTlsCertificate *server_cert;
+  GTlsCertificate *intermediate_cert;
+  GTlsCertificate *root_cert;
+  char *cert_data = NULL;
+  char *key_data = NULL;
+  GError *error = NULL;
+
+  backend = g_tls_backend_get_default ();
+
+  /* This "root" cert is issued by a CA that is not in the trust store. So it's
+   * not really a root, but it has the same public key as a cert in the trust
+   * store. If the client insists on a traditional chain of trust, this will
+   * fail, since the issuer is untrusted. */
+  root_cert = g_tls_certificate_new_from_file (tls_test_file_path ("ca-alternative.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (root_cert);
+
+  /* Prepare the intermediate cert. Modern TLS libraries are expected to notice
+   * that it is signed by the same public key as a certificate in the root
+   * store, and accept the certificate, ignoring the untrusted "root" sent next
+   * in the chain, which servers send for compatibility with clients that don't
+   * have the new CA cert in the trust store yet. (In this scenario, the old
+   * client still trusts the old CA cert.) */
+  g_file_get_contents (tls_test_file_path ("intermediate-ca.pem"),
+		       &cert_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert (cert_data);
+
+  intermediate_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
+				      NULL, &error,
+				      "issuer", root_cert,
+				      "certificate-pem", cert_data,
+				      NULL);
+  g_assert_no_error (error);
+  g_assert (intermediate_cert);
+
+  /* Prepare the server cert. */
+  g_clear_pointer (&cert_data, g_free);
+  g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
+		       &cert_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert (cert_data);
+
+  g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
+		       &key_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert (key_data);
+
+  server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
+				NULL, &error,
+                                "issuer", intermediate_cert,
+                                "certificate-pem", cert_data,
+                                "private-key-pem", key_data,
+                                NULL);
+  g_assert_no_error (error);
+  g_assert (server_cert);
+
+  g_object_unref (intermediate_cert);
+  g_object_unref (root_cert);
+  g_free (cert_data);
+  g_free (key_data);
+
+  test->server_certificate = server_cert;
+  test_verified_connection (test, data);
+}
+
+static void
+test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
+					     gconstpointer   data)
+{
+  GTlsBackend *backend;
+  GTlsCertificate *server_cert;
+  GTlsCertificate *root_cert;
+  GIOStream *connection;
+  char *cert_data = NULL;
+  char *key_data = NULL;
+  GError *error = NULL;
+
+  backend = g_tls_backend_get_default ();
+
+  /* This certificate has the same public key as a certificate in the root store. */
+  root_cert = g_tls_certificate_new_from_file (tls_test_file_path ("ca-alternative.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (root_cert);
+
+  /* The intermediate cert is not sent. The chain should be rejected, since without intermediate.pem
+   * there is no proof that ca-alternative.pem signed server-intermediate.pem. */
+  g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
+		       &cert_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert (cert_data);
+
+  g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
+		       &key_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert (key_data);
+
+  server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
+				NULL, &error,
+                                "issuer", root_cert,
+                                "certificate-pem", cert_data,
+                                "private-key-pem", key_data,
+                                NULL);
+  g_assert_no_error (error);
+  g_assert (server_cert);
+
+  g_object_unref (root_cert);
+  g_free (cert_data);
+  g_free (key_data);
+
+  test->server_certificate = server_cert;
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* Make sure this test doesn't expire. */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_EXPIRED);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_no_error (test->server_error);
+}
+
+static void
 on_notify_accepted_cas (GObject *obj,
                         GParamSpec *spec,
                         gpointer user_data)
@@ -1762,6 +1897,10 @@ main (int   argc,
 	      setup_connection, test_verified_chain_with_duplicate_server_cert, teardown_connection);
   g_test_add ("/tls/connection/verified-unordered-chain", TestConnection, NULL,
 	      setup_connection, test_verified_unordered_chain, teardown_connection);
+  g_test_add ("/tls/connection/verified-chain-with-alternative-ca-cert", TestConnection, NULL,
+	      setup_connection, test_verified_chain_with_alternative_ca_cert, teardown_connection);
+  g_test_add ("/tls/connection/invalid-chain-with-alternative-ca-cert", TestConnection, NULL,
+	      setup_connection, test_invalid_chain_with_alternative_ca_cert, teardown_connection);
   g_test_add ("/tls/connection/client-auth", TestConnection, NULL,
               setup_connection, test_client_auth_connection, teardown_connection);
   g_test_add ("/tls/connection/client-auth-rehandshake", TestConnection, NULL,

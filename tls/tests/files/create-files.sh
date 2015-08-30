@@ -32,16 +32,36 @@ echo
 read -p "Press [Enter] key to continue..." key
 
 #######################################################################
-### Root CA
+### Obsolete/Untrusted Root CA
 #######################################################################
 
 echo "00" > serial
+
+msg "Creating CA private key for obsolete/untrusted CA"
+openssl genrsa -out old-ca-key.pem 1024
+
+msg "Creating CA certificate for obsolete/untrusted CA"
+openssl req -x509 -new -config ssl/old-ca.conf -days 10950 -key old-ca-key.pem -out old-ca.pem
+
+#######################################################################
+### New Root CA
+#######################################################################
 
 msg "Creating CA private key"
 openssl genrsa -out ca-key.pem 1024
 
 msg "Creating CA certificate"
 openssl req -x509 -new -config ssl/ca.conf -days 10950 -key ca-key.pem -out ca.pem
+
+#######################################################################
+### New Root CA, issued by Obsolete/Untrusted Root CA
+#######################################################################
+
+msg "Creating CA certificate request"
+openssl req -config ssl/ca.conf -key ca-key.pem -new -out root-ca-csr.pem
+
+msg "Creating alternative certificate with same keys as CA"
+openssl x509 -req -in root-ca-csr.pem -days 10950 -CA old-ca.pem -CAkey old-ca-key.pem -CAserial serial -extfile ssl/ca.conf -extensions v3_req_ext -out ca-alternative.pem
 
 #######################################################################
 ### Server
