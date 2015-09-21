@@ -1,3 +1,13 @@
+2.46.0
+======
+  * Various minor cleanups and small memory leak fixes
+
+  * Added a new test case for client certificate chain handling
+    [#754129, Michael Catanzaro]
+
+  * New/updated translations:
+    Japanese, Occitan, Portuguese
+
 2.45.1
 ======
   * tls/gnutls: Implement g_tls_client_connection_copy_session_state(),
