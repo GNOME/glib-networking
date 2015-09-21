@@ -50,9 +50,12 @@ testfiles_data =				\
 	files/client-future.pem			\
 	files/client-past.pem			\
 	files/client.pem			\
+	files/intermediate-ca.pem		\
 	files/non-ca.pem			\
 	files/server-and-key.pem		\
 	files/server.der			\
+	files/server-intermediate.pem		\
+	files/server-intermediate-key.pem	\
 	files/server-key.der			\
 	files/server-key.pem			\
 	files/server.pem			\
