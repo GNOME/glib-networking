@@ -40,3 +40,13 @@ CLEANFILES += $(service_DATA)
 
 org.gtk.GLib.PACRunner.service: org.gtk.GLib.PACRunner.service.in Makefile
 	$(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
+
+systemd_userdir = $(prefix)/lib/systemd/user
+systemd_user_in_files = glib-pacrunner.service.in
+systemd_user_DATA = $(systemd_user_in_files:.service.in=.service)
+
+EXTRA_DIST += $(systemd_user_in_files)
+CLEANFILES += $(systemd_user_DATA)
+
+glib-pacrunner.service: glib-pacrunner.service.in Makefile
+	$(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
