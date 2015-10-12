@@ -41,6 +41,8 @@ endif
 
 testfiles_data =				\
 	files/ca.pem				\
+	files/ca-alternative.pem		\
+	files/ca-key.pem			\
 	files/ca-roots.pem			\
 	files/ca-roots-bad.pem			\
 	files/ca-verisign-sha1.pem		\
