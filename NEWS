@@ -1,3 +1,8 @@
+2.46.1
+======
+  * Fixed a certificate chain validation problem that affected
+    Facebook in Epiphany. [#750457, Carlos Garcia Campos]
+
 2.46.0
 ======
   * Various minor cleanups and small memory leak fixes
