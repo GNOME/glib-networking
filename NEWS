@@ -1,3 +1,11 @@
+2.47.1
+======
+  * Fixed a certificate chain validation problem that affected
+    Facebook in Epiphany. [#750457, Carlos Garcia Campos]
+
+  * Added a systemd service file for glib-pacrunner [#755740, Simon
+    McVittie]
+
 2.46.0
 ======
   * Various minor cleanups and small memory leak fixes
