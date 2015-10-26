@@ -37,6 +37,7 @@ m4/libtool.m4
 m4/lt*.m4
 
 proxy/libproxy/glib-pacrunner
+proxy/libproxy/glib-pacrunner.service
 proxy/libproxy/org.gtk.GLib.PACRunner.service
 proxy/tests/gnome
 proxy/tests/libproxy
