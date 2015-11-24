@@ -43,31 +43,14 @@ typedef struct _GTlsDatabaseGnutls                          GTlsDatabaseGnutls;
 struct _GTlsDatabaseGnutlsClass
 {
   GTlsDatabaseClass parent_class;
-
-  gboolean       (*lookup_assertion)      (GTlsDatabaseGnutls          *self,
-                                           GTlsCertificateGnutls       *certificate,
-                                           GTlsDatabaseGnutlsAssertion  assertion,
-                                           const gchar                 *purpose,
-                                           GSocketConnectable          *identity,
-                                           GCancellable                *cancellable,
-                                           GError                     **error);
 };
 
 struct _GTlsDatabaseGnutls
 {
   GTlsDatabase parent_instance;
-  GTlsDatabaseGnutlsPrivate *priv;
 };
 
 GType          g_tls_database_gnutls_get_type              (void) G_GNUC_CONST;
-
-gboolean       g_tls_database_gnutls_lookup_assertion      (GTlsDatabaseGnutls          *self,
-                                                            GTlsCertificateGnutls       *certificate,
-                                                            GTlsDatabaseGnutlsAssertion  assertion,
-                                                            const gchar                 *purpose,
-                                                            GSocketConnectable          *identity,
-                                                            GCancellable                *cancellable,
-                                                            GError                     **error);
 
 G_END_DECLS
 

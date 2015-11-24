@@ -21,6 +21,8 @@
 #include <gio/gio.h>
 #include <gnutls/gnutls.h>
 
+#include "gtlscertificate-gnutls.h"
+
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11            (g_tls_certificate_gnutls_pkcs11_get_type ())
