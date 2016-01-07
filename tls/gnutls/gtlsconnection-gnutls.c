@@ -1378,7 +1378,15 @@ set_gnutls_error (GTlsConnectionGnutls *gnutls,
   if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     gnutls_transport_set_errno (gnutls->priv->session, EINTR);
   else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-    gnutls_transport_set_errno (gnutls->priv->session, EINTR);
+    {
+      /* Return EAGAIN while handshaking so that GnuTLS handles retries for us
+       * internally in its handshaking code. */
+      if (gnutls->priv->base_socket &&
+          gnutls->priv->handshaking)
+        gnutls_transport_set_errno (gnutls->priv->session, EAGAIN);
+      else
+        gnutls_transport_set_errno (gnutls->priv->session, EINTR);
+    }
   else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
     gnutls_transport_set_errno (gnutls->priv->session, EINTR);
   else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE))
@@ -1410,7 +1418,7 @@ g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
 
       ret = g_datagram_based_receive_messages (gnutls->priv->base_socket,
                                                &message, 1, 0,
-                                               gnutls->priv->read_timeout,
+                                               gnutls->priv->handshaking ? 0 : gnutls->priv->read_timeout,
                                                gnutls->priv->read_cancellable,
                                                &gnutls->priv->read_error);
 
