@@ -59,17 +59,17 @@ is_self_signed (GTlsCertificateGnutls *certificate)
 }
 
 static gint
-build_certificate_chain (GTlsDatabaseGnutls      *self,
-                         GTlsCertificateGnutls   *certificate,
-                         GTlsCertificateGnutls   *previous,
-                         gboolean                 certificate_is_from_db,
-                         guint                    recursion_depth,
-                         const gchar             *purpose,
-                         GSocketConnectable      *identity,
-                         GTlsInteraction         *interaction,
-                         GCancellable            *cancellable,
-                         GTlsCertificateGnutls  **anchor,
-                         GError                 **error)
+build_certificate_chain (GTlsDatabaseGnutls     *self,
+                         GTlsCertificateGnutls  *certificate,
+                         GTlsCertificateGnutls  *previous,
+                         gboolean                certificate_is_from_db,
+                         guint                   recursion_depth,
+                         const gchar            *purpose,
+                         GSocketConnectable     *identity,
+                         GTlsInteraction        *interaction,
+                         GCancellable           *cancellable,
+                         GTlsCertificateGnutls **anchor,
+                         GError                **error)
 {
   GTlsCertificate *issuer;
   gint status;
@@ -194,9 +194,9 @@ double_check_before_after_dates (GTlsCertificateGnutls *chain)
 }
 
 static void
-convert_certificate_chain_to_gnutls (GTlsCertificateGnutls    *chain,
-                                     gnutls_x509_crt_t       **gnutls_chain,
-                                     guint                    *gnutls_chain_length)
+convert_certificate_chain_to_gnutls (GTlsCertificateGnutls  *chain,
+                                     gnutls_x509_crt_t     **gnutls_chain,
+                                     guint                  *gnutls_chain_length)
 {
   GTlsCertificate *cert;
   guint i;
@@ -218,14 +218,14 @@ convert_certificate_chain_to_gnutls (GTlsCertificateGnutls    *chain,
 }
 
 static GTlsCertificateFlags
-g_tls_database_gnutls_verify_chain (GTlsDatabase           *database,
-                                    GTlsCertificate        *chain,
-                                    const gchar            *purpose,
-                                    GSocketConnectable     *identity,
-                                    GTlsInteraction        *interaction,
-                                    GTlsDatabaseVerifyFlags flags,
-                                    GCancellable           *cancellable,
-                                    GError                **error)
+g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
+                                    GTlsCertificate          *chain,
+                                    const gchar              *purpose,
+                                    GSocketConnectable       *identity,
+                                    GTlsInteraction          *interaction,
+                                    GTlsDatabaseVerifyFlags   flags,
+                                    GCancellable             *cancellable,
+                                    GError                  **error)
 {
   GTlsDatabaseGnutls *self;
   GTlsCertificateFlags result;
@@ -327,13 +327,13 @@ g_tls_database_gnutls_class_init (GTlsDatabaseGnutlsClass *klass)
 }
 
 gboolean
-g_tls_database_gnutls_lookup_assertion (GTlsDatabaseGnutls          *self,
-                                        GTlsCertificateGnutls       *certificate,
-                                        GTlsDatabaseGnutlsAssertion  assertion,
-                                        const gchar                 *purpose,
-                                        GSocketConnectable          *identity,
-                                        GCancellable                *cancellable,
-                                        GError                     **error)
+g_tls_database_gnutls_lookup_assertion (GTlsDatabaseGnutls           *self,
+                                        GTlsCertificateGnutls        *certificate,
+                                        GTlsDatabaseGnutlsAssertion   assertion,
+                                        const gchar                  *purpose,
+                                        GSocketConnectable           *identity,
+                                        GCancellable                 *cancellable,
+                                        GError                      **error)
 {
   g_return_val_if_fail (G_IS_TLS_DATABASE_GNUTLS (self), FALSE);
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (certificate), FALSE);

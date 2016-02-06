@@ -146,7 +146,7 @@ discover_module_slots_and_options (GTlsDatabaseGnutlsPkcs11   *self,
 }
 
 static GTlsCertificate *
-create_database_pkcs11_certificate (GPkcs11Slot *slot,
+create_database_pkcs11_certificate (GPkcs11Slot  *slot,
                                     GPkcs11Array *certificate_attrs,
                                     GPkcs11Array *private_key_attrs)
 {
@@ -212,7 +212,7 @@ create_database_pkcs11_certificate (GPkcs11Slot *slot,
   return certificate;
 }
 
-static const gchar*
+static const gchar *
 calculate_peer_for_identity (GSocketConnectable *identity)
 {
   const char *peer;
@@ -258,56 +258,56 @@ g_tls_database_gnutls_pkcs11_init (GTlsDatabaseGnutlsPkcs11 *self)
 }
 
 static gboolean
-accumulate_stop (gpointer     result,
-                 gpointer     user_data)
+accumulate_stop (gpointer result,
+                 gpointer user_data)
 {
   return FALSE; /* stop enumeration */
 }
 
 static gboolean
-accumulate_exists (gpointer     result,
-                   gpointer     user_data)
+accumulate_exists (gpointer result,
+                   gpointer user_data)
 {
-  gboolean *exists = (gboolean*)user_data;
+  gboolean *exists = (gboolean *)user_data;
   *exists = TRUE;
   return FALSE; /* stop enumeration */
 }
 
 static gboolean
-accumulate_first_attributes (gpointer   result,
-                             gpointer   user_data)
+accumulate_first_attributes (gpointer result,
+                             gpointer user_data)
 {
-  GPkcs11Array** attributes = (GPkcs11Array**)user_data;
+  GPkcs11Array **attributes = (GPkcs11Array **)user_data;
   g_assert (attributes);
   *attributes = g_pkcs11_array_ref (result);
   return FALSE; /* stop enumeration */
 }
 
 static gboolean
-accumulate_list_attributes (gpointer    result,
-                            gpointer    user_data)
+accumulate_list_attributes (gpointer result,
+                            gpointer user_data)
 {
-  GList **results = (GList**)user_data;
+  GList **results = (GList **)user_data;
   g_assert (results);
   *results = g_list_append (*results, g_pkcs11_array_ref (result));
   return TRUE; /* continue enumeration */
 }
 
 static gboolean
-accumulate_first_object (gpointer   result,
-                         gpointer   user_data)
+accumulate_first_object (gpointer result,
+                         gpointer user_data)
 {
-  GObject** object = (GObject**)user_data;
+  GObject **object = (GObject **)user_data;
   g_assert (object);
   *object = g_object_ref (result);
   return FALSE; /* stop enumeration */
 }
 
 static gboolean
-accumulate_list_objects (gpointer    result,
-                         gpointer    user_data)
+accumulate_list_objects (gpointer result,
+                         gpointer user_data)
 {
-  GList **results = (GList**)user_data;
+  GList **results = (GList **)user_data;
   g_assert (results);
   *results = g_list_append (*results, g_object_ref (result));
   return TRUE; /* continue enumeration */
@@ -315,8 +315,8 @@ accumulate_list_objects (gpointer    result,
 
 static GPkcs11EnumerateState
 enumerate_call_accumulator (GPkcs11Accumulator accumulator,
-                            gpointer result,
-                            gpointer user_data)
+                            gpointer           result,
+                            gpointer           user_data)
 {
   g_assert (accumulator);
 
@@ -327,13 +327,13 @@ enumerate_call_accumulator (GPkcs11Accumulator accumulator,
 }
 
 static GPkcs11EnumerateState
-enumerate_assertion_exists_in_slot (GPkcs11Slot              *slot,
-                                    GTlsInteraction          *interaction,
-                                    GPkcs11Array             *match,
-                                    GPkcs11Accumulator        accumulator,
-                                    gpointer                  user_data,
-                                    GCancellable             *cancellable,
-                                    GError                  **error)
+enumerate_assertion_exists_in_slot (GPkcs11Slot         *slot,
+                                    GTlsInteraction     *interaction,
+                                    GPkcs11Array        *match,
+                                    GPkcs11Accumulator   accumulator,
+                                    gpointer             user_data,
+                                    GCancellable        *cancellable,
+                                    GError             **error)
 {
   GPkcs11EnumerateState state;
 
@@ -386,13 +386,13 @@ enumerate_assertion_exists_in_database (GTlsDatabaseGnutlsPkcs11   *self,
 }
 
 static gboolean
-g_tls_database_gnutls_pkcs11_lookup_assertion (GTlsDatabaseGnutls          *database,
-                                               GTlsCertificateGnutls       *certificate,
-                                               GTlsDatabaseGnutlsAssertion  assertion,
-                                               const gchar                 *purpose,
-                                               GSocketConnectable          *identity,
-                                               GCancellable                *cancellable,
-                                               GError                     **error)
+g_tls_database_gnutls_pkcs11_lookup_assertion (GTlsDatabaseGnutls           *database,
+                                               GTlsCertificateGnutls        *certificate,
+                                               GTlsDatabaseGnutlsAssertion   assertion,
+                                               const gchar                  *purpose,
+                                               GSocketConnectable           *identity,
+                                               GCancellable                 *cancellable,
+                                               GError                      **error)
 {
   GTlsDatabaseGnutlsPkcs11 *self = G_TLS_DATABASE_GNUTLS_PKCS11 (database);
   GByteArray *der = NULL;
@@ -440,13 +440,13 @@ g_tls_database_gnutls_pkcs11_lookup_assertion (GTlsDatabaseGnutls          *data
 }
 
 static GPkcs11EnumerateState
-enumerate_keypair_for_certificate (GPkcs11Slot              *slot,
-                                   GTlsInteraction          *interaction,
-                                   GPkcs11Array             *match_certificate,
-                                   GPkcs11Accumulator        accumulator,
-                                   gpointer                  user_data,
-                                   GCancellable             *cancellable,
-                                   GError                  **error)
+enumerate_keypair_for_certificate (GPkcs11Slot         *slot,
+                                   GTlsInteraction     *interaction,
+                                   GPkcs11Array        *match_certificate,
+                                   GPkcs11Accumulator   accumulator,
+                                   gpointer             user_data,
+                                   GCancellable        *cancellable,
+                                   GError             **error)
 {
   static CK_OBJECT_CLASS key_class = CKO_PRIVATE_KEY;
   GPkcs11Array *private_key_attrs = NULL;
@@ -503,14 +503,14 @@ enumerate_keypair_for_certificate (GPkcs11Slot              *slot,
 }
 
 static GPkcs11EnumerateState
-enumerate_keypairs_in_slot (GPkcs11Slot              *slot,
-                            GTlsInteraction          *interaction,
-                            CK_ATTRIBUTE_PTR          match,
-                            CK_ULONG                  match_count,
-                            GPkcs11Accumulator        accumulator,
-                            gpointer                  user_data,
-                            GCancellable             *cancellable,
-                            GError                  **error)
+enumerate_keypairs_in_slot (GPkcs11Slot         *slot,
+                            GTlsInteraction     *interaction,
+                            CK_ATTRIBUTE_PTR     match,
+                            CK_ULONG             match_count,
+                            GPkcs11Accumulator   accumulator,
+                            gpointer             user_data,
+                            GCancellable        *cancellable,
+                            GError             **error)
 {
   GPkcs11EnumerateState state;
   GList *results = NULL;
@@ -576,14 +576,14 @@ accumulate_wrap_into_certificate (gpointer result,
 }
 
 static GPkcs11EnumerateState
-enumerate_certificates_in_slot (GPkcs11Slot              *slot,
-                                GTlsInteraction          *interaction,
-                                CK_ATTRIBUTE_PTR          match,
-                                CK_ULONG                  match_count,
-                                GPkcs11Accumulator        accumulator,
-                                gpointer                  user_data,
-                                GCancellable             *cancellable,
-                                GError                  **error)
+enumerate_certificates_in_slot (GPkcs11Slot         *slot,
+                                GTlsInteraction     *interaction,
+                                CK_ATTRIBUTE_PTR     match,
+                                CK_ULONG             match_count,
+                                GPkcs11Accumulator   accumulator,
+                                gpointer             user_data,
+                                GCancellable        *cancellable,
+                                GError             **error)
 {
   enumerate_certificates_closure closure = { accumulator, user_data, slot };
 
@@ -602,16 +602,16 @@ enumerate_certificates_in_slot (GPkcs11Slot              *slot,
 }
 
 static GPkcs11EnumerateState
-enumerate_certificates_in_database (GTlsDatabaseGnutlsPkcs11 *self,
-                                    GTlsInteraction          *interaction,
-                                    GTlsDatabaseLookupFlags   flags,
-                                    CK_ATTRIBUTE_PTR          match,
-                                    CK_ULONG                  match_count,
-                                    P11KitUri                *match_slot_to_uri,
-                                    GPkcs11Accumulator        accumulator,
-                                    gpointer                  user_data,
-                                    GCancellable             *cancellable,
-                                    GError                  **error)
+enumerate_certificates_in_database (GTlsDatabaseGnutlsPkcs11  *self,
+                                    GTlsInteraction           *interaction,
+                                    GTlsDatabaseLookupFlags    flags,
+                                    CK_ATTRIBUTE_PTR           match,
+                                    CK_ULONG                   match_count,
+                                    P11KitUri                 *match_slot_to_uri,
+                                    GPkcs11Accumulator         accumulator,
+                                    gpointer                   user_data,
+                                    GCancellable              *cancellable,
+                                    GError                   **error)
 {
   GPkcs11EnumerateState state = G_PKCS11_ENUMERATE_CONTINUE;
   GPkcs11Slot *slot;
@@ -653,13 +653,13 @@ enumerate_certificates_in_database (GTlsDatabaseGnutlsPkcs11 *self,
   return state;
 }
 
-static GTlsCertificate*
-g_tls_database_gnutls_pkcs11_lookup_certificate_issuer (GTlsDatabase           *database,
-                                                        GTlsCertificate        *certificate,
-                                                        GTlsInteraction        *interaction,
-                                                        GTlsDatabaseLookupFlags flags,
-                                                        GCancellable           *cancellable,
-                                                        GError                **error)
+static GTlsCertificate *
+g_tls_database_gnutls_pkcs11_lookup_certificate_issuer (GTlsDatabase             *database,
+                                                        GTlsCertificate          *certificate,
+                                                        GTlsInteraction          *interaction,
+                                                        GTlsDatabaseLookupFlags   flags,
+                                                        GCancellable             *cancellable,
+                                                        GError                  **error)
 {
   GTlsDatabaseGnutlsPkcs11 *self = G_TLS_DATABASE_GNUTLS_PKCS11 (database);
   GTlsCertificate *result = NULL;
@@ -692,13 +692,13 @@ g_tls_database_gnutls_pkcs11_lookup_certificate_issuer (GTlsDatabase           *
   return result;
 }
 
-static GList*
-g_tls_database_gnutls_pkcs11_lookup_certificates_issued_by (GTlsDatabase           *database,
-                                                            GByteArray             *issuer_subject,
-                                                            GTlsInteraction        *interaction,
-                                                            GTlsDatabaseLookupFlags flags,
-                                                            GCancellable           *cancellable,
-                                                            GError                **error)
+static GList *
+g_tls_database_gnutls_pkcs11_lookup_certificates_issued_by (GTlsDatabase             *database,
+                                                            GByteArray               *issuer_subject,
+                                                            GTlsInteraction          *interaction,
+                                                            GTlsDatabaseLookupFlags   flags,
+                                                            GCancellable             *cancellable,
+                                                            GError                  **error)
 {
   GTlsDatabaseGnutlsPkcs11 *self = G_TLS_DATABASE_GNUTLS_PKCS11 (database);
   GList *l, *results = NULL;
@@ -729,9 +729,9 @@ g_tls_database_gnutls_pkcs11_lookup_certificates_issued_by (GTlsDatabase        
   return results;
 }
 
-static gchar*
-g_tls_database_gnutls_pkcs11_create_certificate_handle (GTlsDatabase            *database,
-                                                        GTlsCertificate         *certificate)
+static gchar *
+g_tls_database_gnutls_pkcs11_create_certificate_handle (GTlsDatabase    *database,
+                                                        GTlsCertificate *certificate)
 {
   GTlsCertificateGnutlsPkcs11 *pkcs11_cert;
 
@@ -742,13 +742,13 @@ g_tls_database_gnutls_pkcs11_create_certificate_handle (GTlsDatabase            
   return g_tls_certificate_gnutls_pkcs11_build_certificate_uri (pkcs11_cert, NULL);
 }
 
-static GTlsCertificate*
-g_tls_database_gnutls_pkcs11_lookup_certificate_for_handle (GTlsDatabase           *database,
-                                                            const gchar            *handle,
-                                                            GTlsInteraction        *interaction,
-                                                            GTlsDatabaseLookupFlags flags,
-                                                            GCancellable           *cancellable,
-                                                            GError                **error)
+static GTlsCertificate *
+g_tls_database_gnutls_pkcs11_lookup_certificate_for_handle (GTlsDatabase             *database,
+                                                            const gchar              *handle,
+                                                            GTlsInteraction          *interaction,
+                                                            GTlsDatabaseLookupFlags   flags,
+                                                            GCancellable             *cancellable,
+                                                            GError                  **error)
 {
   GTlsDatabaseGnutlsPkcs11 *self = G_TLS_DATABASE_GNUTLS_PKCS11 (database);
   GTlsCertificate *result = NULL;
@@ -863,7 +863,7 @@ g_tls_database_gnutls_pkcs11_initable_iface_init (GInitableIface *iface)
   iface->init = g_tls_database_gnutls_pkcs11_initable_init;
 }
 
-GTlsDatabase*
+GTlsDatabase *
 g_tls_database_gnutls_pkcs11_new (GError **error)
 {
   g_return_val_if_fail (!error || !*error, NULL);
