@@ -53,7 +53,6 @@ struct _GTlsFileDatabaseGnutlsPrivate
 {
   /* read-only after construct */
   gchar *anchor_filename;
-  gnutls_x509_trust_list_t trust_list;
 
   /* protected by mutex */
   GMutex mutex;
@@ -259,15 +258,25 @@ g_tls_file_database_gnutls_finalize (GObject *object)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (object);
 
-  g_clear_pointer (&self->priv->subjects, g_hash_table_destroy);
-  g_clear_pointer (&self->priv->issuers, g_hash_table_destroy);
-  g_clear_pointer (&self->priv->complete, g_hash_table_destroy);
-  g_clear_pointer (&self->priv->handles, g_hash_table_destroy);
-  if (self->priv->anchor_filename)
-    {
-      g_free (self->priv->anchor_filename);
-      gnutls_x509_trust_list_deinit (self->priv->trust_list, 1);
-    }
+  if (self->priv->subjects)
+    g_hash_table_destroy (self->priv->subjects);
+  self->priv->subjects = NULL;
+
+  if (self->priv->issuers)
+    g_hash_table_destroy (self->priv->issuers);
+  self->priv->issuers = NULL;
+
+  if (self->priv->complete)
+    g_hash_table_destroy (self->priv->complete);
+  self->priv->complete = NULL;
+
+  if (self->priv->handles)
+    g_hash_table_destroy (self->priv->handles);
+  self->priv->handles = NULL;
+
+  g_free (self->priv->anchor_filename);
+  self->priv->anchor_filename = NULL;
+
   g_mutex_clear (&self->priv->mutex);
 
   G_OBJECT_CLASS (g_tls_file_database_gnutls_parent_class)->finalize (object);
@@ -298,29 +307,21 @@ g_tls_file_database_gnutls_set_property (GObject      *object,
                                          GParamSpec   *pspec)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (object);
-  const char *anchor_path;
+  gchar *anchor_path;
 
   switch (prop_id)
     {
     case PROP_ANCHORS:
-      anchor_path = g_value_get_string (value);
+      anchor_path = g_value_dup_string (value);
       if (anchor_path && !g_path_is_absolute (anchor_path))
-	{
-	  g_warning ("The anchor file name used with a GTlsFileDatabase "
-		     "must be an absolute path, and not relative: %s", anchor_path);
-	  return;
-	}
-
-      if (self->priv->anchor_filename)
-	{
-	  g_free (self->priv->anchor_filename);
-	  gnutls_x509_trust_list_deinit (self->priv->trust_list, 1);
-	}
-      self->priv->anchor_filename = g_strdup (anchor_path);
-      gnutls_x509_trust_list_init (&self->priv->trust_list, 0);
-      gnutls_x509_trust_list_add_trust_file (self->priv->trust_list,
-					     anchor_path, NULL,
-					     GNUTLS_X509_FMT_PEM, 0, 0);
+        {
+          g_warning ("The anchor file name for used with a GTlsFileDatabase "
+                     "must be an absolute path, and not relative: %s", anchor_path);
+        }
+      else
+        {
+          self->priv->anchor_filename = anchor_path;
+        }
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -409,6 +410,45 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
 
   g_bytes_unref (der);
   return cert;
+}
+
+static gboolean
+g_tls_file_database_gnutls_lookup_assertion (GTlsFileDatabaseGnutls       *self,
+                                             GTlsCertificateGnutls        *certificate,
+                                             GTlsDatabaseGnutlsAssertion   assertion,
+                                             const gchar                  *purpose,
+                                             GSocketConnectable           *identity,
+                                             GCancellable                 *cancellable,
+                                             GError                      **error)
+{
+  GBytes *der = NULL;
+  gboolean contains;
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
+
+  /* We only have anchored certificate assertions here */
+  if (assertion != G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE)
+    return FALSE;
+
+  /*
+   * TODO: We should be parsing any Extended Key Usage attributes and
+   * comparing them to the purpose.
+   */
+
+  der = g_tls_certificate_gnutls_get_bytes (certificate);
+
+  g_mutex_lock (&self->priv->mutex);
+  contains = g_hash_table_lookup (self->priv->complete, der) ? TRUE : FALSE;
+  g_mutex_unlock (&self->priv->mutex);
+
+  g_bytes_unref (der);
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
+
+  /* All certificates in our file are anchored certificates */
+  return contains;
 }
 
 static GTlsCertificate *
@@ -520,6 +560,158 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
   return issued;
 }
 
+#define BUILD_CERTIFICATE_CHAIN_RECURSION_LIMIT 10
+
+enum {
+  STATUS_FAILURE,
+  STATUS_INCOMPLETE,
+  STATUS_SELFSIGNED,
+  STATUS_ANCHORED,
+  STATUS_RECURSION_LIMIT_REACHED
+};
+
+static gboolean
+is_self_signed (GTlsCertificateGnutls *certificate)
+{
+  const gnutls_x509_crt_t cert = g_tls_certificate_gnutls_get_cert (certificate);
+  return (gnutls_x509_crt_check_issuer (cert, cert) > 0);
+}
+
+static gint
+build_certificate_chain (GTlsFileDatabaseGnutls  *self,
+                         GTlsCertificateGnutls   *certificate,
+                         GTlsCertificateGnutls   *previous,
+                         gboolean                 certificate_is_from_db,
+                         guint                    recursion_depth,
+                         const gchar             *purpose,
+                         GSocketConnectable      *identity,
+                         GTlsInteraction         *interaction,
+                         GCancellable            *cancellable,
+                         GTlsCertificateGnutls  **anchor,
+                         GError                 **error)
+{
+  GTlsCertificate *issuer;
+  gint status;
+
+  if (recursion_depth++ > BUILD_CERTIFICATE_CHAIN_RECURSION_LIMIT)
+    return STATUS_RECURSION_LIMIT_REACHED;
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return STATUS_FAILURE;
+
+  /* Look up whether this certificate is an anchor */
+  if (g_tls_file_database_gnutls_lookup_assertion (self, certificate,
+						   G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE,
+						   purpose, identity, cancellable, error))
+    {
+      g_tls_certificate_gnutls_set_issuer (certificate, NULL);
+      *anchor = certificate;
+      return STATUS_ANCHORED;
+    }
+  else if (*error)
+    {
+      return STATUS_FAILURE;
+    }
+
+  /* Is it self-signed? */
+  if (is_self_signed (certificate))
+    {
+      /*
+       * Since at this point we would fail with 'self-signed', can we replace
+       * this certificate with one from the database and do better?
+       */
+      if (previous && !certificate_is_from_db)
+        {
+          issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (self),
+                                                             G_TLS_CERTIFICATE (previous),
+                                                             interaction,
+                                                             G_TLS_DATABASE_LOOKUP_NONE,
+                                                             cancellable, error);
+          if (*error)
+            {
+              return STATUS_FAILURE;
+            }
+          else if (issuer)
+            {
+              /* Replaced with certificate in the db, restart step again with this certificate */
+              g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
+              certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
+              g_tls_certificate_gnutls_set_issuer (previous, certificate);
+              g_object_unref (issuer);
+
+              return build_certificate_chain (self, certificate, previous, TRUE, recursion_depth,
+                                              purpose, identity, interaction, cancellable, anchor, error);
+            }
+        }
+
+      g_tls_certificate_gnutls_set_issuer (certificate, NULL);
+      return STATUS_SELFSIGNED;
+    }
+
+  previous = certificate;
+
+  /* Bring over the next certificate in the chain */
+  issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (certificate));
+  if (issuer)
+    {
+      g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
+      certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
+
+      status = build_certificate_chain (self, certificate, previous, FALSE, recursion_depth,
+                                        purpose, identity, interaction, cancellable, anchor, error);
+      if (status != STATUS_INCOMPLETE)
+        {
+          return status;
+        }
+    }
+
+  /* Search for the next certificate in chain */
+  issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (self),
+                                                     G_TLS_CERTIFICATE (certificate),
+                                                     interaction,
+                                                     G_TLS_DATABASE_LOOKUP_NONE,
+                                                     cancellable, error);
+  if (*error)
+    return STATUS_FAILURE;
+
+  if (!issuer)
+    return STATUS_INCOMPLETE;
+
+  g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (issuer), STATUS_FAILURE);
+  g_tls_certificate_gnutls_set_issuer (certificate, G_TLS_CERTIFICATE_GNUTLS (issuer));
+  certificate = G_TLS_CERTIFICATE_GNUTLS (issuer);
+  g_object_unref (issuer);
+
+  return build_certificate_chain (self, certificate, previous, TRUE, recursion_depth,
+                                  purpose, identity, interaction, cancellable, anchor, error);
+}
+
+static GTlsCertificateFlags
+double_check_before_after_dates (GTlsCertificateGnutls *chain)
+{
+  GTlsCertificateFlags gtls_flags = 0;
+  gnutls_x509_crt_t cert;
+  time_t t, now;
+
+  now = time (NULL);
+  while (chain)
+    {
+      cert = g_tls_certificate_gnutls_get_cert (chain);
+      t = gnutls_x509_crt_get_activation_time (cert);
+      if (t == (time_t) -1 || t > now)
+        gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
+
+      t = gnutls_x509_crt_get_expiration_time (cert);
+      if (t == (time_t) -1 || t < now)
+        gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
+
+      chain = G_TLS_CERTIFICATE_GNUTLS (g_tls_certificate_get_issuer
+                                        (G_TLS_CERTIFICATE (chain)));
+    }
+
+  return gtls_flags;
+}
+
 static void
 convert_certificate_chain_to_gnutls (GTlsCertificateGnutls  *chain,
                                      gnutls_x509_crt_t     **gnutls_chain,
@@ -555,56 +747,95 @@ g_tls_file_database_gnutls_verify_chain (GTlsDatabase             *database,
 					 GError                  **error)
 {
   GTlsFileDatabaseGnutls *self;
+  GTlsCertificateFlags result;
+  GTlsCertificateGnutls *certificate;
+  GError *err = NULL;
+  GTlsCertificateGnutls *anchor;
   guint gnutls_result;
-  gnutls_x509_crt_t *certs;
-  guint certs_length;
-  const char *hostname = NULL;
-  char *free_hostname = NULL;
-  gnutls_typed_vdata_st vdata;
-  int gerr;
+  gnutls_x509_crt_t *certs, *anchors;
+  guint certs_length, anchors_length;
+  gint status, gerr;
+  guint recursion_depth = 0;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (chain),
                         G_TLS_CERTIFICATE_GENERIC_ERROR);
   g_assert (purpose);
 
+  self = G_TLS_FILE_DATABASE_GNUTLS (database);
+  certificate = G_TLS_CERTIFICATE_GNUTLS (chain);
+
+  /* First check for pinned certificate */
+  if (g_tls_file_database_gnutls_lookup_assertion (self, certificate,
+						   G_TLS_DATABASE_GNUTLS_PINNED_CERTIFICATE,
+						   purpose, identity, cancellable, &err))
+    {
+      /*
+       * A pinned certificate is verified on its own, without any further
+       * verification.
+       */
+      g_tls_certificate_gnutls_set_issuer (certificate, NULL);
+      return 0;
+    }
+
+  if (err)
+    {
+      g_propagate_error (error, err);
+      return G_TLS_CERTIFICATE_GENERIC_ERROR;
+    }
+
+  anchor = NULL;
+  status = build_certificate_chain (self, certificate, NULL, FALSE, recursion_depth,
+                                    purpose, identity, interaction, cancellable, &anchor, &err);
+  if (status == STATUS_FAILURE)
+    {
+      g_propagate_error (error, err);
+      return G_TLS_CERTIFICATE_GENERIC_ERROR;
+    }
+
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
-  self = G_TLS_FILE_DATABASE_GNUTLS (database);
-
   convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain),
                                        &certs, &certs_length);
-  if (G_IS_NETWORK_ADDRESS (identity))
-    hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (identity));
-  else if (G_IS_NETWORK_SERVICE (identity))
-    hostname = g_network_service_get_domain (G_NETWORK_SERVICE (identity));
-  else if (G_IS_INET_SOCKET_ADDRESS (identity))
-    {
-      GInetAddress *addr;
 
-      addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity));
-      hostname = free_hostname = g_inet_address_to_string (addr);
-    }
-  if (hostname)
+  if (anchor)
     {
-      vdata.type = GNUTLS_DT_DNS_HOSTNAME;
-      vdata.data = (gpointer) hostname;
-      vdata.size = strlen (hostname);
+      g_assert (g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (anchor)) == NULL);
+      convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (anchor),
+                                           &anchors, &anchors_length);
     }
-  gerr = gnutls_x509_trust_list_verify_crt2 (self->priv->trust_list,
-					     certs, certs_length,
-					     &vdata, hostname ? 1 : 0,
-					     0,
-					     &gnutls_result, NULL);
+  else
+    {
+      anchors = NULL;
+      anchors_length = 0;
+    }
+
+  gerr = gnutls_x509_crt_list_verify (certs, certs_length,
+                                      anchors, anchors_length,
+                                      NULL, 0, GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
+                                      &gnutls_result);
+
   g_free (certs);
-  g_free (free_hostname);
+  g_free (anchors);
 
   if (gerr != 0)
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
   else if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
-  return g_tls_certificate_gnutls_convert_flags (gnutls_result);
+  result = g_tls_certificate_gnutls_convert_flags (gnutls_result);
+
+  /*
+   * We have to check these ourselves since gnutls_x509_crt_list_verify
+   * won't bother if it gets an UNKNOWN_CA.
+   */
+  result |= double_check_before_after_dates (G_TLS_CERTIFICATE_GNUTLS (chain));
+
+  if (identity)
+    result |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (chain),
+                                                        identity);
+
+  return result;
 }
 
 static void
