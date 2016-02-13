@@ -1091,6 +1091,15 @@ gnutls_source_check (GSource *source)
   return FALSE;
 }
 
+/* Use a custom dummy callback instead of g_source_set_dummy_callback(), as that
+ * uses a GClosure and is slow. (The GClosure is necessary to deal with any
+ * function prototype.) */
+static gboolean
+dummy_callback (gpointer data)
+{
+  return G_SOURCE_CONTINUE;
+}
+
 static void
 gnutls_source_sync (GTlsConnectionGnutlsSource *gnutls_source)
 {
@@ -1140,7 +1149,7 @@ gnutls_source_sync (GTlsConnectionGnutlsSource *gnutls_source)
   else
     gnutls_source->child_source = g_timeout_source_new (0);
 
-  g_source_set_dummy_callback (gnutls_source->child_source);
+  g_source_set_callback (gnutls_source->child_source, dummy_callback, NULL, NULL);
   g_source_add_child_source ((GSource *)gnutls_source, gnutls_source->child_source);
 }
 
