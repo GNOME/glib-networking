@@ -866,16 +866,14 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
                GIOCondition           direction,
                int                    status,
                GError               **error,
-               const char            *err_fmt,
-               ...) G_GNUC_PRINTF(5, 6);
+               const char            *err_prefix);
 
 static int
 end_gnutls_io (GTlsConnectionGnutls  *gnutls,
                GIOCondition           direction,
                int                    status,
                GError               **error,
-               const char            *err_fmt,
-               ...)
+               const char            *err_prefix)
 {
   GError *my_error = NULL;
 
@@ -1004,11 +1002,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 
   if (error)
     {
-      va_list ap;
-
-      va_start (ap, err_fmt);
-      *error = g_error_new_valist (G_TLS_ERROR, G_TLS_ERROR_MISC, err_fmt, ap);
-      va_end (ap);
+      *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s",
+          err_prefix, gnutls_strerror (status));
     }
   return status;
 }
@@ -1018,7 +1013,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   do {
 
 #define END_GNUTLS_IO(gnutls, direction, ret, errmsg, err)		\
-  } while ((ret = end_gnutls_io (gnutls, direction, ret, err, errmsg, gnutls_strerror (ret))) == GNUTLS_E_AGAIN);
+  } while ((ret = end_gnutls_io (gnutls, direction, ret, err, errmsg)) == GNUTLS_E_AGAIN);
 
 /* Checks whether the underlying base stream or GDatagramBased meets
  * @condition. */
@@ -1778,7 +1773,7 @@ handshake_thread (GTask        *task,
       BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
       ret = gnutls_rehandshake (gnutls->priv->session);
       END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-		     _("Error performing TLS handshake: %s"), &error);
+		     _("Error performing TLS handshake"), &error);
 
       if (error)
 	{
@@ -1829,7 +1824,7 @@ handshake_thread (GTask        *task,
 	}
     }
   END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-		 _("Error performing TLS handshake: %s"), &error);
+		 _("Error performing TLS handshake"), &error);
 
   if (ret == 0 && gnutls_certificate_type_get (gnutls->priv->session) == GNUTLS_CRT_X509)
     {
@@ -2183,7 +2178,7 @@ g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
   ret = gnutls_record_recv (gnutls->priv->session, buffer, count);
-  END_GNUTLS_IO (gnutls, G_IO_IN, ret, _("Error reading data from TLS socket: %s"), error);
+  END_GNUTLS_IO (gnutls, G_IO_IN, ret, _("Error reading data from TLS socket"), error);
 
   yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ);
 
@@ -2274,7 +2269,7 @@ g_tls_connection_gnutls_read_message (GTlsConnectionGnutls  *gnutls,
       gnutls_packet_deinit (packet);
     }
 
-  END_GNUTLS_IO (gnutls, G_IO_IN, ret, _("Error reading data from TLS socket: %s"), error);
+  END_GNUTLS_IO (gnutls, G_IO_IN, ret, _("Error reading data from TLS socket"), error);
 
   yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ);
 
@@ -2380,7 +2375,7 @@ g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
   ret = gnutls_record_send (gnutls->priv->session, buffer, count);
-  END_GNUTLS_IO (gnutls, G_IO_OUT, ret, _("Error writing data to TLS socket: %s"), error);
+  END_GNUTLS_IO (gnutls, G_IO_OUT, ret, _("Error writing data to TLS socket"), error);
 
   yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE);
 
@@ -2442,7 +2437,7 @@ g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
   ret = gnutls_record_uncork (gnutls->priv->session, 0  /* flags */);
-  END_GNUTLS_IO (gnutls, G_IO_OUT, ret, _("Error writing data to TLS socket: %s"), error);
+  END_GNUTLS_IO (gnutls, G_IO_OUT, ret, _("Error writing data to TLS socket"), error);
 
  done:
   yield_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE);
@@ -2573,7 +2568,7 @@ g_tls_connection_gnutls_close_internal (GIOStream     *stream,
       BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
       ret = gnutls_bye (gnutls->priv->session, GNUTLS_SHUT_WR);
       END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-		     _("Error performing TLS close: %s"), &gnutls_error);
+		     _("Error performing TLS close"), &gnutls_error);
 
       gnutls->priv->write_closed = TRUE;
     }
