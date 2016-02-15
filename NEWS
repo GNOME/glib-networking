@@ -1,3 +1,21 @@
+2.47.90
+=======
+  * gnutls: The non-PKCS#11 TLS plugin now uses gnutls's certificate
+    validation code directly, rather than attempting to build a
+    certificate chain itself first. [#753260 and others, Dan Winship]
+
+  * gnutls: Fixed a leak when closing a connection during an implicit
+    handshake [#736809, Philip Withnall]
+
+  * gnutls: Fixed "make check" without PKCS#11 support [#728977,
+    Gilles Dartiguelongue]
+
+  * gnutls: Various changes in preparation for DTLS support (but not
+    the actual DTLS support itself) [#697908, #735754, Philip
+    Withnall, Olivier Crête]
+
+  * Updated translations: Occitan
+
 2.47.1
 ======
   * Fixed a certificate chain validation problem that affected
