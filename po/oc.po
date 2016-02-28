@@ -6,9 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib&ke"
-"ywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2015-10-01 23:06+0000\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2016-02-18 07:41+0000\n"
 "PO-Revision-Date: 2015-10-31 08:49+0200\n"
 "Last-Translator: Cédric Valmary (Tot en òc) <cvalmary@yahoo.fr>\n"
 "Language-Team: Tot en òc (totenoc.eu)\n"
@@ -49,71 +49,71 @@ msgstr "Impossible d'analisar la clau privada PEM : %s"
 msgid "No certificate data provided"
 msgstr "Cap de donada de certificat pas provesida"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:340
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:375
 msgid "Server required TLS certificate"
 msgstr "Lo servidor requerís un certificat TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:311
+#: ../tls/gnutls/gtlsconnection-gnutls.c:323
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Impossible de crear una connexion TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:578
+#: ../tls/gnutls/gtlsconnection-gnutls.c:585
 msgid "Connection is closed"
 msgstr "La connexion es tampada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:641
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1505
+#: ../tls/gnutls/gtlsconnection-gnutls.c:658
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1537
 msgid "Operation would block"
 msgstr "L'operacion se poiriá blocar"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:780
-#: ../tls/gnutls/gtlsconnection-gnutls.c:819
+#: ../tls/gnutls/gtlsconnection-gnutls.c:808
+#: ../tls/gnutls/gtlsconnection-gnutls.c:847
 msgid "Peer failed to perform TLS handshake"
-msgstr "La negociacion TLS amb lo servidor per a fracassat"
+msgstr "La negociacion TLS amb lo servidor par a fracassat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:798
+#: ../tls/gnutls/gtlsconnection-gnutls.c:826
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Lo servidor per a demandat una renegociacion TLS pas autorizada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:825
+#: ../tls/gnutls/gtlsconnection-gnutls.c:853
 msgid "TLS connection closed unexpectedly"
 msgstr "La connexion TLS es estada tampada d'un biais imprevist"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:835
+#: ../tls/gnutls/gtlsconnection-gnutls.c:863
 msgid "TLS connection peer did not send a certificate"
 msgstr "Lo per TLS a pas mandat cap de certificat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1218
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1251
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1250
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1283
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Error al moment de la negociacion TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1261
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1293
 msgid "Server did not return a valid TLS certificate"
 msgstr "Lo servidor a pas renviat cap de certificat TLS valid"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1331
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1363
 msgid "Unacceptable TLS certificate"
 msgstr "Certificat TLS inacceptable"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1539
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1571
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Error al moment de la lectura de donadas del connectador TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1568
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1600
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Error al moment de l'escritura de donadas sul connectador TLS : %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1620
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1664
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Error al moment de la tampadura TLS : %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:106
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:107
 msgid "Certificate has no private key"
 msgstr "Lo certificat a pas cap de clau privada"
 
@@ -123,7 +123,7 @@ msgid ""
 "locked."
 msgstr ""
 "Es la darrièra chança d'entrar lo PIN corrècte abans que la carta de piuse "
-"siá varrolhada."
+"siá verrolhada."
 
 #: ../tls/pkcs11/gpkcs11pin.c:113
 msgid ""
@@ -131,7 +131,7 @@ msgid ""
 "further failures."
 msgstr ""
 "Mantun PIN incorrèctes son estats picats, tota novèla error provocarà lo "
-"varrolhatge de la carta de piuse."
+"verrolhatge de la carta de piuse."
 
 #: ../tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
