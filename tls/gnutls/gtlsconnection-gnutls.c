@@ -399,6 +399,10 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
                                               g_tls_connection_gnutls_vec_push_func);
     }
 
+  /* Set reasonable MTU */
+  if (flags & GNUTLS_DATAGRAM)
+    gnutls_dtls_set_mtu (gnutls->priv->session, 1400);
+
   /* Create output streams if operating in streaming mode. */
   if (!(flags & GNUTLS_DATAGRAM))
     {
@@ -2408,7 +2412,8 @@ g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
   for (i = 0, total_message_size = 0; i < num_vectors; i++)
     total_message_size += vectors[i].size;
 
-  if (gnutls_dtls_get_data_mtu (gnutls->priv->session) < total_message_size)
+  if (gnutls->priv->base_socket != NULL &&
+      gnutls_dtls_get_data_mtu (gnutls->priv->session) < total_message_size)
     {
       ret = GNUTLS_E_LARGE_PACKET;
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
