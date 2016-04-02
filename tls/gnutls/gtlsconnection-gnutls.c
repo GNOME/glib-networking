@@ -995,6 +995,12 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
                    gnutls_dtls_get_data_mtu (gnutls->priv->session));
       return status;
     }
+  else if (status == GNUTLS_E_TIMEDOUT)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
+                           _("The operation timed out"));
+      return status;
+    }
 
   if (error)
     {
@@ -1718,11 +1724,18 @@ handshake_thread (GTask        *task,
   gboolean is_client;
   GError *error = NULL;
   int ret;
+  gint64 start_time;
+  gint64 timeout;
 
+  /* A timeout, in microseconds, must be provided as a gint64* task_data. */
+  g_assert (task_data != NULL);
+
+  timeout = *((gint64 *) task_data);
+  start_time = g_get_monotonic_time ();
   gnutls->priv->started_handshake = FALSE;
 
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_HANDSHAKE,
-		 -1  /* blocking */, cancellable, &error))
+                 timeout, cancellable, &error))
     {
       g_task_return_error (task, error);
       return;
@@ -1735,8 +1748,25 @@ handshake_thread (GTask        *task,
   if (!is_client && gnutls->priv->ever_handshaked &&
       !gnutls->priv->implicit_handshake)
     {
-      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, -1  /* blocking */,
-                       cancellable);
+      /* Adjust the timeout for the next operation in the sequence. */
+      if (timeout > 0)
+        {
+          unsigned int timeout_ms;
+
+          timeout -= (g_get_monotonic_time () - start_time);
+          if (timeout <= 0)
+            timeout = 1;
+
+          /* Convert from microseconds to milliseconds, but ensure the timeout
+           * remains positive. */
+          timeout_ms = (timeout + 999) / 1000;
+
+          gnutls_handshake_set_timeout (gnutls->priv->session, timeout_ms);
+          gnutls_dtls_set_timeouts (gnutls->priv->session, 1000 /* default */,
+                                    timeout_ms);
+        }
+
+      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
       ret = gnutls_rehandshake (gnutls->priv->session);
       END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
 		     _("Error performing TLS handshake: %s"), &error);
@@ -1755,7 +1785,25 @@ handshake_thread (GTask        *task,
 
   g_tls_connection_gnutls_set_handshake_priority (gnutls);
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, -1  /* blocking */, cancellable);
+  /* Adjust the timeout for the next operation in the sequence. */
+  if (timeout > 0)
+    {
+      unsigned int timeout_ms;
+
+      timeout -= (g_get_monotonic_time () - start_time);
+      if (timeout <= 0)
+        timeout = 1;
+
+      /* Convert from microseconds to milliseconds, but ensure the timeout
+       * remains positive. */
+      timeout_ms = (timeout + 999) / 1000;
+
+      gnutls_handshake_set_timeout (gnutls->priv->session, timeout_ms);
+      gnutls_dtls_set_timeouts (gnutls->priv->session, 1000 /* default */,
+                                timeout_ms);
+    }
+
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = gnutls_handshake (gnutls->priv->session);
   if (ret == GNUTLS_E_GOT_APPLICATION_DATA)
     {
@@ -1881,10 +1929,16 @@ g_tls_connection_gnutls_handshake (GTlsConnection   *conn,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (conn);
   GTask *task;
   gboolean success;
+  gint64 *timeout = NULL;
   GError *my_error = NULL;
 
   task = g_task_new (conn, cancellable, NULL, NULL);
   g_task_set_source_tag (task, g_tls_connection_gnutls_handshake);
+
+  timeout = g_new0 (gint64, 1);
+  *timeout = -1;  /* blocking */
+  g_task_set_task_data (task, timeout, g_free);
+
   begin_handshake (gnutls);
   g_task_run_in_thread_sync (task, handshake_thread);
   success = finish_handshake (gnutls, task, &my_error);
@@ -1977,6 +2031,7 @@ g_tls_connection_gnutls_handshake_async (GTlsConnection       *conn,
 					 gpointer              user_data)
 {
   GTask *thread_task, *caller_task;
+  gint64 *timeout = NULL;
 
   caller_task = g_task_new (conn, cancellable, callback, user_data);
   g_task_set_source_tag (caller_task, g_tls_connection_gnutls_handshake_async);
@@ -1988,6 +2043,11 @@ g_tls_connection_gnutls_handshake_async (GTlsConnection       *conn,
 			    handshake_thread_completed, caller_task);
   g_task_set_source_tag (thread_task, g_tls_connection_gnutls_handshake_async);
   g_task_set_priority (thread_task, io_priority);
+
+  timeout = g_new0 (gint64, 1);
+  *timeout = -1;  /* blocking */
+  g_task_set_task_data (thread_task, timeout, g_free);
+
   g_task_run_in_thread (thread_task, async_handshake_thread);
   g_object_unref (thread_task);
 }
@@ -2028,19 +2088,32 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
 		       GCancellable          *cancellable,
 		       GError               **error)
 {
+  gint64 *thread_timeout = NULL;
+
   /* We have op_mutex */
 
+  g_assert (gnutls->priv->implicit_handshake == NULL);
   gnutls->priv->implicit_handshake = g_task_new (gnutls, cancellable, NULL, NULL);
   g_task_set_source_tag (gnutls->priv->implicit_handshake,
                          do_implicit_handshake);
 
+  thread_timeout = g_new0 (gint64, 1);
+  g_task_set_task_data (gnutls->priv->implicit_handshake,
+                        thread_timeout, g_free);
+
   begin_handshake (gnutls);
 
-  /* FIXME: Support (timeout > 0). */
   if (timeout != 0)
     {
       GError *my_error = NULL;
       gboolean success;
+
+      /* In the blocking case, run the handshake operation synchronously in
+       * another thread, and delegate handling the timeout to that thread; it
+       * should return G_IO_ERROR_TIMED_OUT iff (timeout > 0) and the operation
+       * times out. If (timeout < 0) it should block indefinitely until the
+       * operation is complete or errors. */
+      *thread_timeout = timeout;
 
       g_mutex_unlock (&gnutls->priv->op_mutex);
       g_task_run_in_thread_sync (gnutls->priv->implicit_handshake,
@@ -2058,12 +2131,17 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
     }
   else
     {
+      /* In the non-blocking case, start the asynchronous handshake operation
+       * and return EWOULDBLOCK to the caller, who will handle polling for
+       * completion of the handshake and whatever operation they actually cared
+       * about. Run the actual operation as blocking in its thread. */
+      *thread_timeout = -1;  /* blocking */
+
       g_task_run_in_thread (gnutls->priv->implicit_handshake,
-			    async_handshake_thread);
+                            async_handshake_thread);
 
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK,
-			   _("Operation would block"));
-
+                           _("Operation would block"));
       return FALSE;
     }
 }
