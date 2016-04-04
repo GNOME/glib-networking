@@ -1,6 +1,6 @@
 /* GIO TLS tests
  *
- * Copyright 2011, 2015 Collabora, Ltd.
+ * Copyright 2011, 2015, 2016 Collabora, Ltd.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -59,8 +59,20 @@ tls_test_file_path (const char *name)
 #define TEST_DATA "You win again, gravity!\n"
 #define TEST_DATA_LENGTH 24
 
+/* Static test parameters. */
 typedef struct {
-  GMainContext *context;
+  gint64 server_timeout;  /* microseconds */
+  gint64 client_timeout;  /* microseconds */
+  gboolean server_should_disappear;  /* whether the server should stop responding before sending a message */
+  gboolean server_should_close;  /* whether the server should close gracefully once it’s sent a message */
+  GTlsAuthenticationMode auth_mode;
+} TestData;
+
+typedef struct {
+  const TestData *test_data;
+
+  GMainContext *client_context;
+  GMainContext *server_context;
   gboolean loop_finished;
   GSocket *server_socket;
   GSource *server_source;
@@ -69,13 +81,11 @@ typedef struct {
   GDatagramBased *client_connection;
   GSocketConnectable *identity;
   GSocketAddress *address;
-  GTlsAuthenticationMode auth_mode;
   gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
   GError *read_error;
   gboolean expect_server_error;
   GError *server_error;
-  gboolean server_should_close;
   gboolean server_running;
 
   char buf[128];
@@ -85,9 +95,10 @@ typedef struct {
 static void
 setup_connection (TestConnection *test, gconstpointer data)
 {
-  test->context = g_main_context_default ();
+  test->test_data = data;
+
+  test->client_context = g_main_context_default ();
   test->loop_finished = FALSE;
-  test->auth_mode = G_TLS_AUTHENTICATION_NONE;
 }
 
 /* Waits about 10 seconds for @var to be NULL/FALSE */
@@ -204,8 +215,8 @@ on_accept_certificate (GTlsClientConnection *conn, GTlsCertificate *cert,
   return errors == test->accept_flags;
 }
 
-static void
-close_server_connection (TestConnection *test);
+static void close_server_connection (TestConnection *test,
+                                     gboolean        graceful);
 
 static void
 on_rehandshake_finish (GObject        *object,
@@ -250,22 +261,75 @@ on_rehandshake_finish (GObject        *object,
       return;
     }
 
-  if (test->server_should_close)
-    close_server_connection (test);
+  if (test->test_data->server_should_close)
+    close_server_connection (test, TRUE);
 }
 
 static void
-close_server_connection (TestConnection *test)
+on_rehandshake_finish_threaded (GObject      *object,
+                                GAsyncResult *res,
+                                gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  GError *error = NULL;
+  GOutputVector vectors[2] = {
+    { TEST_DATA + TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH / 4 },
+    { TEST_DATA + 3 * TEST_DATA_LENGTH / 4, TEST_DATA_LENGTH / 4},
+  };
+  GOutputMessage message = { NULL, vectors, G_N_ELEMENTS (vectors), 0, NULL, 0 };
+  gint n_sent;
+
+  g_dtls_connection_handshake_finish (G_DTLS_CONNECTION (object), res, &error);
+  g_assert_no_error (error);
+
+  do
+    {
+      g_clear_error (&test->server_error);
+      n_sent = g_datagram_based_send_messages (test->server_connection,
+                                               &message, 1,
+                                               G_SOCKET_MSG_NONE, 0, NULL,
+                                               &test->server_error);
+      g_main_context_iteration (NULL, FALSE);
+    }
+  while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
+
+  if (!test->server_error)
+    {
+      g_assert_cmpint (n_sent, ==, 1);
+      g_assert_cmpuint (message.bytes_sent, ==, TEST_DATA_LENGTH / 2);
+    }
+
+  if (!test->server_error && test->rehandshake)
+    {
+      test->rehandshake = FALSE;
+      g_dtls_connection_handshake_async (G_DTLS_CONNECTION (test->server_connection),
+                                         G_PRIORITY_DEFAULT, NULL,
+                                         on_rehandshake_finish_threaded, test);
+      return;
+    }
+
+  if (test->test_data->server_should_close)
+    close_server_connection (test, TRUE);
+}
+
+static void
+close_server_connection (TestConnection *test,
+                         gboolean        graceful)
 {
   GError *error = NULL;
 
-  g_dtls_connection_close (G_DTLS_CONNECTION (test->server_connection),
-                           NULL, &error);
+  if (graceful)
+    g_dtls_connection_close (G_DTLS_CONNECTION (test->server_connection),
+                             NULL, &error);
 
-  if (test->expect_server_error)
+  /* Clear pending dispatches from the context. */
+  while (g_main_context_iteration (test->server_context, FALSE));
+
+  if (graceful && test->expect_server_error)
     g_assert (error != NULL);
-  else
+  else if (graceful)
     g_assert_no_error (error);
+
   test->server_running = FALSE;
 }
 
@@ -323,12 +387,19 @@ on_incoming_connection (GSocket       *socket,
   g_assert_no_error (error);
   g_object_unref (cert);
 
-  g_object_set (test->server_connection, "authentication-mode", test->auth_mode, NULL);
+  g_object_set (test->server_connection, "authentication-mode",
+                test->test_data->auth_mode, NULL);
   g_signal_connect (test->server_connection, "accept-certificate",
                     G_CALLBACK (on_accept_certificate), test);
 
   if (test->database)
     g_dtls_connection_set_database (G_DTLS_CONNECTION (test->server_connection), test->database);
+
+  if (test->test_data->server_should_disappear)
+    {
+      close_server_connection (test, FALSE);
+      return G_SOURCE_REMOVE;
+    }
 
   do
     {
@@ -356,37 +427,163 @@ on_incoming_connection (GSocket       *socket,
       return G_SOURCE_REMOVE;
     }
 
-  if (test->server_should_close)
-    close_server_connection (test);
+  if (test->test_data->server_should_close)
+    close_server_connection (test, TRUE);
 
   return G_SOURCE_REMOVE;
 }
 
+static gboolean
+on_incoming_connection_threaded (GSocket      *socket,
+                                 GIOCondition  condition,
+                                 gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  GOutputVector vector = {
+    TEST_DATA,
+    test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH
+  };
+  GOutputMessage message = { NULL, &vector, 1, 0, NULL, 0 };
+  gint n_sent;
+  GSocketAddress *addr = NULL;  /* owned */
+  guint8 databuf[65536];
+  GInputVector vec = {databuf, sizeof (databuf)};
+  gint flags = G_SOCKET_MSG_PEEK;
+  gssize ret;
+
+  /* Ignore this if the source has already been destroyed. */
+  if (g_source_is_destroyed (test->server_source))
+    return G_SOURCE_REMOVE;
+
+  /* Remove the source as the first thing. */
+  g_source_destroy (test->server_source);
+  g_source_unref (test->server_source);
+  test->server_source = NULL;
+
+  /* Peek at the incoming packet to get the peer’s address. */
+  ret = g_socket_receive_message (socket, &addr, &vec, 1, NULL, NULL,
+                                  &flags, NULL, NULL);
+
+  if (ret <= 0)
+    return G_SOURCE_REMOVE;
+
+  if (!g_socket_connect (socket, addr, NULL, NULL))
+    {
+      g_object_unref (addr);
+      return G_SOURCE_CONTINUE;
+    }
+
+  g_clear_object (&addr);
+
+  /* Wrap the socket in a GDtlsServerConnection. */
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
+  g_assert_no_error (error);
+
+  test->server_connection = g_dtls_server_connection_new (G_DATAGRAM_BASED (socket),
+                                                          cert, &error);
+  g_debug ("%s: Server connection %p on socket %p", G_STRFUNC, test->server_connection, socket);
+  g_assert_no_error (error);
+  g_object_unref (cert);
+
+  g_object_set (test->server_connection, "authentication-mode",
+                test->test_data->auth_mode, NULL);
+  g_signal_connect (test->server_connection, "accept-certificate",
+                    G_CALLBACK (on_accept_certificate), test);
+
+  if (test->database)
+    g_dtls_connection_set_database (G_DTLS_CONNECTION (test->server_connection), test->database);
+
+  if (test->test_data->server_should_disappear)
+    {
+      close_server_connection (test, FALSE);
+      return G_SOURCE_REMOVE;
+    }
+
+  do
+    {
+      g_clear_error (&test->server_error);
+      n_sent = g_datagram_based_send_messages (test->server_connection,
+                                               &message, 1,
+                                               G_SOCKET_MSG_NONE,
+                                               test->test_data->server_timeout, NULL,
+                                               &test->server_error);
+      g_main_context_iteration (NULL, FALSE);
+    }
+  while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
+
+  if (!test->server_error)
+    {
+      g_assert_cmpint (n_sent, ==, 1);
+      g_assert_cmpuint (message.bytes_sent, ==, vector.size);
+    }
+
+  if (!test->server_error && test->rehandshake)
+    {
+      test->rehandshake = FALSE;
+      g_dtls_connection_handshake_async (G_DTLS_CONNECTION (test->server_connection),
+                                         G_PRIORITY_DEFAULT, NULL,
+                                         on_rehandshake_finish_threaded, test);
+      return G_SOURCE_REMOVE;
+    }
+
+  if (test->test_data->server_should_close)
+    close_server_connection (test, TRUE);
+
+  return G_SOURCE_REMOVE;
+}
+
+static gpointer
+server_service_cb (gpointer user_data)
+{
+  TestConnection *test = user_data;
+
+  test->server_context = g_main_context_new ();
+  g_main_context_push_thread_default (test->server_context);
+
+  test->server_source = g_socket_create_source (test->server_socket, G_IO_IN,
+                                                NULL);
+  g_source_set_callback (test->server_source,
+                         (GSourceFunc) on_incoming_connection_threaded, test, NULL);
+  g_source_attach (test->server_source, test->server_context);
+
+  /* Run the server until it should stop. */
+  while (test->server_running)
+    g_main_context_iteration (test->server_context, TRUE);
+
+  g_main_context_pop_thread_default (test->server_context);
+
+  return NULL;
+}
+
 static void
-start_async_server_service (TestConnection *test, GTlsAuthenticationMode auth_mode,
-                            gboolean should_close)
+start_server_service (TestConnection         *test,
+                      gboolean                threaded)
 {
   start_server (test);
 
-  test->auth_mode = auth_mode;
+  if (threaded)
+    {
+      g_thread_new ("dtls-server", server_service_cb, test);
+      return;
+    }
+
   test->server_source = g_socket_create_source (test->server_socket, G_IO_IN,
                                                 NULL);
   g_source_set_callback (test->server_source,
                          (GSourceFunc) on_incoming_connection, test, NULL);
   g_source_attach (test->server_source, NULL);
-
-  test->server_should_close = should_close;
 }
 
 static GDatagramBased *
-start_async_server_and_connect_to_it (TestConnection *test,
-                                      GTlsAuthenticationMode auth_mode,
-                                      gboolean should_close)
+start_server_and_connect_to_it (TestConnection         *test,
+                                gboolean                threaded)
 {
   GError *error = NULL;
   GSocket *socket;
 
-  start_async_server_service (test, auth_mode, should_close);
+  start_server_service (test, threaded);
 
   socket = g_socket_new (G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM,
                          G_SOCKET_PROTOCOL_UDP, &error);
@@ -416,7 +613,8 @@ read_test_data_async (TestConnection *test)
       g_clear_error (&test->read_error);
       n_read = g_datagram_based_receive_messages (test->client_connection,
                                                   &message, 1,
-                                                  G_SOCKET_MSG_NONE, 0,
+                                                  G_SOCKET_MSG_NONE,
+                                                  test->test_data->client_timeout,
                                                   NULL, &test->read_error);
       g_main_context_iteration (NULL, FALSE);
     }
@@ -439,6 +637,9 @@ read_test_data_async (TestConnection *test)
   test->loop_finished = TRUE;
 }
 
+/* Test that connecting a client to a server, both using main contexts in the
+ * same thread, works; and that sending a message from the server to the client
+ * before shutting down gracefully works. */
 static void
 test_basic_connection (TestConnection *test,
                        gconstpointer   data)
@@ -446,7 +647,7 @@ test_basic_connection (TestConnection *test,
   GDatagramBased *connection;
   GError *error = NULL;
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_server_and_connect_to_it (test, FALSE);
   test->client_connection = g_dtls_client_connection_new (connection, test->identity, &error);
   g_debug ("%s: Client connection %p on socket %p", G_STRFUNC, test->client_connection, connection);
   g_assert_no_error (error);
@@ -458,16 +659,103 @@ test_basic_connection (TestConnection *test,
 
   read_test_data_async (test);
   while (!test->loop_finished)
-    g_main_context_iteration (test->context, TRUE);
+    g_main_context_iteration (test->client_context, TRUE);
 
   g_assert_no_error (test->server_error);
   g_assert_no_error (test->read_error);
+}
+
+/* Test that connecting a client to a server, both using separate threads,
+ * works; and that sending a message from the server to the client before
+ * shutting down gracefully works. */
+static void
+test_threaded_connection (TestConnection *test,
+                          gconstpointer   data)
+{
+  GDatagramBased *connection;
+  GError *error = NULL;
+
+  connection = start_server_and_connect_to_it (test, TRUE);
+  test->client_connection = g_dtls_client_connection_new (connection, test->identity, &error);
+  g_debug ("%s: Client connection %p on socket %p", G_STRFUNC, test->client_connection, connection);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  /* No validation at all in this test */
+  g_dtls_client_connection_set_validation_flags (G_DTLS_CLIENT_CONNECTION (test->client_connection),
+                                                 0);
+
+  read_test_data_async (test);
+  while (!test->loop_finished)
+    g_main_context_iteration (test->client_context, TRUE);
+
+  g_assert_no_error (test->server_error);
+  g_assert_no_error (test->read_error);
+}
+
+/* Test that a client can successfully connect to a server, then the server
+ * disappears, and when the client tries to read from it, the client hits a
+ * timeout error (rather than blocking indefinitely or returning another
+ * error). */
+static void
+test_connection_timeouts_read (TestConnection *test,
+                               gconstpointer   data)
+{
+  GDatagramBased *connection;
+  GError *error = NULL;
+
+  connection = start_server_and_connect_to_it (test, TRUE);
+  test->client_connection = g_dtls_client_connection_new (connection,
+                                                          test->identity, &error);
+  g_debug ("%s: Client connection %p on socket %p", G_STRFUNC,
+           test->client_connection, connection);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  /* No validation at all in this test */
+  g_dtls_client_connection_set_validation_flags (G_DTLS_CLIENT_CONNECTION (test->client_connection),
+                                                 0);
+
+  read_test_data_async (test);
+  while (!test->loop_finished)
+    g_main_context_iteration (test->client_context, TRUE);
+
+  g_assert_no_error (test->server_error);
+  g_assert_error (test->read_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
 }
 
 int
 main (int   argc,
       char *argv[])
 {
+  const TestData blocking = {
+    -1,  /* server_timeout */
+    0,  /* client_timeout */
+    FALSE,  /* server_should_disappear */
+    TRUE, /* server_should_close */
+    G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+  };
+  const TestData server_timeout = {
+    1000 * G_USEC_PER_SEC,  /* server_timeout */
+    0,  /* client_timeout */
+    FALSE,  /* server_should_disappear */
+    TRUE, /* server_should_close */
+    G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+  };
+  const TestData nonblocking = {
+    0,  /* server_timeout */
+    0,  /* client_timeout */
+    FALSE,  /* server_should_disappear */
+    TRUE, /* server_should_close */
+    G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+  };
+  const TestData client_timeout = {
+    0,  /* server_timeout */
+    0.5 * G_USEC_PER_SEC,  /* client_timeout */
+    TRUE,  /* server_should_disappear */
+    TRUE, /* server_should_close */
+    G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+  };
   int ret;
   int i;
 
@@ -496,10 +784,28 @@ main (int   argc,
   g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/tls/gnutls/.libs", TRUE);
   g_setenv ("GIO_USE_TLS", "gnutls", TRUE);
 
-  g_test_add ("/dtls/connection/basic", TestConnection, NULL,
+  g_test_add ("/dtls/connection/basic/blocking", TestConnection, &blocking,
+              setup_connection, test_basic_connection, teardown_connection);
+  g_test_add ("/dtls/connection/basic/timeout", TestConnection, &server_timeout,
+              setup_connection, test_basic_connection, teardown_connection);
+  g_test_add ("/dtls/connection/basic/nonblocking",
+              TestConnection, &nonblocking,
               setup_connection, test_basic_connection, teardown_connection);
 
-  ret = g_test_run();
+  g_test_add ("/dtls/connection/threaded/blocking", TestConnection, &blocking,
+              setup_connection, test_threaded_connection, teardown_connection);
+  g_test_add ("/dtls/connection/threaded/timeout",
+              TestConnection, &server_timeout,
+              setup_connection, test_threaded_connection, teardown_connection);
+  g_test_add ("/dtls/connection/threaded/nonblocking",
+              TestConnection, &nonblocking,
+              setup_connection, test_threaded_connection, teardown_connection);
+
+  g_test_add ("/dtls/connection/timeouts/read", TestConnection, &client_timeout,
+              setup_connection, test_connection_timeouts_read,
+              teardown_connection);
+
+  ret = g_test_run ();
 
   /* for valgrinding */
   g_main_context_unref (g_main_context_default ());
