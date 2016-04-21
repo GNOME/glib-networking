@@ -722,6 +722,10 @@ g_tls_certificate_gnutls_build_chain (const gnutls_datum_t  *certs,
     {
       issuer = NULL;
 
+      /* Check if the cert issued itself */
+      if (gnutls_x509_crt_check_issuer (gnutls_certs[i], gnutls_certs[i]))
+        continue;
+
       if (i < num_certs - 1 &&
           gnutls_x509_crt_check_issuer (gnutls_certs[i], gnutls_certs[i + 1]))
         {
