@@ -6,6 +6,7 @@ giomoduledir = $(GIO_MODULE_DIR)
 
 AM_CPPFLAGS =                          \
        -DG_LOG_DOMAIN=\"GLib-Net\"     \
+       -DLOCALE_DIR=\""$(localedir)"\" \
        -DG_DISABLE_DEPRECATED          \
        $(GLIB_CFLAGS)                  \
        $(NULL)

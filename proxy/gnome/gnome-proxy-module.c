@@ -19,6 +19,8 @@
 
 #include "config.h"
 
+#include <glib/gi18n-lib.h>
+
 #include "gproxyresolvergnome.h"
 
 
@@ -26,6 +28,8 @@ void
 g_io_module_load (GIOModule *module)
 {
   g_proxy_resolver_gnome_register (module);
+  bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 }
 
 void

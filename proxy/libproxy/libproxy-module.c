@@ -21,6 +21,8 @@
 
 #include "config.h"
 
+#include <glib/gi18n-lib.h>
+
 #include "glibproxyresolver.h"
 
 
@@ -28,6 +30,8 @@ void
 g_io_module_load (GIOModule *module)
 {
   g_libproxy_resolver_register (module);
+  bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 }
 
 void

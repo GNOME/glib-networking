@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <glib/gi18n-lib.h>
 
 #include "gtlsbackend-gnutls.h"
 #include "gtlsbackend-gnutls-pkcs11.h"
@@ -35,6 +36,8 @@ g_io_module_load (GIOModule *module)
 #ifdef HAVE_PKCS11
   g_tls_backend_gnutls_pkcs11_register (module);
 #endif
+  bindtextdomain (GETTEXT_PACKAGE, LOCALE_DIR);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 }
 
 void
