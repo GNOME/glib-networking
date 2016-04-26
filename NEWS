@@ -1,7 +1,14 @@
+2.48.1
+======
+  * Fixed translations in non-UTF-8 domains [#765466, Ting-Wei Lan]
+
+  * Fixed bash-ism in configure [#765396, Patrick Welche]
+
+  * Updated translations: Friulian
+
 2.48.0
 ======
   * New stable release. (No changes since 2.47.90)
-
 
 2.47.90
 =======
