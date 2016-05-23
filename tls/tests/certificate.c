@@ -274,6 +274,7 @@ test_create_certificate_no_chain (void)
   g_assert_no_error (error);
 
   cert = g_tls_certificate_new_from_pem (cert_pem, cert_pem_length - 100, &error);
+  g_free (cert_pem);
   g_assert_no_error (error);
   g_assert (G_IS_TLS_CERTIFICATE (cert));
 
