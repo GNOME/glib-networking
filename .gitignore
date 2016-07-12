@@ -32,7 +32,6 @@ test-driver
 
 INSTALL
 ChangeLog
-m4/intltool.m4
 m4/libtool.m4
 m4/lt*.m4
 

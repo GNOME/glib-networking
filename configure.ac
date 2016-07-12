@@ -20,15 +20,14 @@ AC_PROG_CPP
 dnl Checks for libraries.
 
 dnl ****************************
-dnl *** Checks for intltool  ***
+dnl *** Checks for gettext   ***
 dnl ****************************
+AM_GNU_GETTEXT_VERSION([0.19.4])
+AM_GNU_GETTEXT([external])
 
-IT_PROG_INTLTOOL([0.35.0])
 GETTEXT_PACKAGE=glib-networking
-
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[The gettext domain name])
-AM_GLIB_GNU_GETTEXT
 
 dnl *****************************
 dnl *** Check GLib GIO        ***

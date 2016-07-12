@@ -15,7 +15,6 @@ fi
 
 mkdir -p m4
 autoreconf --force --install --verbose || exit $?
-intltoolize --copy --force --automake || exit $?
 
 cd "$olddir"
 test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
