@@ -1,3 +1,14 @@
+2.49.50
+=======
+  * Ported to use upstream gettext rather than intltool/glib-gettext
+    [#768708, Javier Jardón]
+
+  * Updated po files for future gettext versions [Piotr Drąg]
+
+  * Fixed translation lookup on Windows [#765466, Chun-wei Fan]
+
+  * Updated translations: Occitan
+
 2.48.2
 ======
   * gnutls: Fixed an infinite loop if a server sent two identical
