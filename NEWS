@@ -1,4 +1,10 @@
-2.49.50
+2.50.0
+======
+  * New stable release.
+
+  * Updated translations: British English, Polish
+
+2.49.90
 =======
   * Ported to use upstream gettext rather than intltool/glib-gettext
     [#768708, Javier Jardón]
