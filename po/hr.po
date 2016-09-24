@@ -1,0 +1,133 @@
+# Croatian translation for glib-networking
+# Copyright (c) 2015 Rosetta Contributors and Canonical Ltd 2015
+# This file is distributed under the same license as the glib-networking package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2012-08-27 15:33+0000\n"
+"PO-Revision-Date: 2015-05-03 00:07+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Croatian <hr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2015-07-01 11:49+0000\n"
+"X-Generator: Launchpad (build 17590)\n"
+
+#: ../proxy/libproxy/glibproxyresolver.c:157
+msgid "Proxy resolver internal error."
+msgstr "Unutrašnja greška proxy razrješitelja."
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nemoguća analiza DER vjerodajnica: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nemoguća analiza PEM vjerodajnica: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:225
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nemoguća analiza DER privatnog ključa: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:256
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nemoguća analiza PEM privatnog ključa: %s"
+
+#: ../tls/gnutls/gtlscertificate-gnutls.c:296
+msgid "No certificate data provided"
+msgstr "Nema pruženih podataka certifikata"
+
+#: ../tls/gnutls/gtlsclientconnection-gnutls.c:324
+msgid "Server required TLS certificate"
+msgstr "Poslužitelj zahtijeva TLS vjerodajnicu"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:305
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Nemoguće stvaranje TLS povezivanja: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:774
+#: ../tls/gnutls/gtlsconnection-gnutls.c:813
+msgid "Peer failed to perform TLS handshake"
+msgstr "Čvor je odbio izvesti TLS rukovanje"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:792
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Čvor zahtjeva ilegalno TLS ponovno rukovanje"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:819
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS povezivanje je neočekivano zatvoreno"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1212
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1245
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Greška izvođenja TLS rukovanja: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1330
+msgid "Unacceptable TLS certificate"
+msgstr "Neprihvatljiva TLS vjerodajnica"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1538
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Greška čitanja podataka iz TLS priključnice: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1567
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Greška zapisivanja podataka iz TLS priključnice: %s"
+
+#: ../tls/gnutls/gtlsconnection-gnutls.c:1619
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Greška izvođenja TLS zatvaranja: %s"
+
+#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+msgid "Certificate has no private key"
+msgstr "Vjerodajnica nema privatni ključ"
+
+#: ../tls/pkcs11/gpkcs11pin.c:108
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
+msgstr ""
+"Ovo je posljednja šansa za upis PIN-a ispravno prije nego što se token "
+"zaključa."
+
+#: ../tls/pkcs11/gpkcs11pin.c:110
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr ""
+"Nekoliko PIN-ova je neispravno, i token će biti zaključan nakon budućih "
+"neuspjeha."
+
+#: ../tls/pkcs11/gpkcs11pin.c:112
+msgid "The PIN entered is incorrect."
+msgstr "Upisani PIN je neispravan"
+
+#: ../tls/pkcs11/gpkcs11slot.c:446
+msgid "Module"
+msgstr "Modul"
+
+#: ../tls/pkcs11/gpkcs11slot.c:447
+msgid "PKCS#11 Module Pointer"
+msgstr "PKCS#11 pokazivač modula"
+
+#: ../tls/pkcs11/gpkcs11slot.c:454
+msgid "Slot ID"
+msgstr ""
+
+#: ../tls/pkcs11/gpkcs11slot.c:455
+msgid "PKCS#11 Slot Identifier"
+msgstr ""
