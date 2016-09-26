@@ -1,4 +1,4 @@
 Network-related giomodule for glib using openssl.
 
 File bugs against
-http://bugzilla.gnome.org/enter_bug.cgi?product=glib&component=network
+http://bugzilla.gnome.org/enter_bug.cgi?product=glib-openssl
