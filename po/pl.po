@@ -7,10 +7,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2016-08-16 10:35+0200\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2016-09-26 23:04+0000\n"
+"PO-Revision-Date: 2016-09-27 01:11+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -58,9 +58,9 @@ msgstr "Nie podano danych certyfikatu"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:430
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Nie można utworzyć połączenia TLS: %s"
+msgstr "Nie można utworzyć kontekstu TLS: %s"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:468
 #: tls/openssl/gtlsserverconnection-openssl.c:296
@@ -112,47 +112,9 @@ msgstr "Certyfikat nie ma klucza prywatnego"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Wystąpił problem z kluczem prywatnym certyfikatu: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
-
-#~ msgid "Proxy resolver internal error."
-#~ msgstr "Wewnętrzny błąd rozwiązywania pośrednika."
-
-#~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr "Partner zażądał niedozwolonego ponownego powitania TLS"
-
-#~ msgid "TLS connection closed unexpectedly"
-#~ msgstr "Połączenie TLS zostało nieoczekiwanie zamknięte"
-
-#~ msgid ""
-#~ "This is the last chance to enter the PIN correctly before the token is "
-#~ "locked."
-#~ msgstr ""
-#~ "To jest ostatnia szansa na poprawne wpisanie kodu PIN przed zablokowaniem "
-#~ "tokena."
-
-#~ msgid ""
-#~ "Several PIN attempts have been incorrect, and the token will be locked "
-#~ "after further failures."
-#~ msgstr ""
-#~ "Przeprowadzono kilka niepoprawnych prób wpisania kodu PIN. Token zostanie "
-#~ "zablokowany po dalszych niepowodzeniach."
-
-#~ msgid "The PIN entered is incorrect."
-#~ msgstr "Wpisany kod PIN jest niepoprawny."
-
-#~ msgid "Module"
-#~ msgstr "Moduł"
-
-#~ msgid "PKCS#11 Module Pointer"
-#~ msgstr "Wskaźnik modułu PKCS#11"
-
-#~ msgid "Slot ID"
-#~ msgstr "Identyfikator gniazda"
-
-#~ msgid "PKCS#11 Slot Identifier"
-#~ msgstr "Identyfikator gniazda PKCS#11"
+msgstr "Wystąpił problem z certyfikatem: %s"
