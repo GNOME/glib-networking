@@ -1,0 +1,158 @@
+# Dutch translation for glib-openssl
+# This file is distributed under the same license as the glib-openssl package.
+#
+# Wouter Bolsterlee <wbolster@gnome.org>, 2011–2013
+# Rachid <rachidbm@ubuntu.com>, 2012.
+#
+# Peer - andere kant van de verbinding   (heel vrij vertaald)
+msgid ""
+msgstr ""
+"Project-Id-Version: gconf\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2012-06-18 21:07+0200\n"
+"Last-Translator: Wouter Bolsterlee <wbolster@gnome.org>\n"
+"Language-Team: Dutch <vertaling@vrijschrift.org>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Server vereiste een TLS-certificaat"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Kon DER-certificaat niet parsen: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Kon PEM-certificaat niet parsen: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Kon DER-privésleutel niet parsen: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Kon PEM-privésleutel niet parsen: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Geen certificaatgegevens opgegeven"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Kon geen TLS-verbinding maken: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Kon geen TLS-verbinding maken: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Andere kant van de verbinding gaf geen TLS-handshake"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+#, fuzzy
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS-verbinding onverwachts afgebroken"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Fout bij uitvoeren van TLS-handshake: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+#, fuzzy
+msgid "Server did not return a valid TLS certificate"
+msgstr "Server vereiste een TLS-certificaat"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Onacceptabel TLS-certificaat"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Fout bij het lezen van de TLS-socket: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Fout bij het schrijven naar de TLS-socket: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Fout bij sluiten van TLS: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Certificaat heeft geen privésleutel"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Interne fout in proxy-resolver."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr ""
+#~ "Andere kant van de verbinding verzocht een ongeldige TLS-rehandshake"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Dit is de laatste kans om het PIN correct in te voeren voordat de token "
+#~ "ongeldig wordt."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "U heeft meerdere malen een onjuiste PIN ingevoerd. Na verdere mislukte "
+#~ "pogingen wordt de token ongeldig."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Het ingevoerde PIN is onjuist."
+
+#~ msgid "Module"
+#~ msgstr "Module"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 Module Pointer"
+
+#~ msgid "Slot ID"
+#~ msgstr "Slot ID"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 Slot Identifier"

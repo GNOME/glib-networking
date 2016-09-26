@@ -1,0 +1,153 @@
+# translation of glib-openssl.master.po to Khmer
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Khoem Sokhem <khoemsokhem@khmeros.info>, 2012.
+# Seng Sutha <sutha@khmeros.info>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl.master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2012-02-20 09:22+0700\n"
+"Last-Translator: Seng Sutha <sutha@khmeros.info>\n"
+"Language-Team: Khmer <support@khmeros.info>\n"
+"Language: km\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: WordForge 0.8 RC1\n"
+"X-Language: km-KH\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "ម៉ាស៊ីន​បម្រើ​បាន​ទាមទារ​វិញ្ញាបនបត្រ​របស់ TLS"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "មិន​អាច​ញែក​វិញ្ញាបនបត្រ​របស់​ DER បាន​ទេ ៖ %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "មិន​អាច​ញែក​វិញ្ញាបនបត្រ​របស់ PEM បាន​ទេ %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "មិន​អាច​ញែក​កូនសោ​ឯកជន​របស់ DER បាន​ទេ ៖ %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "មិន​អាច​ញែក​កូនសោ​ឯកជន​របស់ PEM បាន​ទេ ៖ %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "គ្មាន​ទិន្នន័យ​វិញ្ញាបនបត្រ​បាន​ផ្ដល់​ឡើយ"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "មិន​អាច​ធ្វើ​ការ​តភ្ជាប់​ TLS បាន​ទេ ៖ %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "មិន​អាច​ធ្វើ​ការ​តភ្ជាប់​ TLS បាន​ទេ ៖ %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "បាន​បរាជ័យ​ម៉ាស៊ីន​ក្នុង​ការ​ប្រតិបត្តិ TLS handshake"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+#, fuzzy
+msgid "TLS connection peer did not send a certificate"
+msgstr "ការ​តភ្ជាប់​របស់ TLS បាន​បិទ​ដោយ​មិន​រំពឹង"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "កំហុស​ក្នុង​ការ​ប្រតិបត្តិ TLS handshake ៖ %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+#, fuzzy
+msgid "Server did not return a valid TLS certificate"
+msgstr "ម៉ាស៊ីន​បម្រើ​បាន​ទាមទារ​វិញ្ញាបនបត្រ​របស់ TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "វិញ្ញាបនបត្រ​របស់ TLS ដែល​មិន​អាច​ទទួល​យក​បាន"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "កំហុស​ក្នុង​ការ​អាន​ទិន្នន័យ​ពី​រន្ធ​របស់ TLS ៖ %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "កំហុស​ក្នុង​ការ​សរសេរ​ទិន្នន័យ​អំពី​រន្ធ​របស់ TLS ៖ %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "កំហុស​ក្នុង​ការ​បិទ​ TLS ៖ %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "វិញ្ញាបនបត្រ​គ្មាន​កូនសោ​ឯកជន​ឡើយ"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "កំហុស​ខាងក្នុង​របស់​កម្មវិធី​ដោះស្រាយ​ប្រូកស៊ី ។"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "ម៉ាស៊ីន​បាន​ស្នើ TLS rehandshake ដែល​មិន​ត្រឹមត្រូវ"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr "វា​ជា​ឱកាស​ចុង​ក្រោយ​ក្នុង​ការ​បញ្ចូល PIN ដោយ​ត្រឹមត្រូវ មុន​ពេល​ថូខឹង​ត្រូវ​បាន​ជាប់សោ ។"
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr "ការ​ប៉ុនប៉ង​របស់ PIN មួយ​ចំនួន​មិន​ត្រឹមត្រូវ ហើយ​ថូខឹង​នឹង​ត្រូវ​បាន​ជាប់​សោ ក្រោយ​ពី​ភាព​បរាជ័យ ។"
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "PIN បាន​បញ្ចូល​មិន​ត្រឹមត្រូវ​ ។"
+
+#~ msgid "Module"
+#~ msgstr "ម៉ូឌុល​"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "ទ្រនិច​ម៉ូឌុល PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "លេខ​សម្គាល់​រន្ធ"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "ឧបករណ៍​សម្គាល់​រន្ធ​របស់ PKCS#11"

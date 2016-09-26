@@ -1,0 +1,163 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Copyright © 2011 Leandro Regueiro.
+# Leandro Regueiro <leandro.regueiro@gmail.com>, 2011.
+# Proxecto Trasno - Adaptación do software libre á lingua galega:  Se desexas
+# colaborar connosco, podes atopar máis información en <http://trasno.net>
+# Fran Diéguez <frandieguez@ubuntu.com>, 2011.
+# Fran Dieguez <frandieguez@gnome.org>, 2011, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2012-12-24 22:52+0200\n"
+"Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
+"Language-Team: gnome-l10n-gl@gnome.org\n"
+"Language: gl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "A conexión está pechada"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "A operación bloquearase"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "O servidor require un certificado TLS"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Non foi posíbel analizar o certificado DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Non foi posíbel analizar o certificado PEM: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Non foi posíbel analizar a chave privada DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Non foi posíbel analizar a chave privada PEM: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Non se forneceu ningún dato do certificado"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Non foi posíbel crear a conexión TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Non foi posíbel crear a conexión TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "O par fallou ao realizar a negociación TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "O par da conexión TLS non enviou un certificado"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Produciuse un erro ao realizar a negociación TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "O servidor non devolveu un certificado TLS válido"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Certificado TLS inaceptábel"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Produciuse un erro ao ler datos do conectador TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Produciuse un erro ao escribir datos no conectador TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Produciuse un erro ao realizar o peche de TLS: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "O certificado no ten unha chave privada"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Erro interno do resolvedor de proxy."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "O par solicitou unha renegociación TLS inaceptábel"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "A conexión TLS pechouse de forma inesperada"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "A conexión está pechada"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Esta é a última oportunidade para escribir o PIN correctamente antes de "
+#~ "que o token está bloqueado."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Varios intentos de introducir o PIN foron incorrectos e o «token» "
+#~ "bloquearase despois de máis fallos."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "O PIN escrito é incorrecto."
+
+#~ msgid "Module"
+#~ msgstr "Módulo"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Punteiro do módulo PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID da ranura"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Identificador da ranura PKCS#11"

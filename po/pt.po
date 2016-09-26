@@ -1,0 +1,162 @@
+# Portuguese translation for glib-openssl.
+# Copyright © 2011, 2012, 2013 glib-openssl
+# This file is distributed under the same license as the glib-openssl package.
+# Duarte Loreto <happyguy_pt@hotmail.com>, 2011, 2012, 2013.
+# 
+# Pedro Albuquerque <palbuquerque73@openmailbox.com>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 3.8\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2015-06-24 09:24+0100\n"
+"Last-Translator: Pedro Albuquerque <palbuquerque73@openmailbox.com>\n"
+"Language-Team: Português <palbuquerque73@openmailbox.com>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 2.91.6\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "A ligação está fechada"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "Operação iria bloquear"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "O servidor requer um certificado TLS"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Impossível processar o certificado DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Impossível processar o certificado PEM: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Impossível processar a chave privada DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Impossível processar a chave privada PEM: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Não foram indicados quaisquer dados de certificado"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Impossível criar uma ligação TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Impossível criar uma ligação TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "O destino falhou ao estabelecer a ligação (handshake) TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "O parceiro de ligação TLS não enviou um certificado"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Erro ao estabelecer a ligação TLS (handshake): %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "O servidor não devolveu um certificado TLS válido"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Certificado TLS inaceitável"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Erro ao ler dados do socket TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Erro ao escrever dados no socket TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Erro ao terminar a ligação TLS: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Certificado não tem chave privada"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Erro interno do solucionador de proxies."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Destino requereu novo handshake TLS ilegal"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "Ligação TLS terminada inesperadamente"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Esta é a última oportunidade para introduzir corretamente o PIN antes de "
+#~ "que o símbolo seja trancado."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Foram introduzidos vários PINs incorretos e o símbolo será trancado caso "
+#~ "ocorram mais falhas."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "O PIN introduzido está incorreto."
+
+#~ msgid "Module"
+#~ msgstr "Módulo"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Ponteiro de módulo PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID de slot"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Identificador de slot PKCS#11"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "A ligação já está fechada"

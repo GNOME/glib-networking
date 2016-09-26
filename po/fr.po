@@ -1,0 +1,159 @@
+# French translation for glib-openssl.
+# Copyright (C) 2011-2012 Listed translators
+# This file is distributed under the same license as the glib-openssl package.
+# Claude Paroz <claude@2xlibre.net>, 2011-2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2013-02-25 20:13+0100\n"
+"Last-Translator: Claude Paroz <claude@2xlibre.net>\n"
+"Language-Team: GNOME French Team <gnomefr@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "La connexion est fermée"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "L'opération serait bloquée"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Le serveur requiert un certificat TLS"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Impossible d'analyser le certificat DER : %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Impossible d'analyser le certificat PEM : %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Impossible d'analyser la clé privée DER : %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Impossible d'analyser la clé privée PEM : %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Aucune donnée de certificat fournie"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Impossible de créer une connexion TLS : %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Impossible de créer une connexion TLS : %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "La négociation TLS avec le serveur pair a échoué"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "Le pair TLS n'a pas envoyé de certificat"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Erreur lors de la négociation TLS : %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "Le serveur n'a pas renvoyé un certificat TLS valide"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Certificat TLS inacceptable"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Erreur lors de la lecture de données du connecteur TLS : %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Erreur lors de l'écriture de données sur le connecteur TLS : %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Erreur lors de la fermeture TLS : %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Le certificat n'a pas de clé privée"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Erreur interne du résolveur de serveur mandataire."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Le serveur pair a demandé une renégociation TLS non autorisée"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "La connexion TLS a été fermée de manière inattendue"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "La connexion est déjà fermée"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "C'est la dernière chance d'entrer le PIN correct avant que la carte à "
+#~ "puce soit verrouillée."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Plusieurs PIN incorrects ont été saisis, toute nouvelle erreur provoquera "
+#~ "le verrouillage de la carte à puce."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Le PIN saisi n'est pas correct."
+
+#~ msgid "Module"
+#~ msgstr "Module"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Pointeur de module PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID d'emplacement"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Identifiant d'emplacement PKCS#11"

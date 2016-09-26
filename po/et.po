@@ -1,0 +1,162 @@
+# GLibi võrgunduse eesti tõlge.
+# Estonian translation of GLib Networking.
+#
+# Copyright (C) 2011 The GNOME Project.
+# This file is distributed under the same license as the GLib package.
+#
+# Ivar Smolin <okul linux ee>, 2011.
+# Mattias Põldaru <mahfiaz@gmail.com>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2012-12-18 14:36+0300\n"
+"Last-Translator: Mattias Põldaru <mahfiaz@gmail.com>\n"
+"Language-Team: Estonian <>\n"
+"Language: et\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "Ühendus on suletud"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "Operatsioon blokeeriks"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Server nõudis TLS-sertifikaati"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER-sertifikaati pole võimalik analüüsida: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM-sertifikaati pole võimalik analüüsida: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER-vormingus salajast võtit pole võimalik analüüsida: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM-vormingus salajast võtit pole võimalik analüüsida: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Sertifikaadi andmed puuduvad"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "TLS-ühendust pole võimalik luua: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS-ühendust pole võimalik luua: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Partneril ei õnnestunud TLS-kätlust läbi viia"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS ühenduse osapool ei tagastanud sertifikaati"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Viga TLS-kätluse läbiviimisel: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "Server ei tagastanud kehtivat TLS-sertifikaati"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Lubamatu TLS-sertifikaat"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Viga TLS-soklist andmete lugemisel: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Viga TLS-soklisse andmete kirjutamisel: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Viga TLS-i sulgemisel: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Sertifikaadil puudub privaatvõti"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Proksilahendaja sisemine viga."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Partneri nõudis lubamatut TLS-kätlust"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "TLS-ühendus suleti ootamatult"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Ühendus on juba suletud"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "See on viimane võimalus õige PIN sisestada, enne kui seade lukustub."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Mitu korda on sisestatud vale PIN, järgmisel ebaõnnestumisel seade "
+#~ "lukustub."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Sisestatud PIN oli vale."
+
+#~ msgid "Module"
+#~ msgstr "Moodul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 mooduli viit"
+
+#~ msgid "Slot ID"
+#~ msgstr "Pesa ID"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 pesa identifikaator"

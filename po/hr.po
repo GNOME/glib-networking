@@ -1,0 +1,150 @@
+# Croatian translation for glib-openssl
+# Copyright (c) 2015 Rosetta Contributors and Canonical Ltd 2015
+# This file is distributed under the same license as the glib-openssl package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2015-05-03 00:07+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Croatian <hr@li.org>\n"
+"Language: hr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2015-07-01 11:49+0000\n"
+"X-Generator: Launchpad (build 17590)\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Poslužitelj zahtijeva TLS vjerodajnicu"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Nemoguća analiza DER vjerodajnica: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Nemoguća analiza PEM vjerodajnica: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Nemoguća analiza DER privatnog ključa: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Nemoguća analiza PEM privatnog ključa: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Nema pruženih podataka certifikata"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Nemoguće stvaranje TLS povezivanja: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Nemoguće stvaranje TLS povezivanja: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Čvor je odbio izvesti TLS rukovanje"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+#, fuzzy
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS povezivanje je neočekivano zatvoreno"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Greška izvođenja TLS rukovanja: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+#, fuzzy
+msgid "Server did not return a valid TLS certificate"
+msgstr "Poslužitelj zahtijeva TLS vjerodajnicu"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Neprihvatljiva TLS vjerodajnica"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Greška čitanja podataka iz TLS priključnice: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Greška zapisivanja podataka iz TLS priključnice: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Greška izvođenja TLS zatvaranja: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Vjerodajnica nema privatni ključ"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Unutrašnja greška proxy razrješitelja."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Čvor zahtjeva ilegalno TLS ponovno rukovanje"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Ovo je posljednja šansa za upis PIN-a ispravno prije nego što se token "
+#~ "zaključa."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Nekoliko PIN-ova je neispravno, i token će biti zaključan nakon budućih "
+#~ "neuspjeha."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Upisani PIN je neispravan"
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 pokazivač modula"

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="glibopensslbuilddefinesprops"
+	OutputDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)\bin"
+	IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(PlatformName)\obj\$(ProjectName)\"
+	InheritedPropertySheets=".\glib-openssl-version-paths.vsprops"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="..\..\..;$(GlibEtcInstallRoot)\include\gio-win32-2.0;$(GlibEtcInstallRoot)\include\glib-2.0;$(GlibEtcInstallRoot)\lib\glib-2.0\include;$(GlibEtcInstallRoot)\include"
+		PreprocessorDefinitions="HAVE_CONFIG_H;G_LOG_DOMAIN=\&quot;GLib-Net\&quot;"
+		ForcedIncludeFiles="msvc_recommended_pragmas.h"
+		AdditionalOptions="/MP"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="gio-2.0.lib gobject-2.0.lib gmodule-2.0.lib glib-2.0.lib intl.lib"
+		AdditionalLibraryDirectories="$(GlibEtcInstallRoot)\lib"
+		GenerateDebugInformation="true"
+	/>
+	<UserMacro
+		Name="ModExportCFlags"
+		Value="_GLIB_EXTERN=__declspec(dllexport)extern"
+	/>
+</VisualStudioPropertySheet>

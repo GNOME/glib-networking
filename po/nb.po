@@ -1,0 +1,157 @@
+# Norwegian bokmål translation of glib-openssl.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Kjartan Maraas <kmaraas@gnome.org>, 2011-2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl 2.35.x\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2013-01-21 12:27+0100\n"
+"Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
+"Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "Tilkoblingen er lukket"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "Operasjonen ville blokkere"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Tjener krever TLS-sertifikat"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Kunne ikke lese DER-sertifikat: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Kunne ikke lese PEM-sertifikat: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Kunne ikke lese privat DER-nøkkel: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Kunne ikke lese privat PEM-nøkkel: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Ingen sertifikatdata oppgitt"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Kunne ikke lage TLS-tilkobling: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Kunne ikke lage TLS-tilkobling: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Likemann feilet å utføre TLS-håndtrykk"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "Sidemann for TLS-tilkobling sendte ikke et sertifikat"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Feil under utføring av TLS-håndtrykk: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "Tjener returnerte ikke et gyldig TLS-sertifikat"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Uakseptabelt TLS-sertifikat"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Feil under lesing av data fra TLS-plugg: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Feil under skriving av data til TLS-plugg: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Feil under utføring av lukking av TLS-tilkobling: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Sertifikatet har ingen privat nøkkel"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Intern feil i proxy-navneoppslag."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Likemann ba om ugyldig nytt TLS-håndtrykk"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "TLS-tilkobling ble lukket uventet"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Tilkoblingen er allerede lukket"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Dette er siste sjanse til å oppgi korrekt PIN-kode før tokenet låses."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Flere feilede forsøk med PIN oppdaget. Token vil bli låst ved flere "
+#~ "feilede forsøk."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Oppgitt PIN er feil."
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11-modulpeker"
+
+#~ msgid "Slot ID"
+#~ msgstr "Plassidentifikator"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 plassidentifikator"

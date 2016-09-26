@@ -1,0 +1,155 @@
+# Uyghur translation for glib-openssl.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Gheyret Kenji <gheyret@yahoo.com>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2013-02-22 22:21+0900\n"
+"Last-Translator: Gheyret Kenji <gheyret@gmail.com>\n"
+"Language-Team: Uyghur Computer Science Association <UKIJ@yahoogroups.com>\n"
+"Language: ug\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "باغلىنىش تاقالدى"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "مەشغۇلات توسۇلىدۇ"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "مۇلازىمېتىر TLS ئىسپاتنامىسى تەلەپ قىلىدۇ"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER ئىسپاتنامىسىنى يېشەلمىدى: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM ئىسپاتنامىسىنى يېشەلمىدى: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER شەخسىي ئاچقۇچىنى يېشەلمىدى: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM شەخسىي ئاچقۇچىنى يېشەلمىدى: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "ئىسپاتنامە سانلىق-مەلۇماتلىرى تەمىنلەنمىگەن"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "TLS باغلىنىشى قۇرالمىدى:%s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS باغلىنىشى قۇرالمىدى:%s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "قارىشى تەرەپ TLS سالىمىدا مەغلۇپ بولدى"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS باغلىنىشىدىكى قارىشى تەرەپ گۇۋاھنامىنى ئەۋەتمىدى"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "TLS بىلەن سالاملىشىشتا خاتالىق كۆرۈلدى: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "مۇلازىمېتىر ئىناۋەتلىك TLS گۇۋاھنامىسىنى قايتۇرمىدى"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "قوبۇل قىلىنمايدىغان ئىسپاتنامە"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "TLS سوكېتىدىن سانلىق-مەلۇمات ئوقۇشتا خاتالىق كۆرۈلدى: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "TLS سوكېتىغا سانلىق-مەلۇمات يېزىشتا خاتالىق كۆرۈلدى: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "TLS تاقاش مەشغۇلاتىدا خاتالىق كۆرۈلدى: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "گۇۋاھنامىنىڭ شەخسىي ئاچقۇچى يوق ئىكەن"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "ۋاكالەتچى ھەل قىلغۇچ ئىچكى خاتالىقى."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Peer(باشقىلار) TLS قايتا سالىمىدا ناتوغرا سالام قىلدى"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "قارىشى تەرەپ توغرا بولمىغان TLS سالىمىنى تەلەپ قىلدى"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "باغلىنىش ئاللىقاچان تاقالغان"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "بۇ سىزنىڭ ئەڭ ئاخىرقى پۇرسىتىڭىز. يەنە خاتالاشسىڭىز قۇلۇپلىنىپ قالىدۇ."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr "بىر قانچە قېتىم خاتالاشتىڭىز. يەنە خاتالاشسىڭىز قۇلۇپلىنىپ قالىدۇ."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "كىرگۈزگەن PIN توغرا ئەمەس."
+
+#~ msgid "Module"
+#~ msgstr "بۆلەك"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 بۆلەك كۆرسەتكۈچى"
+
+#~ msgid "Slot ID"
+#~ msgstr "ئوقۇر ID"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 ئوقۇر كىملىكى"

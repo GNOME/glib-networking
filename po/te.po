@@ -1,0 +1,160 @@
+# Copyright (C) 2011, 2012 Swecha Telugu Localisation team
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Hari Krishna <hari@swecha.net>, 2011.
+# Bhuvan Krishna <bhuvan@swecha.net>, 2012.
+# Krishnababu Krothapalli <kkrothap@redhat.com>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-network.master.te\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2012-08-14 13:48+0530\n"
+"Last-Translator: Krishnababu Krothapalli <kkrothap@redhat.com>\n"
+"Language-Team: Telugu <Indlinux-telugu@lists.sourceforge.net>\n"
+"Language: te\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Generator: Lokalize 1.4\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "అనుసంధానం మూసివేయబడింది"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "ఆపరేషన్ నిరోధించబడును"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "TLS ధృవీకరణపత్రము సేవికకు అవసరం "
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER ధృవీకరణపత్రము పార్స్ చేయుట కుదరుటలేదు: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM ధృవీకరణపత్రము పార్స్ చేయుట కుదరుటలేదు: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER స్వంతతాళం  పార్స్ చేయుట కుదరుటలేదు: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM స్వంతతాళం  పార్స్ చేయుట కుదరుటలేదు: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "ధృవీకరణపత్ర దత్తాశం అమర్చబడలేదు "
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "TLS అనుసంధానం సృష్టించడం కుదరుటలేదు: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS అనుసంధానం సృష్టించడం కుదరుటలేదు: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "TLS హాండ్ షేక్ నెరవేర్చటకు పీర్ విఫలం "
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+#, fuzzy
+msgid "TLS connection peer did not send a certificate"
+msgstr "సేవిక చెల్లునటువంటి TLS ధృవీకరణపత్రం తిప్పియీయలేదు"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "TLS హాండ్ షేక్ నెరవేర్చటలో విఫలం: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "సేవిక చెల్లునటువంటి TLS ధృవీకరణపత్రం తిప్పియీయలేదు"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "అంగీకరించని TLS ధృవీకరణపత్రము "
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "TLS తొర్ర లో దత్తంశం పఠించుటలో దొషం:  %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "TLS తొర్ర లో దత్తంశం లిఖించుట లో దొషం:  %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "TLS మూయడంలో దోషం: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "సర్టిఫికేట్ కు స్వంతతాళం లెదు"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "అంతర్గత ప్రాతినిధ్య పరిష్కారములో దోషం  "
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "న్యాయవిరోధమైన TLS తిరిగి హాండ్ షేక్  పీర్ అడిగినది "
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "TLS బంధం ఊహించని విధంగా రద్దైపోయినది "
+
+#~ msgid "Connection is already closed"
+#~ msgstr "అనుసంధానం యిప్పటికే మూయబడెను"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr "టోకెన్ తాళం వెసె ముందు సరైన PIN ను నమోదు చివరి అవకాశం"
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "మీరు చేసిన అనేక PIN ప్రయత్నాలు సరైనవి కాదు, అందువల్ల తదుపరి తప్పిదాలు జరగకుండా టోకెన్ లాక్ "
+#~ "చేయబడినది"
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "నమోదు చేసిన PIN సరైనది కాదు"
+
+#~ msgid "Module"
+#~ msgstr "అధిభాగం"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 అధిభాగం సూచిక"
+
+#~ msgid "Slot ID"
+#~ msgstr "జాబితా ID"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 జాబితా గుర్తింపుచిహ్నం"

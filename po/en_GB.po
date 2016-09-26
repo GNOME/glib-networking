@@ -1,0 +1,159 @@
+# British English translation of glib-openssl.
+# Copyright (C) 2011 glib-openssl'S COPYRIGHT HOLDER
+# This file is distributed under the same licence as the glib-openssl package.
+# Bruce Cowan <bruce@bcowan.me.uk>, 2011, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2016-09-18 12:18+0200\n"
+"Last-Translator: David King <amigadave@amigadave.com>\n"
+"Language-Team: British English <en@li.org>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "Connection is closed"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "Operation would block"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Server required TLS certificate"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Could not parse DER certificate: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Could not parse PEM certificate: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Could not parse DER private key: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Could not parse PEM private key: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "No certificate data provided"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Could not create TLS connection: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Could not create TLS connection: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Peer failed to perform TLS handshake"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS connection peer did not send a certificate"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Error performing TLS handshake: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "Server did not return a valid TLS certificate"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Unacceptable TLS certificate"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Error reading data from TLS socket: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Error writing data to TLS socket: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Error performing TLS close: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Certificate has no private key"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Proxy resolver internal error."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Peer requested illegal TLS rehandshake"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "TLS connection closed unexpectedly"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "The PIN entered is incorrect."
+
+#~ msgid "Module"
+#~ msgstr "Module"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "PKCS#11 Module Pointer"
+
+#~ msgid "Slot ID"
+#~ msgstr "Slot ID"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "PKCS#11 Slot Identifier"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Connection is already closed"

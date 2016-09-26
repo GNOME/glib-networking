@@ -1,0 +1,4 @@
+*.gmo
+glib-openssl.pot
+Makefile.in.in
+POTFILES

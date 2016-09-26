@@ -1,0 +1,158 @@
+# Aragonese translation for glib-openssl.
+# Copyright (C) 2013 glib-openssl's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-openssl package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2013-02-20 01:19+0100\n"
+"Last-Translator: Daniel Martinez <entaltoaragon@gmail.com>\n"
+"Language-Team: Aragonese <softaragones@googlegroups.com>\n"
+"Language: an\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "A connexión ye zarrada"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "A operación se blocará"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "O servidor requiere un certificau TLS"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "No se podió analisar o certificau DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "No se podió analisar o certificau PEM: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "No se podió analisar a clau privada DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "No se podió analisar a clau privada PEM: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "No s'han proporcionau datos d'o certificau"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "No se podió creyar a connexión TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "No se podió creyar a connexión TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "O par falló en realizar a negociación TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "O par d'a connexión TLS no ninvió un certificau"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Error en realizar a negociación TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "O servidor no devolvió un certificau TLS valido"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Certificau TLS inacceptable"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Error en leyer datos d'o socket TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Error en escribir datos en o socket TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Error en zarrar o TLS: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "O certificau no tiene clau privada"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Error interna d'o proxy."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "O par solicitó una renegociación TLS ilegal"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "A connexión TLS se zarró inasperadament"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "A connexión ya ye zarrada"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Ista ye a zaguera oportunidat ta introducir o PIN correctament antes que "
+#~ "se bloque o \"token\"."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Quantos intentos d'introducir o PIN han estau incorrectos y o \"token\" "
+#~ "se blocará dimpués de mas fallos."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "O PIN introduciu ye incorrecto."
+
+#~ msgid "Module"
+#~ msgstr "Modulo"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Puntero d'o modulo PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID d'a ranura"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Identificador d'a ranura de PKCS#11"

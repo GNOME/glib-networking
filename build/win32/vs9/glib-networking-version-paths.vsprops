@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="glibopensslversionpathsprops"
+	>
+	<UserMacro
+		Name="VSVer"
+		Value="9"
+	/>
+	<UserMacro
+		Name="GlibEtcInstallRoot"
+		Value="..\..\..\..\vs$(VSVer)\$(PlatformName)"
+	/>
+	<UserMacro
+		Name="CopyDir"
+		Value="$(GlibEtcInstallRoot)"
+	/>
+</VisualStudioPropertySheet>

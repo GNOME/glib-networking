@@ -1,0 +1,162 @@
+# Russian translation for glib-openssl.
+# Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-openssl package.
+# Pavel Dmitriev <Kitchenknif@gmail.com>, 2011.
+# Yuri Myasoedov <omerta13@yandex.ru>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2013-03-17 23:11+0400\n"
+"Last-Translator: Dmitriy S. Seregin <dseregin@59.ru>\n"
+"Language-Team: русский <gnome-cyr@gnome.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 1.5.5\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "Соединение закрыто"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "Действие будет заблокировано"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Сервер требует сертификат TLS"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Не удалось обработать сертификат DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Не удалось обработать сертификат PER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Не удалось обработать личный ключ DER: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Не удалось обработать личный ключ PEM: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Данные сертификата не предоставлены"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Не удалось создать соединение TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Не удалось создать соединение TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Узлу не удалось квитировать выполнение связи TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "Узел, с которым производится TLS-соединение, не предоставил сертификат"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Ошибка выполнения квитирования связи TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "Сертификат TLS, возвращённый сервером, не является подлинным"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Недопустимый сертификат TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Ошибка чтения данных из сокета TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Ошибка записи данных в сокет TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Ошибка закрытия TLS: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "У сертификата нет секретного ключа"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Внутренняя ошибка распознавателя прокси."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Узел запросил недопустимое повторное квитирование связи TLS"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "Соединение TLS неожиданно закрылось"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Соединение было закрыто ранее"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Это — последняя возможность ввести корректный PIN перед тем, как токен "
+#~ "будет заблокирован."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "PIN был несколько раз введён неправильно, токен будет заблокирован после "
+#~ "последующих неудачных попыток."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Введён неверный PIN."
+
+#~ msgid "Module"
+#~ msgstr "Модуль"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Указатель модуля PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID слота"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Идентификатор слота PKCS#11"

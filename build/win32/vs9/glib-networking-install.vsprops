@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="glibopensslinstallprops"
+	InheritedPropertySheets=".\glib-openssl-build-defines.vsprops"
+	>
+	<UserMacro
+		Name="GlibNetworkingDoInstall"
+		Value="
+mkdir $(CopyDir)&#x0D;&#x0A;
+mkdir $(CopyDir)\bin\gio\modules&#x0D;&#x0A;
+copy $(SolutionDir)$(ConfigurationName)\$(PlatformName)\bin\libgioopenssl.dll $(CopyDir)\bin\gio\modules&#x0D;&#x0A;
+copy $(SolutionDir)$(ConfigurationName)\$(PlatformName)\bin\libgioopenssl.pdb $(CopyDir)\bin\gio\modules&#x0D;&#x0A;
+"
+	/>
+	<UserMacro
+		Name="GlibNetworkingPostInstall"
+		Value="$(GlibEtcInstallRoot)\bin\gio-querymodules $(CopyDir)\bin\gio\modules"
+	/>
+</VisualStudioPropertySheet>

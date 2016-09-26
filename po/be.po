@@ -1,0 +1,157 @@
+# Ihar Hrachyshka <ihar.hrachyshka@gmail.com>, 2011.
+# Kasia Bondarava <kasia.bondarava@gmail.com>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2012-08-30 15:27+0300\n"
+"Last-Translator: Kasia Bondarava <kasia.bondarava@gmail.com>\n"
+"Language-Team: Belarusian <i18n-bel-gnome@googlegroups.com>\n"
+"Language: be\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Virtaal 0.7.0\n"
+"X-Project-Style: gnome\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr "Злучэнне закрыта"
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "Аперацыя будзе заблакіравана"
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Сервер запатрабаваў TLS-сертыфікат"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Не ўдалося разабраць DER-сертыфікат: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Не ўдалося разабраць PEM-сертыфікат: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Не ўдалося разабраць прыватны DER-ключ: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Не ўдалося разабраць прыватны PEM-ключ: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Даныя сертыфіката не пададзеныя"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Не ўдалося стварыць TLS-злучэнне: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Не ўдалося стварыць TLS-злучэнне: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Суразмоўцу не ўдалося выканаць вітанне TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+msgid "TLS connection peer did not send a certificate"
+msgstr "Партнёр па TLS-злучэнні не паслаў сертыфікат"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Памылка выканання вітання TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+msgid "Server did not return a valid TLS certificate"
+msgstr "Сервер не вярнуў правільнага TLS-сертыфіката"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Непрымальны TLS-сертыфікат"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Памылка чытання даных з TLS-сокета: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Памылка запісу даных у TLS-сокет: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Памылка закрыцця TLS-злучэння: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr "Сертыфікат не мае закрытага ключа"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Унутраная памылка распазнавальніка проксі-сервера."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Суразмоўца запытаў забароненае паўторнае вітанне TLS"
+
+#~ msgid "TLS connection closed unexpectedly"
+#~ msgstr "TLS-злучэнне нечакана закрылася"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "Злучэнне ўжо закрыта"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr "Гэта апошні шанец увесці правільны PIN-код да блакіравання доступу."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Вы некалькі разоў уводзілі хібны PIN-код, і калі вы працягнеце ўводзіць "
+#~ "хібны PIN-код, дык будзеце заблакіраваны."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Уведзены няправільны PIN-код."
+
+#~ msgid "Module"
+#~ msgstr "Модуль"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Паказальнік модуля PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "Ідэнтыфікатар слота"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Ідэнтыфікатар слота PKCS#11"

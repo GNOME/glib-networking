@@ -1,0 +1,127 @@
+# Tamil translation for glib-openssl.
+# Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-openssl package.
+#
+# I Felix <ifelix@redhat.com>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2011-09-09 12:18+0530\n"
+"Last-Translator: I Felix <ifelix@redhat.com>\n"
+"Language-Team: Tamil <ta@li.org>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.2\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "சேவையகத்திற்கு TLS சான்றிதழ் தேவைப்படுகிறது"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER சான்றிதழை பிரிக்க முடியவில்லை: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM சான்றிதழை பிரிக்க முடியவில்லை: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER தனிபட்ட விசையை பிரிக்க முடியவில்லை: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "PEM தனிபட்ட விசையை பிரிக்க முடியவில்லை:% s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "சான்றிதழ் தரவு எதுவும் வழங்கப்படவில்லை"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "TLS இணைப்பை உருவாக்க முடியவில்லை: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS இணைப்பை உருவாக்க முடியவில்லை: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "TLS கைகுலுக்கலில் பீரால் செயற்படுத்த முடியவில்லை"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+#, fuzzy
+msgid "TLS connection peer did not send a certificate"
+msgstr "எதிர்பாராதவிதமாக TLS இணைப்பு மூடப்பட்டது"
+
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "TLS கைக்குலுக்கலில் பிழையை செயற்படுத்துகிறது: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+#, fuzzy
+msgid "Server did not return a valid TLS certificate"
+msgstr "சேவையகத்திற்கு TLS சான்றிதழ் தேவைப்படுகிறது"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "ஏற்றுக்கொள்ள முடியாத TLS சான்றிதழ்"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "TLS சாக்கெட்டிலிருந்து பிழை வாசிக்கும் தரவு: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "TLS சாக்கெட்டிற்கு பிழை எழுதும் தரவு: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "TLS மூடுவதில் பிழையை செயற்படுத்துகிறது: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "ப்ராக்ஸி ரிசால்வர் உள்ளார்ந்த பிழை."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "பீரானது சட்ட விரோதமான TLS மீண்டும் கைகுலுக்கலை கோருகிறது"

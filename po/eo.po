@@ -1,0 +1,127 @@
+# Esperanto translation for glib-openssl.
+# Copyright (C) 2011 Free Software Foundation, Inc.
+# This file is distributed under the same license as the glib-openssl package.
+# Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-openssl master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&component=network\n"
+"POT-Creation-Date: 2016-09-26 22:04+0200\n"
+"PO-Revision-Date: 2011-05-15 15:54+0200\n"
+"Last-Translator: Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>\n"
+"Language-Team: Esperanto <ubuntu-l10n-eo@lists.launchpad.net>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#: tls/base/gtlsconnection-base.c:282
+msgid "Connection is closed"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr ""
+
+#: tls/base/gtlsconnection-base.c:809
+msgid "Server required TLS certificate"
+msgstr "Servilo bezonas TLS-atestilon"
+
+#: tls/openssl/gtlscertificate-openssl.c:179
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Ne eblis analizi la DER-atestilon: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:199
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Ne eblis analizi la PEM-atestilon: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:218
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Ne eblis analizi la privatan DER-ŝlosilon: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:237
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Ne eblis analizi la privatan PEM-ŝlosilon: %s"
+
+#: tls/openssl/gtlscertificate-openssl.c:275
+msgid "No certificate data provided"
+msgstr "Neniu atestilo etas provizita"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:228
+#, fuzzy, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Ne eblis krei TLS-konekton: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsserverconnection-openssl.c:296
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Ne eblis krei TLS-konekton: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:149
+msgid "Peer failed to perform TLS handshake"
+msgstr "Samtavolano fiaskis efektivigi TLS-kvitancon"
+
+#: tls/openssl/gtlsconnection-openssl.c:158
+#, fuzzy
+msgid "TLS connection peer did not send a certificate"
+msgstr "TLS-konekto fermiĝis senatendite"
+
+# Handshake ist ein Fachbegriff für den Vorgang der Verbindungsaushandlung
+#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:309
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Eraro dum efektivigi TLS-kvitancon: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:319
+#, fuzzy
+msgid "Server did not return a valid TLS certificate"
+msgstr "Servilo bezonas TLS-atestilon"
+
+#: tls/openssl/gtlsconnection-openssl.c:349
+msgid "Unacceptable TLS certificate"
+msgstr "Neakceptebla TLS-atestilo"
+
+#: tls/openssl/gtlsconnection-openssl.c:433
+#, fuzzy, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Eraro dum legi de la datumoj el la TLS-ingo:%s\n"
+
+#: tls/openssl/gtlsconnection-openssl.c:459
+#, fuzzy, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Eraro dum skribi de la datumoj el la TLS-ingo:%s\n"
+
+#: tls/openssl/gtlsconnection-openssl.c:485
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Eraro dum fermi la TLS-konekto: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:250
+msgid "Certificate has no private key"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:257
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr ""
+
+#: tls/openssl/gtlsserverconnection-openssl.c:266
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr ""
+
+#~ msgid "Proxy resolver internal error."
+#~ msgstr "Interna eraro en la solvilo de la prokurilo."
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Samtavolano petis kontraŭleĝan TLS-kvitancon"
