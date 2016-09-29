@@ -2,15 +2,15 @@
 # Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
 #
-# Marek Černocký <marek@manet.cz>, 2011, 2012.
+# Marek Černocký <marek@manet.cz>, 2011, 2012, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2012-12-02 21:47+0100\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2016-09-26 23:04+0000\n"
+"PO-Revision-Date: 2016-09-29 21:26+0200\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: čeština <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -58,9 +58,9 @@ msgstr "Nebyla poskytnuta žádná data certifikátu"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:430
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Nelze vytvořit připojení TLS: %s"
+msgstr "Nelze vytvořit kontext TLS: %s"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:468
 #: tls/openssl/gtlsserverconnection-openssl.c:296
@@ -112,48 +112,10 @@ msgstr "Certifikát nemá soukromý klíč"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Je zde problém se soukromým klíčem certifikátu: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Je zde problém s certifikátem: %s"
 
-#~ msgid "Proxy resolver internal error."
-#~ msgstr "Interní chyba zjišťování adres přes proxy."
-
-#~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr "Protějšek požadoval neplatné znovunavázání spojení TLS"
-
-#~ msgid "TLS connection closed unexpectedly"
-#~ msgstr "Připojení TLS bylo neočekávaně zavřeno"
-
-#~ msgid "Connection is already closed"
-#~ msgstr "Připojení je stále uzavřeno"
-
-#~ msgid ""
-#~ "This is the last chance to enter the PIN correctly before the token is "
-#~ "locked."
-#~ msgstr "Máte poslední pokus zadat PIN správně, pak bude tiket zablokován."
-
-#~ msgid ""
-#~ "Several PIN attempts have been incorrect, and the token will be locked "
-#~ "after further failures."
-#~ msgstr ""
-#~ "Několik pokusů PIN bylo nesprávných a po dalším neúspěchu bude tiket "
-#~ "zablokován."
-
-#~ msgid "The PIN entered is incorrect."
-#~ msgstr "Zadaný PIN je nesprávný."
-
-#~ msgid "Module"
-#~ msgstr "Modul"
-
-#~ msgid "PKCS#11 Module Pointer"
-#~ msgstr "Ukazatel na modul PKCS#11"
-
-#~ msgid "Slot ID"
-#~ msgstr "ID slotu"
-
-#~ msgid "PKCS#11 Slot Identifier"
-#~ msgstr "Identifikátor slotu PKCS#11"
