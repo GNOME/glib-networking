@@ -1,17 +1,17 @@
 # German translation for glib-openssl.
 # Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
-# Mario Blättermann <mario.blaettermann@gmail.com>, 2011-2013.
+# Mario Blättermann <mario.blaettermann@gmail.com>, 2011-2013, 2016.
 # Christian Kirbach <Christian.Kirbach@gmail.com>, 2011, 2012.
 # Wolfgang Stöggl <c72578@yahoo.de>, 2011, 2012.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2013-03-04 08:30+0100\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2016-09-26 23:04+0000\n"
+"PO-Revision-Date: 2016-10-01 21:19+0200\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: Deutsch <gnome-de@gnome.org>\n"
 "Language: de\n"
@@ -19,9 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-Language: German\n"
-"X-Poedit-Country: GERMANY\n"
-"X-Generator: Gtranslator 2.91.5\n"
+"X-Generator: Poedit 1.8.9\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -61,9 +59,9 @@ msgstr "Keine Zertifikatdaten bereitgestellt"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:430
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "TLS-Verbindung konnte nicht erstellt werden: %s"
+msgstr "TLS-Kontext konnte nicht erstellt werden: %s"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:468
 #: tls/openssl/gtlsserverconnection-openssl.c:296
@@ -116,12 +114,12 @@ msgstr "Das Zertifikat hat keinen geheimen Schlüssel"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Es gibt ein Problem mit dem geheimen Schlüssel des Zertifikats: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Es gibt ein Problem mit dem Zertifikat: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Interner Fehler in der Auflösung des Proxys."
