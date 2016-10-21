@@ -48,10 +48,16 @@ free_gbio (gpointer user_data)
 static int
 gtls_bio_create (BIO *bio)
 {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   bio->init = 0;
   bio->num = 0;
   bio->ptr = NULL;
   bio->flags = 0;
+#else
+  BIO_set_init (bio, 0);
+  BIO_set_data (bio, NULL);
+  BIO_clear_flags (bio, ~0);
+#endif
   return 1;
 }
 
@@ -61,6 +67,7 @@ gtls_bio_destroy (BIO *bio)
   if (bio == NULL)
     return 0;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   if (bio->shutdown)
     {
       if (bio->ptr != NULL)
@@ -69,7 +76,20 @@ gtls_bio_destroy (BIO *bio)
           bio->ptr = NULL;
         }
       bio->init = 0;
+      bio->flags = 0;
     }
+#else
+  if (BIO_get_shutdown (bio))
+    {
+      if (BIO_get_data (bio) != NULL)
+        {
+          free_gbio (BIO_get_data (bio));
+          BIO_set_data (bio, NULL);
+        }
+      BIO_clear_flags (bio, ~0);
+      BIO_set_init (bio, 0);
+    }
+#endif
 
     return 1;
 }
@@ -85,10 +105,18 @@ gtls_bio_ctrl (BIO  *b,
   switch (cmd)
     {
     case BIO_CTRL_GET_CLOSE:
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
       ret = b->shutdown;
+#else
+      ret = BIO_get_shutdown (b);
+#endif
       break;
     case BIO_CTRL_SET_CLOSE:
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
       b->shutdown = (int)num;
+#else
+      BIO_set_shutdown (b, (int)num);
+#endif
       break;
     case BIO_CTRL_DUP:
     case BIO_CTRL_FLUSH:
@@ -116,10 +144,20 @@ gtls_bio_write (BIO        *bio,
   gssize written;
   GError *error = NULL;
 
-  if (!bio->init || in == NULL || inl == 0)
+  if (
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+      !bio->init ||
+#else
+      !BIO_get_init (bio) ||
+#endif
+      in == NULL || inl == 0)
     return 0;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
 
   BIO_clear_retry_flags (bio);
   written = g_pollable_stream_write (g_io_stream_get_output_stream (gbio->io_stream),
@@ -148,10 +186,20 @@ gtls_bio_read (BIO  *bio,
   gssize read;
   GError *error = NULL;
 
-  if (!bio->init || out == NULL || outl == 0)
+  if (
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+      !bio->init ||
+#else
+      !BIO_get_init (bio) ||
+#endif
+      out == NULL || outl == 0)
     return 0;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
 
   BIO_clear_retry_flags (bio);
   read = g_pollable_stream_read (g_io_stream_get_input_stream (gbio->io_stream),
@@ -186,6 +234,7 @@ gtls_bio_gets(BIO  *bio,
   return -1;
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 static BIO_METHOD methods_gtls = {
   BIO_TYPE_SOURCE_SINK,
   "gtls",
@@ -197,11 +246,31 @@ static BIO_METHOD methods_gtls = {
   gtls_bio_create,
   gtls_bio_destroy
 };
+#else
+static BIO_METHOD *methods_gtls = NULL;
+#endif
 
-static BIO_METHOD *
+static const BIO_METHOD *
 BIO_s_gtls (void)
 {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   return &methods_gtls;
+#else
+  if (methods_gtls == NULL)
+    {
+      methods_gtls = BIO_meth_new (BIO_TYPE_SOURCE_SINK | BIO_get_new_index (), "gtls");
+      if (methods_gtls == NULL ||
+          BIO_meth_set_write (methods_gtls, gtls_bio_write) ||
+          BIO_meth_set_read (methods_gtls, gtls_bio_read) ||
+          BIO_meth_set_puts (methods_gtls, gtls_bio_puts) ||
+          BIO_meth_set_gets (methods_gtls, gtls_bio_gets) ||
+          BIO_meth_set_ctrl (methods_gtls, gtls_bio_ctrl) ||
+          BIO_meth_set_create (methods_gtls, gtls_bio_create) ||
+          BIO_meth_set_destroy (methods_gtls, gtls_bio_destroy))
+        return NULL;
+    }
+  return methods_gtls;
+#endif
 }
 
 BIO *
@@ -217,8 +286,13 @@ g_tls_bio_new (GIOStream *io_stream)
   gbio = g_new0 (GTlsBio, 1);
   gbio->io_stream = g_object_ref (io_stream);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   ret->ptr = gbio;
   ret->init = 1;
+#else
+  BIO_set_data (ret, gbio);
+  BIO_set_init (ret, 1);
+#endif
 
   return ret;
 }
@@ -231,7 +305,11 @@ g_tls_bio_set_read_cancellable (BIO          *bio,
 
   g_return_if_fail (bio != NULL);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
   gbio->read_cancellable = cancellable;
 }
 
@@ -243,7 +321,11 @@ g_tls_bio_set_read_blocking (BIO      *bio,
 
   g_return_if_fail (bio != NULL);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
   gbio->read_blocking = blocking;
 }
 
@@ -255,7 +337,11 @@ g_tls_bio_set_read_error (BIO     *bio,
 
   g_return_if_fail (bio != NULL);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
   gbio->read_error = error;
 }
 
@@ -267,7 +353,11 @@ g_tls_bio_set_write_cancellable (BIO          *bio,
 
   g_return_if_fail (bio != NULL);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
   gbio->write_cancellable = cancellable;
 }
 
@@ -279,7 +369,11 @@ g_tls_bio_set_write_blocking (BIO          *bio,
 
   g_return_if_fail (bio != NULL);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
   gbio->write_blocking = blocking;
 }
 
@@ -291,6 +385,10 @@ g_tls_bio_set_write_error (BIO     *bio,
 
   g_return_if_fail (bio != NULL);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
   gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
   gbio->write_error = error;
 }
