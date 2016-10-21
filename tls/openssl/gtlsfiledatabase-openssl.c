@@ -516,27 +516,28 @@ is_self_signed (GTlsCertificateOpenssl *certificate)
 {
   X509 *cert;
   X509_STORE *store;
-  X509_STORE_CTX csc;
+  X509_STORE_CTX *csc;
   STACK_OF(X509) *trusted;
   gboolean ret = FALSE;
 
   store = X509_STORE_new ();
+  csc = X509_STORE_CTX_new ();
   cert = g_tls_certificate_openssl_get_cert (certificate);
 
-  if (!X509_STORE_CTX_init(&csc, store, cert, NULL))
+  if (!X509_STORE_CTX_init(csc, store, cert, NULL))
     goto end;
 
   trusted = sk_X509_new_null ();
   sk_X509_push (trusted, cert);
 
-  X509_STORE_CTX_trusted_stack (&csc, trusted);
-  X509_STORE_CTX_set_flags (&csc, X509_V_FLAG_CHECK_SS_SIGNATURE);
+  X509_STORE_CTX_trusted_stack (csc, trusted);
+  X509_STORE_CTX_set_flags (csc, X509_V_FLAG_CHECK_SS_SIGNATURE);
 
-  ret = X509_verify_cert (&csc) > 0;
+  ret = X509_verify_cert (csc) > 0;
   sk_X509_free (trusted);
 
 end:
-  X509_STORE_CTX_cleanup (&csc);
+  X509_STORE_CTX_cleanup (csc);
   X509_STORE_free (store);
 
   return ret;
@@ -734,7 +735,7 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
   GTlsCertificateOpenssl *anchor;
   STACK_OF(X509) *certs, *anchors;
   X509_STORE *store;
-  X509_STORE_CTX csc;
+  X509_STORE_CTX *csc;
   X509 *x;
   gint status;
   GTlsCertificateFlags result = 0;
@@ -767,11 +768,12 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
   certs = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
 
   store = X509_STORE_new ();
+  csc = X509_STORE_CTX_new ();
 
   x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (chain));
-  if (!X509_STORE_CTX_init(&csc, store, x, certs))
+  if (!X509_STORE_CTX_init(csc, store, x, certs))
     {
-      X509_STORE_CTX_cleanup (&csc);
+      X509_STORE_CTX_cleanup (csc);
       X509_STORE_free (store);
       sk_X509_free (certs);
       return G_TLS_CERTIFICATE_GENERIC_ERROR;
@@ -781,15 +783,15 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
     {
       g_assert (g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (anchor)) == NULL);
       anchors = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (anchor));
-      X509_STORE_CTX_trusted_stack (&csc, anchors);
+      X509_STORE_CTX_trusted_stack (csc, anchors);
     }
   else
     anchors = NULL;
 
-  if (X509_verify_cert (&csc) <= 0)
-    result = g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (&csc));
+  if (X509_verify_cert (csc) <= 0)
+    result = g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (csc));
 
-  X509_STORE_CTX_cleanup (&csc);
+  X509_STORE_CTX_cleanup (csc);
   X509_STORE_free (store);
   sk_X509_free (certs);
   if (anchors)

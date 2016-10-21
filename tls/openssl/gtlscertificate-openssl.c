@@ -307,15 +307,16 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
   if (trusted_ca)
     {
       X509_STORE *store;
-      X509_STORE_CTX csc;
+      X509_STORE_CTX *csc;
       STACK_OF(X509) *trusted;
 
       store = X509_STORE_new ();
+      csc = X509_STORE_CTX_new ();
 
-      if (!X509_STORE_CTX_init (&csc, store, x, untrusted))
+      if (!X509_STORE_CTX_init (csc, store, x, untrusted))
         {
           sk_X509_free (untrusted);
-          X509_STORE_CTX_cleanup (&csc);
+          X509_STORE_CTX_cleanup (csc);
           X509_STORE_free (store);
           return G_TLS_CERTIFICATE_GENERIC_ERROR;
         }
@@ -328,12 +329,12 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
           sk_X509_push (trusted, priv->cert);
         }
 
-      X509_STORE_CTX_trusted_stack (&csc, trusted);
-      if (X509_verify_cert (&csc) <= 0)
-        gtls_flags |= g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (&csc));
+      X509_STORE_CTX_trusted_stack (csc, trusted);
+      if (X509_verify_cert (csc) <= 0)
+        gtls_flags |= g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (csc));
 
       sk_X509_free (trusted);
-      X509_STORE_CTX_cleanup (&csc);
+      X509_STORE_CTX_cleanup (csc);
       X509_STORE_free (store);
     }
 
@@ -605,7 +606,7 @@ is_issuer (GTlsCertificateOpenssl *cert,
   X509 *x;
   X509 *issuer_x;
   X509_STORE *store;
-  X509_STORE_CTX csc;
+  X509_STORE_CTX *csc;
   STACK_OF(X509) *trusted;
   gboolean ret = FALSE;
   gint err;
@@ -614,20 +615,21 @@ is_issuer (GTlsCertificateOpenssl *cert,
   issuer_x = g_tls_certificate_openssl_get_cert (issuer);
 
   store = X509_STORE_new ();
+  csc = X509_STORE_CTX_new ();
 
-  if (!X509_STORE_CTX_init (&csc, store, x, NULL))
+  if (!X509_STORE_CTX_init (csc, store, x, NULL))
     goto end;
 
   trusted = sk_X509_new_null ();
   sk_X509_push (trusted, issuer_x);
 
-  X509_STORE_CTX_trusted_stack (&csc, trusted);
-  X509_STORE_CTX_set_flags (&csc, X509_V_FLAG_CB_ISSUER_CHECK);
+  X509_STORE_CTX_trusted_stack (csc, trusted);
+  X509_STORE_CTX_set_flags (csc, X509_V_FLAG_CB_ISSUER_CHECK);
 
   /* FIXME: is this the right way to do it? */
-  if (X509_verify_cert (&csc) <= 0)
+  if (X509_verify_cert (csc) <= 0)
     {
-      err = X509_STORE_CTX_get_error (&csc);
+      err = X509_STORE_CTX_get_error (csc);
       if (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT)
         ret = TRUE;
     }
@@ -637,7 +639,7 @@ is_issuer (GTlsCertificateOpenssl *cert,
   sk_X509_free (trusted);
 
 end:
-  X509_STORE_CTX_cleanup (&csc);
+  X509_STORE_CTX_cleanup (csc);
   X509_STORE_free (store);
 
   return ret;
