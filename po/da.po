@@ -4,21 +4,23 @@
 #
 # Kris Thomsen <lakristho@gmail.com>, 2011.
 # Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-2013.
+# Alan Mortensen <alanmortensen.am@gmail.com>, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2013-03-16 17:43+0100\n"
-"Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2016-09-26 23:04+0000\n"
+"PO-Revision-Date: 2016-11-22 20:03+0100\n"
+"Last-Translator: Alan Mortensen <alanmortensen.am@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.8.7.1\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -58,9 +60,9 @@ msgstr "Ingen certifikatdata angivet"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:430
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Kunne ikke oprette TLS-forbindelse: %s"
+msgstr "Kunne ikke oprette TLS-kontekst: %s"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:468
 #: tls/openssl/gtlsserverconnection-openssl.c:296
@@ -112,12 +114,12 @@ msgstr "Certifikatet har ingen privat nøgle"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Der er et problem med certifikatets private nøgle: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Der er et problem med certifikatet: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Intern fejl i proxy-opløser."
