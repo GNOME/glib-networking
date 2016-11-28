@@ -1,23 +1,24 @@
 # Swedish translation for glib-openssl.
-# Copyright © 2011, 2014 Free Software Foundation, Inc.
+# Copyright © 2011, 2014, 2016 Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-openssl package.
 # Daniel Nylander <po@danielnylander.se>, 2011.
 # Anders Jonsson <anders.jonsson@norsjovallen.se>, 2014.
+# Josef Andersson <josef.andersson@fripost.org>, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2014-05-17 00:56+0100\n"
-"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2016-10-21 15:49+0000\n"
+"PO-Revision-Date: 2016-11-29 00:08+0100\n"
+"Last-Translator: Josef Andersson <josef.andersson@fripost.org>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.4\n"
+"X-Generator: Poedit 1.8.11\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -55,13 +56,13 @@ msgstr "Kunde inte tolka privat PEM-nyckel: %s"
 msgid "No certificate data provided"
 msgstr "Inget certifikatdata tillhandahölls"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsclientconnection-openssl.c:434
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Kunde inte skapa TLS-anslutning: %s"
+msgstr "Kunde inte skapa TLS-kontext: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsclientconnection-openssl.c:472
 #: tls/openssl/gtlsserverconnection-openssl.c:296
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -71,35 +72,35 @@ msgstr "Kunde inte skapa TLS-anslutning: %s"
 msgid "Peer failed to perform TLS handshake"
 msgstr "Motparten misslyckades med att genomföra TLS-handskakning"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:157
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-anslutningens motpart sände inte ett certifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:212
+#: tls/openssl/gtlsconnection-openssl.c:308
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fel vid genomförande av TLS-handskakning: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:318
 msgid "Server did not return a valid TLS certificate"
 msgstr "Servern returnerade inte ett giltigt TLS-certifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:348
 msgid "Unacceptable TLS certificate"
 msgstr "Ej acceptabelt TLS-certifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:432
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Fel vid läsning av data från TLS-uttag: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:458
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Fel vid skrivning av data till TLS-uttag: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fel vid genomförande av TLS-stängning: %s"
@@ -111,12 +112,12 @@ msgstr "Certifikatet har ingen privat nyckel"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Det har uppstått ett problem med certifikatets privata nyckel: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Det har uppstått ett problem med certifikatet: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Internt fel i proxyuppslag."
