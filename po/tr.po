@@ -4,15 +4,15 @@
 #
 # Muhammed Eken <gnome@m-eken.com>, 2011.
 # Ozan Çağlayan <ozancag@gmail.com>, 2013.
-# Muhammet Kara <muhammetk@gmail.com>, 2011, 2012, 2013.
+# Muhammet Kara <muhammetk@gmail.com>, 2011, 2012, 2013, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2013-04-08 12:09+0300\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2016-09-26 23:04+0000\n"
+"PO-Revision-Date: 2016-12-01 23:45+0300\n"
 "Last-Translator: Muhammet Kara <muhammetk@gmail.com>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
 "Language: tr\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Gtranslator 2.91.5\n"
+"X-Generator: Gtranslator 2.91.7\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -60,9 +60,9 @@ msgstr "Sertifika verisi sağlanmadı"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:430
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "TLS bağlantısı oluşturulamadı: %s"
+msgstr "TLS bağlamı oluşturulamadı: %s"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:468
 #: tls/openssl/gtlsserverconnection-openssl.c:296
@@ -114,12 +114,12 @@ msgstr "Sertifikanın özel anahtarı yok"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Sertifika özel anahtarında bir sorun var: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Sertifikada bir sorun var: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Proxy çözücü iç hatası."
