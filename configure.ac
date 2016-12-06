@@ -56,6 +56,32 @@ AM_CONDITIONAL(HAVE_OPENSSL, [test "$with_openssl" = "yes"])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
 
+if test "x$with_openssl" = "xyes"; then
+    AC_MSG_CHECKING([location of system Certificate Authority list])
+    AC_ARG_WITH(ca-certificates,
+		[AC_HELP_STRING([--with-ca-certificates=@<:@path@:>@],
+				[path to system Certificate Authority list])])
+    if test "$with_ca_certificates" = "no"; then
+        AC_MSG_RESULT([disabled])
+    else
+        if test -z "$with_ca_certificates"; then
+	    for f in /etc/pki/tls/certs/ca-bundle.crt \
+	       	     /etc/ssl/certs/ca-certificates.crt \
+		     /etc/ssl/ca-bundle.pem; do
+		if test -f "$f"; then
+		    with_ca_certificates="$f"
+		fi
+	    done
+	    if test -z "$with_ca_certificates"; then
+		AC_MSG_ERROR([could not find. Use --with-ca-certificates=path to set, or --without-ca-certificates to disable])
+	    fi
+        fi
+
+        AC_MSG_RESULT($with_ca_certificates)
+        AC_DEFINE_UNQUOTED(GTLS_SYSTEM_CA_FILE, ["$with_ca_certificates"], [The system TLS CA list])
+    fi
+fi
+
 dnl ************************************
 dnl *** Enable lcov coverage reports ***
 dnl ************************************
