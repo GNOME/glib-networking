@@ -264,13 +264,13 @@ BIO_s_gtls (void)
     {
       methods_gtls = BIO_meth_new (BIO_TYPE_SOURCE_SINK | BIO_get_new_index (), "gtls");
       if (methods_gtls == NULL ||
-          BIO_meth_set_write (methods_gtls, gtls_bio_write) ||
-          BIO_meth_set_read (methods_gtls, gtls_bio_read) ||
-          BIO_meth_set_puts (methods_gtls, gtls_bio_puts) ||
-          BIO_meth_set_gets (methods_gtls, gtls_bio_gets) ||
-          BIO_meth_set_ctrl (methods_gtls, gtls_bio_ctrl) ||
-          BIO_meth_set_create (methods_gtls, gtls_bio_create) ||
-          BIO_meth_set_destroy (methods_gtls, gtls_bio_destroy))
+          !BIO_meth_set_write (methods_gtls, gtls_bio_write) ||
+          !BIO_meth_set_read (methods_gtls, gtls_bio_read) ||
+          !BIO_meth_set_puts (methods_gtls, gtls_bio_puts) ||
+          !BIO_meth_set_gets (methods_gtls, gtls_bio_gets) ||
+          !BIO_meth_set_ctrl (methods_gtls, gtls_bio_ctrl) ||
+          !BIO_meth_set_create (methods_gtls, gtls_bio_create) ||
+          !BIO_meth_set_destroy (methods_gtls, gtls_bio_destroy))
         return NULL;
     }
   return methods_gtls;
