@@ -3,7 +3,7 @@ include $(top_srcdir)/glib-openssl.mk
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = po tls/base tls/openssl tls/tests build
+SUBDIRS = po tls/base tls/openssl tls/tests win32
 
 install-exec-hook:
 	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \

@@ -21,5 +21,5 @@ MSVCPROJS = tlsbase
 tlsbase_FILES = $(libtlsbase_la_SOURCES)
 tlsbase_EXCLUDES = dummy
 
-include $(top_srcdir)/build/Makefile.msvcproj
-dist-hook: $(top_builddir)/build/win32/vs9/tlsbase.vcproj
+include $(top_srcdir)/win32/Makefile.msvcproj
+dist-hook: $(top_builddir)/win32/vs9/tlsbase.vcproj

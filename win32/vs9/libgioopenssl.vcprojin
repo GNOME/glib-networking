@@ -30,7 +30,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\tls\base"
+				AdditionalIncludeDirectories="..\..\tls\base"
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;$(ModExportCFlags)"
 				MinimalRebuild="true"
@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\tls\base"
+				AdditionalIncludeDirectories="..\..\tls\base"
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;$(ModExportCFlags)"
 				MinimalRebuild="true"
@@ -91,7 +91,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\tls\base"
+				AdditionalIncludeDirectories="..\..\tls\base"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				PreprocessorDefinitions="$(ModExportCFlags)"
@@ -124,7 +124,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\tls\base"
+				AdditionalIncludeDirectories="..\..\tls\base"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				PreprocessorDefinitions="$(ModExportCFlags)"
