@@ -250,12 +250,16 @@ static BIO_METHOD methods_gtls = {
 static BIO_METHOD *methods_gtls = NULL;
 #endif
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+static BIO_METHOD *
+BIO_s_gtls (void)
+{
+  return &methods_gtls;
+}
+#else
 static const BIO_METHOD *
 BIO_s_gtls (void)
 {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-  return &methods_gtls;
-#else
   if (methods_gtls == NULL)
     {
       methods_gtls = BIO_meth_new (BIO_TYPE_SOURCE_SINK | BIO_get_new_index (), "gtls");
@@ -270,8 +274,8 @@ BIO_s_gtls (void)
         return NULL;
     }
   return methods_gtls;
-#endif
 }
+#endif
 
 BIO *
 g_tls_bio_new (GIOStream *io_stream)
