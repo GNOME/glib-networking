@@ -1,24 +1,25 @@
 # Lithuanian translation for glib-openssl.
 # Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
-# Aurimas Černius <aurisc4@gmail.com>, 2011.
 # Algimantas Margevičius <margevicius.algimantas@gmail.com>, 2011.
+# Aurimas Černius <aurisc4@gmail.com>, 2011, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2012-11-30 21:55+0300\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2017-02-23 07:59+0000\n"
+"PO-Revision-Date: 2017-03-10 22:22+0200\n"
 "Last-Translator: Aurimas Černius <aurisc4@gmail.com>\n"
-"Language-Team: Lietuvių <>\n"
+"Language-Team: Lietuvių <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
-"%100<10 || n%100>=20) ? 1 : 2)\n"
+"%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Gtranslator 2.91.7\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -56,13 +57,13 @@ msgstr "Nepavyko perskaityti PEM privataus rakto: %s"
 msgid "No certificate data provided"
 msgstr "Nėra pateiktų liudijimo duomenų"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsclientconnection-openssl.c:434
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Nepavyko užmegsti TLS ryšio: %s"
+msgstr "Nepavyko sukurti TLS konteksto: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsclientconnection-openssl.c:472
 #: tls/openssl/gtlsserverconnection-openssl.c:296
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -72,35 +73,35 @@ msgstr "Nepavyko užmegsti TLS ryšio: %s"
 msgid "Peer failed to perform TLS handshake"
 msgstr "Kita pusė neatliko TLS rankos paspaudimo"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:157
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS ryšio porininkas neatsiuntė liudijimo"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:212
+#: tls/openssl/gtlsconnection-openssl.c:308
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Klaida atliekant TLS rankos paspaudimą: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:318
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serveris negrąžino teisingo TLS liudijimo"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:348
 msgid "Unacceptable TLS certificate"
 msgstr "Nepriimtinas TLS liudijimas"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:432
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Klaida skaitant duomenis iš TLS lizdo: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:458
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Klaida rašant duomenis į TLS lizdą: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Klaida atliekant TLS užvėrimą: %s"
@@ -112,12 +113,12 @@ msgstr "Liudijimas neturi privataus rakto"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Yra problema su liudijimo privačiu raktu: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Yra problema su liudijimu: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Tarpininkų nustatytojo vidinė klaida."
