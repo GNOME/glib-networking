@@ -1,22 +1,22 @@
 # Kazakh translation for glib-openssl.
 # Copyright (C) 2014 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
-# Baurzhan Muftakhidinov <baurthefirst@gmail.com>, 2014.
+# Baurzhan Muftakhidinov <baurthefirst@gmail.com>, 2014-2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2014-11-07 09:12+0600\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2017-02-23 07:59+0000\n"
+"PO-Revision-Date: 2017-03-12 21:14+0500\n"
 "Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
 "Language-Team: Kazakh <kk_KZ@googlegroups.com>\n"
 "Language: kk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.9\n"
+"X-Generator: Poedit 1.8.12\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -54,51 +54,51 @@ msgstr "PEM жеке кілтін талдау қатесі: %s"
 msgid "No certificate data provided"
 msgstr "Сертификат ұсынылмады"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsclientconnection-openssl.c:434
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Жаңа TLS  байланысын жасау мүмкін емес: %s"
+msgstr "TLS контекстін жасау мүмкін емес: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsclientconnection-openssl.c:472
 #: tls/openssl/gtlsserverconnection-openssl.c:296
 #, c-format
 msgid "Could not create TLS connection: %s"
-msgstr "Жаңа TLS  байланысын жасау мүмкін емес: %s"
+msgstr "Жаңа TLS байланысын жасау мүмкін емес: %s"
 
 #: tls/openssl/gtlsconnection-openssl.c:149
 msgid "Peer failed to perform TLS handshake"
 msgstr "Торап TLS байланысты орнату сәлемдемесін орындай алмады"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:157
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS байланысының торабы сертификатты жібермеген"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:212
+#: tls/openssl/gtlsconnection-openssl.c:308
 #, c-format
 msgid "Error performing TLS handshake: %s"
-msgstr "TLS байланысты орнату сәлемдемесін орындау қатесі: %s"
+msgstr "TLS байланысын орнату сәлемдемесін орындау қатесі: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:318
 msgid "Server did not return a valid TLS certificate"
 msgstr "Сервер жарамды TLS сертификатын қайтармады"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:348
 msgid "Unacceptable TLS certificate"
 msgstr "Жарамсыз TLS сертификаты"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:432
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "TLS сокетінен деректерді оқу қатесі: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:458
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "TLS сокетіне деректерді жазу қатесі: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS жабу әрекетін орындау қатесі: %s"
@@ -110,12 +110,12 @@ msgstr "Сертификатта жеке кілт жоқ"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Сертификаттың жеке кілтімен мәселе бар: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Сертификаттың мәселесі бар: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Прокси шешушісінің ішкі қатесі."
