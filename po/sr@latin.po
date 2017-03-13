@@ -1,22 +1,22 @@
 # Serbian translation of glib-openssl
-# Courtesy of Prevod.org team (http://prevod.org/) -- 2012—2013.
+# Courtesy of Prevod.org team (http://prevod.org/) -- 2012—2017.
 # This file is distributed under the same license as the glib-openssl package.
-# Miroslav Nikolić <miroslavnikolic@rocketmail.com>, 2011, 2012, 2013.
+# Miroslav Nikolić <miroslavnikolic@rocketmail.com>, 2011—2017.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2013-01-18 11:59+0200\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2017-02-23 07:59+0000\n"
+"PO-Revision-Date: 2017-03-13 14:45+0200\n"
 "Last-Translator: Miroslav Nikolić <miroslavnikolic@rocketmail.com>\n"
-"Language-Team: Serbian <gnom@prevod.org>\n"
-"Language: sr@latin\n"
+"Language-Team: srpski <gnome-sr@googlegroups.org>\n"
+"Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : n"
-"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : "
+"n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Project-Style: gnome\n"
 
 #: tls/base/gtlsconnection-base.c:282
@@ -29,7 +29,7 @@ msgstr "Postupak bi blokirao"
 
 #: tls/base/gtlsconnection-base.c:809
 msgid "Server required TLS certificate"
-msgstr "TLS uverenje koje zahteva server"
+msgstr "Server je zahtevao TLS uverenje"
 
 #: tls/openssl/gtlscertificate-openssl.c:179
 #, c-format
@@ -55,13 +55,13 @@ msgstr "Ne mogu da obradim privatni PEM ključ: %s"
 msgid "No certificate data provided"
 msgstr "Nisu obezbeđeni podaci uverenja"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsclientconnection-openssl.c:434
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Ne mogu da napravim TLS vezu: %s"
+msgstr "Ne mogu da napravim TLS kontekst: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsclientconnection-openssl.c:472
 #: tls/openssl/gtlsserverconnection-openssl.c:296
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -71,35 +71,35 @@ msgstr "Ne mogu da napravim TLS vezu: %s"
 msgid "Peer failed to perform TLS handshake"
 msgstr "Parnjak nije uspeo da izvrši TLS rukovanje"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:157
 msgid "TLS connection peer did not send a certificate"
 msgstr "Parnjak TLS veze nije poslao uverenje"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:212
+#: tls/openssl/gtlsconnection-openssl.c:308
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Greška u izvršavanju TLS rukovanja: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:318
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server nije vratio ispravno TLS uverenje"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:348
 msgid "Unacceptable TLS certificate"
 msgstr "Neprihvatljivo TLS uverenje"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:432
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Greška prilikom čitanja podataka sa TLS priključka: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:458
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Greška prilikom upisivanja podataka u TLS priključak: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Greška u izvršavanju TLS zatvaranja: %s"
@@ -111,12 +111,12 @@ msgstr "Uverenje nema privatni ključ"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Postoji problem sa privatnim ključem uverenja: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "Postoji problem sa uverenjem: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Unutrašnja greška rešavača posrednika."
