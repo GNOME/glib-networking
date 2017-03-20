@@ -2,15 +2,15 @@
 # Copyright (C) 2011 THE glib-openssl'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
 #
-# Andika Triwidada <andika@gmail.com>, 2011, 2012, 2013.
+# Andika Triwidada <andika@gmail.com>, 2011, 2012, 2013, 2017.
 # Dirgita <dirgitadevina@yahoo.co.id>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&component=network\n"
-"POT-Creation-Date: 2016-09-26 22:04+0200\n"
-"PO-Revision-Date: 2013-03-29 08:57+0700\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"openssl&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2017-02-23 07:59+0000\n"
+"PO-Revision-Date: 2017-03-20 19:51+0700\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <gnome@i15n.org>\n"
 "Language: id\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 1.5.5\n"
+"X-Generator: Poedit 1.6.10\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -35,72 +35,72 @@ msgstr "Server memerlukan sertifikat TLS"
 #: tls/openssl/gtlscertificate-openssl.c:179
 #, c-format
 msgid "Could not parse DER certificate: %s"
-msgstr "Tak bisa mengurai sertifikat DER: %s"
+msgstr "Tidak bisa mengurai sertifikat DER: %s"
 
 #: tls/openssl/gtlscertificate-openssl.c:199
 #, c-format
 msgid "Could not parse PEM certificate: %s"
-msgstr "Tak bisa mengurai sertifikat PEM: %s"
+msgstr "Tidak bisa mengurai sertifikat PEM: %s"
 
 #: tls/openssl/gtlscertificate-openssl.c:218
 #, c-format
 msgid "Could not parse DER private key: %s"
-msgstr "Tak bisa mengurai kunci privat DER: %s"
+msgstr "Tidak bisa mengurai kunci privat DER: %s"
 
 #: tls/openssl/gtlscertificate-openssl.c:237
 #, c-format
 msgid "Could not parse PEM private key: %s"
-msgstr "Tak bisa mengurai kunci privat PEM: %s"
+msgstr "Tidak bisa mengurai kunci privat PEM: %s"
 
 #: tls/openssl/gtlscertificate-openssl.c:275
 msgid "No certificate data provided"
 msgstr "Data sertifikat tak disediakan"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsclientconnection-openssl.c:434
 #: tls/openssl/gtlsserverconnection-openssl.c:228
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "Tak bisa membuat koneksi TLS: %s"
+msgstr "Tidak bisa membuat konteks TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
+#: tls/openssl/gtlsclientconnection-openssl.c:472
 #: tls/openssl/gtlsserverconnection-openssl.c:296
 #, c-format
 msgid "Could not create TLS connection: %s"
-msgstr "Tak bisa membuat koneksi TLS: %s"
+msgstr "Tidak bisa membuat koneksi TLS: %s"
 
 #: tls/openssl/gtlsconnection-openssl.c:149
 msgid "Peer failed to perform TLS handshake"
 msgstr "Peer gagal melakukan jabat tangan TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:157
 msgid "TLS connection peer did not send a certificate"
 msgstr "Pasangan koneksi TLS tak mengembalikan sertifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:212
+#: tls/openssl/gtlsconnection-openssl.c:308
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Galat melakukan jabat tangan TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:318
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server tak mengembalikan sertifikat TLS yang valid"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:348
 msgid "Unacceptable TLS certificate"
 msgstr "Sertifikat TLS tak dapat diterima"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:432
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Galat saat membaca data dari soket TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:458
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Galat saat menulis data ke soket TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Galat melaksanakan penutupan TLS: %s"
@@ -112,49 +112,9 @@ msgstr "Sertifikatnya tidak memiliki kunci privat"
 #: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "Ada masalah dengan kunci privat sertifikat: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:266
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
-
-#~ msgid "Proxy resolver internal error."
-#~ msgstr "Galat internal resolver proksi."
-
-#~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr "Peer meminta jabat tangan ulang TLS yang ilegal"
-
-#~ msgid "TLS connection closed unexpectedly"
-#~ msgstr "Koneksi TLS tertutup tak disangka-sangka"
-
-#~ msgid "Connection is already closed"
-#~ msgstr "Koneksi telah ditutup"
-
-#~ msgid ""
-#~ "This is the last chance to enter the PIN correctly before the token is "
-#~ "locked."
-#~ msgstr ""
-#~ "Ini kesempatan terakhir memasukkan PIN yang benar sebelum token dikunci."
-
-#~ msgid ""
-#~ "Several PIN attempts have been incorrect, and the token will be locked "
-#~ "after further failures."
-#~ msgstr ""
-#~ "Sudah beberapa kali PIN yang dimasukkan salah, token akan dikunci jika "
-#~ "terulang."
-
-#~ msgid "The PIN entered is incorrect."
-#~ msgstr "PIN yang dimasukkan salah."
-
-#~ msgid "Module"
-#~ msgstr "Modul"
-
-#~ msgid "PKCS#11 Module Pointer"
-#~ msgstr "Pointer Modul PKCS#11"
-
-#~ msgid "Slot ID"
-#~ msgstr "ID Slot"
-
-#~ msgid "PKCS#11 Slot Identifier"
-#~ msgstr "Identifair Slot PKCS#11"
+msgstr "Ada masalah dengan sertifikat: %s"
