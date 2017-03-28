@@ -422,6 +422,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (initable);
   GTlsClientConnectionOpensslPrivate *priv;
   long options;
+  const char *hostname;
 
   priv = g_tls_client_connection_openssl_get_instance_private (client);
 
@@ -437,25 +438,21 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
     }
 
   options = SSL_OP_NO_TICKET;
+  hostname = get_server_identity (client);
 
   /* Only TLS 1.2 or higher */
   SSL_CTX_set_options (priv->ssl_ctx, options);
 
 #if OPENSSL_VERSION_NUMBER >= 0x10200000L
-  {
-    const char *hostname;
+  if (hostname)
+    {
+      X509_VERIFY_PARAM *param;
 
-    hostname = get_server_identity (client);
-    if (hostname)
-      {
-        X509_VERIFY_PARAM *param;
-
-        param = X509_VERIFY_PARAM_new ();
-        X509_VERIFY_PARAM_set1_host (param, hostname);
-        SSL_CTX_set1_param (priv->ssl_ctx, param);
-        X509_VERIFY_PARAM_free (param);
-      }
-  }
+      param = X509_VERIFY_PARAM_new ();
+      X509_VERIFY_PARAM_set1_host (param, hostname);
+      SSL_CTX_set1_param (priv->ssl_ctx, param);
+      X509_VERIFY_PARAM_free (param);
+    }
 #endif
 
   SSL_CTX_set_generate_session_id (priv->ssl_ctx, generate_session_id);
@@ -476,6 +473,11 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   data_index = SSL_get_ex_new_index (0, "gtlsclientconnection", NULL, NULL, NULL);
   SSL_set_ex_data (priv->ssl, data_index, client);
+
+#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
+  if (hostname)
+    SSL_set_tlsext_host_name (priv->ssl, hostname);
+#endif
 
   SSL_set_connect_state (priv->ssl);
 
