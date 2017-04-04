@@ -185,6 +185,7 @@ g_tls_backend_openssl_real_create_database (GTlsBackendOpenssl  *self,
 {
   const gchar *anchor_file = NULL;
 #ifdef GTLS_SYSTEM_CA_FILE
+  /* FIXME: we need to handle this on Windows as well */
   anchor_file = GTLS_SYSTEM_CA_FILE;
 #endif
   return g_tls_file_database_new (anchor_file, error);
