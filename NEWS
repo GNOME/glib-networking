@@ -1,3 +1,10 @@
+News in 2.50.2
+--------------
+* Fix crash when using OpenSSL 1.1.0
+* Find CA bundle file in configure
+* Support SNI TLS Extension
+* Translation updates
+
 News in 2.50.1
 --------------
 * Add support for OpenSSL 1.1.0
