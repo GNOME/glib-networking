@@ -61,9 +61,5 @@ g_io_module_unload (GIOModule *module)
 gchar **
 g_io_module_query (void)
 {
-  gchar *eps[] = {
-    G_TLS_BACKEND_EXTENSION_POINT_NAME,
-    NULL
-  };
-  return g_strdupv (eps);
+  return g_strsplit (G_TLS_BACKEND_EXTENSION_POINT_NAME, "!", -1);
 }

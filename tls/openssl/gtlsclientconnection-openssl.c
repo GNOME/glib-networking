@@ -471,7 +471,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
       return FALSE;
     }
 
-  data_index = SSL_get_ex_new_index (0, "gtlsclientconnection", NULL, NULL, NULL);
+  data_index = SSL_get_ex_new_index (0, (void *)"gtlsclientconnection", NULL, NULL, NULL);
   SSL_set_ex_data (priv->ssl, data_index, client);
 
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
