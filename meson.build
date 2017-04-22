@@ -97,7 +97,7 @@ if with_openssl
     message('CA certificates disabled')
   else
     if ca_certificates == ''
-      detect_certificates = run_command(join_paths(meson.source_root(), 'meson_detect_certificates.py'))
+      detect_certificates = run_command(join_paths(meson.source_root(), 'mesonscripts', 'detect_certificates.py'))
 
       if detect_certificates.returncode() == 1
         error('Could not find certificates. Use --with-ca-certificates=path to set, or --with-ca-certificates=no to disable it')
@@ -123,4 +123,4 @@ subdir('tls/openssl')
 subdir('tls/tests')
 subdir('po')
 
-meson.add_install_script('meson_post_install.py')
+meson.add_install_script(join_paths('mesonscripts', 'post_install.py'))
