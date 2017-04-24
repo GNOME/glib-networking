@@ -100,9 +100,8 @@ get_server_identity (GTlsClientConnectionGnutls *gnutls)
 }
 
 static void
-g_tls_client_connection_gnutls_constructed (GObject *object)
+g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *gnutls)
 {
-  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
   GSocketConnection *base_conn;
   GSocketAddress *remote_addr;
   GInetAddress *iaddr;
@@ -124,24 +123,41 @@ g_tls_client_connection_gnutls_constructed (GObject *object)
 	  GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
 	  const gchar *server_hostname;
 	  gchar *addrstr, *session_id;
+	  GTlsCertificate *cert = NULL;
+	  gchar *cert_hash = NULL;
 
 	  iaddr = g_inet_socket_address_get_address (isaddr);
 	  port = g_inet_socket_address_get_port (isaddr);
 
 	  addrstr = g_inet_address_to_string (iaddr);
 	  server_hostname = get_server_identity (gnutls);
-	  session_id = g_strdup_printf ("%s/%s/%d", addrstr,
+
+	  /* If we have a certificate, make its hash part of the session ID, so
+	   * that different connections to the same server can use different
+	   * certificates. */
+	  g_object_get (G_OBJECT (gnutls), "certificate", &cert, NULL);
+	  if (cert)
+	    {
+	      GByteArray *der = NULL;
+	      g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
+	      if (der)
+		{
+		  cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
+		  g_byte_array_unref (der);
+		}
+	      g_object_unref (cert);
+	    }
+	  session_id = g_strdup_printf ("%s/%s/%d/%s", addrstr,
 					server_hostname ? server_hostname : "",
-					port);
+					port,
+					cert_hash ?: "");
 	  gnutls->priv->session_id = g_bytes_new_take (session_id, strlen (session_id));
 	  g_free (addrstr);
+	  g_free (cert_hash);
 	}
       g_object_unref (remote_addr);
     }
   g_object_unref (base_conn);
-
-  if (G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->constructed)
-    G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->constructed (object);
 }
 
 static void
@@ -326,6 +342,8 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
 
+  g_tls_client_connection_gnutls_compute_session_id (gnutls);
+
   /* Try to get a cached session */
   if (gnutls->priv->session_data_override)
     {
@@ -434,7 +452,6 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
 
   gobject_class->get_property = g_tls_client_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
-  gobject_class->constructed  = g_tls_client_connection_gnutls_constructed;
   gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
 
   connection_gnutls_class->failed           = g_tls_client_connection_gnutls_failed;
