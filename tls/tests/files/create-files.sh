@@ -124,6 +124,14 @@ openssl x509 -req -in client-csr.pem -days 365 -startdate -enddate -CA ca.pem -C
 sudo hwclock -s
 touch client-future.pem
 
+msg "Creating second client key pair"
+openssl genrsa -out client2-key.pem 2048
+openssl req -config ssl/client.conf -key client2-key.pem -new -out client2-csr.pem
+openssl x509 -req -in client2-csr.pem -days 9125 -CA ca.pem -CAkey ca-key.pem -CAserial serial -out client2.pem
+
+msg "Concatenating second client certificate and private key into a single file"
+cat client2.pem client2-key.pem > client2-and-key.pem
+
 #######################################################################
 ### Concatenate all non-CA certificates
 #######################################################################

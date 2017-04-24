@@ -918,6 +918,7 @@ test_client_auth_connection (TestConnection *test,
   GTlsCertificate *cert;
   GTlsCertificate *peer;
   gboolean cas_changed;
+  GSocketClient *client;
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
@@ -956,6 +957,36 @@ test_client_auth_connection (TestConnection *test,
   g_assert (cas_changed == TRUE);
 
   g_object_unref (cert);
+  g_object_unref (test->database);
+  g_object_unref (test->client_connection);
+
+  /* Now start a new connection to the same server with a different client cert */
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_object_unref (connection);
+
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client2-and-key.pem"), &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+  g_object_unref (cert);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  /* peer should see the second client cert */
+  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
+  g_assert (peer != NULL);
+  g_assert (g_tls_certificate_is_same (peer, cert));
 }
 
 static void
@@ -973,6 +1004,10 @@ test_client_auth_failure (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
   gboolean accepted_changed;
+  GSocketClient *client;
+  GTlsCertificate *cert;
+  GTlsCertificate *peer;
+  GTlsInteraction *interaction;
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
@@ -1003,6 +1038,51 @@ test_client_auth_failure (TestConnection *test,
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
   g_assert (accepted_changed == TRUE);
+
+  g_object_unref (test->client_connection);
+  g_object_unref (test->database);
+  g_clear_error (&test->read_error);
+  g_clear_error (&test->server_error);
+
+  /* Now start a new connection to the same server with a valid client cert;
+   * this should succeed, and not use the cached failed session from above */
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* Have the interaction return a certificate */
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
+  g_assert_no_error (error);
+  interaction = mock_interaction_new_static_certificate (cert);
+  g_tls_connection_set_interaction (G_TLS_CONNECTION (test->client_connection), interaction);
+  g_object_unref (interaction);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  accepted_changed = FALSE;
+  g_signal_connect (test->client_connection, "notify::accepted-cas",
+                    G_CALLBACK (on_notify_accepted_cas), &accepted_changed);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
+  g_assert (peer != NULL);
+  g_assert (g_tls_certificate_is_same (peer, cert));
+  g_assert (accepted_changed == TRUE);
+
+  g_object_unref (cert);
 }
 
 static void
