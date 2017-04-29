@@ -34,6 +34,7 @@ typedef struct _GTlsFileDatabaseOpensslPrivate
 {
   /* read-only after construct */
   gchar *anchor_filename;
+  STACK_OF(X509) *trusted;
 
   /* protected by mutex */
   GMutex mutex;
@@ -241,6 +242,9 @@ g_tls_file_database_openssl_finalize (GObject *object)
   g_free (priv->anchor_filename);
   priv->anchor_filename = NULL;
 
+  if (priv->trusted != NULL)
+    sk_X509_pop_free (priv->trusted, X509_free);
+
   g_mutex_clear (&priv->mutex);
 
   G_OBJECT_CLASS (g_tls_file_database_openssl_parent_class)->finalize (object);
@@ -267,6 +271,51 @@ g_tls_file_database_openssl_get_property (GObject    *object,
     }
 }
 
+static STACK_OF(X509) *
+load_certs (const gchar *file_name)
+{
+  BIO *bio;
+  STACK_OF(X509) *certs;
+  STACK_OF(X509_INFO) *xis = NULL;
+  gint i;
+
+  bio = BIO_new_file (file_name, "rb");
+  if (bio == NULL)
+    return NULL;
+
+  xis = PEM_X509_INFO_read_bio (bio, NULL, NULL, NULL);
+
+  BIO_free (bio);
+
+  certs = sk_X509_new_null ();
+  if (certs == NULL)
+    goto end;
+
+  for (i = 0; i < sk_X509_INFO_num (xis); i++)
+    {
+      X509_INFO *xi;
+
+      xi = sk_X509_INFO_value (xis, i);
+      if (xi->x509 != NULL)
+        {
+          if (!sk_X509_push (certs, xi->x509))
+            goto end;
+          xi->x509 = NULL;
+        }
+    }
+
+end:
+  sk_X509_INFO_pop_free (xis, X509_INFO_free);
+
+  if (sk_X509_num (certs) == 0)
+    {
+      sk_X509_pop_free (certs, X509_free);
+      certs = NULL;
+    }
+
+  return certs;
+}
+
 static void
 g_tls_file_database_openssl_set_property (GObject      *object,
                                           guint         prop_id,
@@ -275,23 +324,30 @@ g_tls_file_database_openssl_set_property (GObject      *object,
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (object);
   GTlsFileDatabaseOpensslPrivate *priv;
-  gchar *anchor_path;
+  const gchar *anchor_path;
 
   priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   switch (prop_id)
     {
     case PROP_ANCHORS:
-      anchor_path = g_value_dup_string (value);
+      anchor_path = g_value_get_string (value);
       if (anchor_path && !g_path_is_absolute (anchor_path))
         {
-          g_warning ("The anchor file name for used with a GTlsFileDatabase "
+          g_warning ("The anchor file name used with a GTlsFileDatabase "
                      "must be an absolute path, and not relative: %s", anchor_path);
+          return;
         }
-      else
+
+      if (priv->anchor_filename)
         {
-          priv->anchor_filename = anchor_path;
+          g_free (priv->anchor_filename);
+          if (priv->trusted != NULL)
+            sk_X509_pop_free (priv->trusted, X509_free);
         }
+
+      priv->anchor_filename = g_strdup (anchor_path);
+      priv->trusted = load_certs (anchor_path);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -468,217 +524,6 @@ g_tls_file_database_openssl_lookup_certificates_issued_by (GTlsDatabase         
   return issued;
 }
 
-static gboolean
-lookup_assertion (GTlsDatabaseOpenssl           *database,
-                  GTlsCertificateOpenssl        *certificate,
-                  GTlsDatabaseOpensslAssertion   assertion,
-                  const gchar                   *purpose,
-                  GSocketConnectable            *identity,
-                  GCancellable                  *cancellable,
-                  GError                       **error)
-{
-  GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
-  GTlsFileDatabaseOpensslPrivate *priv;
-  GBytes *der = NULL;
-  gboolean contains;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return FALSE;
-
-  /* We only have anchored certificate assertions here */
-  if (assertion != G_TLS_DATABASE_OPENSSL_ANCHORED_CERTIFICATE)
-    return FALSE;
-
-  /*
-   * TODO: We should be parsing any Extended Key Usage attributes and
-   * comparing them to the purpose.
-   */
-
-  der = g_tls_certificate_openssl_get_bytes (certificate);
-
-  g_mutex_lock (&priv->mutex);
-  contains = g_hash_table_lookup (priv->complete, der) ? TRUE : FALSE;
-  g_mutex_unlock (&priv->mutex);
-
-  g_bytes_unref (der);
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return FALSE;
-
-  /* All certificates in our file are anchored certificates */
-  return contains;
-}
-
-static gboolean
-is_self_signed (GTlsCertificateOpenssl *certificate)
-{
-  X509 *cert;
-  X509_STORE *store;
-  X509_STORE_CTX *csc;
-  STACK_OF(X509) *trusted;
-  gboolean ret = FALSE;
-
-  store = X509_STORE_new ();
-  csc = X509_STORE_CTX_new ();
-  cert = g_tls_certificate_openssl_get_cert (certificate);
-
-  if (!X509_STORE_CTX_init(csc, store, cert, NULL))
-    goto end;
-
-  trusted = sk_X509_new_null ();
-  sk_X509_push (trusted, cert);
-
-  X509_STORE_CTX_trusted_stack (csc, trusted);
-  X509_STORE_CTX_set_flags (csc, X509_V_FLAG_CHECK_SS_SIGNATURE);
-
-  ret = X509_verify_cert (csc) > 0;
-  sk_X509_free (trusted);
-
-end:
-  X509_STORE_CTX_cleanup (csc);
-  X509_STORE_free (store);
-
-  return ret;
-}
-
-static gint
-build_certificate_chain (GTlsDatabaseOpenssl     *openssl,
-                         GTlsCertificateOpenssl  *chain,
-                         const gchar             *purpose,
-                         GSocketConnectable      *identity,
-                         GTlsInteraction         *interaction,
-                         GTlsDatabaseVerifyFlags  flags,
-                         GCancellable            *cancellable,
-                         GTlsCertificateOpenssl  **anchor,
-                         GError                 **error)
-{
-
-  GTlsCertificateOpenssl *certificate;
-  GTlsCertificateOpenssl *previous;
-  GTlsCertificate *issuer;
-  gboolean certificate_is_from_db;
-
-  g_assert (anchor);
-  g_assert (chain);
-  g_assert (purpose);
-  g_assert (error);
-  g_assert (!*error);
-
-  /*
-   * Remember that the first certificate never changes in the chain.
-   * When we find a self-signed, pinned or anchored certificate, all
-   * issuers are truncated from the chain.
-   */
-
-  *anchor = NULL;
-  previous = NULL;
-  certificate = chain;
-  certificate_is_from_db = FALSE;
-
-  /* First check for pinned certificate */
-  if (lookup_assertion (openssl, certificate,
-                        G_TLS_DATABASE_OPENSSL_PINNED_CERTIFICATE,
-                        purpose, identity, cancellable, error))
-    {
-      g_tls_certificate_openssl_set_issuer (certificate, NULL);
-      return STATUS_PINNED;
-    }
-  else if (*error)
-    {
-      return STATUS_FAILURE;
-    }
-
-  for (;;)
-    {
-      if (g_cancellable_set_error_if_cancelled (cancellable, error))
-        return STATUS_FAILURE;
-
-      /* Look up whether this certificate is an anchor */
-      if (lookup_assertion (openssl, certificate,
-                            G_TLS_DATABASE_OPENSSL_ANCHORED_CERTIFICATE,
-                            purpose, identity, cancellable, error))
-        {
-          g_tls_certificate_openssl_set_issuer (certificate, NULL);
-          *anchor = certificate;
-          return STATUS_ANCHORED;
-        }
-      else if (*error)
-        {
-          return STATUS_FAILURE;
-        }
-
-      /* Is it self-signed? */
-      if (is_self_signed (certificate))
-        {
-          /*
-           * Since at this point we would fail with 'self-signed', can we replace
-           * this certificate with one from the database and do better?
-           */
-          if (previous && !certificate_is_from_db)
-            {
-              issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (openssl),
-                                                                 G_TLS_CERTIFICATE (previous),
-                                                                 interaction,
-                                                                 G_TLS_DATABASE_LOOKUP_NONE,
-                                                                 cancellable, error);
-              if (*error)
-                {
-                  return STATUS_FAILURE;
-                }
-              else if (issuer)
-                {
-                  /* Replaced with certificate in the db, restart step again with this certificate */
-                  g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (issuer), STATUS_FAILURE);
-                  g_tls_certificate_openssl_set_issuer (previous, G_TLS_CERTIFICATE_OPENSSL (issuer));
-                  certificate = G_TLS_CERTIFICATE_OPENSSL (issuer);
-                  certificate_is_from_db = TRUE;
-                  g_object_unref (issuer);
-                  continue;
-                }
-            }
-
-          g_tls_certificate_openssl_set_issuer (certificate, NULL);
-          return STATUS_SELFSIGNED;
-        }
-
-      previous = certificate;
-
-      /* Bring over the next certificate in the chain */
-      issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (certificate));
-      if (issuer)
-        {
-          g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (issuer), STATUS_FAILURE);
-          certificate = G_TLS_CERTIFICATE_OPENSSL (issuer);
-          certificate_is_from_db = FALSE;
-        }
-
-      /* Search for the next certificate in chain */
-      else
-        {
-          issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (openssl),
-                                                             G_TLS_CERTIFICATE (certificate),
-                                                             interaction,
-                                                             G_TLS_DATABASE_LOOKUP_NONE,
-                                                             cancellable, error);
-          if (*error)
-            return STATUS_FAILURE;
-          else if (!issuer)
-            return STATUS_INCOMPLETE;
-
-          /* Found a certificate in chain, use for next step */
-          g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (issuer), STATUS_FAILURE);
-          g_tls_certificate_openssl_set_issuer (certificate, G_TLS_CERTIFICATE_OPENSSL (issuer));
-          certificate = G_TLS_CERTIFICATE_OPENSSL (issuer);
-          certificate_is_from_db = TRUE;
-          g_object_unref (issuer);
-        }
-    }
-
-  g_assert_not_reached ();
-}
-
 static GTlsCertificateFlags
 double_check_before_after_dates (GTlsCertificateOpenssl *chain)
 {
@@ -731,36 +576,20 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
                                           GCancellable             *cancellable,
                                           GError                  **error)
 {
-  GTlsDatabaseOpenssl *openssl;
-  GTlsCertificateOpenssl *anchor;
-  STACK_OF(X509) *certs, *anchors;
+  GTlsFileDatabaseOpenssl *file_database;
+  GTlsFileDatabaseOpensslPrivate *priv;
+  STACK_OF(X509) *certs;
   X509_STORE *store;
   X509_STORE_CTX *csc;
   X509 *x;
-  gint status;
   GTlsCertificateFlags result = 0;
-  GError *err = NULL;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (chain),
                         G_TLS_CERTIFICATE_GENERIC_ERROR);
 
-  openssl = G_TLS_DATABASE_OPENSSL (database);
-  anchor = NULL;
+  file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
 
-  status = build_certificate_chain (openssl, G_TLS_CERTIFICATE_OPENSSL (chain), purpose,
-                                    identity, interaction, flags, cancellable, &anchor, &err);
-  if (status == STATUS_FAILURE)
-    {
-      g_propagate_error (error, err);
-      return G_TLS_CERTIFICATE_GENERIC_ERROR;
-    }
-
-  /*
-   * A pinned certificate is verified on its own, without any further
-   * verification.
-   */
-  if (status == STATUS_PINNED)
-      return 0;
+  priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
@@ -771,7 +600,7 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
   csc = X509_STORE_CTX_new ();
 
   x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (chain));
-  if (!X509_STORE_CTX_init(csc, store, x, certs))
+  if (!X509_STORE_CTX_init (csc, store, x, certs))
     {
       X509_STORE_CTX_cleanup (csc);
       X509_STORE_free (store);
@@ -779,14 +608,10 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
       return G_TLS_CERTIFICATE_GENERIC_ERROR;
     }
 
-  if (anchor)
+  if (priv->trusted)
     {
-      g_assert (g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (anchor)) == NULL);
-      anchors = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (anchor));
-      X509_STORE_CTX_trusted_stack (csc, anchors);
+      X509_STORE_CTX_trusted_stack (csc, priv->trusted);
     }
-  else
-    anchors = NULL;
 
   if (X509_verify_cert (csc) <= 0)
     result = g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (csc));
@@ -794,8 +619,6 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
   X509_STORE_CTX_cleanup (csc);
   X509_STORE_free (store);
   sk_X509_free (certs);
-  if (anchors)
-    sk_X509_free (anchors);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
