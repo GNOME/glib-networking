@@ -213,7 +213,7 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 /* First field is "fallback", second is "allow unsafe rehandshaking" */
 static gnutls_priority_t priorities[2][2];
 
-#define DEFAULT_BASE_PRIORITY "NORMAL:%COMPAT:%LATEST_RECORD_VERSION"
+#define DEFAULT_BASE_PRIORITY "NORMAL:%COMPAT"
 
 static void
 g_tls_connection_gnutls_init_priorities (void)
@@ -255,24 +255,11 @@ g_tls_connection_gnutls_init_priorities (void)
     }
   else
     {
-      gchar *cleaned_base, *p, *rest;
-
-      /* fallback_priority should be based on base_priority, except
-       * that we don't want %LATEST_RECORD_VERSION in it.
-       */
-      cleaned_base = g_strdup (base_priority);
-      p = strstr (cleaned_base, ":%LATEST_RECORD_VERSION");
-      if (p)
-	{
-	  rest = p + strlen (":%LATEST_RECORD_VERSION");
-	  memmove (p, rest, strlen (rest) + 1);
-	}
-
+      /* %COMPAT is intentionally duplicated here, to ensure it gets added for
+       * the fallback even if the default priority has been changed. */
       fallback_priority = g_strdup_printf ("%s:%%COMPAT:!VERS-TLS-ALL:+VERS-%s",
-					   cleaned_base,
+					   DEFAULT_BASE_PRIORITY,
 					   gnutls_protocol_get_name (fallback_proto));
-
-      g_free (cleaned_base);
     }
   fallback_unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION",
 							  fallback_priority);
