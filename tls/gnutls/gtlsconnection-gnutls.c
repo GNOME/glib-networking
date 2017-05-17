@@ -784,7 +784,6 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       if (g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_FAILED) ||
 	  g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE) ||
 	  status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
-	  status == GNUTLS_E_FATAL_ALERT_RECEIVED ||
 	  status == GNUTLS_E_DECRYPTION_FAILED ||
 	  status == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
 	{
@@ -846,6 +845,13 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
                            _("TLS connection peer did not send a certificate"));
+      return status;
+    }
+  else if (status == GNUTLS_E_FATAL_ALERT_RECEIVED)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+		   _("Peer sent fatal TLS alert: %s"),
+		   gnutls_alert_get_name (gnutls_alert_get (gnutls->priv->session)));
       return status;
     }
 
