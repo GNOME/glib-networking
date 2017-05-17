@@ -316,7 +316,7 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
       if (!X509_STORE_CTX_init (csc, store, x, untrusted))
         {
           sk_X509_free (untrusted);
-          X509_STORE_CTX_cleanup (csc);
+          X509_STORE_CTX_free (csc);
           X509_STORE_free (store);
           return G_TLS_CERTIFICATE_GENERIC_ERROR;
         }
@@ -334,7 +334,7 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
         gtls_flags |= g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (csc));
 
       sk_X509_free (trusted);
-      X509_STORE_CTX_cleanup (csc);
+      X509_STORE_CTX_free (csc);
       X509_STORE_free (store);
     }
 
@@ -639,7 +639,7 @@ is_issuer (GTlsCertificateOpenssl *cert,
   sk_X509_free (trusted);
 
 end:
-  X509_STORE_CTX_cleanup (csc);
+  X509_STORE_CTX_free (csc);
   X509_STORE_free (store);
 
   return ret;

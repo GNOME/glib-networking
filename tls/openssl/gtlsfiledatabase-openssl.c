@@ -602,7 +602,7 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
   x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (chain));
   if (!X509_STORE_CTX_init (csc, store, x, certs))
     {
-      X509_STORE_CTX_cleanup (csc);
+      X509_STORE_CTX_free (csc);
       X509_STORE_free (store);
       sk_X509_free (certs);
       return G_TLS_CERTIFICATE_GENERIC_ERROR;
@@ -616,7 +616,7 @@ g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
   if (X509_verify_cert (csc) <= 0)
     result = g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (csc));
 
-  X509_STORE_CTX_cleanup (csc);
+  X509_STORE_CTX_free (csc);
   X509_STORE_free (store);
   sk_X509_free (certs);
 
