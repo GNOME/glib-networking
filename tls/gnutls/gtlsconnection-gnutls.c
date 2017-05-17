@@ -1691,9 +1691,9 @@ g_tls_connection_gnutls_close (GIOStream     *stream,
                                GCancellable  *cancellable,
                                GError       **error)
 {
-	return g_tls_connection_gnutls_close_internal (stream,
-	                                               G_TLS_DIRECTION_BOTH,
-	                                               cancellable, error);
+  return g_tls_connection_gnutls_close_internal (stream,
+	                                         G_TLS_DIRECTION_BOTH,
+	                                         cancellable, error);
 }
 
 /* We do async close as synchronous-in-a-thread so we don't need to
