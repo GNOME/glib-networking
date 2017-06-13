@@ -36,6 +36,9 @@ libgioopenssl_la_LIBADD =		\
 	$(OPENSSL_LIBS)			\
 	$(NULL)
 
+EXTRA_DIST += \
+	meson.build
+
 # MSVC Projects
 
 MSVCPROJS = libgioopenssl

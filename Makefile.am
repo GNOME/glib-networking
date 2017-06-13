@@ -20,4 +20,7 @@ EXTRA_DIST +=			\
 	tap-test		\
 	config.h.win32.in	\
 	config.h.win32		\
+	meson.build		\
+	meson_options.txt	\
+	po/meson.build		\
 	$(NULL)

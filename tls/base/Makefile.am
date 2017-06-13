@@ -14,6 +14,9 @@ libtlsbase_la_SOURCES = 		\
 libtlsbase_la_LDFLAGS = $(module_flags)
 libtlsbase_la_LIBADD = $(GLIB_LIBS)
 
+EXTRA_DIST += \
+	meson.build
+
 # MSVC Projects
 
 MSVCPROJS = tlsbase
