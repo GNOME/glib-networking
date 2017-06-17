@@ -1,7 +1,7 @@
 project('glib-openssl', 'c',
-  version: '2.50.3',
-  meson_version: '>= 0.38.0'
-)
+        version: '2.50.3',
+        license: 'LGPL2+',
+        meson_version: '>= 0.38.0')
 
 cc = meson.get_compiler('c')
 
