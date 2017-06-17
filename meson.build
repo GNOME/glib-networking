@@ -111,10 +111,8 @@ if with_openssl
   endif
 endif
 
-configure_file(
-  output: 'config.h',
-  configuration: config_h,
-)
+configure_file(output: 'config.h',
+               configuration: config_h)
 config_h_include = include_directories('.')
 
 subdir('tls/base')
@@ -124,4 +122,7 @@ subdir('po')
 
 meson.add_install_script(join_paths('mesonscripts', 'post_install.py'))
 
-run_target('release', command: [join_paths('mesonscripts', 'release.sh'), meson.project_name(), meson.project_version()])
+run_target('release',
+           command: [join_paths('mesonscripts', 'release.sh'),
+                     meson.project_name(),
+                     meson.project_version()])
