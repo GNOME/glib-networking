@@ -1,7 +1,7 @@
 AC_PREREQ(2.65)
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_INIT([glib-openssl],[2.50.2],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib-openssl])
+AC_INIT([glib-openssl],[2.50.3],[http://bugzilla.gnome.org/enter_bug.cgi?product=glib-openssl])
 
 AC_CONFIG_SRCDIR([tls/openssl/gtlsbackend-openssl.h])
 AC_CONFIG_HEADERS([config.h])
