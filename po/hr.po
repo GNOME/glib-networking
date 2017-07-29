@@ -6,16 +6,18 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2016-08-15 17:53-0400\n"
-"PO-Revision-Date: 2016-10-13 18:54+0000\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2017-05-23 15:17+0000\n"
+"PO-Revision-Date: 2017-07-29 19:26+0200\n"
 "Last-Translator: gogo <trebelnik2@gmail.com>\n"
 "Language-Team: Croatian <hr@li.org>\n"
+"Language: hr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Launchpad-Export-Date: 2017-04-10 14:16+0000\n"
-"X-Generator: Launchpad (build 18343)\n"
+"X-Generator: Poedit 2.0.3\n"
 
 #: proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
@@ -49,62 +51,67 @@ msgstr "Nema pruženih podataka vjerodajnica"
 msgid "Server required TLS certificate"
 msgstr "Poslužitelj zahtijeva TLS vjerodajnicu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:323
+#: tls/gnutls/gtlsconnection-gnutls.c:310
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nemoguće stvaranje TLS povezivanja: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:585
+#: tls/gnutls/gtlsconnection-gnutls.c:572
 msgid "Connection is closed"
 msgstr "Povezivanje je zatvoreno"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:658
-#: tls/gnutls/gtlsconnection-gnutls.c:1537
+#: tls/gnutls/gtlsconnection-gnutls.c:645
+#: tls/gnutls/gtlsconnection-gnutls.c:1528
 msgid "Operation would block"
 msgstr "Radnja će blokirati"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:808
-#: tls/gnutls/gtlsconnection-gnutls.c:847
+#: tls/gnutls/gtlsconnection-gnutls.c:792
+#: tls/gnutls/gtlsconnection-gnutls.c:831
 msgid "Peer failed to perform TLS handshake"
 msgstr "Čvor je odbio izvesti TLS rukovanje"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:826
+#: tls/gnutls/gtlsconnection-gnutls.c:810
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Čvor zahtjeva ilegalno TLS ponovno rukovanje"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:853
+#: tls/gnutls/gtlsconnection-gnutls.c:837
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS povezivanje je neočekivano zatvoreno"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:863
+#: tls/gnutls/gtlsconnection-gnutls.c:847
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS čvor povezivanja nije poslao vjerodajnicu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1250
-#: tls/gnutls/gtlsconnection-gnutls.c:1283
+#: tls/gnutls/gtlsconnection-gnutls.c:853
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Kobno slanje točke TLS upozorenje: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1274
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Greška izvođenja TLS rukovanja: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1293
+#: tls/gnutls/gtlsconnection-gnutls.c:1284
 msgid "Server did not return a valid TLS certificate"
 msgstr "Poslužitelj nije vratio valjanu TLS vjerodajnicu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1363
+#: tls/gnutls/gtlsconnection-gnutls.c:1354
 msgid "Unacceptable TLS certificate"
 msgstr "Neprihvatljiva TLS vjerodajnica"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1571
+#: tls/gnutls/gtlsconnection-gnutls.c:1562
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Greška čitanja podataka iz TLS priključnice: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1600
+#: tls/gnutls/gtlsconnection-gnutls.c:1591
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Greška zapisivanja podataka iz TLS priključnice: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1664
+#: tls/gnutls/gtlsconnection-gnutls.c:1655
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Greška izvođenja TLS zatvaranja: %s"
