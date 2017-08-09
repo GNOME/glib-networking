@@ -1,15 +1,16 @@
 # Polish translation for glib-networking.
-# Copyright © 2011-2016 the glib-networking authors.
+# Copyright © 2011-2017 the glib-networking authors.
 # This file is distributed under the same license as the glib-networking package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2011-2016.
-# Aviary.pl <community-poland@mozilla.org>, 2011-2016.
+# Piotr Drąg <piotrdrag@gmail.com>, 2011-2017.
+# Aviary.pl <community-poland@mozilla.org>, 2011-2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-15 21:53+0000\n"
-"PO-Revision-Date: 2016-08-16 10:35+0200\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2017-05-23 15:17+0000\n"
+"PO-Revision-Date: 2017-08-09 23:40+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -51,62 +52,67 @@ msgstr "Nie podano danych certyfikatu"
 msgid "Server required TLS certificate"
 msgstr "Serwer wymaga certyfikatu TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:323
+#: tls/gnutls/gtlsconnection-gnutls.c:310
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nie można utworzyć połączenia TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:585
+#: tls/gnutls/gtlsconnection-gnutls.c:572
 msgid "Connection is closed"
 msgstr "Połączenie jest zamknięte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:658
-#: tls/gnutls/gtlsconnection-gnutls.c:1537
+#: tls/gnutls/gtlsconnection-gnutls.c:645
+#: tls/gnutls/gtlsconnection-gnutls.c:1528
 msgid "Operation would block"
 msgstr "Działanie zablokowałoby"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:808
-#: tls/gnutls/gtlsconnection-gnutls.c:847
+#: tls/gnutls/gtlsconnection-gnutls.c:792
+#: tls/gnutls/gtlsconnection-gnutls.c:831
 msgid "Peer failed to perform TLS handshake"
 msgstr "Wykonanie powitania TLS przez partnera się nie powiodło"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:826
+#: tls/gnutls/gtlsconnection-gnutls.c:810
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Partner zażądał niedozwolonego ponownego powitania TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:853
+#: tls/gnutls/gtlsconnection-gnutls.c:837
 msgid "TLS connection closed unexpectedly"
 msgstr "Połączenie TLS zostało nieoczekiwanie zamknięte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:863
+#: tls/gnutls/gtlsconnection-gnutls.c:847
 msgid "TLS connection peer did not send a certificate"
 msgstr "Partner połączenia TLS nie wysłał certyfikatu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1250
-#: tls/gnutls/gtlsconnection-gnutls.c:1283
+#: tls/gnutls/gtlsconnection-gnutls.c:853
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Partner wysłał krytyczny alarm TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1274
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Błąd podczas wykonywania powitania TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1293
+#: tls/gnutls/gtlsconnection-gnutls.c:1284
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serwer nie zwrócił prawidłowego certyfikatu TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1363
+#: tls/gnutls/gtlsconnection-gnutls.c:1354
 msgid "Unacceptable TLS certificate"
 msgstr "Nieakceptowalny certyfikat TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1571
+#: tls/gnutls/gtlsconnection-gnutls.c:1562
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Błąd podczas odczytywania danych z gniazda TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1600
+#: tls/gnutls/gtlsconnection-gnutls.c:1591
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Błąd podczas zapisywania danych do gniazda TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1664
+#: tls/gnutls/gtlsconnection-gnutls.c:1655
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Błąd podczas wykonywania zamknięcia TLS: %s"
