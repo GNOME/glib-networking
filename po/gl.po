@@ -5,122 +5,126 @@
 # Proxecto Trasno - Adaptación do software libre á lingua galega:  Se desexas
 # colaborar connosco, podes atopar máis información en <http://trasno.net>
 # Fran Diéguez <frandieguez@ubuntu.com>, 2011.
-# Fran Dieguez <frandieguez@gnome.org>, 2011, 2012.
+# Fran Dieguez <frandieguez@gnome.org>, 2011, 2012, 2017.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-12-24 22:51+0100\n"
-"PO-Revision-Date: 2012-12-24 22:52+0200\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib&k"
+"eywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2017-05-23 15:17+0000\n"
+"PO-Revision-Date: 2017-08-09 17:25+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
-"Language-Team: gnome-l10n-gl@gnome.org\n"
+"Language-Team: Galician\n"
 "Language: gl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Virtaal 0.7.1\n"
+"X-Project-Style: gnome\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:150
+#: proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
 msgstr "Erro interno do resolvedor de proxy."
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#: tls/gnutls/gtlscertificate-gnutls.c:176
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Non foi posíbel analizar o certificado DER: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#: tls/gnutls/gtlscertificate-gnutls.c:197
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Non foi posíbel analizar o certificado PEM: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:225
+#: tls/gnutls/gtlscertificate-gnutls.c:228
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Non foi posíbel analizar a chave privada DER: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:256
+#: tls/gnutls/gtlscertificate-gnutls.c:259
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Non foi posíbel analizar a chave privada PEM: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:296
+#: tls/gnutls/gtlscertificate-gnutls.c:299
 msgid "No certificate data provided"
 msgstr "Non se forneceu ningún dato do certificado"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
+#: tls/gnutls/gtlsclientconnection-gnutls.c:375
 msgid "Server required TLS certificate"
 msgstr "O servidor require un certificado TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:257
+#: tls/gnutls/gtlsconnection-gnutls.c:310
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Non foi posíbel crear a conexión TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:518
+#: tls/gnutls/gtlsconnection-gnutls.c:572
 msgid "Connection is closed"
 msgstr "A conexión está pechada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:580
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1417
+#: tls/gnutls/gtlsconnection-gnutls.c:645
+#: tls/gnutls/gtlsconnection-gnutls.c:1528
 msgid "Operation would block"
 msgstr "A operación bloquearase"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:710
+#: tls/gnutls/gtlsconnection-gnutls.c:792
+#: tls/gnutls/gtlsconnection-gnutls.c:831
 msgid "Peer failed to perform TLS handshake"
 msgstr "O par fallou ao realizar a negociación TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:727
+#: tls/gnutls/gtlsconnection-gnutls.c:810
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "O par solicitou unha renegociación TLS inaceptábel"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:753
+#: tls/gnutls/gtlsconnection-gnutls.c:837
 msgid "TLS connection closed unexpectedly"
 msgstr "A conexión TLS pechouse de forma inesperada"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:763
+#: tls/gnutls/gtlsconnection-gnutls.c:847
 msgid "TLS connection peer did not send a certificate"
 msgstr "O par da conexión TLS non enviou un certificado"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1144
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1163
+#: tls/gnutls/gtlsconnection-gnutls.c:853
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "O par envióu unha alerta TLS fatal: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1274
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Produciuse un erro ao realizar a negociación TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1173
+#: tls/gnutls/gtlsconnection-gnutls.c:1284
 msgid "Server did not return a valid TLS certificate"
 msgstr "O servidor non devolveu un certificado TLS válido"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1248
+#: tls/gnutls/gtlsconnection-gnutls.c:1354
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceptábel"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1440
+#: tls/gnutls/gtlsconnection-gnutls.c:1562
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Produciuse un erro ao ler datos do conectador TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1469
+#: tls/gnutls/gtlsconnection-gnutls.c:1591
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Produciuse un erro ao escribir datos no conectador TLS: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1513
-msgid "Connection is already closed"
-msgstr "A conexión está pechada"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1523
+#: tls/gnutls/gtlsconnection-gnutls.c:1655
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Produciuse un erro ao realizar o peche de TLS: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+#: tls/gnutls/gtlsserverconnection-gnutls.c:107
 msgid "Certificate has no private key"
 msgstr "O certificado no ten unha chave privada"
 
-#: ../tls/pkcs11/gpkcs11pin.c:108
+#: tls/pkcs11/gpkcs11pin.c:111
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
@@ -128,7 +132,7 @@ msgstr ""
 "Esta é a última oportunidade para escribir o PIN correctamente antes de que "
 "o token está bloqueado."
 
-#: ../tls/pkcs11/gpkcs11pin.c:110
+#: tls/pkcs11/gpkcs11pin.c:113
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
@@ -136,22 +140,25 @@ msgstr ""
 "Varios intentos de introducir o PIN foron incorrectos e o «token» "
 "bloquearase despois de máis fallos."
 
-#: ../tls/pkcs11/gpkcs11pin.c:112
+#: tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
 msgstr "O PIN escrito é incorrecto."
 
-#: ../tls/pkcs11/gpkcs11slot.c:446
+#: tls/pkcs11/gpkcs11slot.c:449
 msgid "Module"
 msgstr "Módulo"
 
-#: ../tls/pkcs11/gpkcs11slot.c:447
+#: tls/pkcs11/gpkcs11slot.c:450
 msgid "PKCS#11 Module Pointer"
 msgstr "Punteiro do módulo PKCS#11"
 
-#: ../tls/pkcs11/gpkcs11slot.c:454
+#: tls/pkcs11/gpkcs11slot.c:457
 msgid "Slot ID"
 msgstr "ID da ranura"
 
-#: ../tls/pkcs11/gpkcs11slot.c:455
+#: tls/pkcs11/gpkcs11slot.c:458
 msgid "PKCS#11 Slot Identifier"
 msgstr "Identificador da ranura PKCS#11"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "A conexión está pechada"
