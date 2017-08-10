@@ -99,7 +99,7 @@ if with_openssl
       detect_certificates = run_command(join_paths(meson.source_root(), 'mesonscripts', 'detect_certificates.py'))
 
       if detect_certificates.returncode() == 1
-        error('Could not find certificates. Use --with-ca-certificates=path to set, or --with-ca-certificates=no to disable it')
+        error('Could not find certificates. Use -Dwith-ca-certificates=path to set, or -Dwith-ca-certificates=no to disable it')
       endif
 
       ca_certificates = detect_certificates.stdout().strip()
