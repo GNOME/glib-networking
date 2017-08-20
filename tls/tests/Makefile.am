@@ -72,4 +72,7 @@ testfilesdir = $(installed_testdir)/files
 testfiles_DATA = $(testfiles_data)
 endif
 
-EXTRA_DIST += $(testfiles_data)
+EXTRA_DIST +=			\
+	$(testfiles_data)	\
+	meson.build		\
+	$(NULL)

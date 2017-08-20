@@ -14,3 +14,5 @@ libgiognomeproxy_la_LDFLAGS = $(module_flags)
 libgiognomeproxy_la_LIBADD =		\
 	$(GLIB_LIBS)			\
 	$(NULL)
+
+EXTRA_DIST += meson.build

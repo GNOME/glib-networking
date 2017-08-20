@@ -58,3 +58,5 @@ libgiognutls_la_LIBADD =		\
 	$(GLIB_LIBS)			\
 	$(GNUTLS_LIBS)			\
 	$(NULL)
+
+EXTRA_DIST += meson.build

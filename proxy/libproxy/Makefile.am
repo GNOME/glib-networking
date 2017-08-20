@@ -50,3 +50,5 @@ CLEANFILES += $(systemd_user_DATA)
 
 glib-pacrunner.service: glib-pacrunner.service.in Makefile
 	$(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
+
+EXTRA_DIST += meson.build

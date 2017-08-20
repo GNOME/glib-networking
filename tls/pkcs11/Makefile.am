@@ -22,3 +22,5 @@ libgiopkcs11_la_LIBADD =			\
 AM_CPPFLAGS +=					\
 	$(PKCS11_CFLAGS)			\
 	-DG_DISABLE_DEPRECATED
+
+EXTRA_DIST += meson.build

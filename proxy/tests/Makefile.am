@@ -19,4 +19,6 @@ if HAVE_LIBPROXY
 test_programs += libproxy
 endif
 
-EXTRA_DIST += common.c
+EXTRA_DIST +=		\
+	common.c	\
+	meson.build

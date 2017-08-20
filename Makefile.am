@@ -34,7 +34,13 @@ uninstall-hook:
 		$(GIO_QUERYMODULES) $(GIO_MODULE_DIR) ;           \
 	fi
 
-EXTRA_DIST +=		\
-	tap-driver.sh	\
-	tap-test	\
+EXTRA_DIST +=			\
+	tap-driver.sh		\
+	tap-test		\
+	meson.build		\
+	meson_options.txt	\
+	meson_post_install.py	\
+	glib-networking.map	\
+	template.test.in	\
+	po/meson.build		\
 	$(NULL)
