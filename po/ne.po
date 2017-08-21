@@ -1,0 +1,153 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Gnome Nepali Translation Project\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2017-08-09 22:34+0000\n"
+"PO-Revision-Date: 2017-08-21 12:59+0545\n"
+"Language-Team: Nepali Translation Team <chautari@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.3\n"
+"Last-Translator: Pawan Chitrakar <chautari@gmail.com>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: ne\n"
+
+#: proxy/libproxy/glibproxyresolver.c:157
+msgid "Proxy resolver internal error."
+msgstr "प्रोक्सी हलकर्ता आन्तरिक त्रुटि।"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:176
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "DER प्रमाणपत्र पार्स गर्न सकेन:% s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:197
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "PEM प्रमाणपत्र पार्स गर्न सकेन:% s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:228
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "DER निजी कुञ्जी पार्स गर्न सकेन:%s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:259
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr ""
+
+#: tls/gnutls/gtlscertificate-gnutls.c:299
+msgid "No certificate data provided"
+msgstr "प्रमाणपत्र डाटा उपलब्ध छैन"
+
+#: tls/gnutls/gtlsclientconnection-gnutls.c:375
+msgid "Server required TLS certificate"
+msgstr "सर्भर TLS प्रमाणपत्र आवश्यक "
+
+#: tls/gnutls/gtlsconnection-gnutls.c:310
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "TLS जडान सिर्जना गर्न सकेन: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:572
+msgid "Connection is closed"
+msgstr "जडान बन्द भयो"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:645
+#: tls/gnutls/gtlsconnection-gnutls.c:1528
+msgid "Operation would block"
+msgstr "सञ्चालन ब्लक थियो"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:792
+#: tls/gnutls/gtlsconnection-gnutls.c:831
+msgid "Peer failed to perform TLS handshake"
+msgstr "समान TLS ह्यान्डशेक गर्न असफल भयो"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:810
+msgid "Peer requested illegal TLS rehandshake"
+msgstr ""
+
+#: tls/gnutls/gtlsconnection-gnutls.c:837
+msgid "TLS connection closed unexpectedly"
+msgstr "TLS जडान अकस्मात बन्द भयो"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:847
+msgid "TLS connection peer did not send a certificate"
+msgstr "समान TLS जडानले प्रमाणपत्र पठाएनन्"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:853
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr ""
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1274
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "TLS ह्यान्डशेक गर्दा त्रुटि: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1284
+msgid "Server did not return a valid TLS certificate"
+msgstr "सर्भरले वैध TLS प्रमाणपत्र फर्काउन सकेन"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1354
+msgid "Unacceptable TLS certificate"
+msgstr "अमान्य TLS प्रमाणपत्र"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1562
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "TLS सकेटबाट डाटा पढ्दा त्रुटि: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1591
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "TLS सकेटमा डाटा लेख्दा त्रुटि: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1655
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "TLS बन्द गर्दा त्रुटि: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:107
+msgid "Certificate has no private key"
+msgstr "प्रमाणपत्रमा निजी कुञ्जी छैन"
+
+#: tls/pkcs11/gpkcs11pin.c:111
+msgid ""
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
+msgstr "टोकन बन्द हुन यो पिन प्रविष्ट गर्न अन्तिम मौका हो।"
+
+#: tls/pkcs11/gpkcs11pin.c:113
+msgid ""
+"Several PIN attempts have been incorrect, and the token will be locked after "
+"further failures."
+msgstr "धेरै पिन प्रयास गलत छ, र अर्को असफलता पछि टोकन बन्द गरिनेछ।"
+
+#: tls/pkcs11/gpkcs11pin.c:115
+msgid "The PIN entered is incorrect."
+msgstr "प्रविष्ट पिन मिलेन"
+
+#: tls/pkcs11/gpkcs11slot.c:449
+msgid "Module"
+msgstr "मोड्युल"
+
+#: tls/pkcs11/gpkcs11slot.c:450
+msgid "PKCS#11 Module Pointer"
+msgstr ""
+
+#: tls/pkcs11/gpkcs11slot.c:457
+msgid "Slot ID"
+msgstr "स्लटआईडी"
+
+#: tls/pkcs11/gpkcs11slot.c:458
+msgid "PKCS#11 Slot Identifier"
+msgstr ""
