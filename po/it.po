@@ -1,25 +1,25 @@
 # glib-networking Italian translation
-# Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc
+# Copyright (C) 2011, 2012, 2013, 2016, 2017 Free Software Foundation, Inc
 # This file is distributed under the same license as the glib-networking package.
 # Luca Ferretti <lferrett@gnome.org>, 2011, 2012.
-# Milo Casagrande <milo@ubuntu.com>, 2013.
+# Milo Casagrande <milo@ubuntu.com>, 2013, 2017.
 # Gianvito Cavasoli <gianvito@gmx.it>, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2016-08-15 21:53+0000\n"
-"PO-Revision-Date: 2016-12-15 15:31+0100\n"
-"Last-Translator: Gianvito Cavasoli <gianvito@gmx.it>\n"
+"POT-Creation-Date: 2017-05-23 15:17+0000\n"
+"PO-Revision-Date: 2017-08-23 09:44+0200\n"
+"Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italiano <gnome-it-list@gnome.org>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Gtranslator 2.91.7\n"
+"X-Generator: Poedit 1.8.12\n"
 
 #: proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
@@ -53,62 +53,67 @@ msgstr "Nessun dato di certificato fornito"
 msgid "Server required TLS certificate"
 msgstr "Il server richiede un certificato TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:323
+#: tls/gnutls/gtlsconnection-gnutls.c:310
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Impossibile creare la connessione TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:585
+#: tls/gnutls/gtlsconnection-gnutls.c:572
 msgid "Connection is closed"
 msgstr "La connessione è chiusa"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:658
-#: tls/gnutls/gtlsconnection-gnutls.c:1537
+#: tls/gnutls/gtlsconnection-gnutls.c:645
+#: tls/gnutls/gtlsconnection-gnutls.c:1528
 msgid "Operation would block"
 msgstr "L'operazione potrebbe bloccarsi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:808
-#: tls/gnutls/gtlsconnection-gnutls.c:847
+#: tls/gnutls/gtlsconnection-gnutls.c:792
+#: tls/gnutls/gtlsconnection-gnutls.c:831
 msgid "Peer failed to perform TLS handshake"
 msgstr "Il nodo non è stato in grado di eseguire l'handshake TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:826
+#: tls/gnutls/gtlsconnection-gnutls.c:810
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Il nodo ha richesto un re-handshake non lecito"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:853
+#: tls/gnutls/gtlsconnection-gnutls.c:837
 msgid "TLS connection closed unexpectedly"
 msgstr "La connessione TLS si è chiusa in modo inatteso"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:863
+#: tls/gnutls/gtlsconnection-gnutls.c:847
 msgid "TLS connection peer did not send a certificate"
 msgstr "Il nodo di connessione TLS non ha inviato un certificato"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1250
-#: tls/gnutls/gtlsconnection-gnutls.c:1283
+#: tls/gnutls/gtlsconnection-gnutls.c:853
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Il nodo ha inviato un avviso TLS fatale: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1274
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Errore nell'eseguire l'handshake TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1293
+#: tls/gnutls/gtlsconnection-gnutls.c:1284
 msgid "Server did not return a valid TLS certificate"
 msgstr "Il server non ha restituito un certificato TLS valido"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1363
+#: tls/gnutls/gtlsconnection-gnutls.c:1354
 msgid "Unacceptable TLS certificate"
 msgstr "Certificato TLS inammissibile"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1571
+#: tls/gnutls/gtlsconnection-gnutls.c:1562
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Errore nel leggere dati dal socket TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1600
+#: tls/gnutls/gtlsconnection-gnutls.c:1591
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Errore nello scrivere dati sul socket TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1664
+#: tls/gnutls/gtlsconnection-gnutls.c:1655
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Errore nell'eseguire la chiusura TLS: %s"
