@@ -1,17 +1,17 @@
 # Danish translation for glib-networking.
-# Copyright (C) 2011-2013 glib-networking's COPYRIGHT HOLDER
+# Copyright (C) 2011-2013, 2017 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
 # Kris Thomsen <lakristho@gmail.com>, 2011.
-# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-2013.
+# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-2013, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: "
-"https://bugzilla.gnome.org/enter_bug.cgi?product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2017-05-23 15:17+0000\n"
-"PO-Revision-Date: 2013-03-16 17:43+0100\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2017-08-26 16:44+0000\n"
+"PO-Revision-Date: 2017-08-28 23:02+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -86,7 +86,7 @@ msgstr "TLS-modpart sendte ikke noget certifikat"
 #: tls/gnutls/gtlsconnection-gnutls.c:853
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
-msgstr ""
+msgstr "Peer sendte fatal TLS-alarm: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1241
 #: tls/gnutls/gtlsconnection-gnutls.c:1274
@@ -159,5 +159,3 @@ msgstr "PKCS#11 plads-identifikation"
 
 #~ msgid "Connection is already closed"
 #~ msgstr "Forbindelsen er allerede lukket"
-
-
