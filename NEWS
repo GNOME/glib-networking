@@ -1,6 +1,13 @@
+2.54.0
+======
+  * New/updated translations: Basque, Belarusian, Brazilian
+    Portuguese, Bulgarian, Catalan, Chinese (Taiwan), Danish, Danish,
+    Dutch, French, Galician, Hungarian, Italian, Korean, Latvian,
+    Lithuanian, Malayalam, Nepali, Polish, Serbian, Slovak, Swedish,
+    Turkish
+
 2.53.90
 =======
-
   * gnutls: Stop using %LATEST_RECORD_VERSION in priority string,
     since that gives better compatibility with current gnutls /
     current real world. [#782218, Michael Catanzaro]
