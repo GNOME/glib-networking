@@ -45,6 +45,27 @@ enum
   PROP_AUTHENTICATION_MODE
 };
 
+static const gchar DEFAULT_CIPHER_LIST[] =
+  "ECDHE-RSA-AES128-SHA:"
+  "ECDHE-RSA-AES128-GCM-SHA256:"
+  "ECDHE-RSA-AES256-GCM-SHA384:"
+  "ECDHE-RSA-AES128-SHA256:"
+  "ECDHE-RSA-AES256-SHA:"
+  "ECDHE-RSA-AES256-SHA384:"
+  "AES128-SHA:"
+  "AES128-GCM-SHA256:"
+  "AES256-GCM-SHA384:"
+  "AES128-SHA256:"
+  "AES256-SHA:"
+  "AES256-SHA256:"
+  "DHE-RSA-AES128-SHA:"
+  "DHE-RSA-AES128-GCM-SHA256:"
+  "DHE-RSA-AES256-GCM-SHA384:"
+  "DHE-RSA-AES128-SHA256:"
+  "DHE-RSA-AES256-SHA:"
+  "DHE-RSA-AES256-SHA256:"
+  "DES-CBC3-SHA";
+
 static void g_tls_server_connection_openssl_initable_interface_init (GInitableIface  *iface);
 
 static void g_tls_server_connection_openssl_server_connection_interface_init (GTlsServerConnectionInterface *iface);
@@ -289,7 +310,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
 
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
-  SSL_CTX_set_cipher_list (priv->ssl_ctx, "HIGH:!DSS:!aNULL@STRENGTH");
+  SSL_CTX_set_cipher_list (priv->ssl_ctx, DEFAULT_CIPHER_LIST);
 
   priv->ssl = SSL_new (priv->ssl_ctx);
   if (priv->ssl == NULL)
