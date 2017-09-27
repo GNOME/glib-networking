@@ -230,9 +230,11 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
       return FALSE;
     }
 
-  options = SSL_OP_NO_TICKET;
+  options = SSL_OP_NO_TICKET |
+            SSL_OP_NO_SSLv2 |
+            SSL_OP_NO_SSLv3;
 
-  /* Only TLS 1.2 or higher */
+  /* Only TLS 1.0 or higher */
   SSL_CTX_set_options (priv->ssl_ctx, options);
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
