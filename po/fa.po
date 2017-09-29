@@ -6,10 +6,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2012-11-29 22:09+0000\n"
-"PO-Revision-Date: 2013-03-23 18:10+0330\n"
+"POT-Creation-Date: 2017-05-23 15:17+0000\n"
+"PO-Revision-Date: 2017-09-30 00:38+0330\n"
 "Last-Translator: Arash Mousavi <mousavi.arash@gmail.com>\n"
 "Language-Team: Persian\n"
 "Language: fa\n"
@@ -17,116 +17,116 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 2.0.4\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:150
+#: proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
 msgstr "خطای داخلی تحلیل‌گر پیشکار."
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#: tls/gnutls/gtlscertificate-gnutls.c:176
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "تجزیه گواهینامه DER امکان‌پذیر نبود: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#: tls/gnutls/gtlscertificate-gnutls.c:197
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "تجزیه گواهینامه PEM امکان‌پذیر نبود: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:225
+#: tls/gnutls/gtlscertificate-gnutls.c:228
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "تجزیه کلید خصوصی DER امکان‌پذیر نبود: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:256
+#: tls/gnutls/gtlscertificate-gnutls.c:259
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "تجزیه کلید خصوصی PEM امکان‌پذیر نبود: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:296
+#: tls/gnutls/gtlscertificate-gnutls.c:299
 msgid "No certificate data provided"
 msgstr "هیچ اطلاعات گواهینامه‌ای ارائه نشده"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
+#: tls/gnutls/gtlsclientconnection-gnutls.c:375
 msgid "Server required TLS certificate"
 msgstr "کارگزار به گواهینامه TLS احتیاج دارد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
+#: tls/gnutls/gtlsconnection-gnutls.c:310
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "نمی‌توان اتصال TLS ایجاد کرد: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+#: tls/gnutls/gtlsconnection-gnutls.c:572
 msgid "Connection is closed"
 msgstr "اتصال بسته شده است"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:576
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1382
+#: tls/gnutls/gtlsconnection-gnutls.c:645
+#: tls/gnutls/gtlsconnection-gnutls.c:1528
 msgid "Operation would block"
 msgstr "عملیات می‌تواند بلوکه شود"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:703
+#: tls/gnutls/gtlsconnection-gnutls.c:792
+#: tls/gnutls/gtlsconnection-gnutls.c:831
 msgid "Peer failed to perform TLS handshake"
 msgstr "برقراری TLS handshake توسط همتا شکست خورد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:720
+#: tls/gnutls/gtlsconnection-gnutls.c:810
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "همتا درخواست یک TLS rehandshake غیرقانونی کرده است"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:746
+#: tls/gnutls/gtlsconnection-gnutls.c:837
 msgid "TLS connection closed unexpectedly"
 msgstr "اتصال TLS بطور غیر منتظره‌ای شکست خورد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:756
-#| msgid "TLS connection closed unexpectedly"
+#: tls/gnutls/gtlsconnection-gnutls.c:847
 msgid "TLS connection peer did not send a certificate"
 msgstr "همتا اتصال TLS گواهینامه‌ای ارسال نکرد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1064
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1083
+#: tls/gnutls/gtlsconnection-gnutls.c:853
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "همتا یک هشدارِ جدی TLS ارسال کرد: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1274
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "خطا در هنگام انجام TLS handshake. خطا: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1228
-msgid "Unacceptable TLS certificate"
-msgstr "گواهینامه TLS غیر قابل پذیرش"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1239
-#| msgid "Server required TLS certificate"
+#: tls/gnutls/gtlsconnection-gnutls.c:1284
 msgid "Server did not return a valid TLS certificate"
 msgstr "کارگزار گواهینامه TLS معتبری ارسال نکرد"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1405
+#: tls/gnutls/gtlsconnection-gnutls.c:1354
+msgid "Unacceptable TLS certificate"
+msgstr "گواهینامه TLS غیر قابل پذیرش"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1562
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "خطا در هنگام هواندن اطلاعات از طریق سوکت TLS. خط: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1434
+#: tls/gnutls/gtlsconnection-gnutls.c:1591
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "خطا در هنگام نوشتن اطلاعات در سوکت TLS. خطا: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1478
-msgid "Connection is already closed"
-msgstr "اتصال از قبل بسته شده است"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1488
+#: tls/gnutls/gtlsconnection-gnutls.c:1655
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "خطا در هنگام انجام بستن TLS. خطا: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+#: tls/gnutls/gtlsserverconnection-gnutls.c:107
 msgid "Certificate has no private key"
 msgstr "گواهینامه هیچ کلید خصوصی‌ای ندارد"
 
-#: ../tls/pkcs11/gpkcs11pin.c:108
+#: tls/pkcs11/gpkcs11pin.c:111
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
 msgstr "آخرین شانس برای صحیح وارد کردن PIN قبل از قفل شدن رمز است."
 
-#: ../tls/pkcs11/gpkcs11pin.c:110
+#: tls/pkcs11/gpkcs11pin.c:113
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
@@ -134,22 +134,25 @@ msgstr ""
 "تعدادی از تلاش‌های برای وارد کردن PIN شکست خورده است، و رمز پس از شکست‌های "
 "بعدی قفل خواهد شد."
 
-#: ../tls/pkcs11/gpkcs11pin.c:112
+#: tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
 msgstr "عبارت PIN وارد شده نادرست است."
 
-#: ../tls/pkcs11/gpkcs11slot.c:446
+#: tls/pkcs11/gpkcs11slot.c:449
 msgid "Module"
 msgstr "ماژول"
 
-#: ../tls/pkcs11/gpkcs11slot.c:447
+#: tls/pkcs11/gpkcs11slot.c:450
 msgid "PKCS#11 Module Pointer"
 msgstr "نشانگر ماژول PKCS#11"
 
-#: ../tls/pkcs11/gpkcs11slot.c:454
+#: tls/pkcs11/gpkcs11slot.c:457
 msgid "Slot ID"
 msgstr "شناسه‌ی جایگاه"
 
-#: ../tls/pkcs11/gpkcs11slot.c:455
+#: tls/pkcs11/gpkcs11slot.c:458
 msgid "PKCS#11 Slot Identifier"
 msgstr "شناساگر جایگاه PKCS#11"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "اتصال از قبل بسته شده است"
