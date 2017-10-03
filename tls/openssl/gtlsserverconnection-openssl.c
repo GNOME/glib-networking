@@ -46,25 +46,25 @@ enum
 };
 
 static const gchar DEFAULT_CIPHER_LIST[] =
-  "ECDHE-RSA-AES128-SHA:"
+  "ECDHE-ECDSA-AES128-GCM-SHA256:"
+  "ECDHE-ECDSA-AES128-SHA:"
+  "ECDHE-ECDSA-AES128-SHA256:"
+  "ECDHE-ECDSA-AES256-GCM-SHA384:"
   "ECDHE-RSA-AES128-GCM-SHA256:"
-  "ECDHE-RSA-AES256-GCM-SHA384:"
+  "ECDHE-RSA-AES128-SHA:"
   "ECDHE-RSA-AES128-SHA256:"
+  "ECDHE-ECDSA-AES256-SHA:"
+  "ECDHE-ECDSA-AES256-SHA384:"
+  "ECDHE-RSA-AES256-GCM-SHA384:"
   "ECDHE-RSA-AES256-SHA:"
   "ECDHE-RSA-AES256-SHA384:"
-  "AES128-SHA:"
   "AES128-GCM-SHA256:"
-  "AES256-GCM-SHA384:"
   "AES128-SHA256:"
-  "AES256-SHA:"
+  "AES128-SHA:"
+  "AES256-GCM-SHA384:"
   "AES256-SHA256:"
-  "DHE-RSA-AES128-SHA:"
-  "DHE-RSA-AES128-GCM-SHA256:"
-  "DHE-RSA-AES256-GCM-SHA384:"
-  "DHE-RSA-AES128-SHA256:"
-  "DHE-RSA-AES256-SHA:"
-  "DHE-RSA-AES256-SHA256:"
-  "DES-CBC3-SHA";
+  "AES256-SHA"
+;
 
 static void g_tls_server_connection_openssl_initable_interface_init (GInitableIface  *iface);
 
@@ -251,11 +251,14 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
       return FALSE;
     }
 
+  /* Only TLS 1.2 or higher */
   options = SSL_OP_NO_TICKET |
+            SSL_OP_CIPHER_SERVER_PREFERENCE |
             SSL_OP_NO_SSLv2 |
-            SSL_OP_NO_SSLv3;
+            SSL_OP_NO_SSLv3 |
+            SSL_OP_NO_TLSv1 |
+            SSL_OP_NO_TLSv1_1;
 
-  /* Only TLS 1.0 or higher */
   SSL_CTX_set_options (priv->ssl_ctx, options);
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
