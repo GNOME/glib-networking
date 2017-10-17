@@ -151,6 +151,16 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
         }
     }
 
+  /* XXX: this error happens on ubuntu when shutting down the connection, it
+   * seems to be a bug in a specific version of openssl, so let's handle it
+   * gracefully
+   */
+  if (reason == SSL_R_SHUTDOWN_WHILE_IN_INIT)
+    {
+      g_clear_error (&my_error);
+      return G_TLS_CONNECTION_BASE_OK;
+    }
+
   if (reason == SSL_R_PEER_DID_NOT_RETURN_A_CERTIFICATE)
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
