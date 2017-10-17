@@ -228,6 +228,18 @@ g_tls_server_connection_openssl_server_connection_interface_init (GTlsServerConn
 {
 }
 
+static void
+ssl_info_callback (const SSL *ssl,
+                   int        type,
+                   int        val)
+{
+  if ((type & SSL_CB_HANDSHAKE_DONE) != 0)
+    {
+      /* Disable renegotiation (CVE-2009-3555) */
+      ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
+    }
+}
+
 static gboolean
 g_tls_server_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
@@ -314,6 +326,8 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
   SSL_CTX_set_cipher_list (priv->ssl_ctx, DEFAULT_CIPHER_LIST);
+
+  SSL_CTX_set_info_callback (priv->ssl_ctx, ssl_info_callback);
 
   priv->ssl = SSL_new (priv->ssl_ctx);
   if (priv->ssl == NULL)

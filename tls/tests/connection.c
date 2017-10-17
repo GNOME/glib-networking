@@ -961,6 +961,9 @@ static void
 test_client_auth_rehandshake (TestConnection *test,
 			      gconstpointer   data)
 {
+  g_test_skip ("the server avoids rehandshake to avoid the security problem CVE-2009-3555");
+  return;
+
   test->rehandshake = TRUE;
   test_client_auth_connection (test, data);
 }
