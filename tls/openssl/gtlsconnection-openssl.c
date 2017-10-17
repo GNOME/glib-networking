@@ -163,6 +163,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 
   if (reason == SSL_R_PEER_DID_NOT_RETURN_A_CERTIFICATE)
     {
+      g_clear_error (&my_error);
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
                            _("TLS connection peer did not send a certificate"));
       return status;
