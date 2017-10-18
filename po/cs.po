@@ -2,15 +2,15 @@
 # Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
 #
-# Marek Černocký <marek@manet.cz>, 2011, 2012, 2016.
+# Marek Černocký <marek@manet.cz>, 2011, 2012, 2016, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
 "openssl&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2016-09-26 23:04+0000\n"
-"PO-Revision-Date: 2016-09-29 21:26+0200\n"
+"POT-Creation-Date: 2017-10-17 11:38+0000\n"
+"PO-Revision-Date: 2017-10-18 08:33+0200\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: čeština <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -56,14 +56,14 @@ msgstr "Nelze zpracovat soukromý klíč PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nebyla poskytnuta žádná data certifikátu"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
-#: tls/openssl/gtlsserverconnection-openssl.c:228
+#: tls/openssl/gtlsclientconnection-openssl.c:435
+#: tls/openssl/gtlsserverconnection-openssl.c:249
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Nelze vytvořit kontext TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
-#: tls/openssl/gtlsserverconnection-openssl.c:296
+#: tls/openssl/gtlsclientconnection-openssl.c:469
+#: tls/openssl/gtlsserverconnection-openssl.c:322
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nelze vytvořit připojení TLS: %s"
@@ -72,50 +72,53 @@ msgstr "Nelze vytvořit připojení TLS: %s"
 msgid "Peer failed to perform TLS handshake"
 msgstr "Protějšek selhal při navazování spojení TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:168
 msgid "TLS connection peer did not send a certificate"
 msgstr "Protějšek připojení TLS neposlal certifikát"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:221
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Protějšek požádal o neplatné navazování spojení TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:230
+#: tls/openssl/gtlsconnection-openssl.c:326
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Chyba při navazování spojení TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:336
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server nevrátil platný certifikát TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:366
 msgid "Unacceptable TLS certificate"
 msgstr "Nepřijatelný certifikát TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:450
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Chyba čtení dat ze soketu TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:476
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Chyba zápisu dat do soketu TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:502
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Chyba při zavírání TLS: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:250
+#: tls/openssl/gtlsserverconnection-openssl.c:276
 msgid "Certificate has no private key"
 msgstr "Certifikát nemá soukromý klíč"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:257
+#: tls/openssl/gtlsserverconnection-openssl.c:283
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Je zde problém se soukromým klíčem certifikátu: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:266
+#: tls/openssl/gtlsserverconnection-openssl.c:292
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Je zde problém s certifikátem: %s"
-
