@@ -445,6 +445,8 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
             SSL_OP_NO_TLSv1_1;
   SSL_CTX_set_options (priv->ssl_ctx, options);
 
+  SSL_CTX_clear_options (priv->ssl_ctx, SSL_OP_LEGACY_SERVER_CONNECT);
+
   hostname = get_server_identity (client);
 
 #if OPENSSL_VERSION_NUMBER >= 0x10200000L && !defined (LIBRESSL_VERSION_NUMBER)
