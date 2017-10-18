@@ -1,3 +1,13 @@
+News in 2.50.4
+--------------
+* 
+* Avoid rehandshakes from the server side, this avoids a possible DoS attack
+* Avoid warning when shutting down connection on Ubuntu
+* Use a more secure cypher list
+* Only support TLS v1.2 or higher
+* Misc bug fixes
+* Translation updates
+
 News in 2.50.3
 --------------
 * Add support for meson build system
