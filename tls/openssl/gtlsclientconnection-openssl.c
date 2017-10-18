@@ -437,11 +437,15 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
       return FALSE;
     }
 
-  options = SSL_OP_NO_TICKET;
-  hostname = get_server_identity (client);
-
   /* Only TLS 1.2 or higher */
+  options = SSL_OP_NO_TICKET |
+            SSL_OP_NO_SSLv2 |
+            SSL_OP_NO_SSLv3 |
+            SSL_OP_NO_TLSv1 |
+            SSL_OP_NO_TLSv1_1;
   SSL_CTX_set_options (priv->ssl_ctx, options);
+
+  hostname = get_server_identity (client);
 
 #if OPENSSL_VERSION_NUMBER >= 0x10200000L && !defined (LIBRESSL_VERSION_NUMBER)
   if (hostname)
