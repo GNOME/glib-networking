@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the glib-openssl package.
 #
 # Klemen Košir <klemen.kosir@gmx.com>, 2011.
-# Matej Urbančič <mateju@svn.gnome.org>, 2017
+# Matej Urbančič <mateju@svn.gnome.org>, + 2017
 #
 msgid ""
 msgstr ""
@@ -33,17 +33,17 @@ msgstr "Opravilo bi zaustavilo delovanje"
 
 #: tls/base/gtlsconnection-base.c:809
 msgid "Server required TLS certificate"
-msgstr "Strežnik potrebuje potrdilo TLS"
+msgstr "Strežnik zahteva potrdilo TLS"
 
 #: tls/openssl/gtlscertificate-openssl.c:179
 #, c-format
 msgid "Could not parse DER certificate: %s"
-msgstr "Zasebnega potrdila DER ni mogoče razčleniti: %s"
+msgstr "Potrdila DER ni mogoče razčleniti: %s"
 
 #: tls/openssl/gtlscertificate-openssl.c:199
 #, c-format
 msgid "Could not parse PEM certificate: %s"
-msgstr "Zasebnega potrdila PEM ni mogoče razčleniti: %s"
+msgstr "Potrdila PEM ni mogoče razčleniti: %s"
 
 #: tls/openssl/gtlscertificate-openssl.c:218
 #, c-format
@@ -134,19 +134,11 @@ msgstr "S potrdilom so težave: %s"
 #~ msgid "Connection is already closed"
 #~ msgstr "Povezava je že zaprta"
 
-#~ msgid ""
-#~ "This is the last chance to enter the PIN correctly before the token is "
-#~ "locked."
-#~ msgstr ""
-#~ "To je zadnja priložnost za pravilen vnos gesla PIN preden se dostop "
-#~ "popolnoma zaklene."
+#~ msgid "This is the last chance to enter the PIN correctly before the token is locked."
+#~ msgstr "To je zadnja priložnost za pravilen vnos gesla PIN, preden se dostop popolnoma zaklene."
 
-#~ msgid ""
-#~ "Several PIN attempts have been incorrect, and the token will be locked "
-#~ "after further failures."
-#~ msgstr ""
-#~ "Več poskusov vnosa gesla PIN je bilo neuspešnih. Vnos bo po ponovni "
-#~ "napaki popolnoma zakljenjen."
+#~ msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
+#~ msgstr "Več poskusov vnosa gesla PIN je bilo neuspešnih. Vnos bo ob ponovni napaki popolnoma zakljenjen."
 
 #~ msgid "The PIN entered is incorrect."
 #~ msgstr "Vneseno geslo PIN je nepravilno."
