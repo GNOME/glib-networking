@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the glib-networking package.
 #
 # Klemen Košir <klemen.kosir@gmx.com>, 2011.
-# Matej Urbančič <mateju@svn.gnome.org>, 2017
+# Matej Urbančič <mateju@svn.gnome.org>, + 2017.
 #
 msgid ""
 msgstr ""
@@ -30,12 +30,12 @@ msgstr "Notranja napaka razreševalnika posredniškega strežnika."
 #: tls/gnutls/gtlscertificate-gnutls.c:176
 #, c-format
 msgid "Could not parse DER certificate: %s"
-msgstr "Zasebnega potrdila DER ni mogoče razčleniti: %s"
+msgstr "Potrdila DER ni mogoče razčleniti: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:197
 #, c-format
 msgid "Could not parse PEM certificate: %s"
-msgstr "Zasebnega potrdila PEM ni mogoče razčleniti: %s"
+msgstr "Potrdila PEM ni mogoče razčleniti: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:228
 #, c-format
@@ -125,20 +125,12 @@ msgid "Certificate has no private key"
 msgstr "Potrdilo nima določenega zasebnega ključa"
 
 #: tls/pkcs11/gpkcs11pin.c:111
-msgid ""
-"This is the last chance to enter the PIN correctly before the token is "
-"locked."
-msgstr ""
-"To je zadnja priložnost za pravilen vnos gesla PIN preden se dostop "
-"popolnoma zaklene."
+msgid "This is the last chance to enter the PIN correctly before the token is locked."
+msgstr "To je zadnja priložnost za pravilen vnos gesla PIN, preden se dostop popolnoma zaklene."
 
 #: tls/pkcs11/gpkcs11pin.c:113
-msgid ""
-"Several PIN attempts have been incorrect, and the token will be locked after "
-"further failures."
-msgstr ""
-"Izvedenih je bilo več neuspešnih poskusov vnosa gesla PIN! Možnost vnosa bo "
-"po ponovni napaki popolnoma onemogočena."
+msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
+msgstr "Izvedenih je bilo več neuspešnih poskusov vnosa gesla PIN! Možnost vnosa bo ob ponovni napaki popolnoma onemogočena."
 
 #: tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
