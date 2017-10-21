@@ -76,15 +76,8 @@ if enable_tls_support
   pkcs_support = []
 
   msg = 'location of system Certificate Authority list: '
-  cert_locations = [
-    get_option('ca_certificates_path'),
-    '/etc/pki/tls/certs/ca-bundle.crt',
-    '/etc/ssl/certs/ca-certificates.crt',
-    '/etc/ssl/ca-bundle.pem'
-  ]
-
-  res = run_command(find_program('check_certs.py'), cert_locations)
-  assert(res.returncode() == 0, msg + ' could not find any TLS certificate. Use -Dca_certificates_path=PATH to set, or -Dtls_support=no to disable')
+  res = run_command(find_program('find-ca-certificates'), get_option('ca_certificates_path'))
+  assert(res.returncode() == 0, msg + ' could not find any CA certificate store. Use -Dca_certificates_path=PATH to set, or -Dtls_support=no to disable')
   ca_certificates_path = res.stdout().strip()
   message(msg + ca_certificates_path)
 
