@@ -68,7 +68,7 @@ if enable_tls_support
   gnutls_dep = dependency('gnutls', version: '>= 3.0', required: true)
 
   msg = 'location of system Certificate Authority list: '
-  res = run_command(find_program('find-ca-certificates'), get_option('ca_certificates_path'))
+  res = run_command(join_paths(meson.source_root(), 'find-ca-certificates'), get_option('ca_certificates_path'))
   assert(res.returncode() == 0, msg + ' could not find any CA certificate store. Use -Dca_certificates_path=PATH to set, or -Dtls_support=no to disable')
   ca_certificates_path = res.stdout().strip()
   message(msg + ca_certificates_path)
