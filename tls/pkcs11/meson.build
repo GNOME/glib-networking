@@ -19,5 +19,6 @@ libgiopkcs11 = static_library(
 
 libgiopkcs11_dep = declare_dependency(
   link_with: libgiopkcs11,
-  include_directories: include_directories('.')
+  include_directories: include_directories('.'),
+  dependencies: deps
 )
