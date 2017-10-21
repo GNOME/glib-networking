@@ -19,7 +19,7 @@ deps = [
   gnutls_dep
 ]
 
-if have_pkcs11
+if enable_pkcs11_support
   sources += files(
     'gtlsbackend-gnutls-pkcs11.c',
     'gtlscertificate-gnutls-pkcs11.c',

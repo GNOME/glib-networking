@@ -22,7 +22,7 @@ test_programs = [
   ['connection', ['mock-interaction.c'], deps]
 ]
 
-if have_pkcs11
+if enable_pkcs11_support
   incs += tls_inc
 
   pkcs11_deps = deps + [

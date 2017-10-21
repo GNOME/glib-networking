@@ -1,5 +1,5 @@
-option('libproxy_backend', type: 'boolean', value: true, description: 'support for libproxy')
-option('gnome_proxy_backend', type: 'boolean', value: true, description: 'support for GNOME proxy configuration')
+option('libproxy_support', type: 'boolean', value: true, description: 'support for libproxy')
+option('gnome_proxy_support', type: 'boolean', value: true, description: 'support for GNOME proxy configuration')
 option('tls_support', type: 'boolean', value: true, description: 'support for GNUTLS')
 option('ca_certificates_path', type: 'string', value: '', description: 'path to system Certificate Authority list')
 option('pkcs11_support', type: 'boolean', value: true, description: 'support for pkcs11')

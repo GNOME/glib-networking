@@ -49,31 +49,23 @@ gio_module_dir = gio_dep.get_pkgconfig_variable('giomoduledir')
 assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 
 # *** Checks for LibProxy   ***
-have_libproxy = false
-
-enable_libproxy = get_option('libproxy_backend')
-if enable_libproxy != 'no'
-  libproxy_dep = dependency('libproxy-1.0', version: '>= 0.3.1', required: (enable_libproxy == 'yes'))
-  have_libproxy = libproxy_dep.found()
+enable_libproxy_support = get_option('libproxy_support')
+if enable_libproxy_support
+  libproxy_dep = dependency('libproxy-1.0', version: '>= 0.3.1', required: true)
 endif
 
-# *** Checks for GNOME proxy backend ***
-have_gnome_proxy = false
-
-enable_gnome_proxy = get_option('gnome_proxy_backend')
-if enable_gnome_proxy != 'no'
-  gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required: (enable_gnome_proxy == 'yes'))
-  have_gnome_proxy = gsettings_desktop_schemas_dep.found()
+# *** Checks for GNOME      ***
+enable_gnome_proxy_support = get_option('gnome_proxy_support')
+if enable_gnome_proxy_support
+  gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required: true)
 endif
 
-# *** Checks for GNUTLS     ***
-tls_support = []
-
+# *** Checks for GnuTLS     ***
 enable_tls_support = get_option('tls_support')
+enable_pkcs11_support = false
+
 if enable_tls_support
-  gnutls_dep = dependency('gnutls', version: '>= 3.0')
-  tls_support += ['gnutls']
-  pkcs_support = []
+  gnutls_dep = dependency('gnutls', version: '>= 3.0', required: true)
 
   msg = 'location of system Certificate Authority list: '
   res = run_command(find_program('find-ca-certificates'), get_option('ca_certificates_path'))
@@ -81,19 +73,12 @@ if enable_tls_support
   ca_certificates_path = res.stdout().strip()
   message(msg + ca_certificates_path)
 
-  # *** Checks for pkcs11    ***
-  have_pkcs11 = false
-
+  # *** Checks for p11-kit  ***
   enable_pkcs11_support = get_option('pkcs11_support')
-  if enable_pkcs11_support != 'no'
-    pkcs11_dep = dependency('p11-kit-1', version: '>= 0.8', required: (enable_pkcs11_support == 'yes'))
-    have_pkcs11 = pkcs11_dep.found()
-    if have_pkcs11
-      tls_support += ['gnutls-pkcs11']
-      pkcs_support += ['p11-kit']
-    endif
+  if enable_pkcs11_support
+    pkcs11_dep = dependency('p11-kit-1', version: '>= 0.8', required: true)
 
-    config_h.set('HAVE_PKCS11', have_pkcs11,
+    config_h.set('HAVE_PKCS11', enable_pkcs11_support,
                  description: 'Building with PKCS#11 support')
   endif
 endif
@@ -116,14 +101,14 @@ subdir('po')
 enable_installed_tests = get_option('installed_tests')
 test_template = files('template.test.in')
 
-if have_libproxy or have_gnome_proxy
+if enable_libproxy_support or enable_gnome_proxy_support
   test_programs = []
 
-  if have_libproxy
+  if enable_libproxy_support
     subdir('proxy/libproxy')
   endif
 
-  if have_gnome_proxy
+  if enable_gnome_proxy_support
     subdir('proxy/gnome')
   endif
 
@@ -131,7 +116,7 @@ if have_libproxy or have_gnome_proxy
 endif
 
 if enable_tls_support
-  if have_pkcs11
+  if enable_pkcs11_support
     tls_inc = include_directories('tls')
 
     subdir('tls/pkcs11')
@@ -143,11 +128,11 @@ endif
 
 meson.add_install_script('meson_post_install.py', gio_module_dir)
 
-output = '\n\n  Proxy support:     ' + have_libproxy.to_string() + '\n'
-output += '  TLS support:       ' + ' '.join(tls_support) + '\n'
-
-if tls_support.length() > 0
-  output += '  PKCS#11 Support:   ' + ' '.join(pkcs_support) + '\n'
-  output += '  TLS CA file:       ' + ca_certificates_path + '\n'
+output = '\n\n  libproxy support:    ' + enable_libproxy_support.to_string() + '\n'
+output += '  GNOME proxy support: ' + enable_gnome_proxy_support.to_string() + '\n'
+output += '  TLS support:         ' + enable_tls_support.to_string() + '\n'
+output += '  PKCS#11 support:     ' + enable_pkcs11_support.to_string() + '\n'
+if enable_tls_support
+  output += '  TLS CA file:         ' + ca_certificates_path + '\n'
 endif
 message(output)
