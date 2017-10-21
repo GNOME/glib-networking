@@ -102,7 +102,7 @@ enable_installed_tests = get_option('installed_tests')
 test_template = files('template.test.in')
 
 if enable_libproxy_support or enable_gnome_proxy_support
-  test_programs = []
+  proxy_test_programs = []
 
   if enable_libproxy_support
     subdir('proxy/libproxy')

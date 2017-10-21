@@ -3,12 +3,7 @@ cflags = [
   '-DTOP_BUILDDIR="@0@"'.format(meson.build_root())
 ]
 
-envs = [
-  'G_TEST_SRCDIR=' + meson.current_source_dir(),
-  'G_TEST_BUILDDIR=' + meson.current_build_dir()
-]
-
-foreach program: test_programs
+foreach program: proxy_test_programs
   test_conf = configuration_data()
   test_conf.set('installed_tests_dir', installed_tests_execdir)
   test_conf.set('program', program[0])
@@ -30,6 +25,12 @@ foreach program: test_programs
     install: enable_installed_tests,
     install_dir: installed_tests_execdir
   )
+
+  envs = [
+    'G_TEST_SRCDIR=' + meson.current_source_dir(),
+    'G_TEST_BUILDDIR=' + meson.current_build_dir(),
+    'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'proxy', program[0])
+  ]
 
   test(
     program[0],

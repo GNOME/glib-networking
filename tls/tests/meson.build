@@ -13,7 +13,8 @@ cflags = [
 
 envs = [
   'G_TEST_SRCDIR=' + meson.current_source_dir(),
-  'G_TEST_BUILDDIR=' + meson.current_build_dir()
+  'G_TEST_BUILDDIR=' + meson.current_build_dir(),
+  'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', 'gnutls')
 ]
 
 test_programs = [

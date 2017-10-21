@@ -20,4 +20,4 @@ shared_module(
   install_dir: gio_module_dir
 )
 
-test_programs += [['gnome', deps]]
+proxy_test_programs += [['gnome', deps]]
