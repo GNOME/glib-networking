@@ -1,16 +1,16 @@
 # Polish translation for glib-openssl.
-# Copyright © 2011-2016 the glib-openssl authors.
+# Copyright © 2011-2017 the glib-openssl authors.
 # This file is distributed under the same license as the glib-openssl package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2011-2016.
-# Aviary.pl <community-poland@mozilla.org>, 2011-2016.
+# Piotr Drąg <piotrdrag@gmail.com>, 2011-2017.
+# Aviary.pl <community-poland@mozilla.org>, 2011-2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
 "openssl&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2016-09-26 23:04+0000\n"
-"PO-Revision-Date: 2016-09-27 01:11+0200\n"
+"POT-Creation-Date: 2017-10-17 11:38+0000\n"
+"PO-Revision-Date: 2017-10-22 18:08+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -56,14 +56,14 @@ msgstr "Nie można przetworzyć klucza prywatnego PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nie podano danych certyfikatu"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
-#: tls/openssl/gtlsserverconnection-openssl.c:228
+#: tls/openssl/gtlsclientconnection-openssl.c:435
+#: tls/openssl/gtlsserverconnection-openssl.c:249
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Nie można utworzyć kontekstu TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
-#: tls/openssl/gtlsserverconnection-openssl.c:296
+#: tls/openssl/gtlsclientconnection-openssl.c:469
+#: tls/openssl/gtlsserverconnection-openssl.c:322
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nie można utworzyć połączenia TLS: %s"
@@ -72,49 +72,53 @@ msgstr "Nie można utworzyć połączenia TLS: %s"
 msgid "Peer failed to perform TLS handshake"
 msgstr "Wykonanie powitania TLS przez partnera się nie powiodło"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:168
 msgid "TLS connection peer did not send a certificate"
 msgstr "Partner połączenia TLS nie wysłał certyfikatu"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:221
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Partner zażądał niedozwolonego ponownego powitania TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:230
+#: tls/openssl/gtlsconnection-openssl.c:326
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Błąd podczas wykonywania powitania TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:336
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serwer nie zwrócił prawidłowego certyfikatu TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:366
 msgid "Unacceptable TLS certificate"
 msgstr "Nieakceptowalny certyfikat TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:450
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Błąd podczas odczytywania danych z gniazda TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:476
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Błąd podczas zapisywania danych do gniazda TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:502
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Błąd podczas wykonywania zamknięcia TLS: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:250
+#: tls/openssl/gtlsserverconnection-openssl.c:276
 msgid "Certificate has no private key"
 msgstr "Certyfikat nie ma klucza prywatnego"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:257
+#: tls/openssl/gtlsserverconnection-openssl.c:283
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Wystąpił problem z kluczem prywatnym certyfikatu: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:266
+#: tls/openssl/gtlsserverconnection-openssl.c:292
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Wystąpił problem z certyfikatem: %s"
