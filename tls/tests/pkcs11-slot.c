@@ -52,7 +52,7 @@ setup_slot (TestSlot        *test,
   /* Copy this so we can replace certain functions in our tests */
   memcpy (&test->funcs, &mock_default_functions, sizeof (test->funcs));
 
-  rv = p11_kit_initialize_module (&test->funcs);
+  rv = p11_kit_module_initialize (&test->funcs);
   g_assert (rv == CKR_OK);
 
   test->slot = g_object_new (G_TYPE_PKCS11_SLOT,
@@ -80,7 +80,7 @@ teardown_slot (TestSlot     *test,
   g_assert_cmpint (G_OBJECT (test->not_present)->ref_count, ==, 1);
   g_object_unref (test->not_present);
 
-  rv = p11_kit_finalize_module (&test->funcs);
+  rv = p11_kit_module_finalize (&test->funcs);
   g_assert (rv == CKR_OK);
 }
 

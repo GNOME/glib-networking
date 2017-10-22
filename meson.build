@@ -76,7 +76,7 @@ if enable_tls_support
   # *** Checks for p11-kit  ***
   enable_pkcs11_support = get_option('pkcs11_support')
   if enable_pkcs11_support
-    pkcs11_dep = dependency('p11-kit-1', version: '>= 0.8', required: true)
+    pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: true)
 
     config_h.set('HAVE_PKCS11', enable_pkcs11_support,
                  description: 'Building with PKCS#11 support')

@@ -57,9 +57,9 @@ G_DEFINE_TYPE_WITH_CODE (GTlsDatabaseGnutlsPkcs11, g_tls_database_gnutls_pkcs11,
 struct _GTlsDatabaseGnutlsPkcs11Private
 {
   /* no changes after construction */
+  CK_FUNCTION_LIST **modules;
   GList *pkcs11_slots;
   GList *trust_uris;
-  gboolean initialized_registered;
 };
 
 static gboolean
@@ -120,7 +120,7 @@ discover_module_slots_and_options (GTlsDatabaseGnutlsPkcs11   *self,
    * which slots we can use for looking up trust assertionts.
    */
 
-  string = p11_kit_registered_option (module, "x-trust-lookup");
+  string = p11_kit_config_option (module, "x-trust-lookup");
   if (string != NULL)
     {
       uri = p11_kit_uri_new ();
@@ -240,8 +240,8 @@ g_tls_database_gnutls_pkcs11_finalize (GObject *object)
     p11_kit_uri_free (l->data);
   g_list_free (self->priv->trust_uris);
 
-  if (self->priv->initialized_registered)
-    p11_kit_finalize_registered ();
+  if (self->priv->modules)
+    p11_kit_modules_release (self->priv->modules);
 
   G_OBJECT_CLASS (g_tls_database_gnutls_pkcs11_parent_class)->finalize (object);
 }
@@ -1089,23 +1089,20 @@ g_tls_database_gnutls_pkcs11_initable_init (GInitable     *initable,
                                             GError       **error)
 {
   GTlsDatabaseGnutlsPkcs11 *self = G_TLS_DATABASE_GNUTLS_PKCS11 (initable);
-  CK_FUNCTION_LIST_PTR_PTR modules;
   GError *err = NULL;
   gboolean any_success = FALSE;
   gboolean any_failure = FALSE;
-  CK_RV rv;
   guint i;
 
-  g_return_val_if_fail (!self->priv->initialized_registered, FALSE);
+  g_return_val_if_fail (!self->priv->modules, FALSE);
 
-  rv = p11_kit_initialize_registered ();
-  if (g_pkcs11_propagate_error (error, rv))
-      return FALSE;
+  self->priv->modules = p11_kit_modules_load (NULL, 0);
+  if (self->priv->modules == NULL) {
+    g_set_error_literal (error, G_PKCS11_ERROR, CKR_FUNCTION_FAILED, p11_kit_message ());
+    return FALSE;
+  }
 
-  self->priv->initialized_registered = TRUE;
-
-  modules = p11_kit_registered_modules ();
-  for (i = 0; modules[i] != NULL; i++)
+  for (i = 0; self->priv->modules[i] != NULL; i++)
     {
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         {
@@ -1114,7 +1111,7 @@ g_tls_database_gnutls_pkcs11_initable_init (GInitable     *initable,
           break;
         }
 
-      if (discover_module_slots_and_options (self, modules[i], &err))
+      if (discover_module_slots_and_options (self, self->priv->modules[i], &err))
         {
           /* A module was setup correctly */
           any_success = TRUE;
