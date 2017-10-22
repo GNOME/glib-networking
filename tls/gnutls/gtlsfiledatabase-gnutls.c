@@ -390,9 +390,9 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
     self->priv->handles = create_handles_array_unlocked (self->priv->anchor_filename,
                                                          self->priv->complete);
 
-    der = g_hash_table_lookup (self->priv->handles, handle);
-    if (der != NULL)
-      g_bytes_ref (der);
+  der = g_hash_table_lookup (self->priv->handles, handle);
+  if (der != NULL)
+    g_bytes_ref (der);
 
   g_mutex_unlock (&self->priv->mutex);
 
