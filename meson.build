@@ -72,6 +72,7 @@ if enable_tls_support
   assert(res.returncode() == 0, msg + ' could not find any CA certificate store. Use -Dca_certificates_path=PATH to set, or -Dtls_support=no to disable')
   ca_certificates_path = res.stdout().strip()
   message(msg + ca_certificates_path)
+  config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates_path, description: 'The system CA list')
 
   # *** Checks for p11-kit  ***
   enable_pkcs11_support = get_option('pkcs11_support')
