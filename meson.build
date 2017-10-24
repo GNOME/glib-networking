@@ -89,8 +89,7 @@ config_h.set_quoted('LOCALE_DIR', join_paths(get_option('prefix'), get_option('l
 config_h.set('G_DISABLE_DEPRECATED', true)
 config_h.set_quoted('G_LOG_DOMAIN', 'GLib-OpenSSL')
 
-with_openssl = openssl.found()
-if with_openssl
+if host_machine.system() != 'windows'
   ca_certificates = get_option('with-ca-certificates')
   if ca_certificates == 'no'
     message('CA certificates disabled')
