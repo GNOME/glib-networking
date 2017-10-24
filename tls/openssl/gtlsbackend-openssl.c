@@ -181,14 +181,33 @@ g_tls_backend_openssl_finalize (GObject *object)
 
 static GTlsDatabase *
 g_tls_backend_openssl_real_create_database (GTlsBackendOpenssl  *self,
-                                           GError            **error)
+                                            GError             **error)
 {
-  const gchar *anchor_file = NULL;
-#ifdef GTLS_SYSTEM_CA_FILE
-  /* FIXME: we need to handle this on Windows as well */
-  anchor_file = GTLS_SYSTEM_CA_FILE;
+  gchar *anchor_file = NULL;
+  GTlsDatabase *database;
+
+#ifdef G_OS_WIN32
+  gchar *module_dir;
+  gchar *cert_path;
+
+  module_dir = g_win32_get_package_installation_directory_of_module (NULL);
+  cert_path = g_build_filename (module_dir, "bin", "cert.pem", NULL);
+  g_free (module_dir);
+
+  if (g_file_test (cert_path, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR))
+    anchor_file = cert_path;
+  else
+    g_free (cert_path);
+#else
+# ifdef GTLS_SYSTEM_CA_FILE
+  anchor_file = g_strdup (GTLS_SYSTEM_CA_FILE);
+# endif
 #endif
-  return g_tls_file_database_new (anchor_file, error);
+
+  database = g_tls_file_database_new (anchor_file, error);
+  g_free (anchor_file);
+
+  return database;
 }
 
 static void
