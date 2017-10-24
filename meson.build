@@ -120,7 +120,7 @@ subdir('tls/openssl')
 subdir('tls/tests')
 subdir('po')
 
-meson.add_install_script(join_paths('mesonscripts', 'post_install.py'))
+meson.add_install_script(join_paths('mesonscripts', 'post_install.py'), giomoduledir)
 
 run_target('release',
            command: [join_paths('mesonscripts', 'release.sh'),
