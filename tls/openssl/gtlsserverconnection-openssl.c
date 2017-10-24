@@ -45,26 +45,7 @@ enum
   PROP_AUTHENTICATION_MODE
 };
 
-static const gchar DEFAULT_CIPHER_LIST[] =
-  "ECDHE-ECDSA-AES128-GCM-SHA256:"
-  "ECDHE-ECDSA-AES128-SHA:"
-  "ECDHE-ECDSA-AES128-SHA256:"
-  "ECDHE-ECDSA-AES256-GCM-SHA384:"
-  "ECDHE-RSA-AES128-GCM-SHA256:"
-  "ECDHE-RSA-AES128-SHA:"
-  "ECDHE-RSA-AES128-SHA256:"
-  "ECDHE-ECDSA-AES256-SHA:"
-  "ECDHE-ECDSA-AES256-SHA384:"
-  "ECDHE-RSA-AES256-GCM-SHA384:"
-  "ECDHE-RSA-AES256-SHA:"
-  "ECDHE-RSA-AES256-SHA384:"
-  "AES128-GCM-SHA256:"
-  "AES128-SHA256:"
-  "AES128-SHA:"
-  "AES256-GCM-SHA384:"
-  "AES256-SHA256:"
-  "AES256-SHA"
-;
+#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
 
 static void g_tls_server_connection_openssl_initable_interface_init (GInitableIface  *iface);
 
@@ -240,6 +221,21 @@ ssl_info_callback (const SSL *ssl,
     }
 }
 
+static void
+set_cipher_list (GTlsServerConnectionOpenssl *server)
+{
+  GTlsServerConnectionOpensslPrivate *priv;
+  const gchar *cipher_list;
+
+  priv = g_tls_server_connection_openssl_get_instance_private (server);
+
+  cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
+  if (cipher_list == NULL)
+    cipher_list = DEFAULT_CIPHER_LIST;
+
+  SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list);
+}
+
 static gboolean
 g_tls_server_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
@@ -325,8 +321,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
 
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
-  SSL_CTX_set_cipher_list (priv->ssl_ctx, DEFAULT_CIPHER_LIST);
-
+  set_cipher_list (server);
   SSL_CTX_set_info_callback (priv->ssl_ctx, ssl_info_callback);
 
   priv->ssl = SSL_new (priv->ssl_ctx);

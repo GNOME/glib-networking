@@ -41,6 +41,8 @@
 #include "gtlscertificate-openssl.h"
 #include <glib/gi18n-lib.h>
 
+#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
+
 typedef struct _GTlsClientConnectionOpensslPrivate
 {
   GTlsCertificateFlags validation_flags;
@@ -414,6 +416,21 @@ generate_session_id (const SSL     *ssl,
   return 1;
 }
 
+static void
+set_cipher_list (GTlsClientConnectionOpenssl *client)
+{
+  GTlsClientConnectionOpensslPrivate *priv;
+  const gchar *cipher_list;
+
+  priv = g_tls_client_connection_openssl_get_instance_private (client);
+
+  cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
+  if (cipher_list == NULL)
+    cipher_list = DEFAULT_CIPHER_LIST;
+
+  SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list);
+}
+
 static gboolean
 g_tls_client_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
@@ -466,7 +483,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   SSL_CTX_set_client_cert_cb (priv->ssl_ctx, retrieve_certificate);
 
-  SSL_CTX_set_cipher_list (priv->ssl_ctx, "HIGH:!DSS:!aNULL@STRENGTH");
+  set_cipher_list (client);
 
   priv->ssl = SSL_new (priv->ssl_ctx);
   if (priv->ssl == NULL)
