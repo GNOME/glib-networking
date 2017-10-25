@@ -322,6 +322,16 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
   set_cipher_list (server);
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+# ifdef SSL_CTX_set_ecdh_auto
+  SSL_CTX_set_ecdh_auto (priv->ssl_ctx, 1);
+# else
+  SSL_CTX_set_tmp_ecdh (priv->ssl_ctx,
+                        EC_KEY_new_by_curve_name (NID_X9_62_prime256v1));
+# endif
+#endif
+
   SSL_CTX_set_info_callback (priv->ssl_ctx, ssl_info_callback);
 
   priv->ssl = SSL_new (priv->ssl_ctx);
