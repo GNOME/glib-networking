@@ -172,6 +172,14 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       return status;
     }
 
+  if (err_lib == ERR_LIB_RSA && reason == RSA_R_DIGEST_TOO_BIG_FOR_RSA_KEY)
+    {
+      g_clear_error (&my_error);
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Digest too big for RSA key"));
+      return G_TLS_CONNECTION_BASE_ERROR;
+    }
+
   if (my_error != NULL)
     g_propagate_error (error, my_error);
   else
