@@ -85,7 +85,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (openssl);
   GTlsConnectionOpensslPrivate *priv;
-  int err_code, err, reason;
+  int err_code, err, err_lib, reason;
   GError *my_error = NULL;
   GTlsConnectionBaseStatus status;
   SSL *ssl;
@@ -132,6 +132,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     return G_TLS_CONNECTION_BASE_OK;
 
   err = ERR_get_error ();
+  err_lib = ERR_GET_LIB (err);
   reason = ERR_GET_REASON (err);
 
   if (tls->handshaking && !tls->ever_handshaked)
@@ -175,7 +176,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     g_propagate_error (error, my_error);
   else
     /* FIXME: this is just for debug */
-    g_message ("end_openssl_io %s: %d, %d", G_IS_TLS_CLIENT_CONNECTION (openssl) ? "client" : "server", err_code, reason);
+    g_message ("end_openssl_io %s: %d, %d, %d", G_IS_TLS_CLIENT_CONNECTION (openssl) ? "client" : "server", err_code, err_lib, reason);
 
   if (error && !*error)
     {
