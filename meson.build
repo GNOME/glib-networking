@@ -1,7 +1,7 @@
 project('glib-openssl', 'c',
         version: '2.50.4',
         license: 'LGPL2+',
-        meson_version: '>= 0.38.0')
+        meson_version: '>= 0.41.0')
 
 cc = meson.get_compiler('c')
 
@@ -95,7 +95,7 @@ if host_machine.system() != 'windows'
     message('CA certificates disabled')
   else
     if ca_certificates == ''
-      detect_certificates = run_command(join_paths(meson.source_root(), 'mesonscripts', 'detect_certificates.py'))
+      detect_certificates = run_command(join_paths(meson.source_root(), 'build-aux', 'detect_certificates.py'))
 
       if detect_certificates.returncode() == 1
         error('Could not find certificates. Use -Dwith-ca-certificates=path to set, or -Dwith-ca-certificates=no to disable it')
@@ -119,9 +119,4 @@ subdir('tls/openssl')
 subdir('tls/tests')
 subdir('po')
 
-meson.add_install_script(join_paths('mesonscripts', 'post_install.py'), giomoduledir)
-
-run_target('release',
-           command: [join_paths('mesonscripts', 'release.sh'),
-                     meson.project_name(),
-                     meson.project_version()])
+meson.add_install_script(join_paths('build-aux', 'post_install.py'), giomoduledir)

@@ -23,7 +23,6 @@ EXTRA_DIST +=			\
 	meson.build		\
 	meson_options.txt	\
 	po/meson.build		\
-	mesonscripts/detect_certificates.py \
-	mesonscripts/post_install.py \
-	mesonscripts/release.sh \
+	build-aux/detect_certificates.py \
+	build-aux/post_install.py \
 	$(NULL)
