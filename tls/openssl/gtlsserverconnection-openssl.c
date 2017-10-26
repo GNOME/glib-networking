@@ -262,6 +262,8 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   /* Only TLS 1.2 or higher */
   options = SSL_OP_NO_TICKET |
             SSL_OP_CIPHER_SERVER_PREFERENCE |
+            SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
+            SSL_OP_SINGLE_ECDH_USE |
             SSL_OP_NO_SSLv2 |
             SSL_OP_NO_SSLv3 |
             SSL_OP_NO_TLSv1 |
