@@ -1,5 +1,5 @@
 project('glib-openssl', 'c',
-        version: '2.50.4',
+        version: '2.50.5',
         license: 'LGPL2+',
         meson_version: '>= 0.41.0')
 
