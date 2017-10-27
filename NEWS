@@ -1,3 +1,11 @@
+2.54.1
+======
+
+  * gnutls: Fix using different client certs for different connections
+    [#781578, Martin Pitt]
+
+  * Updated translations: Catalan (Valencian), Greek, Persian
+
 2.54.0
 ======
   * New/updated translations: Basque, Belarusian, Brazilian
