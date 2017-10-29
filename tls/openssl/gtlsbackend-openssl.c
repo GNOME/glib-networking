@@ -194,7 +194,7 @@ g_tls_backend_openssl_real_create_database (GTlsBackendOpenssl  *self,
   cert_path = g_build_filename (module_dir, "bin", "cert.pem", NULL);
   g_free (module_dir);
 
-  if (g_file_test (cert_path, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR))
+  if (g_file_test (cert_path, G_FILE_TEST_IS_REGULAR))
     anchor_file = cert_path;
   else
     g_free (cert_path);
