@@ -279,6 +279,9 @@ load_certs (const gchar *file_name)
   STACK_OF(X509_INFO) *xis = NULL;
   gint i;
 
+  if (file_name == NULL)
+    return NULL;
+
   bio = BIO_new_file (file_name, "rb");
   if (bio == NULL)
     return NULL;
