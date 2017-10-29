@@ -1,3 +1,8 @@
+News in 2.50.6
+--------------
+* Fix crash if an anchors file is not available
+* Translation updates
+
 News in 2.50.5
 --------------
 * Go back to a generic cipher list but allow to override it using the
