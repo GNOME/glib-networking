@@ -1,7 +1,6 @@
 # Czech translation for glib-openssl.
 # Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
-#
 # Marek Černocký <marek@manet.cz>, 2011, 2012, 2016, 2017.
 #
 msgid ""
@@ -9,8 +8,8 @@ msgstr ""
 "Project-Id-Version: glib-openssl master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
 "openssl&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2017-10-17 11:38+0000\n"
-"PO-Revision-Date: 2017-10-18 08:33+0200\n"
+"POT-Creation-Date: 2017-10-26 10:52+0000\n"
+"PO-Revision-Date: 2017-10-29 08:44+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: čeština <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -18,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Gtranslator 2.91.5\n"
+"X-Generator: Gtranslator 2.91.7\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -56,69 +55,73 @@ msgstr "Nelze zpracovat soukromý klíč PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nebyla poskytnuta žádná data certifikátu"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:435
-#: tls/openssl/gtlsserverconnection-openssl.c:249
+#: tls/openssl/gtlsclientconnection-openssl.c:452
+#: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Nelze vytvořit kontext TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:469
-#: tls/openssl/gtlsserverconnection-openssl.c:322
+#: tls/openssl/gtlsclientconnection-openssl.c:492
+#: tls/openssl/gtlsserverconnection-openssl.c:343
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nelze vytvořit připojení TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:149
+#: tls/openssl/gtlsconnection-openssl.c:150
 msgid "Peer failed to perform TLS handshake"
 msgstr "Protějšek selhal při navazování spojení TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:168
+#: tls/openssl/gtlsconnection-openssl.c:171
 msgid "TLS connection peer did not send a certificate"
 msgstr "Protějšek připojení TLS neposlal certifikát"
 
-#: tls/openssl/gtlsconnection-openssl.c:221
+#: tls/openssl/gtlsconnection-openssl.c:179
+msgid "Digest too big for RSA key"
+msgstr "Haš je příliš velký pro klíč RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:232
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Protějšek požádal o neplatné navazování spojení TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:230
-#: tls/openssl/gtlsconnection-openssl.c:326
+#: tls/openssl/gtlsconnection-openssl.c:241
+#: tls/openssl/gtlsconnection-openssl.c:337
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Chyba při navazování spojení TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:336
+#: tls/openssl/gtlsconnection-openssl.c:347
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server nevrátil platný certifikát TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:366
+#: tls/openssl/gtlsconnection-openssl.c:377
 msgid "Unacceptable TLS certificate"
 msgstr "Nepřijatelný certifikát TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:450
+#: tls/openssl/gtlsconnection-openssl.c:461
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Chyba čtení dat ze soketu TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:476
+#: tls/openssl/gtlsconnection-openssl.c:487
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Chyba zápisu dat do soketu TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:502
+#: tls/openssl/gtlsconnection-openssl.c:513
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Chyba při zavírání TLS: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:276
+#: tls/openssl/gtlsserverconnection-openssl.c:286
 msgid "Certificate has no private key"
 msgstr "Certifikát nemá soukromý klíč"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:283
+#: tls/openssl/gtlsserverconnection-openssl.c:293
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Je zde problém se soukromým klíčem certifikátu: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:292
+#: tls/openssl/gtlsserverconnection-openssl.c:302
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Je zde problém s certifikátem: %s"
