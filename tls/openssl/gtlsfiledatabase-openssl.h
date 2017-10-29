@@ -57,8 +57,6 @@ struct _GTlsFileDatabaseOpenssl
 
 GType                        g_tls_file_database_openssl_get_type              (void) G_GNUC_CONST;
 
-GTlsDatabase                *g_tls_file_database_openssl_new                   (const gchar *anchor_file);
-
 G_END_DECLS
 
 #endif /* __G_TLS_FILE_DATABASE_OPENSSL_H___ */
