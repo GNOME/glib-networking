@@ -329,8 +329,16 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
 # ifdef SSL_CTX_set_ecdh_auto
   SSL_CTX_set_ecdh_auto (priv->ssl_ctx, 1);
 # else
-  SSL_CTX_set_tmp_ecdh (priv->ssl_ctx,
-                        EC_KEY_new_by_curve_name (NID_X9_62_prime256v1));
+  {
+    EC_KEY *ecdh;
+
+    ecdh = EC_KEY_new_by_curve_name (NID_X9_62_prime256v1);
+    if (ecdh != NULL)
+      {
+        SSL_CTX_set_tmp_ecdh (priv->ssl_ctx, ecdh);
+        EC_KEY_free (ecdh);
+      }
+  }
 # endif
 #endif
 
