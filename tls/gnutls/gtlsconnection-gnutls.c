@@ -991,10 +991,10 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     }
   else if (status == GNUTLS_E_LARGE_PACKET)
     {
+      guint mtu = gnutls_dtls_get_data_mtu (gnutls->priv->session);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
-                   _("Message is too large for DTLS connection; maximum is "
-                     "%u bytes"),
-                   gnutls_dtls_get_data_mtu (gnutls->priv->session));
+                   ngettext ("Message is too large for DTLS connection; maximum is %u byte",
+                             "Message is too large for DTLS connection; maximum is %u bytes", mtu), mtu);
       return status;
     }
   else if (status == GNUTLS_E_TIMEDOUT)
@@ -2415,12 +2415,20 @@ g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
   if (gnutls->priv->base_socket != NULL &&
       gnutls_dtls_get_data_mtu (gnutls->priv->session) < total_message_size)
     {
+      char *message;
+      guint mtu = gnutls_dtls_get_data_mtu (gnutls->priv->session);
+
       ret = GNUTLS_E_LARGE_PACKET;
+      message = g_strdup_printf("%s %s",
+                                ngettext ("Message of size %lu byte is too large for DTLS connection",
+                                          "Message of size %lu bytes is too large for DTLS connection", total_message_size),
+                                ngettext ("(maximum is %u byte)", "(maximum is %u bytes)", mtu));
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
-                   _("Message of size %lu bytes is too large for "
-                     "DTLS connection, maximum is %u bytes"),
+                   message,
                    total_message_size,
-                   (guint) gnutls_dtls_get_data_mtu (gnutls->priv->session));
+                   mtu);
+      g_free (message);
+
       goto done;
     }
 
