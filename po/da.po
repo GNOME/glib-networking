@@ -1,18 +1,18 @@
 # Danish translation for glib-openssl.
-# Copyright (C) 2011-2013 glib-openssl's COPYRIGHT HOLDER
+# Copyright (C) 2011-2017 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
 #
 # Kris Thomsen <lakristho@gmail.com>, 2011.
 # Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-2013.
-# Alan Mortensen <alanmortensen.am@gmail.com>, 2016.
+# Alan Mortensen <alanmortensen.am@gmail.com>, 2016, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
 "openssl&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2016-09-26 23:04+0000\n"
-"PO-Revision-Date: 2016-11-22 20:03+0100\n"
+"POT-Creation-Date: 2017-10-26 10:52+0000\n"
+"PO-Revision-Date: 2017-10-27 15:50+0200\n"
 "Last-Translator: Alan Mortensen <alanmortensen.am@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -58,74 +58,79 @@ msgstr "Kunne ikke fortolke privat nøgle for PEM: %s"
 msgid "No certificate data provided"
 msgstr "Ingen certifikatdata angivet"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
-#: tls/openssl/gtlsserverconnection-openssl.c:228
+#: tls/openssl/gtlsclientconnection-openssl.c:452
+#: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Kunne ikke oprette TLS-kontekst: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
-#: tls/openssl/gtlsserverconnection-openssl.c:296
+#: tls/openssl/gtlsclientconnection-openssl.c:492
+#: tls/openssl/gtlsserverconnection-openssl.c:343
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunne ikke oprette TLS-forbindelse: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:149
+#: tls/openssl/gtlsconnection-openssl.c:150
 msgid "Peer failed to perform TLS handshake"
 msgstr "Modpart mislykkedes i at udføre TLS-forhandling"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:171
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-modpart sendte ikke noget certifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:179
+msgid "Digest too big for RSA key"
+msgstr "Hashværdien er for stor til RSA-nøglen"
+
+#: tls/openssl/gtlsconnection-openssl.c:232
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Modpart forspurgte illegalt TLS-genforhandling"
+
+#: tls/openssl/gtlsconnection-openssl.c:241
+#: tls/openssl/gtlsconnection-openssl.c:337
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fejl under udførsel af TLS-handshake: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:347
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serveren returnerede ikke et gyldigt TLS-certifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:377
 msgid "Unacceptable TLS certificate"
 msgstr "Uacceptabelt TLS-certifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:461
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Fejl under læsning af data fra TLS-sokkel: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:487
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Fejl under skrivning af data til TLS-sokkel: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:513
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fejl under nedlukning af TLS: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:250
+#: tls/openssl/gtlsserverconnection-openssl.c:286
 msgid "Certificate has no private key"
 msgstr "Certifikatet har ingen privat nøgle"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:257
+#: tls/openssl/gtlsserverconnection-openssl.c:293
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Der er et problem med certifikatets private nøgle: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:266
+#: tls/openssl/gtlsserverconnection-openssl.c:302
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Der er et problem med certifikatet: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Intern fejl i proxy-opløser."
-
-#~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr "Modpart forspurgte illegalt TLS-genforhandling"
 
 #~ msgid "TLS connection closed unexpectedly"
 #~ msgstr "TLS-forbindelse lukkede uventet ned"
