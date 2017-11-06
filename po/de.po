@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2017-11-02 15:21+0000\n"
-"PO-Revision-Date: 2017-11-02 20:06+0100\n"
+"POT-Creation-Date: 2017-11-03 18:26+0000\n"
+"PO-Revision-Date: 2017-11-06 11:36+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: Deutsch <gnome-de@gnome.org>\n"
 "Language: de\n"
@@ -94,10 +94,12 @@ msgstr "Gegenstelle der TLS-Verbindung gab kein gültiges Zertifikat zurück"
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Gegenstelle sendete schwerwiegende TLS-Warnung: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:995
+#: tls/gnutls/gtlsconnection-gnutls.c:996
 #, c-format
-msgid "Message is too large for DTLS connection; maximum is %u bytes"
-msgstr "Nachricht ist für DTLS-Verbindung zu groß; Maximum ist %u Byte"
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Nachricht ist für DTLS-Verbindung zu groß; Maximum ist %u Byte"
+msgstr[1] "Nachricht ist für DTLS-Verbindung zu groß; Maximum ist %u Bytes"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1003
 msgid "The operation timed out"
@@ -129,25 +131,30 @@ msgstr "Empfangen von Flags wird nicht unterstützt"
 
 #. flags
 #: tls/gnutls/gtlsconnection-gnutls.c:2382
-#: tls/gnutls/gtlsconnection-gnutls.c:2445
+#: tls/gnutls/gtlsconnection-gnutls.c:2453
 msgid "Error writing data to TLS socket"
 msgstr "Fehler beim Schreiben der Daten in den TLS-Socket"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2420
+#: tls/gnutls/gtlsconnection-gnutls.c:2423
 #, c-format
-msgid ""
-"Message of size %lu bytes is too large for DTLS connection, maximum is %u "
-"bytes"
-msgstr ""
-"Nachricht der Größe %lu Byte ist für DTLS-Verbindung zu groß; Maximum ist %u "
-"Byte"
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Nachricht der Größe %lu Byte ist für DTLS-Verbindung zu groß"
+msgstr[1] "Nachricht der Größe %lu Byte ist für DTLS-Verbindung zu groß"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2476
+#: tls/gnutls/gtlsconnection-gnutls.c:2425
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(Maximum ist %u Byte)"
+msgstr[1] "(Maximum ist %u Bytes)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2484
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Senden von Flags wird nicht unterstützt"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2576
+#: tls/gnutls/gtlsconnection-gnutls.c:2584
 msgid "Error performing TLS close"
 msgstr "Fehler beim Schließen der TLS-Verbindung"
 
