@@ -6,9 +6,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking 2.35.x\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-21 12:27+0100\n"
-"PO-Revision-Date: 2013-01-21 12:27+0100\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=network\n"
+"POT-Creation-Date: 2017-10-17 22:59+0000\n"
+"PO-Revision-Date: 2017-11-08 20:20+0100\n"
 "Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
 "Language-Team: Norwegian bokmål <i18n-nb@lister.ping.uio.no>\n"
 "Language: nb\n"
@@ -16,112 +17,114 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:150
+#: proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
 msgstr "Intern feil i proxy-navneoppslag."
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#: tls/gnutls/gtlscertificate-gnutls.c:176
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Kunne ikke lese DER-sertifikat: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#: tls/gnutls/gtlscertificate-gnutls.c:197
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Kunne ikke lese PEM-sertifikat: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:225
+#: tls/gnutls/gtlscertificate-gnutls.c:228
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Kunne ikke lese privat DER-nøkkel: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:256
+#: tls/gnutls/gtlscertificate-gnutls.c:259
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Kunne ikke lese privat PEM-nøkkel: %s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:296
+#: tls/gnutls/gtlscertificate-gnutls.c:299
 msgid "No certificate data provided"
 msgstr "Ingen sertifikatdata oppgitt"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
+#: tls/gnutls/gtlsclientconnection-gnutls.c:375
 msgid "Server required TLS certificate"
 msgstr "Tjener krever TLS-sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:257
+#: tls/gnutls/gtlsconnection-gnutls.c:310
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunne ikke lage TLS-tilkobling: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:518
+#: tls/gnutls/gtlsconnection-gnutls.c:572
 msgid "Connection is closed"
 msgstr "Tilkoblingen er lukket"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:580
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1417
+#: tls/gnutls/gtlsconnection-gnutls.c:645
+#: tls/gnutls/gtlsconnection-gnutls.c:1528
 msgid "Operation would block"
 msgstr "Operasjonen ville blokkere"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:710
+#: tls/gnutls/gtlsconnection-gnutls.c:792
+#: tls/gnutls/gtlsconnection-gnutls.c:831
 msgid "Peer failed to perform TLS handshake"
 msgstr "Likemann feilet å utføre TLS-håndtrykk"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:727
+#: tls/gnutls/gtlsconnection-gnutls.c:810
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Likemann ba om ugyldig nytt TLS-håndtrykk"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:753
+#: tls/gnutls/gtlsconnection-gnutls.c:837
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-tilkobling ble lukket uventet"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:763
+#: tls/gnutls/gtlsconnection-gnutls.c:847
 msgid "TLS connection peer did not send a certificate"
 msgstr "Sidemann for TLS-tilkobling sendte ikke et sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1144
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1163
+#: tls/gnutls/gtlsconnection-gnutls.c:853
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Sidemann sendte fatalt TLS-varsel: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1274
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Feil under utføring av TLS-håndtrykk: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1173
+#: tls/gnutls/gtlsconnection-gnutls.c:1284
 msgid "Server did not return a valid TLS certificate"
 msgstr "Tjener returnerte ikke et gyldig TLS-sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1248
+#: tls/gnutls/gtlsconnection-gnutls.c:1354
 msgid "Unacceptable TLS certificate"
 msgstr "Uakseptabelt TLS-sertifikat"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1440
+#: tls/gnutls/gtlsconnection-gnutls.c:1562
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Feil under lesing av data fra TLS-plugg: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1469
+#: tls/gnutls/gtlsconnection-gnutls.c:1591
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Feil under skriving av data til TLS-plugg: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1513
-msgid "Connection is already closed"
-msgstr "Tilkoblingen er allerede lukket"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1523
+#: tls/gnutls/gtlsconnection-gnutls.c:1655
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Feil under utføring av lukking av TLS-tilkobling: %s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+#: tls/gnutls/gtlsserverconnection-gnutls.c:107
 msgid "Certificate has no private key"
 msgstr "Sertifikatet har ingen privat nøkkel"
 
-#: ../tls/pkcs11/gpkcs11pin.c:108
+#: tls/pkcs11/gpkcs11pin.c:111
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
 msgstr "Dette er siste sjanse til å oppgi korrekt PIN-kode før tokenet låses."
 
-#: ../tls/pkcs11/gpkcs11pin.c:110
+#: tls/pkcs11/gpkcs11pin.c:113
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
@@ -129,22 +132,22 @@ msgstr ""
 "Flere feilede forsøk med PIN oppdaget. Token vil bli låst ved flere feilede "
 "forsøk."
 
-#: ../tls/pkcs11/gpkcs11pin.c:112
+#: tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
 msgstr "Oppgitt PIN er feil."
 
-#: ../tls/pkcs11/gpkcs11slot.c:446
+#: tls/pkcs11/gpkcs11slot.c:449
 msgid "Module"
 msgstr "Modul"
 
-#: ../tls/pkcs11/gpkcs11slot.c:447
+#: tls/pkcs11/gpkcs11slot.c:450
 msgid "PKCS#11 Module Pointer"
 msgstr "PKCS#11-modulpeker"
 
-#: ../tls/pkcs11/gpkcs11slot.c:454
+#: tls/pkcs11/gpkcs11slot.c:457
 msgid "Slot ID"
 msgstr "Plassidentifikator"
 
-#: ../tls/pkcs11/gpkcs11slot.c:455
+#: tls/pkcs11/gpkcs11slot.c:458
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 plassidentifikator"
