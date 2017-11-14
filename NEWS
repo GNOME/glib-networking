@@ -1,3 +1,16 @@
+2.55.1 - November 13, 2017
+==========================
+
+ * Implement DTLS support [#697908, Philip Withnall and Olivier Crête]
+
+ * Fix using different client certs for different connections
+   [#781578, Martin Pitt]
+
+ * Port to Meson build system [#786639, Iñigo Martínez]
+
+ * Updated translations: Catalan (Valencian), Croatian, Czech, German,
+   Greek, Norwegian bokmål, Persian, Slovenian
+
 2.54.0
 ======
   * New/updated translations: Basque, Belarusian, Brazilian
