@@ -51,6 +51,12 @@ assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 # *** Checks for LibProxy   ***
 enable_libproxy_support = get_option('libproxy_support')
 if enable_libproxy_support
+  dbus_service_dir = dependency('dbus-1').get_pkgconfig_variable('session_bus_services_dir')
+  assert(dbus_service_dir != '', 'session_bus_services_dir is missing from dbus-1.pc')
+
+  systemd_user_unit_dir = dependency('systemd').get_pkgconfig_variable('systemduserunitdir')
+  assert(systemd_user_unit_dir != '', 'systemduserunitdir is missing from systemd.pc')
+
   libproxy_dep = dependency('libproxy-1.0', version: '>= 0.3.1', required: true)
 endif
 
