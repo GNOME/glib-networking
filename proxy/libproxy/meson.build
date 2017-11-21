@@ -17,7 +17,7 @@ configure_file(
   input: service + '.in',
   output: service,
   install: true,
-  install_dir: join_paths(libdir, 'systemd', 'user'),
+  install_dir: join_paths('lib', 'systemd', 'user'),
   configuration: service_conf
 )
 
