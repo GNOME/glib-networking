@@ -7,7 +7,7 @@ configure_file(
   input: service + '.in',
   output: service,
   install: true,
-  install_dir: dbus_service_dir,
+  install_dir: join_paths(datadir, 'dbus-1', 'services'),
   configuration: service_conf
 )
 
@@ -17,7 +17,7 @@ configure_file(
   input: service + '.in',
   output: service,
   install: true,
-  install_dir: systemd_user_unit_dir,
+  install_dir: join_paths(libdir, 'systemd', 'user'),
   configuration: service_conf
 )
 
