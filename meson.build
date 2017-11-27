@@ -12,8 +12,46 @@ gio = dependency('gio-2.0', version: '>=' + glib_req)
 giomoduledir = gio.get_pkgconfig_variable('giomoduledir')
 gio_querymodules = find_program('gio-querymodules')
 
-openssl = dependency('openssl')
-# TODO: Handle finding on Win32
+# MSVC builds of OpenSSL does not generate pkg-config files,
+# so we check for it manually here in this case, if we can't find those files
+openssl = dependency('openssl', required: cc.get_id() != 'msvc')
+
+if not openssl.found()
+  # Based on the CMake check for OpenSSL in CURL's CMakeLists.txt,
+  # on which headers we should check for
+  cc.has_header('openssl/crypto.h')
+  cc.has_header('openssl/engine.h')
+  cc.has_header('openssl/err.h')
+  cc.has_header('openssl/pem.h')
+  cc.has_header('openssl/rsa.h')
+  cc.has_header('openssl/ssl.h')
+  cc.has_header('openssl/x509.h')
+  cc.has_header('openssl/rand.h')
+  cc.has_header('openssl/tls1.h')
+
+  # OpenSSL 1.1.x and 1.0.x (or earlier) have different .lib names,
+  # so we need to look for the correct pair
+
+  # Find either libcrypto.lib (1.1.x) or libeay32.lib (1.0.x or earlier) first
+  libcrypto = cc.find_library('libcrypto', required: false)
+  if not libcrypto.found()
+    libeay = cc.find_library('libeay32')
+  endif
+
+  # Find the corresponding SSL library depending on which crypto .lib we found
+  if libcrypto.found()
+    libssl = cc.find_library('libssl')
+  elif libeay.found()
+    ssleay = cc.find_library('ssleay32')
+  endif
+
+  # Now set the openssl dependency to the corresponding pair of .lib files that we found
+  if libcrypto.found()
+    openssl = [libcrypto, libssl]
+  else
+    openssl = [libeay, ssleay]
+  endif
+endif
 
 # Compiler flags
 if cc.get_id() == 'msvc'
@@ -21,25 +59,8 @@ if cc.get_id() == 'msvc'
   # from _Win32_Programming_ by Rector and Newcomer.  Taken from
   # glib's msvc_recommended_pragmas.h--please see that file for
   # the meaning of the warning codes used here
-  test_cflags = [
-    '-we4002', # too many actual parameters for macro
-    '-we4003', # not enough actual parameters for macro
-    '-w14010', # single-line comment contains line-continuation character
-    '-we4013', # 'function' undefined; assuming extern returning int
-    '-w14016', # no function return type; using int as default
-    '-we4020', # too many actual parameters
-    '-we4021', # too few actual parameters
-    '-we4027', # function declared without formal parameter list
-    '-we4029', # declared formal parameter list different from definition
-    '-we4033', # 'function' must return a value
-    '-we4035', # 'function' : no return value
-    '-we4045', # array bounds overflow
-    '-we4047', # different levels of indirection
-    '-we4049', # terminating line number emission
-    '-we4053', # an expression of type void was used as an operand
-    '-we4071', # no function prototype given
-    '-we4819', # the file contains a character that cannot be represented in the current code page
-  ]
+  test_cflags = []
+  add_project_arguments('/FImsvc_recommended_pragmas.h', language : 'c')
 else
   test_cflags = [
     '-ffast-math',
