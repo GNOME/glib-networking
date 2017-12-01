@@ -231,6 +231,8 @@ void
 g_libproxy_resolver_register (GIOModule *module)
 {
   g_libproxy_resolver_register_type (G_TYPE_MODULE (module));
+  if (module == NULL)
+    g_io_extension_point_register (G_PROXY_RESOLVER_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_PROXY_RESOLVER_EXTENSION_POINT_NAME,
 				  g_libproxy_resolver_get_type(),
 				  "libproxy",

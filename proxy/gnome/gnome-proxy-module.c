@@ -25,7 +25,7 @@
 
 
 void
-g_io_module_load (GIOModule *module)
+g_io_gnomeproxy_load (GIOModule *module)
 {
   gchar *locale_dir;
 #ifdef G_OS_WIN32
@@ -48,12 +48,12 @@ g_io_module_load (GIOModule *module)
 }
 
 void
-g_io_module_unload (GIOModule *module)
+g_io_gnomeproxy_unload (GIOModule *module)
 {
 }
 
 gchar **
-g_io_module_query (void)
+g_io_gnomeproxy_query (void)
 {
   gchar *eps[] = {
     G_PROXY_RESOLVER_EXTENSION_POINT_NAME,

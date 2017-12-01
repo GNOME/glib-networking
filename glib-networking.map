@@ -1,8 +1,8 @@
 {
 global:
-  g_io_module_load;
-  g_io_module_unload;
-  g_io_module_query;
+  g_io_*_load;
+  g_io_*_unload;
+  g_io_*_query;
 local:
   *;
 };

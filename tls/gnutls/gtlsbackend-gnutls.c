@@ -57,6 +57,8 @@ gtls_log_func (int level, const char *msg)
 static gpointer
 gtls_gnutls_init (gpointer data)
 {
+  GTypePlugin *plugin;
+
   gnutls_global_init ();
 
 #ifdef GTLS_GNUTLS_DEBUG
@@ -65,7 +67,9 @@ gtls_gnutls_init (gpointer data)
 #endif
 
   /* Leak the module to keep it from being unloaded. */
-  g_type_plugin_use (g_type_get_plugin (G_TYPE_TLS_BACKEND_GNUTLS));
+  plugin = g_type_get_plugin (G_TYPE_TLS_BACKEND_GNUTLS);
+  if (plugin != NULL)
+    g_type_plugin_use (plugin);
   return NULL;
 }
 
@@ -312,6 +316,8 @@ void
 g_tls_backend_gnutls_register (GIOModule *module)
 {
   g_tls_backend_gnutls_register_type (G_TYPE_MODULE (module));
+  if (module == NULL)
+    g_io_extension_point_register (G_TLS_BACKEND_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_TLS_BACKEND_EXTENSION_POINT_NAME,
 				  g_tls_backend_gnutls_get_type(),
 				  "gnutls",
