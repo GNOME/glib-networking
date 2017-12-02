@@ -32,7 +32,7 @@ deps = [
   libproxy_dep
 ]
 
-shared_module(
+module = shared_module(
   'giolibproxy',
   sources: sources,
   include_directories: top_inc,
@@ -43,6 +43,14 @@ shared_module(
   install: true,
   install_dir: gio_module_dir
 )
+
+if get_option('static_modules')
+  static_library('giolibproxy',
+    objects: module.extract_all_objects(),
+    install: true,
+    install_dir: gio_module_dir
+  )
+endif
 
 sources = files(
   'glibproxyresolver.c',

@@ -14,7 +14,8 @@ libgiopkcs11 = static_library(
   'giopkcs11',
   sources: sources,
   include_directories: top_inc,
-  dependencies: deps
+  dependencies: deps,
+  install: get_option('static_modules')
 )
 
 libgiopkcs11_dep = declare_dependency(

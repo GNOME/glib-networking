@@ -31,7 +31,7 @@ if enable_pkcs11_support
   deps += libgiopkcs11_dep
 endif
 
-shared_module(
+module = shared_module(
   'giognutls',
   sources: sources,
   include_directories: incs,
@@ -41,3 +41,11 @@ shared_module(
   install: true,
   install_dir: gio_module_dir
 )
+
+if get_option('static_modules')
+  static_library('giognutls',
+    objects: module.extract_all_objects(),
+    install: true,
+    install_dir: gio_module_dir
+  )
+endif
