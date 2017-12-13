@@ -1,3 +1,11 @@
+2.55.2 - December 13, 2017
+==========================
+
+ * Fix glib-pacrunner.service installation directory
+   [#790367, Michael Catanzaro]
+
+ * Updated translations: Hebrew, Indonesian, Spanish
+
 2.55.1 - November 13, 2017
 ==========================
 
