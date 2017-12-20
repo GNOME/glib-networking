@@ -2,15 +2,15 @@
 # Copyright (C) 2011 glib-openssl's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-openssl package.
 # Jorge González <jorgegonz@svn.gnome.org>, 2011.
-# Daniel Mustieles <daniel.mustieles@gmail.com>, 2011, 2012, 2016.
+# Daniel Mustieles <daniel.mustieles@gmail.com>, 2011, 2012, 2016, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
 "openssl&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2016-09-26 23:04+0000\n"
-"PO-Revision-Date: 2016-12-22 12:34+0100\n"
+"POT-Creation-Date: 2017-10-26 10:52+0000\n"
+"PO-Revision-Date: 2017-12-14 13:14+0100\n"
 "Last-Translator: Daniel Mustieles <daniel.mustieles@gmail.com>\n"
 "Language-Team: es <gnome-es-list@gnome.org>\n"
 "Language: es\n"
@@ -56,74 +56,79 @@ msgstr "No se pudo analizar la clave privada PEM: %s"
 msgid "No certificate data provided"
 msgstr "No se han proporcionado datos del certificado"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:430
-#: tls/openssl/gtlsserverconnection-openssl.c:228
+#: tls/openssl/gtlsclientconnection-openssl.c:452
+#: tls/openssl/gtlsserverconnection-openssl.c:257
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "No se pudo crear el contexto TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:468
-#: tls/openssl/gtlsserverconnection-openssl.c:296
+#: tls/openssl/gtlsclientconnection-openssl.c:492
+#: tls/openssl/gtlsserverconnection-openssl.c:343
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "No se pudo crear la conexión TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:149
+#: tls/openssl/gtlsconnection-openssl.c:150
 msgid "Peer failed to perform TLS handshake"
 msgstr "EL par falló al realizar la negociación TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:158
+#: tls/openssl/gtlsconnection-openssl.c:171
 msgid "TLS connection peer did not send a certificate"
 msgstr "El par de la conexión TLS no envió un certificado"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
-#: tls/openssl/gtlsconnection-openssl.c:309
+#: tls/openssl/gtlsconnection-openssl.c:179
+msgid "Digest too big for RSA key"
+msgstr "Resumen demasiado grande para la clave RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:232
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "El par solicitó una renegociación TLS ilegal"
+
+#: tls/openssl/gtlsconnection-openssl.c:241
+#: tls/openssl/gtlsconnection-openssl.c:337
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Error al realizar la negociación TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/openssl/gtlsconnection-openssl.c:347
 msgid "Server did not return a valid TLS certificate"
 msgstr "El servidor no devolvió un certificado TLS válido"
 
-#: tls/openssl/gtlsconnection-openssl.c:349
+#: tls/openssl/gtlsconnection-openssl.c:377
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceptable"
 
-#: tls/openssl/gtlsconnection-openssl.c:433
+#: tls/openssl/gtlsconnection-openssl.c:461
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Error al leer datos del socket TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/openssl/gtlsconnection-openssl.c:487
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Error al escribir datos en el socket TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:485
+#: tls/openssl/gtlsconnection-openssl.c:513
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Error al cerrar el TLS: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:250
+#: tls/openssl/gtlsserverconnection-openssl.c:286
 msgid "Certificate has no private key"
 msgstr "El certificado no tiene clave privada"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:257
+#: tls/openssl/gtlsserverconnection-openssl.c:293
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Hay un problema con la clave privada del certificado: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:266
+#: tls/openssl/gtlsserverconnection-openssl.c:302
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Hay un problema con el certificado: %s"
 
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Error interno del proxy."
-
-#~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr "El par solicitó una renegociación TLS ilegal"
 
 #~ msgid "TLS connection closed unexpectedly"
 #~ msgstr "La conexión TLS se cerró inesperadamente"
