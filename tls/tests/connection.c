@@ -1941,24 +1941,9 @@ quit_on_handshake_complete (GObject      *object,
   return;
 }
 
-#define PRIORITY_SSL_FALLBACK "NORMAL:+VERS-SSL3.0"
-#define PRIORITY_TLS_FALLBACK "NORMAL:+VERS-TLS-ALL:-VERS-SSL3.0"
-
 static void
-test_fallback (gconstpointer data)
-{
-  const char *priority_string = (const char *) data;
-  char *test_name;
-
-  test_name = g_strdup_printf ("/tls/connection/fallback/subprocess/%s", priority_string);
-  g_test_trap_subprocess (test_name, 0, 0);
-  g_test_trap_assert_passed ();
-  g_free (test_name);
-}
-
-static void
-test_fallback_subprocess (TestConnection *test,
-			  gconstpointer   data)
+test_fallback (TestConnection *test,
+	       gconstpointer   data)
 {
   GIOStream *connection;
   GTlsConnection *tlsconn;
@@ -2049,25 +2034,6 @@ main (int   argc,
       char *argv[])
 {
   int ret;
-  int i;
-
-  /* Check if this is a subprocess, and set G_TLS_GNUTLS_PRIORITY
-   * appropriately if so.
-   */
-  for (i = 1; i < argc - 1; i++)
-    {
-      if (!strcmp (argv[i], "-p"))
-	{
-	  const char *priority = argv[i + 1];
-
-	  priority = strrchr (priority, '/');
-	  if (priority++ &&
-	      (g_str_has_prefix (priority, "NORMAL:") ||
-	       g_str_has_prefix (priority, "NONE:")))
-	    g_setenv ("G_TLS_GNUTLS_PRIORITY", priority, TRUE);
-	  break;
-	}
-    }
 
   g_test_init (&argc, &argv, NULL);
   g_test_bug_base ("http://bugzilla.gnome.org/");
@@ -2132,15 +2098,8 @@ main (int   argc,
               setup_connection, test_async_implicit_handshake, teardown_connection);
   g_test_add ("/tls/connection/output-stream-close", TestConnection, NULL,
               setup_connection, test_output_stream_close, teardown_connection);
-
-  g_test_add_data_func ("/tls/connection/fallback/SSL", PRIORITY_SSL_FALLBACK, test_fallback);
-  g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_SSL_FALLBACK,
-	      TestConnection, NULL,
-              setup_connection, test_fallback_subprocess, teardown_connection);
-  g_test_add_data_func ("/tls/connection/fallback/TLS", PRIORITY_TLS_FALLBACK, test_fallback);
-  g_test_add ("/tls/connection/fallback/subprocess/" PRIORITY_TLS_FALLBACK,
-	      TestConnection, NULL,
-              setup_connection, test_fallback_subprocess, teardown_connection);
+  g_test_add ("/tls/connection/fallback", TestConnection, NULL,
+              setup_connection, test_fallback, teardown_connection);
 
   ret = g_test_run();
 
