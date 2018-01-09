@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2017-05-23 15:17+0000\n"
-"PO-Revision-Date: 2017-05-27 23:03+0200\n"
+"POT-Creation-Date: 2017-11-03 18:26+0000\n"
+"PO-Revision-Date: 2018-01-08 18:50+0100\n"
 "Last-Translator: Fabio Tomat <f.t.public@gmail.com>\n"
 "Language-Team: Friulian <fur@li.org>\n"
 "Language: fur\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.12\n"
+"X-Generator: Poedit 2.0.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: proxy/libproxy/glibproxyresolver.c:157
 msgid "Proxy resolver internal error."
@@ -46,80 +47,121 @@ msgstr "Impussibil analizâ la clâf privade PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nissun dât di certificât dât"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:375
+#: tls/gnutls/gtlsclientconnection-gnutls.c:396
 msgid "Server required TLS certificate"
 msgstr "Il server al domande un certificât TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:310
+#: tls/gnutls/gtlsconnection-gnutls.c:382
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Impussibil creâ la conession TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:572
+#: tls/gnutls/gtlsconnection-gnutls.c:677
 msgid "Connection is closed"
 msgstr "La conession e je sierade"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:645
-#: tls/gnutls/gtlsconnection-gnutls.c:1528
+#: tls/gnutls/gtlsconnection-gnutls.c:752
+#: tls/gnutls/gtlsconnection-gnutls.c:2152
 msgid "Operation would block"
 msgstr "Le operazion e podarès blocâsi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:792
-#: tls/gnutls/gtlsconnection-gnutls.c:831
+#: tls/gnutls/gtlsconnection-gnutls.c:793
+#: tls/gnutls/gtlsconnection-gnutls.c:1374
+msgid "Socket I/O timed out"
+msgstr "I/O dal socket scjadût"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/gnutls/gtlsconnection-gnutls.c:966
 msgid "Peer failed to perform TLS handshake"
 msgstr "Il pâr nol è rivât a eseguî il handshake TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:810
+#: tls/gnutls/gtlsconnection-gnutls.c:945
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Il pâr al à domandât un rehandshake TLS no lecit"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:837
+#: tls/gnutls/gtlsconnection-gnutls.c:972
 msgid "TLS connection closed unexpectedly"
 msgstr "Sieradure inspietade de conession TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:847
+#: tls/gnutls/gtlsconnection-gnutls.c:982
 msgid "TLS connection peer did not send a certificate"
 msgstr "Il pâr di conession TLS nol à inviât un certificât"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:853
+#: tls/gnutls/gtlsconnection-gnutls.c:988
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Il pâr al à inviât l'avîs TLS fatâl: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1274
+#: tls/gnutls/gtlsconnection-gnutls.c:996
 #, c-format
-msgid "Error performing TLS handshake: %s"
-msgstr "Erôr tal eseguî il handshake TLS: %s"
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] ""
+"Il messaç al è masse grant pe conession DTLS; il massim al è di %u byte"
+msgstr[1] ""
+"Il messaç al è masse grant pe conession DTLS; il massim al è di %u byte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1284
+#: tls/gnutls/gtlsconnection-gnutls.c:1003
+msgid "The operation timed out"
+msgstr "La operazion e je scjadude"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1780
+#: tls/gnutls/gtlsconnection-gnutls.c:1831
+msgid "Error performing TLS handshake"
+msgstr "Erôr tal eseguî il handshake TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1841
 msgid "Server did not return a valid TLS certificate"
 msgstr "Il server nol à tornât un certificât TLS valit"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1354
+#: tls/gnutls/gtlsconnection-gnutls.c:1917
 msgid "Unacceptable TLS certificate"
-msgstr "certificât TLS no acetabil"
+msgstr "Certificât TLS no acetabil"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1562
+#: tls/gnutls/gtlsconnection-gnutls.c:2185
+#: tls/gnutls/gtlsconnection-gnutls.c:2276
+msgid "Error reading data from TLS socket"
+msgstr "Erôr tal lei dâts dal socket TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2306
 #, c-format
-msgid "Error reading data from TLS socket: %s"
-msgstr "Erôr tal lei dâts tal socket TLS: %s"
+msgid "Receive flags are not supported"
+msgstr "Lis opzions di ricezion no son supuartadis"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1591
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:2382
+#: tls/gnutls/gtlsconnection-gnutls.c:2453
+msgid "Error writing data to TLS socket"
+msgstr "Erôr tal scrivi dâts al socket TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2423
 #, c-format
-msgid "Error writing data to TLS socket: %s"
-msgstr "Erôr tal scrivi dâts tal socket TLS: %s"
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Il messaç di dimension %lu byte al è masse grant pe conession DTLS"
+msgstr[1] "Il messaç di dimension %lu byte al è masse grant pe conession DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1655
+#: tls/gnutls/gtlsconnection-gnutls.c:2425
 #, c-format
-msgid "Error performing TLS close: %s"
-msgstr "Erôr tal sierâ TLS: %s"
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(il massim al è %u byte)"
+msgstr[1] "(il massim al è %u bytes)"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:107
+#: tls/gnutls/gtlsconnection-gnutls.c:2484
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Lis opzions par inviâ no son supuartadis"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2584
+msgid "Error performing TLS close"
+msgstr "Erôr tal sierâ TLS"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:109
 msgid "Certificate has no private key"
 msgstr "Il certificât nol à une clâf privade"
 
-#: tls/pkcs11/gpkcs11pin.c:111
+#: tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
@@ -127,7 +169,7 @@ msgstr ""
 "Cheste e je la ultime pussibilitât par inserî il PIN coret prime che al "
 "vegni blocât il token."
 
-#: tls/pkcs11/gpkcs11pin.c:113
+#: tls/pkcs11/gpkcs11pin.c:112
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
@@ -135,23 +177,23 @@ msgstr ""
 "A son stâts fats une vore di tentatîfs par meti il PIN, il token al sarà "
 "blocât dopo altris faliments."
 
-#: tls/pkcs11/gpkcs11pin.c:115
+#: tls/pkcs11/gpkcs11pin.c:114
 msgid "The PIN entered is incorrect."
 msgstr "Il PIN dât nol è coret."
 
-#: tls/pkcs11/gpkcs11slot.c:449
+#: tls/pkcs11/gpkcs11slot.c:448
 msgid "Module"
 msgstr "Modul"
 
-#: tls/pkcs11/gpkcs11slot.c:450
+#: tls/pkcs11/gpkcs11slot.c:449
 msgid "PKCS#11 Module Pointer"
 msgstr "Pontadôr modul PKCS#11"
 
-#: tls/pkcs11/gpkcs11slot.c:457
+#: tls/pkcs11/gpkcs11slot.c:456
 msgid "Slot ID"
 msgstr "ID dal slot"
 
-#: tls/pkcs11/gpkcs11slot.c:458
+#: tls/pkcs11/gpkcs11slot.c:457
 msgid "PKCS#11 Slot Identifier"
 msgstr "Identificadôr Slot PKCS#11"
 
