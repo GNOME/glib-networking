@@ -602,8 +602,8 @@ read_test_data_async (TestConnection *test)
   GError *error = NULL;
   guint8 buf[TEST_DATA_LENGTH * 2];
   GInputVector vectors[2] = {
-    { &buf, sizeof (buf) / 2 },
-    { &buf + sizeof (buf) / 2, sizeof (buf) / 2 },
+    { buf, sizeof (buf) / 2 },
+    { buf + sizeof (buf) / 2, sizeof (buf) / 2 },
   };
   GInputMessage message = { NULL, vectors, G_N_ELEMENTS (vectors), 0, 0, NULL, NULL };
   gint n_read;
