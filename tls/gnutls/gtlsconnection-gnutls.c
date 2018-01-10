@@ -740,7 +740,7 @@ claim_op (GTlsConnectionGnutls    *gnutls,
       GPollFD fds[2];
       int nfds;
       gint64 start_time;
-      gint result;
+      gint result = 1;  /* if the loop is never entered, it’s as if we cancelled early */
 
       g_cancellable_reset (gnutls->priv->waiting_for_op);
 
@@ -1330,7 +1330,7 @@ g_tls_connection_gnutls_condition_wait (GDatagramBased  *datagram_based,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (datagram_based);
   GPollFD fds[2];
   guint n_fds;
-  gint result;
+  gint result = 1;  /* if the loop is never entered, it’s as if we cancelled early */
   gint64 start_time;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
