@@ -5,14 +5,14 @@
 # Proxecto Trasno - Adaptación do software libre á lingua galega:  Se desexas
 # colaborar connosco, podes atopar máis información en <http://trasno.net>
 # Fran Diéguez <frandieguez@ubuntu.com>, 2011.
-# Fran Dieguez <frandieguez@gnome.org>, 2011, 2012, 2017.
+# Fran Dieguez <frandieguez@gnome.org>, 2011, 2012, 2017, 2018.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib&k"
 "eywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2017-05-23 15:17+0000\n"
-"PO-Revision-Date: 2017-08-09 17:25+0200\n"
+"POT-Creation-Date: 2017-11-03 18:26+0000\n"
+"PO-Revision-Date: 2018-01-11 23:09+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
@@ -51,80 +51,123 @@ msgstr "Non foi posíbel analizar a chave privada PEM: %s"
 msgid "No certificate data provided"
 msgstr "Non se forneceu ningún dato do certificado"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:375
+#: tls/gnutls/gtlsclientconnection-gnutls.c:396
 msgid "Server required TLS certificate"
 msgstr "O servidor require un certificado TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:310
+#: tls/gnutls/gtlsconnection-gnutls.c:382
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Non foi posíbel crear a conexión TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:572
+#: tls/gnutls/gtlsconnection-gnutls.c:677
 msgid "Connection is closed"
 msgstr "A conexión está pechada"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:645
-#: tls/gnutls/gtlsconnection-gnutls.c:1528
+#: tls/gnutls/gtlsconnection-gnutls.c:752
+#: tls/gnutls/gtlsconnection-gnutls.c:2152
 msgid "Operation would block"
 msgstr "A operación bloquearase"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:792
-#: tls/gnutls/gtlsconnection-gnutls.c:831
+#: tls/gnutls/gtlsconnection-gnutls.c:793
+#: tls/gnutls/gtlsconnection-gnutls.c:1374
+msgid "Socket I/O timed out"
+msgstr "Tempo de espera do Socket de E/S superado"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/gnutls/gtlsconnection-gnutls.c:966
 msgid "Peer failed to perform TLS handshake"
 msgstr "O par fallou ao realizar a negociación TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:810
+#: tls/gnutls/gtlsconnection-gnutls.c:945
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "O par solicitou unha renegociación TLS inaceptábel"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:837
+#: tls/gnutls/gtlsconnection-gnutls.c:972
 msgid "TLS connection closed unexpectedly"
 msgstr "A conexión TLS pechouse de forma inesperada"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:847
+#: tls/gnutls/gtlsconnection-gnutls.c:982
 msgid "TLS connection peer did not send a certificate"
 msgstr "O par da conexión TLS non enviou un certificado"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:853
+#: tls/gnutls/gtlsconnection-gnutls.c:988
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "O par envióu unha alerta TLS fatal: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1274
+#: tls/gnutls/gtlsconnection-gnutls.c:996
 #, c-format
-msgid "Error performing TLS handshake: %s"
-msgstr "Produciuse un erro ao realizar a negociación TLS: %s"
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "O mensaxe é demasiado largo para a conexión DTLS; o máximo é %u byte"
+msgstr[1] "O mensaxe é demasiado largo para a conexión DTLS; o máximo é %u bytes"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1284
+#: tls/gnutls/gtlsconnection-gnutls.c:1003
+msgid "The operation timed out"
+msgstr "A operación superou o tempo máximo permitido"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1780
+#: tls/gnutls/gtlsconnection-gnutls.c:1831
+#| msgid "Error performing TLS handshake: %s"
+msgid "Error performing TLS handshake"
+msgstr "Produciuse un erro ao realizar a negociación TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1841
 msgid "Server did not return a valid TLS certificate"
 msgstr "O servidor non devolveu un certificado TLS válido"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1354
+#: tls/gnutls/gtlsconnection-gnutls.c:1917
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceptábel"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1562
-#, c-format
-msgid "Error reading data from TLS socket: %s"
-msgstr "Produciuse un erro ao ler datos do conectador TLS: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2185
+#: tls/gnutls/gtlsconnection-gnutls.c:2276
+#| msgid "Error reading data from TLS socket: %s"
+msgid "Error reading data from TLS socket"
+msgstr "Produciuse un erro ao ler datos do socket TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1591
+#: tls/gnutls/gtlsconnection-gnutls.c:2306
 #, c-format
-msgid "Error writing data to TLS socket: %s"
-msgstr "Produciuse un erro ao escribir datos no conectador TLS: %s"
+msgid "Receive flags are not supported"
+msgstr ""
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1655
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:2382
+#: tls/gnutls/gtlsconnection-gnutls.c:2453
+#| msgid "Error writing data to TLS socket: %s"
+msgid "Error writing data to TLS socket"
+msgstr "Produciuse un erro ao escribir datos no socket TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2423
 #, c-format
-msgid "Error performing TLS close: %s"
-msgstr "Produciuse un erro ao realizar o peche de TLS: %s"
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "O mensaxe de %lu byte de tamaño é demasiado largo para a conexión DTLS"
+msgstr[1] "O mensaxe de %lu bytes de tamaño é demasiado largo para a conexión DTLS"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:107
+#: tls/gnutls/gtlsconnection-gnutls.c:2425
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(o máximo é %u byte)"
+msgstr[1] "(o máximo é %u bytes)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2484
+#, c-format
+msgid "Send flags are not supported"
+msgstr ""
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2584
+#| msgid "Error performing TLS close: %s"
+msgid "Error performing TLS close"
+msgstr "Produciuse un erro ao pechar o TLS"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:109
 msgid "Certificate has no private key"
 msgstr "O certificado no ten unha chave privada"
 
-#: tls/pkcs11/gpkcs11pin.c:111
+#: tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
@@ -132,7 +175,7 @@ msgstr ""
 "Esta é a última oportunidade para escribir o PIN correctamente antes de que "
 "o token está bloqueado."
 
-#: tls/pkcs11/gpkcs11pin.c:113
+#: tls/pkcs11/gpkcs11pin.c:112
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
@@ -140,23 +183,23 @@ msgstr ""
 "Varios intentos de introducir o PIN foron incorrectos e o «token» "
 "bloquearase despois de máis fallos."
 
-#: tls/pkcs11/gpkcs11pin.c:115
+#: tls/pkcs11/gpkcs11pin.c:114
 msgid "The PIN entered is incorrect."
 msgstr "O PIN escrito é incorrecto."
 
-#: tls/pkcs11/gpkcs11slot.c:449
+#: tls/pkcs11/gpkcs11slot.c:448
 msgid "Module"
 msgstr "Módulo"
 
-#: tls/pkcs11/gpkcs11slot.c:450
+#: tls/pkcs11/gpkcs11slot.c:449
 msgid "PKCS#11 Module Pointer"
 msgstr "Punteiro do módulo PKCS#11"
 
-#: tls/pkcs11/gpkcs11slot.c:457
+#: tls/pkcs11/gpkcs11slot.c:456
 msgid "Slot ID"
 msgstr "ID da ranura"
 
-#: tls/pkcs11/gpkcs11slot.c:458
+#: tls/pkcs11/gpkcs11slot.c:457
 msgid "PKCS#11 Slot Identifier"
 msgstr "Identificador da ranura PKCS#11"
 
