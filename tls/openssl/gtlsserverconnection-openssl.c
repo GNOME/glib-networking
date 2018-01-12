@@ -236,6 +236,36 @@ set_cipher_list (GTlsServerConnectionOpenssl *server)
   SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list);
 }
 
+static void
+set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
+{
+  GTlsServerConnectionOpensslPrivate *priv;
+  const gchar *signature_algorithm_list;
+
+  priv = g_tls_server_connection_openssl_get_instance_private (server);
+
+  signature_algorithm_list = g_getenv ("G_TLS_OPENSSL_SIGNATURE_ALGORITHM_LIST");
+  if (signature_algorithm_list == NULL)
+    return;
+
+  SSL_CTX_set1_sigalgs_list (priv->ssl_ctx, signature_algorithm_list);
+}
+
+static void
+set_curve_list (GTlsServerConnectionOpenssl *server)
+{
+  GTlsServerConnectionOpensslPrivate *priv;
+  const gchar *curve_list;
+
+  priv = g_tls_server_connection_openssl_get_instance_private (server);
+
+  curve_list = g_getenv ("G_TLS_OPENSSL_CURVE_LIST");
+  if (curve_list == NULL)
+    return;
+
+  SSL_CTX_set1_curves_list (priv->ssl_ctx, curve_list);
+}
+
 static gboolean
 g_tls_server_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
@@ -325,6 +355,8 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
   set_cipher_list (server);
+  set_signature_algorithm_list (server);
+  set_curve_list (server);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
 # ifdef SSL_CTX_set_ecdh_auto

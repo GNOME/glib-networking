@@ -431,6 +431,36 @@ set_cipher_list (GTlsClientConnectionOpenssl *client)
   SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list);
 }
 
+static void
+set_signature_algorithm_list (GTlsClientConnectionOpenssl *client)
+{
+  GTlsClientConnectionOpensslPrivate *priv;
+  const gchar *signature_algorithm_list;
+
+  priv = g_tls_client_connection_openssl_get_instance_private (client);
+
+  signature_algorithm_list = g_getenv ("G_TLS_OPENSSL_SIGNATURE_ALGORITHM_LIST");
+  if (signature_algorithm_list == NULL)
+    return;
+
+  SSL_CTX_set1_sigalgs_list (priv->ssl_ctx, signature_algorithm_list);
+}
+
+static void
+set_curve_list (GTlsClientConnectionOpenssl *client)
+{
+  GTlsClientConnectionOpensslPrivate *priv;
+  const gchar *curve_list;
+
+  priv = g_tls_client_connection_openssl_get_instance_private (client);
+
+  curve_list = g_getenv ("G_TLS_OPENSSL_CURVE_LIST");
+  if (curve_list == NULL)
+    return;
+
+  SSL_CTX_set1_curves_list (priv->ssl_ctx, curve_list);
+}
+
 static gboolean
 g_tls_client_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
@@ -485,6 +515,8 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   SSL_CTX_set_client_cert_cb (priv->ssl_ctx, retrieve_certificate);
 
   set_cipher_list (client);
+  set_signature_algorithm_list (client);
+  set_curve_list (client);
 
   priv->ssl = SSL_new (priv->ssl_ctx);
   if (priv->ssl == NULL)
