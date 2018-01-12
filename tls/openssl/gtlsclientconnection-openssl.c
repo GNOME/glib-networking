@@ -456,6 +456,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   /* Only TLS 1.2 or higher */
   options = SSL_OP_NO_TICKET |
+            SSL_OP_NO_COMPRESSION |
             SSL_OP_NO_SSLv2 |
             SSL_OP_NO_SSLv3 |
             SSL_OP_NO_TLSv1 |
