@@ -209,6 +209,7 @@ g_tls_server_connection_openssl_server_connection_interface_init (GTlsServerConn
 {
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
 static void
 ssl_info_callback (const SSL *ssl,
                    int        type,
@@ -220,6 +221,7 @@ ssl_info_callback (const SSL *ssl,
       ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
     }
 }
+#endif
 
 static void
 set_cipher_list (GTlsServerConnectionOpenssl *server)
@@ -300,6 +302,10 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
             SSL_OP_NO_TLSv1 |
             SSL_OP_NO_TLSv1_1;
 
+#if OPENSSL_VERSION_NUMBER >= 0x10200000L && !defined (LIBRESSL_VERSION_NUMBER)
+  options |= SSL_OP_NO_RENEGOTIATION;
+#endif
+
   SSL_CTX_set_options (priv->ssl_ctx, options);
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
@@ -373,9 +379,9 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
       }
   }
 # endif
-#endif
 
   SSL_CTX_set_info_callback (priv->ssl_ctx, ssl_info_callback);
+#endif
 
   priv->ssl = SSL_new (priv->ssl_ctx);
   if (priv->ssl == NULL)
