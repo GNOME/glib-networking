@@ -1,16 +1,16 @@
 # Polish translation for glib-networking.
-# Copyright © 2011-2017 the glib-networking authors.
+# Copyright © 2011-2018 the glib-networking authors.
 # This file is distributed under the same license as the glib-networking package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2011-2017.
-# Aviary.pl <community-poland@mozilla.org>, 2011-2017.
+# Piotr Drąg <piotrdrag@gmail.com>, 2011-2018.
+# Aviary.pl <community-poland@mozilla.org>, 2011-2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2017-05-23 15:17+0000\n"
-"PO-Revision-Date: 2017-08-09 23:40+0200\n"
+"POT-Creation-Date: 2017-11-03 18:26+0000\n"
+"PO-Revision-Date: 2018-02-04 23:58+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -48,80 +48,122 @@ msgstr "Nie można przetworzyć klucza prywatnego PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nie podano danych certyfikatu"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:375
+#: tls/gnutls/gtlsclientconnection-gnutls.c:396
 msgid "Server required TLS certificate"
 msgstr "Serwer wymaga certyfikatu TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:310
+#: tls/gnutls/gtlsconnection-gnutls.c:382
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nie można utworzyć połączenia TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:572
+#: tls/gnutls/gtlsconnection-gnutls.c:677
 msgid "Connection is closed"
 msgstr "Połączenie jest zamknięte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:645
-#: tls/gnutls/gtlsconnection-gnutls.c:1528
+#: tls/gnutls/gtlsconnection-gnutls.c:752
+#: tls/gnutls/gtlsconnection-gnutls.c:2152
 msgid "Operation would block"
 msgstr "Działanie zablokowałoby"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:792
-#: tls/gnutls/gtlsconnection-gnutls.c:831
+#: tls/gnutls/gtlsconnection-gnutls.c:793
+#: tls/gnutls/gtlsconnection-gnutls.c:1374
+msgid "Socket I/O timed out"
+msgstr "Wejście/wyjście gniazda przekroczyło czas oczekiwania"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/gnutls/gtlsconnection-gnutls.c:966
 msgid "Peer failed to perform TLS handshake"
 msgstr "Wykonanie powitania TLS przez partnera się nie powiodło"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:810
+#: tls/gnutls/gtlsconnection-gnutls.c:945
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Partner zażądał niedozwolonego ponownego powitania TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:837
+#: tls/gnutls/gtlsconnection-gnutls.c:972
 msgid "TLS connection closed unexpectedly"
 msgstr "Połączenie TLS zostało nieoczekiwanie zamknięte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:847
+#: tls/gnutls/gtlsconnection-gnutls.c:982
 msgid "TLS connection peer did not send a certificate"
 msgstr "Partner połączenia TLS nie wysłał certyfikatu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:853
+#: tls/gnutls/gtlsconnection-gnutls.c:988
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Partner wysłał krytyczny alarm TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1274
+#: tls/gnutls/gtlsconnection-gnutls.c:996
 #, c-format
-msgid "Error performing TLS handshake: %s"
-msgstr "Błąd podczas wykonywania powitania TLS: %s"
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Komunikat jest za duży dla połączenia DTLS, maksimum to %u bajt"
+msgstr[1] "Komunikat jest za duży dla połączenia DTLS, maksimum to %u bajty"
+msgstr[2] "Komunikat jest za duży dla połączenia DTLS, maksimum to %u bajtów"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1284
+#: tls/gnutls/gtlsconnection-gnutls.c:1003
+msgid "The operation timed out"
+msgstr "Działanie przekroczyło czas oczekiwania"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1780
+#: tls/gnutls/gtlsconnection-gnutls.c:1831
+msgid "Error performing TLS handshake"
+msgstr "Błąd podczas wykonywania powitania TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1841
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serwer nie zwrócił prawidłowego certyfikatu TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1354
+#: tls/gnutls/gtlsconnection-gnutls.c:1917
 msgid "Unacceptable TLS certificate"
 msgstr "Nieakceptowalny certyfikat TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1562
-#, c-format
-msgid "Error reading data from TLS socket: %s"
-msgstr "Błąd podczas odczytywania danych z gniazda TLS: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2185
+#: tls/gnutls/gtlsconnection-gnutls.c:2276
+msgid "Error reading data from TLS socket"
+msgstr "Błąd podczas odczytywania danych z gniazda TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1591
+#: tls/gnutls/gtlsconnection-gnutls.c:2306
 #, c-format
-msgid "Error writing data to TLS socket: %s"
-msgstr "Błąd podczas zapisywania danych do gniazda TLS: %s"
+msgid "Receive flags are not supported"
+msgstr "Flagi odbioru są nieobsługiwane"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1655
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:2382
+#: tls/gnutls/gtlsconnection-gnutls.c:2453
+msgid "Error writing data to TLS socket"
+msgstr "Błąd podczas zapisywania danych do gniazda TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2423
 #, c-format
-msgid "Error performing TLS close: %s"
-msgstr "Błąd podczas wykonywania zamknięcia TLS: %s"
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Komunikat o %lu bajcie jest za duży dla połączenia DTLS"
+msgstr[1] "Komunikat o %lu bajtach jest za duży dla połączenia DTLS"
+msgstr[2] "Komunikat o %lu bajtach jest za duży dla połączenia DTLS"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:107
+#: tls/gnutls/gtlsconnection-gnutls.c:2425
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maksimum to %u bajt)"
+msgstr[1] "(maksimum to %u bajty)"
+msgstr[2] "(maksimum to %u bajtów)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2484
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Flagi wysyłki są nieobsługiwane"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2584
+msgid "Error performing TLS close"
+msgstr "Błąd podczas wykonywania zamknięcia TLS"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:109
 msgid "Certificate has no private key"
 msgstr "Certyfikat nie ma klucza prywatnego"
 
-#: tls/pkcs11/gpkcs11pin.c:111
+#: tls/pkcs11/gpkcs11pin.c:110
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
@@ -129,7 +171,7 @@ msgstr ""
 "To jest ostatnia szansa na poprawne wpisanie kodu PIN przed zablokowaniem "
 "tokena."
 
-#: tls/pkcs11/gpkcs11pin.c:113
+#: tls/pkcs11/gpkcs11pin.c:112
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
@@ -137,22 +179,22 @@ msgstr ""
 "Przeprowadzono kilka niepoprawnych prób wpisania kodu PIN. Token zostanie "
 "zablokowany po dalszych niepowodzeniach."
 
-#: tls/pkcs11/gpkcs11pin.c:115
+#: tls/pkcs11/gpkcs11pin.c:114
 msgid "The PIN entered is incorrect."
 msgstr "Wpisany kod PIN jest niepoprawny."
 
-#: tls/pkcs11/gpkcs11slot.c:449
+#: tls/pkcs11/gpkcs11slot.c:448
 msgid "Module"
 msgstr "Moduł"
 
-#: tls/pkcs11/gpkcs11slot.c:450
+#: tls/pkcs11/gpkcs11slot.c:449
 msgid "PKCS#11 Module Pointer"
 msgstr "Wskaźnik modułu PKCS#11"
 
-#: tls/pkcs11/gpkcs11slot.c:457
+#: tls/pkcs11/gpkcs11slot.c:456
 msgid "Slot ID"
 msgstr "Identyfikator gniazda"
 
-#: tls/pkcs11/gpkcs11slot.c:458
+#: tls/pkcs11/gpkcs11slot.c:457
 msgid "PKCS#11 Slot Identifier"
 msgstr "Identyfikator gniazda PKCS#11"
