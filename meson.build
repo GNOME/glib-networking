@@ -26,7 +26,7 @@ common_flags = [
   '-DG_LOG_DOMAIN="GLib-Net"',
   '-DLOCALE_DIR="@0@"'.format(localedir),
   '-DG_DISABLE_DEPRECATED',
-  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_46'
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_56'
 ]
 
 add_project_arguments(common_flags, language: 'c')
