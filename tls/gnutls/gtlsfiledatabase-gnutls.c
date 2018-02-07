@@ -224,7 +224,7 @@ load_anchor_file (const gchar  *filename,
       gerr = gnutls_x509_crt_get_raw_issuer_dn (cert, &dn);
       if (gerr < 0)
         {
-          g_warning ("failed to get subject of anchor certificate: %s",
+          g_warning ("failed to get issuer of anchor certificate: %s",
                      gnutls_strerror (gerr));
           continue;
         }
