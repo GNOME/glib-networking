@@ -73,6 +73,8 @@ gtls_gnutls_init (gpointer data)
   return NULL;
 }
 
+GNUTLS_SKIP_GLOBAL_INIT
+
 static GOnce gnutls_inited = G_ONCE_INIT;
 
 static void
