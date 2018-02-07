@@ -61,27 +61,22 @@ if enable_gnome_proxy_support
 endif
 
 # *** Checks for GnuTLS     ***
-enable_tls_support = get_option('tls_support')
-enable_pkcs11_support = false
+gnutls_dep = dependency('gnutls', version: '>= 3.3.5', required: true)
 
-if enable_tls_support
-  gnutls_dep = dependency('gnutls', version: '>= 3.3.5', required: true)
+msg = 'location of system Certificate Authority list: '
+res = run_command(join_paths(meson.source_root(), 'find-ca-certificates'), get_option('ca_certificates_path'))
+assert(res.returncode() == 0, msg + ' could not find any CA certificate store. Use -Dca_certificates_path=PATH to set')
+ca_certificates_path = res.stdout().strip()
+message(msg + ca_certificates_path)
+config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates_path, description: 'The system CA list')
 
-  msg = 'location of system Certificate Authority list: '
-  res = run_command(join_paths(meson.source_root(), 'find-ca-certificates'), get_option('ca_certificates_path'))
-  assert(res.returncode() == 0, msg + ' could not find any CA certificate store. Use -Dca_certificates_path=PATH to set, or -Dtls_support=no to disable')
-  ca_certificates_path = res.stdout().strip()
-  message(msg + ca_certificates_path)
-  config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates_path, description: 'The system CA list')
+# *** Checks for p11-kit  ***
+enable_pkcs11_support = get_option('pkcs11_support')
+if enable_pkcs11_support
+  pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: true)
 
-  # *** Checks for p11-kit  ***
-  enable_pkcs11_support = get_option('pkcs11_support')
-  if enable_pkcs11_support
-    pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: true)
-
-    config_h.set('HAVE_PKCS11', enable_pkcs11_support,
-                 description: 'Building with PKCS#11 support')
-  endif
+  config_h.set('HAVE_PKCS11', enable_pkcs11_support,
+               description: 'Building with PKCS#11 support')
 endif
 
 configure_file(
@@ -116,24 +111,19 @@ if enable_libproxy_support or enable_gnome_proxy_support
   subdir('proxy/tests')
 endif
 
-if enable_tls_support
-  if enable_pkcs11_support
-    tls_inc = include_directories('tls')
+if enable_pkcs11_support
+  tls_inc = include_directories('tls')
 
-    subdir('tls/pkcs11')
-  endif
-
-  subdir('tls/gnutls')
-  subdir('tls/tests')
+  subdir('tls/pkcs11')
 endif
+
+subdir('tls/gnutls')
+subdir('tls/tests')
 
 meson.add_install_script('meson_post_install.py', gio_module_dir)
 
 output = '\n\n  libproxy support:    ' + enable_libproxy_support.to_string() + '\n'
 output += '  GNOME proxy support: ' + enable_gnome_proxy_support.to_string() + '\n'
-output += '  TLS support:         ' + enable_tls_support.to_string() + '\n'
 output += '  PKCS#11 support:     ' + enable_pkcs11_support.to_string() + '\n'
-if enable_tls_support
-  output += '  TLS CA file:         ' + ca_certificates_path + '\n'
-endif
+output += '  TLS CA file:         ' + ca_certificates_path + '\n'
 message(output)
