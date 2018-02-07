@@ -1957,8 +1957,15 @@ test_fallback (TestConnection *test,
 
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 0);
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
   g_tls_client_connection_set_use_ssl3 (G_TLS_CLIENT_CONNECTION (test->client_connection),
 					TRUE);
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
   g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
 				    quit_on_handshake_complete, test);
   g_main_loop_run (test->loop);

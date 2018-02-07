@@ -338,7 +338,16 @@ g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
   gboolean fallback, unsafe_rehandshake;
 
   if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
-    fallback = g_tls_client_connection_get_use_ssl3 (G_TLS_CLIENT_CONNECTION (gnutls));
+    {
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+      fallback = g_tls_client_connection_get_use_ssl3 (G_TLS_CLIENT_CONNECTION (gnutls));
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+    }
   else
     fallback = FALSE;
   unsafe_rehandshake = (gnutls->priv->rehandshake_mode == G_TLS_REHANDSHAKE_UNSAFELY);
