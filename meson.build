@@ -111,7 +111,7 @@ config_h.set('G_DISABLE_DEPRECATED', true)
 config_h.set_quoted('G_LOG_DOMAIN', 'GLib-OpenSSL')
 
 if host_machine.system() != 'windows'
-  ca_certificates = get_option('with-ca-certificates')
+  ca_certificates = get_option('ca_certificates')
   if ca_certificates == 'no'
     message('CA certificates disabled')
   else
@@ -119,7 +119,7 @@ if host_machine.system() != 'windows'
       detect_certificates = run_command(join_paths(meson.source_root(), 'build-aux', 'detect_certificates.py'))
 
       if detect_certificates.returncode() == 1
-        error('Could not find certificates. Use -Dwith-ca-certificates=path to set, or -Dwith-ca-certificates=no to disable it')
+        error('Could not find certificates. Use -Dca_certificates=path to set, or -Dca_certificates=no to disable it')
       endif
 
       ca_certificates = detect_certificates.stdout().strip()
