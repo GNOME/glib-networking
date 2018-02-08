@@ -9,7 +9,12 @@ glib_req = '2.46.0'
 glib = dependency('glib-2.0', version: '>=' + glib_req)
 gobject = dependency('gobject-2.0', version: '>=' + glib_req)
 gio = dependency('gio-2.0', version: '>=' + glib_req)
-giomoduledir = gio.get_pkgconfig_variable('giomoduledir')
+
+gio_module_dir = get_option('gio_module_dir')
+if gio_module_dir == ''
+  gio_module_dir = gio.get_pkgconfig_variable('giomoduledir')
+endif
+
 gio_querymodules = find_program('gio-querymodules')
 
 # MSVC builds of OpenSSL does not generate pkg-config files,
@@ -140,4 +145,4 @@ subdir('tls/openssl')
 subdir('tls/tests')
 subdir('po')
 
-meson.add_install_script(join_paths('build-aux', 'post_install.py'), giomoduledir)
+meson.add_install_script(join_paths('build-aux', 'post_install.py'), gio_module_dir)

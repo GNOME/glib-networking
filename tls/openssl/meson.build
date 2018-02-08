@@ -27,7 +27,7 @@ gioopenssl = shared_module('gioopenssl',
                            dependencies: [tlsopenssl_dep],
                            include_directories: config_h_include,
                            install: true,
-                           install_dir: giomoduledir,
+                           install_dir: gio_module_dir,
                            c_args: [extra_args + common_flags])
 
 # Internal dependency, for tests and benchmarks

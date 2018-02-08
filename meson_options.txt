@@ -1,1 +1,2 @@
 option('ca_certificates', type: 'string', value: '', description: 'Path to system Certificate Authority list')
+option('gio_module_dir', type: 'string', value: '', description: 'custom directory for gio modules')
