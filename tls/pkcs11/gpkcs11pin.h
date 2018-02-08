@@ -1,4 +1,6 @@
-/* GIO - GLib Pin, Output and Pkcs11ing Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Pin, Output and Pkcs11ing Library
  *
  * Copyright © 2011 Collabora Ltd.
  *

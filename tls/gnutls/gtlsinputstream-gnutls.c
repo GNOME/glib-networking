@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Red Hat, Inc.
  *
@@ -26,8 +28,8 @@
 static void g_tls_input_stream_gnutls_pollable_iface_init (GPollableInputStreamInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsInputStreamGnutls, g_tls_input_stream_gnutls, G_TYPE_INPUT_STREAM,
-			 G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_gnutls_pollable_iface_init)
-			 )
+                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_gnutls_pollable_iface_init)
+                         )
 
 struct _GTlsInputStreamGnutlsPrivate
 {
@@ -56,10 +58,10 @@ g_tls_input_stream_gnutls_finalize (GObject *object)
 
 static gssize
 g_tls_input_stream_gnutls_read (GInputStream  *stream,
-				void          *buffer,
-				gsize          count,
-				GCancellable  *cancellable,
-				GError       **error)
+                                void          *buffer,
+                                gsize          count,
+                                GCancellable  *cancellable,
+                                GError       **error)
 {
   GTlsInputStreamGnutls *tls_stream = G_TLS_INPUT_STREAM_GNUTLS (stream);
   GTlsConnectionGnutls *conn;
@@ -93,7 +95,7 @@ g_tls_input_stream_gnutls_pollable_is_readable (GPollableInputStream *pollable)
 
 static GSource *
 g_tls_input_stream_gnutls_pollable_create_source (GPollableInputStream *pollable,
-						  GCancellable         *cancellable)
+                                                  GCancellable         *cancellable)
 {
   GTlsInputStreamGnutls *tls_stream = G_TLS_INPUT_STREAM_GNUTLS (pollable);
   GTlsConnectionGnutls *conn;
@@ -109,9 +111,9 @@ g_tls_input_stream_gnutls_pollable_create_source (GPollableInputStream *pollable
 
 static gssize
 g_tls_input_stream_gnutls_pollable_read_nonblocking (GPollableInputStream  *pollable,
-						     void                  *buffer,
-						     gsize                  size,
-						     GError               **error)
+                                                     void                  *buffer,
+                                                     gsize                  size,
+                                                     GError               **error)
 {
   GTlsInputStreamGnutls *tls_stream = G_TLS_INPUT_STREAM_GNUTLS (pollable);
   GTlsConnectionGnutls *conn;

@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Red Hat, Inc.
  *
@@ -57,12 +59,12 @@ GType g_tls_backend_gnutls_get_type (void) G_GNUC_CONST;
 void  g_tls_backend_gnutls_register (GIOModule *module);
 
 void    g_tls_backend_gnutls_store_session  (unsigned int             type,
-					     GBytes                  *session_id,
-					     GBytes                  *session_data);
+                                             GBytes                  *session_id,
+                                             GBytes                  *session_data);
 void    g_tls_backend_gnutls_remove_session (unsigned int             type,
-					     GBytes                  *session_id);
+                                             GBytes                  *session_id);
 GBytes *g_tls_backend_gnutls_lookup_session (unsigned int             type,
-					     GBytes                  *session_id);
+                                             GBytes                  *session_id);
 
 G_END_DECLS
 

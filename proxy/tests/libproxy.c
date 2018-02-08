@@ -1,4 +1,6 @@
-/* GLibProxyResolver tests
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GLibProxyResolver tests
  *
  * Copyright 2011-2013 Red Hat, Inc.
  *
@@ -23,7 +25,7 @@
 
 static void
 reset_proxy_settings (gpointer      fixture,
-		      gconstpointer user_data)
+                      gconstpointer user_data)
 {
   g_unsetenv ("http_proxy");
   g_unsetenv ("HTTP_PROXY");
@@ -37,7 +39,7 @@ reset_proxy_settings (gpointer      fixture,
 
 static void
 test_proxy_uri (gpointer      fixture,
-		gconstpointer user_data)
+                gconstpointer user_data)
 {
   g_setenv ("http_proxy", "http://proxy.example.com:8080", TRUE);
   g_setenv ("https_proxy", "http://proxy-s.example.com:7070", TRUE);
@@ -48,7 +50,7 @@ test_proxy_uri (gpointer      fixture,
 
 static void
 test_proxy_socks (gpointer      fixture,
-		  gconstpointer user_data)
+                  gconstpointer user_data)
 {
   g_setenv ("http_proxy", "socks://proxy.example.com:1234", TRUE);
   g_setenv ("no_proxy", "127.0.0.1", TRUE);
@@ -58,7 +60,7 @@ test_proxy_socks (gpointer      fixture,
 
 static void
 test_proxy_ignore (gpointer      fixture,
-		   gconstpointer user_data)
+                   gconstpointer user_data)
 {
   gchar *no_proxy = g_strjoinv (",", (gchar **) ignore_hosts);
 
@@ -84,11 +86,11 @@ main (int   argc,
   g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/proxy/libproxy/.libs", TRUE);
 
   g_test_add_vtable ("/proxy/libproxy/uri", 0, NULL,
-		     reset_proxy_settings, test_proxy_uri, NULL);
+                     reset_proxy_settings, test_proxy_uri, NULL);
   g_test_add_vtable ("/proxy/libproxy/socks", 0, NULL,
-		     reset_proxy_settings, test_proxy_socks, NULL);
+                     reset_proxy_settings, test_proxy_socks, NULL);
   g_test_add_vtable ("/proxy/libproxy/ignore", 0, NULL,
-		     reset_proxy_settings, test_proxy_ignore, NULL);
+                     reset_proxy_settings, test_proxy_ignore, NULL);
 
   return g_test_run();
 }

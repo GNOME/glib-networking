@@ -1,3 +1,4 @@
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
  * Copyright (C) 2010 Stefan Walter
  * Copyright (C) 2011 Collabora Ltd.
@@ -1474,7 +1475,7 @@ mock_unsupported_C_GenerateRandom (CK_SESSION_HANDLE hSession,
 }
 
 CK_FUNCTION_LIST mock_default_functions = {
-  { 2, 11 },	/* version */
+  { 2, 11 },        /* version */
   mock_validate_and_C_Initialize,
   mock_C_Finalize,
   mock_C_GetInfo,

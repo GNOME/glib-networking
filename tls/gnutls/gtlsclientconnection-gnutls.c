@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Red Hat, Inc
  *
@@ -48,19 +50,19 @@ static void g_tls_client_connection_gnutls_client_connection_interface_init (GTl
 static void g_tls_client_connection_gnutls_dtls_client_connection_interface_init (GDtlsClientConnectionInterface *iface);
 
 static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             session,
-							     const gnutls_datum_t        *req_ca_rdn,
-							     int                          nreqs,
-							     const gnutls_pk_algorithm_t *pk_algos,
-							     int                          pk_algos_length,
-							     gnutls_retr2_st             *st);
+                                                             const gnutls_datum_t        *req_ca_rdn,
+                                                             int                          nreqs,
+                                                             const gnutls_pk_algorithm_t *pk_algos,
+                                                             int                          pk_algos_length,
+                                                             gnutls_retr2_st             *st);
 
 static GInitableIface *g_tls_client_connection_gnutls_parent_initable_iface;
 
 G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionGnutls, g_tls_client_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
-			 G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-						g_tls_client_connection_gnutls_initable_interface_init)
-			 G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
-						g_tls_client_connection_gnutls_client_connection_interface_init);
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                g_tls_client_connection_gnutls_initable_interface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
+                                                g_tls_client_connection_gnutls_client_connection_interface_init);
                          G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CLIENT_CONNECTION,
                                                 g_tls_client_connection_gnutls_dtls_client_connection_interface_init));
 
@@ -122,42 +124,42 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
     {
       remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
       if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
-	{
-	  GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
-	  const gchar *server_hostname;
-	  gchar *addrstr, *session_id;
-	  GTlsCertificate *cert = NULL;
-	  gchar *cert_hash = NULL;
+        {
+          GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
+          const gchar *server_hostname;
+          gchar *addrstr, *session_id;
+          GTlsCertificate *cert = NULL;
+          gchar *cert_hash = NULL;
 
-	  iaddr = g_inet_socket_address_get_address (isaddr);
-	  port = g_inet_socket_address_get_port (isaddr);
+          iaddr = g_inet_socket_address_get_address (isaddr);
+          port = g_inet_socket_address_get_port (isaddr);
 
-	  addrstr = g_inet_address_to_string (iaddr);
-	  server_hostname = get_server_identity (gnutls);
+          addrstr = g_inet_address_to_string (iaddr);
+          server_hostname = get_server_identity (gnutls);
 
-	  /* If we have a certificate, make its hash part of the session ID, so
-	   * that different connections to the same server can use different
-	   * certificates. */
-	  g_object_get (G_OBJECT (gnutls), "certificate", &cert, NULL);
-	  if (cert)
-	    {
-	      GByteArray *der = NULL;
-	      g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
-	      if (der)
-		{
-		  cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
-		  g_byte_array_unref (der);
-		}
-	      g_object_unref (cert);
-	    }
-	  session_id = g_strdup_printf ("%s/%s/%d/%s", addrstr,
-					server_hostname ? server_hostname : "",
-					port,
-					cert_hash ?: "");
-	  gnutls->priv->session_id = g_bytes_new_take (session_id, strlen (session_id));
-	  g_free (addrstr);
-	  g_free (cert_hash);
-	}
+          /* If we have a certificate, make its hash part of the session ID, so
+           * that different connections to the same server can use different
+           * certificates. */
+          g_object_get (G_OBJECT (gnutls), "certificate", &cert, NULL);
+          if (cert)
+            {
+              GByteArray *der = NULL;
+              g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
+              if (der)
+                {
+                  cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
+                  g_byte_array_unref (der);
+                }
+              g_object_unref (cert);
+            }
+          session_id = g_strdup_printf ("%s/%s/%d/%s", addrstr,
+                                        server_hostname ? server_hostname : "",
+                                        port,
+                                        cert_hash ?: "");
+          gnutls->priv->session_id = g_bytes_new_take (session_id, strlen (session_id));
+          g_free (addrstr);
+          g_free (cert_hash);
+        }
       g_object_unref (remote_addr);
     }
   g_clear_object (&base_conn);
@@ -179,8 +181,8 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
 
 static gboolean
 g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
-					      GCancellable    *cancellable,
-					      GError         **error)
+                                              GCancellable    *cancellable,
+                                              GError         **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   gnutls_session_t session;
@@ -203,9 +205,9 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
 
 static void
 g_tls_client_connection_gnutls_get_property (GObject    *object,
-					     guint       prop_id,
-					     GValue     *value,
-					     GParamSpec *pspec)
+                                             guint       prop_id,
+                                             GValue     *value,
+                                             GParamSpec *pspec)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
   GList *accepted_cas;
@@ -246,9 +248,9 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
 
 static void
 g_tls_client_connection_gnutls_set_property (GObject      *object,
-					     guint         prop_id,
-					     const GValue *value,
-					     GParamSpec   *pspec)
+                                             guint         prop_id,
+                                             const GValue *value,
+                                             GParamSpec   *pspec)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
   const char *hostname;
@@ -261,22 +263,22 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 
     case PROP_SERVER_IDENTITY:
       if (gnutls->priv->server_identity)
-	g_object_unref (gnutls->priv->server_identity);
+        g_object_unref (gnutls->priv->server_identity);
       gnutls->priv->server_identity = g_value_dup_object (value);
 
       hostname = get_server_identity (gnutls);
       if (hostname)
-	{
-	  gnutls_session_t session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
+        {
+          gnutls_session_t session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
 
-	  /* This will only be triggered if the identity is set after
-	   * initialization */
-	  if (session)
+          /* This will only be triggered if the identity is set after
+           * initialization */
+          if (session)
             {
               gnutls_server_name_set (session, GNUTLS_NAME_DNS,
                                       hostname, strlen (hostname));
             }
-	}
+        }
       break;
 
     case PROP_USE_SSL3:
@@ -290,11 +292,11 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 
 static int
 g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             session,
-						  const gnutls_datum_t        *req_ca_rdn,
-						  int                          nreqs,
-						  const gnutls_pk_algorithm_t *pk_algos,
-						  int                          pk_algos_length,
-						  gnutls_retr2_st             *st)
+                                                  const gnutls_datum_t        *req_ca_rdn,
+                                                  int                          nreqs,
+                                                  const gnutls_pk_algorithm_t *pk_algos,
+                                                  int                          pk_algos_length,
+                                                  gnutls_retr2_st             *st)
 {
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
   GTlsConnectionGnutls *conn = G_TLS_CONNECTION_GNUTLS (gnutls);
@@ -360,13 +362,13 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 
       session_data = g_tls_backend_gnutls_lookup_session (GNUTLS_CLIENT, gnutls->priv->session_id);
       if (session_data)
-	{
-	  gnutls_session_set_data (g_tls_connection_gnutls_get_session (conn),
-				   g_bytes_get_data (session_data, NULL),
-				   g_bytes_get_size (session_data));
+        {
+          gnutls_session_set_data (g_tls_connection_gnutls_get_session (conn),
+                                   g_bytes_get_data (session_data, NULL),
+                                   g_bytes_get_size (session_data));
           g_clear_pointer (&gnutls->priv->session_data, g_bytes_unref);
           gnutls->priv->session_data = session_data;
-	}
+        }
     }
 
   gnutls->priv->cert_requested = FALSE;
@@ -374,7 +376,7 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 
 static void
 g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
-						 GError               **inout_error)
+                                                 GError               **inout_error)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
   int resumed;
@@ -386,15 +388,15 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
     {
       g_clear_error (inout_error);
       if (gnutls->priv->cert_error)
-	{
-	  *inout_error = gnutls->priv->cert_error;
-	  gnutls->priv->cert_error = NULL;
-	}
+        {
+          *inout_error = gnutls->priv->cert_error;
+          gnutls->priv->cert_error = NULL;
+        }
       else
-	{
-	  g_set_error_literal (inout_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
-			       _("Server required TLS certificate"));
-	}
+        {
+          g_set_error_literal (inout_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
+                               _("Server required TLS certificate"));
+        }
     }
 
   resumed = gnutls_session_is_resumed (g_tls_connection_gnutls_get_session (conn));

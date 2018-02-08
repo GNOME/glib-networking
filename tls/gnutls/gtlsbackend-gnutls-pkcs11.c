@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright © 2011 Collabora, Ltd.
  *
@@ -61,7 +63,7 @@ g_tls_backend_gnutls_pkcs11_register (GIOModule *module)
 {
   g_tls_backend_gnutls_pkcs11_register_type (G_TYPE_MODULE (module));
   g_io_extension_point_implement (G_TLS_BACKEND_EXTENSION_POINT_NAME,
-				  g_tls_backend_gnutls_pkcs11_get_type(),
-				  "gnutls-pkcs11",
-				  -5);
+                                  g_tls_backend_gnutls_pkcs11_get_type(),
+                                  "gnutls-pkcs11",
+                                  -5);
 }

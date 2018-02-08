@@ -1,3 +1,4 @@
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
  * Copyright (C) 2011 Collabora Ltd.
  *
@@ -56,7 +57,7 @@ mock_interaction_ask_password_finish (GTlsInteraction    *interaction,
                                       GError            **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, interaction),
-			G_TLS_INTERACTION_UNHANDLED);
+                        G_TLS_INTERACTION_UNHANDLED);
 
   if (g_task_had_error (G_TASK (result)))
     {

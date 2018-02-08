@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Red Hat, Inc.
  *
@@ -26,8 +28,8 @@
 static void g_tls_output_stream_gnutls_pollable_iface_init (GPollableOutputStreamInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsOutputStreamGnutls, g_tls_output_stream_gnutls, G_TYPE_OUTPUT_STREAM,
-			 G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_OUTPUT_STREAM, g_tls_output_stream_gnutls_pollable_iface_init)
-			 )
+                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_OUTPUT_STREAM, g_tls_output_stream_gnutls_pollable_iface_init)
+                         )
 
 struct _GTlsOutputStreamGnutlsPrivate
 {
@@ -56,10 +58,10 @@ g_tls_output_stream_gnutls_finalize (GObject *object)
 
 static gssize
 g_tls_output_stream_gnutls_write (GOutputStream  *stream,
-				  const void     *buffer,
-				  gsize           count,
-				  GCancellable   *cancellable,
-				  GError        **error)
+                                  const void     *buffer,
+                                  gsize           count,
+                                  GCancellable   *cancellable,
+                                  GError        **error)
 {
   GTlsOutputStreamGnutls *tls_stream = G_TLS_OUTPUT_STREAM_GNUTLS (stream);
   GTlsConnectionGnutls *conn;
@@ -93,7 +95,7 @@ g_tls_output_stream_gnutls_pollable_is_writable (GPollableOutputStream *pollable
 
 static GSource *
 g_tls_output_stream_gnutls_pollable_create_source (GPollableOutputStream *pollable,
-						   GCancellable         *cancellable)
+                                                   GCancellable         *cancellable)
 {
   GTlsOutputStreamGnutls *tls_stream = G_TLS_OUTPUT_STREAM_GNUTLS (pollable);
   GTlsConnectionGnutls *conn;
@@ -111,9 +113,9 @@ g_tls_output_stream_gnutls_pollable_create_source (GPollableOutputStream *pollab
 
 static gssize
 g_tls_output_stream_gnutls_pollable_write_nonblocking (GPollableOutputStream  *pollable,
-						       const void             *buffer,
-						       gsize                   size,
-						       GError                **error)
+                                                       const void             *buffer,
+                                                       gsize                   size,
+                                                       GError                **error)
 {
   GTlsOutputStreamGnutls *tls_stream = G_TLS_OUTPUT_STREAM_GNUTLS (pollable);
   GTlsConnectionGnutls *conn;
@@ -160,9 +162,9 @@ g_tls_output_stream_gnutls_close (GOutputStream            *stream,
  */
 static void
 close_thread (GTask        *task,
-	      gpointer      object,
-	      gpointer      task_data,
-	      GCancellable *cancellable)
+              gpointer      object,
+              gpointer      task_data,
+              GCancellable *cancellable)
 {
   GTlsOutputStreamGnutls *tls_stream = object;
   GError *error = NULL;

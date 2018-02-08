@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Collabora, Ltd
  *
@@ -41,7 +43,7 @@ G_DEFINE_TYPE_WITH_CODE (GTlsFileDatabaseGnutls, g_tls_file_database_gnutls, G_T
                                                 g_tls_file_database_gnutls_file_database_interface_init);
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_tls_file_database_gnutls_initable_interface_init);
-			 );
+                         );
 
 enum
 {
@@ -305,22 +307,22 @@ g_tls_file_database_gnutls_set_property (GObject      *object,
     case PROP_ANCHORS:
       anchor_path = g_value_get_string (value);
       if (anchor_path && !g_path_is_absolute (anchor_path))
-	{
-	  g_warning ("The anchor file name used with a GTlsFileDatabase "
-		     "must be an absolute path, and not relative: %s", anchor_path);
-	  return;
-	}
+        {
+          g_warning ("The anchor file name used with a GTlsFileDatabase "
+                     "must be an absolute path, and not relative: %s", anchor_path);
+          return;
+        }
 
       if (self->priv->anchor_filename)
-	{
-	  g_free (self->priv->anchor_filename);
-	  gnutls_x509_trust_list_deinit (self->priv->trust_list, 1);
-	}
+        {
+          g_free (self->priv->anchor_filename);
+          gnutls_x509_trust_list_deinit (self->priv->trust_list, 1);
+        }
       self->priv->anchor_filename = g_strdup (anchor_path);
       gnutls_x509_trust_list_init (&self->priv->trust_list, 0);
       gnutls_x509_trust_list_add_trust_file (self->priv->trust_list,
-					     anchor_path, NULL,
-					     GNUTLS_X509_FMT_PEM, 0, 0);
+                                             anchor_path, NULL,
+                                             GNUTLS_X509_FMT_PEM, 0, 0);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -546,13 +548,13 @@ convert_certificate_chain_to_gnutls (GTlsCertificateGnutls  *chain,
 
 static GTlsCertificateFlags
 g_tls_file_database_gnutls_verify_chain (GTlsDatabase             *database,
-					 GTlsCertificate          *chain,
-					 const gchar              *purpose,
-					 GSocketConnectable       *identity,
-					 GTlsInteraction          *interaction,
-					 GTlsDatabaseVerifyFlags   flags,
-					 GCancellable             *cancellable,
-					 GError                  **error)
+                                         GTlsCertificate          *chain,
+                                         const gchar              *purpose,
+                                         GSocketConnectable       *identity,
+                                         GTlsInteraction          *interaction,
+                                         GTlsDatabaseVerifyFlags   flags,
+                                         GCancellable             *cancellable,
+                                         GError                  **error)
 {
   GTlsFileDatabaseGnutls *self;
   GTlsCertificateFlags result;
@@ -575,8 +577,8 @@ g_tls_file_database_gnutls_verify_chain (GTlsDatabase             *database,
   convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain),
                                        &certs, &certs_length);
   gerr = gnutls_x509_trust_list_verify_crt (self->priv->trust_list,
-					    certs, certs_length,
-					    0, &gnutls_result, NULL);
+                                            certs, certs_length,
+                                            0, &gnutls_result, NULL);
 
   if (gerr != 0 || g_cancellable_set_error_if_cancelled (cancellable, error))
     {
@@ -600,7 +602,7 @@ g_tls_file_database_gnutls_verify_chain (GTlsDatabase             *database,
   if (hostname)
     {
       if (!gnutls_x509_crt_check_hostname (certs[0], hostname))
-	result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
+        result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
       g_free (free_hostname);
     }
 

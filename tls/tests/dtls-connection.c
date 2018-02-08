@@ -1,4 +1,6 @@
-/* GIO TLS tests
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO TLS tests
  *
  * Copyright 2011, 2015, 2016 Collabora, Ltd.
  *
@@ -102,18 +104,18 @@ setup_connection (TestConnection *test, gconstpointer data)
 }
 
 /* Waits about 10 seconds for @var to be NULL/FALSE */
-#define WAIT_UNTIL_UNSET(var)				\
-  if (var)						\
-    {							\
-      int i;						\
-							\
-      for (i = 0; i < 13 && (var); i++)			\
-	{						\
-	  g_usleep (1000 * (1 << i));			\
-	  g_main_context_iteration (NULL, FALSE);	\
-	}						\
-							\
-      g_assert (!(var));				\
+#define WAIT_UNTIL_UNSET(var)                             \
+  if (var)                                                \
+    {                                                     \
+      int i;                                              \
+                                                          \
+      for (i = 0; i < 13 && (var); i++)                   \
+        {                                                 \
+          g_usleep (1000 * (1 << i));                     \
+          g_main_context_iteration (NULL, FALSE);         \
+        }                                                 \
+                                                          \
+      g_assert (!(var));                                  \
     }
 
 static void
@@ -133,7 +135,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
       WAIT_UNTIL_UNSET (test->server_running);
 
       g_object_add_weak_pointer (G_OBJECT (test->server_connection),
-				 (gpointer *)&test->server_connection);
+                                 (gpointer *)&test->server_connection);
       g_object_unref (test->server_connection);
       WAIT_UNTIL_UNSET (test->server_connection);
     }
@@ -154,7 +156,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
   if (test->client_connection)
     {
       g_object_add_weak_pointer (G_OBJECT (test->client_connection),
-				 (gpointer *)&test->client_connection);
+                                 (gpointer *)&test->client_connection);
       g_object_unref (test->client_connection);
       WAIT_UNTIL_UNSET (test->client_connection);
     }
@@ -162,7 +164,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
   if (test->database)
     {
       g_object_add_weak_pointer (G_OBJECT (test->database),
-				 (gpointer *)&test->database);
+                                 (gpointer *)&test->database);
       g_object_unref (test->database);
       WAIT_UNTIL_UNSET (test->database);
     }
@@ -201,7 +203,7 @@ start_server (TestConnection *test)
   /* The hostname in test->identity matches the server certificate. */
   iaddr = G_INET_SOCKET_ADDRESS (test->address);
   test->identity = g_network_address_new ("server.example.com",
-					  g_inet_socket_address_get_port (iaddr));
+                                          g_inet_socket_address_get_port (iaddr));
 
   test->server_socket = socket;
   test->server_running = TRUE;
@@ -220,8 +222,8 @@ static void close_server_connection (TestConnection *test,
 
 static void
 on_rehandshake_finish (GObject        *object,
-		       GAsyncResult   *res,
-		       gpointer        user_data)
+                       GAsyncResult   *res,
+                       gpointer        user_data)
 {
   TestConnection *test = user_data;
   GError *error = NULL;
@@ -765,16 +767,16 @@ main (int   argc,
   for (i = 1; i < argc - 1; i++)
     {
       if (!strcmp (argv[i], "-p"))
-	{
-	  const char *priority = argv[i + 1];
+        {
+          const char *priority = argv[i + 1];
 
-	  priority = strrchr (priority, '/');
-	  if (priority++ &&
-	      (g_str_has_prefix (priority, "NORMAL:") ||
-	       g_str_has_prefix (priority, "NONE:")))
-	    g_setenv ("G_TLS_GNUTLS_PRIORITY", priority, TRUE);
-	  break;
-	}
+          priority = strrchr (priority, '/');
+          if (priority++ &&
+              (g_str_has_prefix (priority, "NORMAL:") ||
+               g_str_has_prefix (priority, "NONE:")))
+            g_setenv ("G_TLS_GNUTLS_PRIORITY", priority, TRUE);
+          break;
+        }
     }
 
   g_test_init (&argc, &argv, NULL);

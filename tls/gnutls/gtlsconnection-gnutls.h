@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2009 Red Hat, Inc.
  *
@@ -47,7 +49,7 @@ struct _GTlsConnectionGnutlsClass
 
   void     (*begin_handshake)  (GTlsConnectionGnutls  *gnutls);
   void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
-				GError               **inout_error);
+                                GError               **inout_error);
 };
 
 struct _GTlsConnectionGnutls
@@ -62,34 +64,34 @@ gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsCo
 gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
 
 void     g_tls_connection_gnutls_get_certificate     (GTlsConnectionGnutls  *gnutls,
-						      gnutls_retr2_st       *st);
+                                                      gnutls_retr2_st       *st);
 
 gboolean g_tls_connection_gnutls_request_certificate (GTlsConnectionGnutls  *gnutls,
-						      GError               **error);
+                                                      GError               **error);
 
 gssize   g_tls_connection_gnutls_read          (GTlsConnectionGnutls  *gnutls,
-						void                  *buffer,
-						gsize                  size,
-						gint64                 timeout,
-						GCancellable          *cancellable,
-						GError               **error);
+                                                void                  *buffer,
+                                                gsize                  size,
+                                                gint64                 timeout,
+                                                GCancellable          *cancellable,
+                                                GError               **error);
 gssize   g_tls_connection_gnutls_write         (GTlsConnectionGnutls  *gnutls,
-						const void            *buffer,
-						gsize                  size,
-						gint64                 timeout,
-						GCancellable          *cancellable,
-						GError               **error);
+                                                const void            *buffer,
+                                                gsize                  size,
+                                                gint64                 timeout,
+                                                GCancellable          *cancellable,
+                                                GError               **error);
 
 gboolean g_tls_connection_gnutls_check         (GTlsConnectionGnutls  *gnutls,
-						GIOCondition           condition);
+                                                GIOCondition           condition);
 GSource *g_tls_connection_gnutls_create_source (GTlsConnectionGnutls  *gnutls,
-						GIOCondition           condition,
-						GCancellable          *cancellable);
+                                                GIOCondition           condition,
+                                                GCancellable          *cancellable);
 
 typedef enum {
-	G_TLS_DIRECTION_NONE = 0,
-	G_TLS_DIRECTION_READ = 1 << 0,
-	G_TLS_DIRECTION_WRITE = 1 << 1,
+        G_TLS_DIRECTION_NONE = 0,
+        G_TLS_DIRECTION_READ = 1 << 0,
+        G_TLS_DIRECTION_WRITE = 1 << 1,
 } GTlsDirection;
 
 #define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)

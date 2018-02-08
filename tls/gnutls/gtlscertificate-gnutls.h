@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2009 Red Hat, Inc.
  *
@@ -72,7 +74,7 @@ void                         g_tls_certificate_gnutls_copy            (GTlsCerti
                                                                        gnutls_retr2_st       *st);
 
 GTlsCertificateFlags         g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
-								       GSocketConnectable    *identity);
+                                                                       GSocketConnectable    *identity);
 
 GTlsCertificateFlags         g_tls_certificate_gnutls_convert_flags   (guint                  gnutls_flags);
 

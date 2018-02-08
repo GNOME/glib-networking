@@ -1,4 +1,6 @@
-/* GProxyResolver tests
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GProxyResolver tests
  *
  * Copyright 2011-2013 Red Hat, Inc.
  *
@@ -118,51 +120,51 @@ static const struct {
   const char *proxy;
   gboolean libproxy_fails;
 } ignore_tests[] = {
-  { "http://aaa.xx/",          	 "http://localhost:8080" },
-  { "http://aaa.xx:8000/",     	 "http://localhost:8080" },
-  { "http://www.aaa.xx/",      	 "http://localhost:8080" },
-  { "http://www.aaa.xx:8000/", 	 "http://localhost:8080" },
-  { "https://aaa.xx/",         	 "http://localhost:8080" },
-  { "http://bbb.xx/",          	 "direct://", TRUE },
-  { "http://www.bbb.xx/",      	 "direct://" },
-  { "http://bbb.xx:8000/",     	 "direct://", TRUE },
-  { "http://www.bbb.xx:8000/", 	 "direct://" },
-  { "https://bbb.xx/",         	 "direct://", TRUE },
+  { "http://aaa.xx/",                   "http://localhost:8080" },
+  { "http://aaa.xx:8000/",              "http://localhost:8080" },
+  { "http://www.aaa.xx/",               "http://localhost:8080" },
+  { "http://www.aaa.xx:8000/",          "http://localhost:8080" },
+  { "https://aaa.xx/",                  "http://localhost:8080" },
+  { "http://bbb.xx/",                   "direct://", TRUE },
+  { "http://www.bbb.xx/",               "direct://" },
+  { "http://bbb.xx:8000/",              "direct://", TRUE },
+  { "http://www.bbb.xx:8000/",          "direct://" },
+  { "https://bbb.xx/",                  "direct://", TRUE },
   { "http://nobbb.xx/",          "http://localhost:8080" },
   { "http://www.nobbb.xx/",      "http://localhost:8080" },
   { "http://nobbb.xx:8000/",     "http://localhost:8080" },
   { "http://www.nobbb.xx:8000/", "http://localhost:8080" },
   { "https://nobbb.xx/",         "http://localhost:8080" },
-  { "http://ccc.xx/",          	 "direct://", TRUE },
-  { "http://www.ccc.xx/",      	 "direct://" },
-  { "http://ccc.xx:8000/",     	 "direct://", TRUE },
-  { "http://www.ccc.xx:8000/", 	 "direct://" },
-  { "https://ccc.xx/",         	 "direct://", TRUE },
-  { "http://ddd.xx/",          	 "direct://" },
-  { "http://ddd.xx:8000/",     	 "direct://" },
-  { "http://www.ddd.xx/",      	 "direct://", TRUE },
-  { "http://www.ddd.xx:8000/", 	 "direct://", TRUE },
-  { "https://ddd.xx/",         	 "direct://" },
-  { "http://eee.xx/",          	 "http://localhost:8080", TRUE },
-  { "http://eee.xx:8000/",     	 "direct://", TRUE },
-  { "http://www.eee.xx/",      	 "http://localhost:8080" },
-  { "http://www.eee.xx:8000/", 	 "direct://" },
-  { "https://eee.xx/",         	 "http://localhost:8080", TRUE },
-  { "http://1.2.3.4/",         	 "http://localhost:8080" },
-  { "http://127.0.0.1/",       	 "direct://" },
-  { "http://127.0.0.2/",       	 "direct://" },
-  { "http://127.0.0.255/",     	 "direct://" },
-  { "http://127.0.1.0/",       	 "http://localhost:8080" },
-  { "http://10.0.0.1/",        	 "http://localhost:8080" },
-  { "http://10.0.0.1:8000/",   	 "direct://" },
-  { "http://[::1]/",           	 "direct://", TRUE },
-  { "http://[::1]:80/",        	 "direct://", TRUE },
-  { "http://[::1:1]/",         	 "http://localhost:8080" },
-  { "http://[::1:1]:80/",      	 "http://localhost:8080" },
-  { "http://[fe80::1]/",       	 "direct://", TRUE },
-  { "http://[fe80::1]:80/",    	 "direct://", TRUE },
-  { "http://[fec0::1]/",       	 "http://localhost:8080" },
-  { "http://[fec0::1]:80/",    	 "http://localhost:8080" }
+  { "http://ccc.xx/",                   "direct://", TRUE },
+  { "http://www.ccc.xx/",               "direct://" },
+  { "http://ccc.xx:8000/",              "direct://", TRUE },
+  { "http://www.ccc.xx:8000/",          "direct://" },
+  { "https://ccc.xx/",                  "direct://", TRUE },
+  { "http://ddd.xx/",                   "direct://" },
+  { "http://ddd.xx:8000/",              "direct://" },
+  { "http://www.ddd.xx/",               "direct://", TRUE },
+  { "http://www.ddd.xx:8000/",          "direct://", TRUE },
+  { "https://ddd.xx/",                  "direct://" },
+  { "http://eee.xx/",                   "http://localhost:8080", TRUE },
+  { "http://eee.xx:8000/",              "direct://", TRUE },
+  { "http://www.eee.xx/",               "http://localhost:8080" },
+  { "http://www.eee.xx:8000/",          "direct://" },
+  { "https://eee.xx/",                  "http://localhost:8080", TRUE },
+  { "http://1.2.3.4/",                  "http://localhost:8080" },
+  { "http://127.0.0.1/",                "direct://" },
+  { "http://127.0.0.2/",                "direct://" },
+  { "http://127.0.0.255/",              "direct://" },
+  { "http://127.0.1.0/",                "http://localhost:8080" },
+  { "http://10.0.0.1/",                 "http://localhost:8080" },
+  { "http://10.0.0.1:8000/",            "direct://" },
+  { "http://[::1]/",                    "direct://", TRUE },
+  { "http://[::1]:80/",                 "direct://", TRUE },
+  { "http://[::1:1]/",                  "http://localhost:8080" },
+  { "http://[::1:1]:80/",               "http://localhost:8080" },
+  { "http://[fe80::1]/",                "direct://", TRUE },
+  { "http://[fe80::1]:80/",             "direct://", TRUE },
+  { "http://[fec0::1]/",                "http://localhost:8080" },
+  { "http://[fec0::1]:80/",             "http://localhost:8080" }
 };
 static const int n_ignore_tests = G_N_ELEMENTS (ignore_tests);
 
@@ -179,13 +181,13 @@ test_proxy_ignore_common (gboolean is_libproxy)
   for (i = 0; i < n_ignore_tests; i++)
     {
       proxies = g_proxy_resolver_lookup (resolver, ignore_tests[i].uri,
-					 NULL, &error);
+                                         NULL, &error);
       g_assert_no_error (error);
 
       if (is_libproxy && ignore_tests[i].libproxy_fails)
-	g_assert_cmpstr (proxies[0], ==, "http://localhost:8080");
+        g_assert_cmpstr (proxies[0], ==, "http://localhost:8080");
       else
-	g_assert_cmpstr (proxies[0], ==, ignore_tests[i].proxy);
+        g_assert_cmpstr (proxies[0], ==, ignore_tests[i].proxy);
 
       g_strfreev (proxies);
     }

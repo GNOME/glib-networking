@@ -1,4 +1,6 @@
-/* GIO - Small GLib wrapper of PKCS#11 for use in GTls
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - Small GLib wrapper of PKCS#11 for use in GTls
  *
  * Copyright 2011 Collabora, Ltd
  *

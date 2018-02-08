@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2009 Red Hat, Inc
  *
@@ -32,8 +34,8 @@
 static void     g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G_TYPE_TLS_CERTIFICATE,
-			 G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-						g_tls_certificate_gnutls_initable_iface_init);)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                g_tls_certificate_gnutls_initable_iface_init);)
 
 enum
 {
@@ -78,9 +80,9 @@ g_tls_certificate_gnutls_finalize (GObject *object)
 
 static void
 g_tls_certificate_gnutls_get_property (GObject    *object,
-				       guint       prop_id,
-				       GValue     *value,
-				       GParamSpec *pspec)
+                                       guint       prop_id,
+                                       GValue     *value,
+                                       GParamSpec *pspec)
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (object);
   GByteArray *certificate;
@@ -93,45 +95,45 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
     case PROP_CERTIFICATE:
       size = 0;
       status = gnutls_x509_crt_export (gnutls->priv->cert,
-				       GNUTLS_X509_FMT_DER,
-				       NULL, &size);
+                                       GNUTLS_X509_FMT_DER,
+                                       NULL, &size);
       if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
-	certificate = NULL;
+        certificate = NULL;
       else
-	{
-	  certificate = g_byte_array_sized_new (size);
-	  certificate->len = size;
-	  status = gnutls_x509_crt_export (gnutls->priv->cert,
-					   GNUTLS_X509_FMT_DER,
-					   certificate->data, &size);
-	  if (status != 0)
-	    {
-	      g_byte_array_free (certificate, TRUE);
-	      certificate = NULL;
-	    }
-	}
+        {
+          certificate = g_byte_array_sized_new (size);
+          certificate->len = size;
+          status = gnutls_x509_crt_export (gnutls->priv->cert,
+                                           GNUTLS_X509_FMT_DER,
+                                           certificate->data, &size);
+          if (status != 0)
+            {
+              g_byte_array_free (certificate, TRUE);
+              certificate = NULL;
+            }
+        }
       g_value_take_boxed (value, certificate);
       break;
 
     case PROP_CERTIFICATE_PEM:
       size = 0;
       status = gnutls_x509_crt_export (gnutls->priv->cert,
-				       GNUTLS_X509_FMT_PEM,
-				       NULL, &size);
+                                       GNUTLS_X509_FMT_PEM,
+                                       NULL, &size);
       if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
-	certificate_pem = NULL;
+        certificate_pem = NULL;
       else
-	{
-	  certificate_pem = g_malloc (size);
-	  status = gnutls_x509_crt_export (gnutls->priv->cert,
-					   GNUTLS_X509_FMT_PEM,
-					   certificate_pem, &size);
-	  if (status != 0)
-	    {
-	      g_free (certificate_pem);
-	      certificate_pem = NULL;
-	    }
-	}
+        {
+          certificate_pem = g_malloc (size);
+          status = gnutls_x509_crt_export (gnutls->priv->cert,
+                                           GNUTLS_X509_FMT_PEM,
+                                           certificate_pem, &size);
+          if (status != 0)
+            {
+              g_free (certificate_pem);
+              certificate_pem = NULL;
+            }
+        }
       g_value_take_string (value, certificate_pem);
       break;
 
@@ -146,9 +148,9 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 
 static void
 g_tls_certificate_gnutls_set_property (GObject      *object,
-				       guint         prop_id,
-				       const GValue *value,
-				       GParamSpec   *pspec)
+                                       guint         prop_id,
+                                       const GValue *value,
+                                       GParamSpec   *pspec)
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (object);
   GByteArray *bytes;
@@ -161,104 +163,104 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
     case PROP_CERTIFICATE:
       bytes = g_value_get_boxed (value);
       if (!bytes)
-	break;
+        break;
       g_return_if_fail (gnutls->priv->have_cert == FALSE);
       data.data = bytes->data;
       data.size = bytes->len;
       status = gnutls_x509_crt_import (gnutls->priv->cert, &data,
-				       GNUTLS_X509_FMT_DER);
+                                       GNUTLS_X509_FMT_DER);
       if (status == 0)
-	gnutls->priv->have_cert = TRUE;
+        gnutls->priv->have_cert = TRUE;
       else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse DER certificate: %s"),
-			 gnutls_strerror (status));
-	}
+        {
+          gnutls->priv->construct_error =
+            g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                         _("Could not parse DER certificate: %s"),
+                         gnutls_strerror (status));
+        }
 
       break;
 
     case PROP_CERTIFICATE_PEM:
       string = g_value_get_string (value);
       if (!string)
-	break;
+        break;
       g_return_if_fail (gnutls->priv->have_cert == FALSE);
       data.data = (void *)string;
       data.size = strlen (string);
       status = gnutls_x509_crt_import (gnutls->priv->cert, &data,
-				       GNUTLS_X509_FMT_PEM);
+                                       GNUTLS_X509_FMT_PEM);
       if (status == 0)
-	gnutls->priv->have_cert = TRUE;
+        gnutls->priv->have_cert = TRUE;
       else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse PEM certificate: %s"),
-			 gnutls_strerror (status));
-	}
+        {
+          gnutls->priv->construct_error =
+            g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                         _("Could not parse PEM certificate: %s"),
+                         gnutls_strerror (status));
+        }
       break;
 
     case PROP_PRIVATE_KEY:
       bytes = g_value_get_boxed (value);
       if (!bytes)
-	break;
+        break;
       g_return_if_fail (gnutls->priv->have_key == FALSE);
       data.data = bytes->data;
       data.size = bytes->len;
       if (!gnutls->priv->key)
         gnutls_x509_privkey_init (&gnutls->priv->key);
       status = gnutls_x509_privkey_import (gnutls->priv->key, &data,
-					   GNUTLS_X509_FMT_DER);
+                                           GNUTLS_X509_FMT_DER);
       if (status != 0)
-	{
-	  int pkcs8_status =
-	    gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
-					      GNUTLS_X509_FMT_DER, NULL,
-					      GNUTLS_PKCS_PLAIN);
-	  if (pkcs8_status == 0)
-	    status = 0;
-	}
+        {
+          int pkcs8_status =
+            gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
+                                              GNUTLS_X509_FMT_DER, NULL,
+                                              GNUTLS_PKCS_PLAIN);
+          if (pkcs8_status == 0)
+            status = 0;
+        }
       if (status == 0)
-	gnutls->priv->have_key = TRUE;
+        gnutls->priv->have_key = TRUE;
       else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse DER private key: %s"),
-			 gnutls_strerror (status));
-	}
+        {
+          gnutls->priv->construct_error =
+            g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                         _("Could not parse DER private key: %s"),
+                         gnutls_strerror (status));
+        }
       break;
 
     case PROP_PRIVATE_KEY_PEM:
       string = g_value_get_string (value);
       if (!string)
-	break;
+        break;
       g_return_if_fail (gnutls->priv->have_key == FALSE);
       data.data = (void *)string;
       data.size = strlen (string);
       if (!gnutls->priv->key)
         gnutls_x509_privkey_init (&gnutls->priv->key);
       status = gnutls_x509_privkey_import (gnutls->priv->key, &data,
-					   GNUTLS_X509_FMT_PEM);
+                                           GNUTLS_X509_FMT_PEM);
       if (status != 0)
-	{
-	  int pkcs8_status =
-	    gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
-					      GNUTLS_X509_FMT_PEM, NULL,
-					      GNUTLS_PKCS_PLAIN);
-	  if (pkcs8_status == 0)
-	    status = 0;
-	}
+        {
+          int pkcs8_status =
+            gnutls_x509_privkey_import_pkcs8 (gnutls->priv->key, &data,
+                                              GNUTLS_X509_FMT_PEM, NULL,
+                                              GNUTLS_PKCS_PLAIN);
+          if (pkcs8_status == 0)
+            status = 0;
+        }
       if (status == 0)
-	gnutls->priv->have_key = TRUE;
+        gnutls->priv->have_key = TRUE;
       else if (!gnutls->priv->construct_error)
-	{
-	  gnutls->priv->construct_error =
-	    g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			 _("Could not parse PEM private key: %s"),
-			 gnutls_strerror (status));
-	}
+        {
+          gnutls->priv->construct_error =
+            g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                         _("Could not parse PEM private key: %s"),
+                         gnutls_strerror (status));
+        }
       break;
 
     case PROP_ISSUER:
@@ -274,16 +276,16 @@ static void
 g_tls_certificate_gnutls_init (GTlsCertificateGnutls *gnutls)
 {
   gnutls->priv = G_TYPE_INSTANCE_GET_PRIVATE (gnutls,
-					      G_TYPE_TLS_CERTIFICATE_GNUTLS,
-					      GTlsCertificateGnutlsPrivate);
+                                              G_TYPE_TLS_CERTIFICATE_GNUTLS,
+                                              GTlsCertificateGnutlsPrivate);
 
   gnutls_x509_crt_init (&gnutls->priv->cert);
 }
 
 static gboolean
 g_tls_certificate_gnutls_initable_init (GInitable       *initable,
-					GCancellable    *cancellable,
-					GError         **error)
+                                        GCancellable    *cancellable,
+                                        GError         **error)
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (initable);
 
@@ -296,7 +298,7 @@ g_tls_certificate_gnutls_initable_init (GInitable       *initable,
   else if (!gnutls->priv->have_cert)
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			   _("No certificate data provided"));
+                           _("No certificate data provided"));
       return FALSE;
     }
   else
@@ -305,8 +307,8 @@ g_tls_certificate_gnutls_initable_init (GInitable       *initable,
 
 static GTlsCertificateFlags
 g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
-				 GSocketConnectable  *identity,
-				 GTlsCertificate     *trusted_ca)
+                                 GSocketConnectable  *identity,
+                                 GTlsCertificate     *trusted_ca)
 {
   GTlsCertificateGnutls *cert_gnutls;
   guint num_certs, i;
@@ -330,15 +332,15 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
 
       ca = G_TLS_CERTIFICATE_GNUTLS (trusted_ca)->priv->cert;
       status = gnutls_x509_crt_list_verify (chain, num_certs,
-					    &ca, 1,
-					    NULL, 0,
-					    GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
-					    &gnutls_flags);
+                                            &ca, 1,
+                                            NULL, 0,
+                                            GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
+                                            &gnutls_flags);
       if (status != 0)
-	{
-	  g_free (chain);
-	  return G_TLS_CERTIFICATE_GENERIC_ERROR;
-	}
+        {
+          g_free (chain);
+          return G_TLS_CERTIFICATE_GENERIC_ERROR;
+        }
 
       gtls_flags = g_tls_certificate_gnutls_convert_flags (gnutls_flags);
     }
@@ -353,11 +355,11 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
     {
       t = gnutls_x509_crt_get_activation_time (chain[i]);
       if (t == (time_t) -1 || t > now)
-	gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
+        gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
 
       t = gnutls_x509_crt_get_expiration_time (chain[i]);
       if (t == (time_t) -1 || t < now)
-	gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
+        gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
     }
 
   g_free (chain);
@@ -456,13 +458,13 @@ g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface)
 
 GTlsCertificate *
 g_tls_certificate_gnutls_new (const gnutls_datum_t *datum,
-			      GTlsCertificate      *issuer)
+                              GTlsCertificate      *issuer)
 {
   GTlsCertificateGnutls *gnutls;
 
   gnutls = g_object_new (G_TYPE_TLS_CERTIFICATE_GNUTLS,
-			 "issuer", issuer,
-			 NULL);
+                         "issuer", issuer,
+                         NULL);
   g_tls_certificate_gnutls_set_data (gnutls, datum);
 
   return G_TLS_CERTIFICATE (gnutls);
@@ -535,10 +537,10 @@ g_tls_certificate_gnutls_convert_flags (guint gnutls_flags)
   for (i = 0; i < flags_map_size && gnutls_flags != 0; i++)
     {
       if (gnutls_flags & flags_map[i].gnutls_flag)
-	{
-	  gnutls_flags &= ~flags_map[i].gnutls_flag;
-	  gtls_flags |= flags_map[i].gtls_flag;
-	}
+        {
+          gnutls_flags &= ~flags_map[i].gnutls_flag;
+          gtls_flags |= flags_map[i].gtls_flag;
+        }
     }
   if (gnutls_flags)
     gtls_flags |= G_TLS_CERTIFICATE_GENERIC_ERROR;
@@ -548,7 +550,7 @@ g_tls_certificate_gnutls_convert_flags (guint gnutls_flags)
 
 static gboolean
 verify_identity_hostname (GTlsCertificateGnutls *gnutls,
-			  GSocketConnectable    *identity)
+                          GSocketConnectable    *identity)
 {
   const char *hostname;
 
@@ -564,7 +566,7 @@ verify_identity_hostname (GTlsCertificateGnutls *gnutls,
 
 static gboolean
 verify_identity_ip (GTlsCertificateGnutls *gnutls,
-		    GSocketConnectable    *identity)
+                    GSocketConnectable    *identity)
 {
   GInetAddress *addr;
   int i, ret = 0;
@@ -598,16 +600,16 @@ verify_identity_ip (GTlsCertificateGnutls *gnutls,
 
       san_size = sizeof (san);
       ret = gnutls_x509_crt_get_subject_alt_name (gnutls->priv->cert, i,
-						  san, &san_size, NULL);
+                                                  san, &san_size, NULL);
 
       if ((ret == GNUTLS_SAN_IPADDRESS) && (addr_size == san_size))
-	{
-	  if (memcmp (addr_bytes, san, addr_size) == 0)
-	    {
-	      g_object_unref (addr);
-	      return TRUE;
-	    }
-	}
+        {
+          if (memcmp (addr_bytes, san, addr_size) == 0)
+            {
+              g_object_unref (addr);
+              return TRUE;
+            }
+        }
     }
 
   g_object_unref (addr);
@@ -616,7 +618,7 @@ verify_identity_ip (GTlsCertificateGnutls *gnutls,
 
 GTlsCertificateFlags
 g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
-					  GSocketConnectable    *identity)
+                                          GSocketConnectable    *identity)
 {
   if (verify_identity_hostname (gnutls, identity))
     return 0;

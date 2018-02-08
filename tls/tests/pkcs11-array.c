@@ -1,4 +1,6 @@
-/* GIO TLS tests
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO TLS tests
  *
  * Copyright (C) 2011 Collabora, Ltd.
  *

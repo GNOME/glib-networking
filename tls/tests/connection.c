@@ -1,4 +1,6 @@
-/* GIO TLS tests
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO TLS tests
  *
  * Copyright 2011 Collabora, Ltd.
  *
@@ -90,18 +92,18 @@ setup_connection (TestConnection *test, gconstpointer data)
 }
 
 /* Waits about 10 seconds for @var to be NULL/FALSE */
-#define WAIT_UNTIL_UNSET(var)				\
-  if (var)						\
-    {							\
-      int i;						\
-							\
-      for (i = 0; i < 13 && (var); i++)			\
-	{						\
-	  g_usleep (1000 * (1 << i));			\
-	  g_main_context_iteration (NULL, FALSE);	\
-	}						\
-							\
-      g_assert (!(var));				\
+#define WAIT_UNTIL_UNSET(var)                                \
+  if (var)                                                   \
+    {                                                        \
+      int i;                                                 \
+                                                             \
+      for (i = 0; i < 13 && (var); i++)                      \
+        {                                                    \
+          g_usleep (1000 * (1 << i));                        \
+          g_main_context_iteration (NULL, FALSE);            \
+        }                                                    \
+                                                             \
+      g_assert (!(var));                                     \
     }
 
 static void
@@ -123,7 +125,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
       WAIT_UNTIL_UNSET (test->server_running);
 
       g_object_add_weak_pointer (G_OBJECT (test->server_connection),
-				 (gpointer *)&test->server_connection);
+                                 (gpointer *)&test->server_connection);
       g_object_unref (test->server_connection);
       WAIT_UNTIL_UNSET (test->server_connection);
     }
@@ -131,7 +133,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
   if (test->client_connection)
     {
       g_object_add_weak_pointer (G_OBJECT (test->client_connection),
-				 (gpointer *)&test->client_connection);
+                                 (gpointer *)&test->client_connection);
       g_object_unref (test->client_connection);
       WAIT_UNTIL_UNSET (test->client_connection);
     }
@@ -139,7 +141,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
   if (test->database)
     {
       g_object_add_weak_pointer (G_OBJECT (test->database),
-				 (gpointer *)&test->database);
+                                 (gpointer *)&test->database);
       g_object_unref (test->database);
       WAIT_UNTIL_UNSET (test->database);
     }
@@ -174,7 +176,7 @@ start_server (TestConnection *test)
   /* The hostname in test->identity matches the server certificate. */
   iaddr = G_INET_SOCKET_ADDRESS (test->address);
   test->identity = g_network_address_new ("server.example.com",
-					  g_inet_socket_address_get_port (iaddr));
+                                          g_inet_socket_address_get_port (iaddr));
 
   test->server_running = TRUE;
 }
@@ -188,13 +190,13 @@ on_accept_certificate (GTlsClientConnection *conn, GTlsCertificate *cert,
 }
 
 static void on_output_write_finish (GObject        *object,
-				    GAsyncResult   *res,
-				    gpointer        user_data);
+                                    GAsyncResult   *res,
+                                    gpointer        user_data);
 
 static void
 on_rehandshake_finish (GObject        *object,
-		       GAsyncResult   *res,
-		       gpointer        user_data)
+                       GAsyncResult   *res,
+                       gpointer        user_data)
 {
   TestConnection *test = user_data;
   GError *error = NULL;
@@ -205,7 +207,7 @@ on_rehandshake_finish (GObject        *object,
 
   stream = g_io_stream_get_output_stream (test->server_connection);
   g_output_stream_write_async (stream, TEST_DATA + TEST_DATA_LENGTH / 2,
-			       TEST_DATA_LENGTH / 2,
+                               TEST_DATA_LENGTH / 2,
                                G_PRIORITY_DEFAULT, NULL,
                                on_output_write_finish, test);
 }
@@ -247,8 +249,8 @@ on_output_write_finish (GObject        *object,
     {
       test->rehandshake = FALSE;
       g_tls_connection_handshake_async (G_TLS_CONNECTION (test->server_connection),
-					G_PRIORITY_DEFAULT, NULL,
-					on_rehandshake_finish, test);
+                                        G_PRIORITY_DEFAULT, NULL,
+                                        on_rehandshake_finish, test);
       return;
     }
 
@@ -333,9 +335,9 @@ start_async_server_and_connect_to_it (TestConnection *test,
 
 static void
 run_echo_server (GThreadedSocketService *service,
-		 GSocketConnection      *connection,
-		 GObject                *source_object,
-		 gpointer                user_data)
+                 GSocketConnection      *connection,
+                 GObject                *source_object,
+                 gpointer                user_data)
 {
   TestConnection *test = user_data;
   GTlsConnection *tlsconn;
@@ -375,20 +377,20 @@ run_echo_server (GThreadedSocketService *service,
       g_assert_cmpint (nread, >=, 0);
 
       if (nread == 0)
-	break;
+        break;
 
       for (total = 0; total < nread; total += nwrote)
-	{
-	  nwrote = g_output_stream_write (ostream, buf + total, nread - total, NULL, &error);
-	  g_assert_no_error (error);
-	}
+        {
+          nwrote = g_output_stream_write (ostream, buf + total, nread - total, NULL, &error);
+          g_assert_no_error (error);
+        }
 
       if (test->rehandshake)
-	{
-	  test->rehandshake = FALSE;
-	  g_tls_connection_handshake (tlsconn, NULL, &error);
-	  g_assert_no_error (error);
-	}
+        {
+          test->rehandshake = FALSE;
+          g_tls_connection_handshake (tlsconn, NULL, &error);
+          g_assert_no_error (error);
+        }
     }
 
   g_io_stream_close (test->server_connection, NULL, &error);
@@ -425,8 +427,8 @@ start_echo_server_and_connect_to_it (TestConnection *test)
 
 static void
 on_client_connection_close_finish (GObject        *object,
-				   GAsyncResult   *res,
-				   gpointer        user_data)
+                                   GAsyncResult   *res,
+                                   gpointer        user_data)
 {
   TestConnection *test = user_data;
   GError *error = NULL;
@@ -530,7 +532,7 @@ test_verified_connection (TestConnection *test,
 
 static void
 test_verified_chain (TestConnection *test,
-		     gconstpointer   data)
+                     gconstpointer   data)
 {
   GTlsBackend *backend;
   GTlsCertificate *server_cert;
@@ -549,17 +551,17 @@ test_verified_chain (TestConnection *test,
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
-		       &key_data, NULL, &error);
+                       &key_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				NULL, &error,
+                                NULL, &error,
                                 "issuer", intermediate_cert,
                                 "certificate-pem", cert_data,
                                 "private-key-pem", key_data,
@@ -577,7 +579,7 @@ test_verified_chain (TestConnection *test,
 
 static void
 test_verified_chain_with_redundant_root_cert (TestConnection *test,
-					      gconstpointer   data)
+                                              gconstpointer   data)
 {
   GTlsBackend *backend;
   GTlsCertificate *server_cert;
@@ -596,32 +598,32 @@ test_verified_chain_with_redundant_root_cert (TestConnection *test,
 
   /* Prepare the intermediate cert. */
   g_file_get_contents (tls_test_file_path ("intermediate-ca.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   intermediate_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				      NULL, &error,
-				      "issuer", root_cert,
-				      "certificate-pem", cert_data,
-				      NULL);
+                                      NULL, &error,
+                                      "issuer", root_cert,
+                                      "certificate-pem", cert_data,
+                                      NULL);
   g_assert_no_error (error);
   g_assert (intermediate_cert);
 
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
-		       &key_data, NULL, &error);
+                       &key_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				NULL, &error,
+                                NULL, &error,
                                 "issuer", intermediate_cert,
                                 "certificate-pem", cert_data,
                                 "private-key-pem", key_data,
@@ -640,7 +642,7 @@ test_verified_chain_with_redundant_root_cert (TestConnection *test,
 
 static void
 test_verified_chain_with_duplicate_server_cert (TestConnection *test,
-						gconstpointer   data)
+                                                gconstpointer   data)
 {
   /* This is another common server misconfiguration. Apache reads certificates
    * from two configuration files: one for the server cert, and one for the rest
@@ -665,17 +667,17 @@ test_verified_chain_with_duplicate_server_cert (TestConnection *test,
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
-		       &key_data, NULL, &error);
+                       &key_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				NULL, &error,
+                                NULL, &error,
                                 "issuer", intermediate_cert,
                                 "certificate-pem", cert_data,
                                 NULL);
@@ -684,11 +686,11 @@ test_verified_chain_with_duplicate_server_cert (TestConnection *test,
 
   /* Prepare the server cert... again. Private key must go on this one. */
   extra_server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				      NULL, &error,
-				      "issuer", server_cert,
-				      "certificate-pem", cert_data,
-				      "private-key-pem", key_data,
-				      NULL);
+                                      NULL, &error,
+                                      "issuer", server_cert,
+                                      "certificate-pem", cert_data,
+                                      "private-key-pem", key_data,
+                                      NULL);
   g_assert_no_error (error);
   g_assert (extra_server_cert);
 
@@ -703,7 +705,7 @@ test_verified_chain_with_duplicate_server_cert (TestConnection *test,
 
 static void
 test_verified_unordered_chain (TestConnection *test,
-			       gconstpointer   data)
+                               gconstpointer   data)
 {
   GTlsBackend *backend;
   GTlsCertificate *server_cert;
@@ -717,7 +719,7 @@ test_verified_unordered_chain (TestConnection *test,
 
   /* Prepare the intermediate cert (to be sent last, out of order)! */
   intermediate_cert = g_tls_certificate_new_from_file (tls_test_file_path ("intermediate-ca.pem"),
-						       &error);
+                                                       &error);
   g_assert_no_error (error);
   g_assert (intermediate_cert);
 
@@ -727,7 +729,7 @@ test_verified_unordered_chain (TestConnection *test,
 
   /* Prepare the root cert (to be sent in the middle of the chain). */
   root_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-			      NULL, &error,
+                              NULL, &error,
                               "issuer", intermediate_cert,
                               "certificate-pem", cert_data,
                               NULL);
@@ -736,18 +738,18 @@ test_verified_unordered_chain (TestConnection *test,
 
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
-		       &key_data, NULL, &error);
+                       &key_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (key_data);
 
   /* Prepare the server cert. */
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				NULL, &error,
+                                NULL, &error,
                                 "issuer", root_cert,
                                 "certificate-pem", cert_data,
                                 "private-key-pem", key_data,
@@ -766,7 +768,7 @@ test_verified_unordered_chain (TestConnection *test,
 
 static void
 test_verified_chain_with_alternative_ca_cert (TestConnection *test,
-					      gconstpointer   data)
+                                              gconstpointer   data)
 {
   GTlsBackend *backend;
   GTlsCertificate *server_cert;
@@ -793,32 +795,32 @@ test_verified_chain_with_alternative_ca_cert (TestConnection *test,
    * have the new CA cert in the trust store yet. (In this scenario, the old
    * client still trusts the old CA cert.) */
   g_file_get_contents (tls_test_file_path ("intermediate-ca.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   intermediate_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				      NULL, &error,
-				      "issuer", root_cert,
-				      "certificate-pem", cert_data,
-				      NULL);
+                                      NULL, &error,
+                                      "issuer", root_cert,
+                                      "certificate-pem", cert_data,
+                                      NULL);
   g_assert_no_error (error);
   g_assert (intermediate_cert);
 
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
-		       &key_data, NULL, &error);
+                       &key_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				NULL, &error,
+                                NULL, &error,
                                 "issuer", intermediate_cert,
                                 "certificate-pem", cert_data,
                                 "private-key-pem", key_data,
@@ -837,7 +839,7 @@ test_verified_chain_with_alternative_ca_cert (TestConnection *test,
 
 static void
 test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
-					     gconstpointer   data)
+                                             gconstpointer   data)
 {
   GTlsBackend *backend;
   GTlsCertificate *server_cert;
@@ -857,17 +859,17 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
   /* The intermediate cert is not sent. The chain should be rejected, since without intermediate.pem
    * there is no proof that ca-alternative.pem signed server-intermediate.pem. */
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
-		       &cert_data, NULL, &error);
+                       &cert_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
-		       &key_data, NULL, &error);
+                       &key_data, NULL, &error);
   g_assert_no_error (error);
   g_assert (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
-				NULL, &error,
+                                NULL, &error,
                                 "issuer", root_cert,
                                 "certificate-pem", cert_data,
                                 "private-key-pem", key_data,
@@ -991,7 +993,7 @@ test_client_auth_connection (TestConnection *test,
 
 static void
 test_client_auth_rehandshake (TestConnection *test,
-			      gconstpointer   data)
+                              gconstpointer   data)
 {
   test->rehandshake = TRUE;
   test_client_auth_connection (test, data);
@@ -1208,14 +1210,14 @@ test_connection_no_database (TestConnection *test,
 
 static void
 handshake_failed_cb (GObject      *source,
-		     GAsyncResult *result,
-		     gpointer      user_data)
+                     GAsyncResult *result,
+                     gpointer      user_data)
 {
   TestConnection *test = user_data;
   GError *error = NULL;
 
   g_tls_connection_handshake_finish (G_TLS_CONNECTION (test->client_connection),
-				     result, &error);
+                                     result, &error);
   g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
   g_clear_error (&error);
 
@@ -1224,7 +1226,7 @@ handshake_failed_cb (GObject      *source,
 
 static void
 test_failed_connection (TestConnection *test,
-			gconstpointer   data)
+                        gconstpointer   data)
 {
   GIOStream *connection;
   GError *error = NULL;
@@ -1239,8 +1241,8 @@ test_failed_connection (TestConnection *test,
   g_object_unref (connection);
 
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
-				    G_PRIORITY_DEFAULT, NULL,
-				    handshake_failed_cb, test);
+                                    G_PRIORITY_DEFAULT, NULL,
+                                    handshake_failed_cb, test);
   g_main_loop_run (test->loop);
 
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
@@ -1255,15 +1257,15 @@ test_failed_connection (TestConnection *test,
 
 static void
 socket_client_connected (GObject      *source,
-			 GAsyncResult *result,
-			 gpointer      user_data)
+                         GAsyncResult *result,
+                         gpointer      user_data)
 {
   TestConnection *test = user_data;
   GSocketConnection *connection;
   GError *error = NULL;
 
   connection = g_socket_client_connect_finish (G_SOCKET_CLIENT (source),
-					       result, &error);
+                                               result, &error);
   g_assert_no_error (error);
   test->client_connection = G_IO_STREAM (connection);
 
@@ -1272,7 +1274,7 @@ socket_client_connected (GObject      *source,
 
 static void
 test_connection_socket_client (TestConnection *test,
-			       gconstpointer   data)
+                               gconstpointer   data)
 {
   GSocketClient *client;
   GTlsCertificateFlags flags;
@@ -1289,7 +1291,7 @@ test_connection_socket_client (TestConnection *test,
   g_socket_client_set_tls_validation_flags (client, flags);
 
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
-				 NULL, socket_client_connected, test);
+                                 NULL, socket_client_connected, test);
   g_main_loop_run (test->loop);
 
   connection = (GSocketConnection *)test->client_connection;
@@ -1308,14 +1310,14 @@ test_connection_socket_client (TestConnection *test,
 
 static void
 socket_client_failed (GObject      *source,
-		      GAsyncResult *result,
-		      gpointer      user_data)
+                      GAsyncResult *result,
+                      gpointer      user_data)
 {
   TestConnection *test = user_data;
   GError *error = NULL;
 
   g_socket_client_connect_finish (G_SOCKET_CLIENT (source),
-				  result, &error);
+                                  result, &error);
   g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
   g_clear_error (&error);
 
@@ -1324,7 +1326,7 @@ socket_client_failed (GObject      *source,
 
 static void
 test_connection_socket_client_failed (TestConnection *test,
-				      gconstpointer   data)
+                                      gconstpointer   data)
 {
   GSocketClient *client;
 
@@ -1334,7 +1336,7 @@ test_connection_socket_client_failed (TestConnection *test,
   /* this time we don't adjust the validation flags */
 
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
-				 NULL, socket_client_failed, test);
+                                 NULL, socket_client_failed, test);
   g_main_loop_run (test->loop);
 
   g_object_unref (client);
@@ -1354,7 +1356,7 @@ socket_client_timed_out_write (GObject      *source,
   gssize size;
 
   connection = g_socket_client_connect_finish (G_SOCKET_CLIENT (source),
-					       result, &error);
+                                               result, &error);
   g_assert_no_error (error);
   test->client_connection = G_IO_STREAM (connection);
 
@@ -1405,7 +1407,7 @@ test_connection_read_time_out_write (TestConnection *test,
   g_socket_client_set_tls_validation_flags (client, flags);
 
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
-				 NULL, socket_client_timed_out_write, test);
+                                 NULL, socket_client_timed_out_write, test);
 
   g_main_loop_run (test->loop);
 
@@ -1428,15 +1430,15 @@ test_connection_read_time_out_write (TestConnection *test,
 
 static void
 simul_async_read_complete (GObject      *object,
-			   GAsyncResult *result,
-			   gpointer      user_data)
+                           GAsyncResult *result,
+                           gpointer      user_data)
 {
   TestConnection *test = user_data;
   gssize nread;
   GError *error = NULL;
 
   nread = g_input_stream_read_finish (G_INPUT_STREAM (object),
-				      result, &error);
+                                      result, &error);
   g_assert_no_error (error);
 
   test->nread += nread;
@@ -1451,40 +1453,40 @@ simul_async_read_complete (GObject      *object,
   else
     {
       g_input_stream_read_async (G_INPUT_STREAM (object),
-				 test->buf + test->nread,
-				 TEST_DATA_LENGTH / 2,
-				 G_PRIORITY_DEFAULT, NULL,
-				 simul_async_read_complete, test);
+                                 test->buf + test->nread,
+                                 TEST_DATA_LENGTH / 2,
+                                 G_PRIORITY_DEFAULT, NULL,
+                                 simul_async_read_complete, test);
     }
 }
 
 static void
 simul_async_write_complete (GObject      *object,
-			    GAsyncResult *result,
-			    gpointer      user_data)
+                            GAsyncResult *result,
+                            gpointer      user_data)
 {
   TestConnection *test = user_data;
   gssize nwrote;
   GError *error = NULL;
 
   nwrote = g_output_stream_write_finish (G_OUTPUT_STREAM (object),
-					 result, &error);
+                                         result, &error);
   g_assert_no_error (error);
 
   test->nwrote += nwrote;
   if (test->nwrote < TEST_DATA_LENGTH)
     {
       g_output_stream_write_async (G_OUTPUT_STREAM (object),
-				   TEST_DATA + test->nwrote,
-				   TEST_DATA_LENGTH - test->nwrote,
-				   G_PRIORITY_DEFAULT, NULL,
-				   simul_async_write_complete, test);
+                                   TEST_DATA + test->nwrote,
+                                   TEST_DATA_LENGTH - test->nwrote,
+                                   G_PRIORITY_DEFAULT, NULL,
+                                   simul_async_write_complete, test);
     }
 }
 
 static void
 test_simultaneous_async (TestConnection *test,
-			 gconstpointer   data)
+                         gconstpointer   data)
 {
   GIOStream *connection;
   GTlsCertificateFlags flags;
@@ -1504,13 +1506,13 @@ test_simultaneous_async (TestConnection *test,
   test->nread = test->nwrote = 0;
 
   g_input_stream_read_async (g_io_stream_get_input_stream (test->client_connection),
-			     test->buf, TEST_DATA_LENGTH / 2,
-			     G_PRIORITY_DEFAULT, NULL,
-			     simul_async_read_complete, test);
+                             test->buf, TEST_DATA_LENGTH / 2,
+                             G_PRIORITY_DEFAULT, NULL,
+                             simul_async_read_complete, test);
   g_output_stream_write_async (g_io_stream_get_output_stream (test->client_connection),
-			       TEST_DATA, TEST_DATA_LENGTH / 2,
-			       G_PRIORITY_DEFAULT, NULL,
-			       simul_async_write_complete, test);
+                               TEST_DATA, TEST_DATA_LENGTH / 2,
+                               G_PRIORITY_DEFAULT, NULL,
+                               simul_async_write_complete, test);
 
   g_main_loop_run (test->loop);
 
@@ -1525,16 +1527,16 @@ check_gnutls_has_rehandshaking_bug (void)
   const char *version = gnutls_check_version (NULL);
 
   return (!strcmp (version, "3.1.27") ||
-	  !strcmp (version, "3.1.28") ||
-	  !strcmp (version, "3.2.19") ||
-	  !strcmp (version, "3.3.8") ||
-	  !strcmp (version, "3.3.9") ||
+          !strcmp (version, "3.1.28") ||
+          !strcmp (version, "3.2.19") ||
+          !strcmp (version, "3.3.8") ||
+          !strcmp (version, "3.3.9") ||
           !strcmp (version, "3.3.10"));
 }
 
 static void
 test_simultaneous_async_rehandshake (TestConnection *test,
-				     gconstpointer   data)
+                                     gconstpointer   data)
 {
   if (check_gnutls_has_rehandshaking_bug ())
     {
@@ -1557,9 +1559,9 @@ simul_read_thread (gpointer user_data)
   while (test->nread < TEST_DATA_LENGTH)
     {
       nread = g_input_stream_read (istream,
-				   test->buf + test->nread,
-				   MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nread),
-				   NULL, &error);
+                                   test->buf + test->nread,
+                                   MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nread),
+                                   NULL, &error);
       g_assert_no_error (error);
 
       test->nread += nread;
@@ -1579,9 +1581,9 @@ simul_write_thread (gpointer user_data)
   while (test->nwrote < TEST_DATA_LENGTH)
     {
       nwrote = g_output_stream_write (ostream,
-				      TEST_DATA + test->nwrote,
-				      MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nwrote),
-				      NULL, &error);
+                                      TEST_DATA + test->nwrote,
+                                      MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nwrote),
+                                      NULL, &error);
       g_assert_no_error (error);
 
       test->nwrote += nwrote;
@@ -1592,7 +1594,7 @@ simul_write_thread (gpointer user_data)
 
 static void
 test_simultaneous_sync (TestConnection *test,
-			gconstpointer   data)
+                        gconstpointer   data)
 {
   GIOStream *connection;
   GTlsCertificateFlags flags;
@@ -1634,7 +1636,7 @@ test_simultaneous_sync (TestConnection *test,
 
 static void
 test_simultaneous_sync_rehandshake (TestConnection *test,
-				    gconstpointer   data)
+                                    gconstpointer   data)
 {
   if (check_gnutls_has_rehandshaking_bug ())
     {
@@ -1668,8 +1670,8 @@ test_close_immediately (TestConnection *test,
 
 static void
 quit_loop_on_notify (GObject *obj,
-		     GParamSpec *spec,
-		     gpointer user_data)
+                     GParamSpec *spec,
+                     gpointer user_data)
 {
   GMainLoop *loop = user_data;
 
@@ -1678,8 +1680,8 @@ quit_loop_on_notify (GObject *obj,
 
 static void
 handshake_completed (GObject      *object,
-		     GAsyncResult *result,
-		     gpointer      user_data)
+                     GAsyncResult *result,
+                     gpointer      user_data)
 {
   gboolean *complete = user_data;
 
@@ -1689,7 +1691,7 @@ handshake_completed (GObject      *object,
 
 static void
 test_close_during_handshake (TestConnection *test,
-			     gconstpointer   data)
+                             gconstpointer   data)
 {
   GIOStream *connection;
   GError *error = NULL;
@@ -1712,8 +1714,8 @@ test_close_during_handshake (TestConnection *test,
   context = g_main_context_new ();
   g_main_context_push_thread_default (context);
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
-				    G_PRIORITY_DEFAULT, NULL,
-				    handshake_completed, &handshake_complete);
+                                    G_PRIORITY_DEFAULT, NULL,
+                                    handshake_completed, &handshake_complete);
   g_main_context_pop_thread_default (context);
 
   /* Now run the (default GMainContext) loop, which is needed for
@@ -1764,8 +1766,8 @@ test_output_stream_close_during_handshake (TestConnection *test,
   context = g_main_context_new ();
   g_main_context_push_thread_default (context);
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
-				    G_PRIORITY_DEFAULT, NULL,
-				    handshake_completed, &handshake_complete);
+                                    G_PRIORITY_DEFAULT, NULL,
+                                    handshake_completed, &handshake_complete);
   g_main_context_pop_thread_default (context);
 
   /* Now run the (default GMainContext) loop, which is needed for
@@ -1795,7 +1797,7 @@ test_output_stream_close_during_handshake (TestConnection *test,
 
 static void
 test_write_during_handshake (TestConnection *test,
-			    gconstpointer   data)
+                            gconstpointer   data)
 {
   GIOStream *connection;
   GError *error = NULL;
@@ -1818,8 +1820,8 @@ test_write_during_handshake (TestConnection *test,
   context = g_main_context_new ();
   g_main_context_push_thread_default (context);
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
-				    G_PRIORITY_DEFAULT, NULL,
-				    handshake_completed, &handshake_complete);
+                                    G_PRIORITY_DEFAULT, NULL,
+                                    handshake_completed, &handshake_complete);
   g_main_context_pop_thread_default (context);
 
   /* Now run the (default GMainContext) loop, which is needed for
@@ -1838,7 +1840,7 @@ test_write_during_handshake (TestConnection *test,
 
   ostream = g_io_stream_get_output_stream (test->client_connection);
   g_output_stream_write (ostream, TEST_DATA, TEST_DATA_LENGTH,
-			 G_PRIORITY_DEFAULT, &error);
+                         G_PRIORITY_DEFAULT, &error);
   g_assert_no_error (error);
 
   /* We have to let the handshake_async() call finish now, or
@@ -1928,8 +1930,8 @@ test_async_implicit_handshake (TestConnection *test, gconstpointer   data)
 
 static void
 quit_on_handshake_complete (GObject      *object,
-			    GAsyncResult *result,
-			    gpointer      user_data)
+                            GAsyncResult *result,
+                            gpointer      user_data)
 {
   TestConnection *test = user_data;
   GError *error = NULL;
@@ -1943,7 +1945,7 @@ quit_on_handshake_complete (GObject      *object,
 
 static void
 test_fallback (TestConnection *test,
-	       gconstpointer   data)
+               gconstpointer   data)
 {
   GIOStream *connection;
   GTlsConnection *tlsconn;
@@ -1962,12 +1964,12 @@ test_fallback (TestConnection *test,
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
   g_tls_client_connection_set_use_ssl3 (G_TLS_CLIENT_CONNECTION (test->client_connection),
-					TRUE);
+                                        TRUE);
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
   g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
-				    quit_on_handshake_complete, test);
+                                    quit_on_handshake_complete, test);
   g_main_loop_run (test->loop);
 
   /* In 2.42 we don't have the API to test that the correct version was negotiated,
@@ -2054,17 +2056,17 @@ main (int   argc,
   g_test_add ("/tls/connection/verified", TestConnection, NULL,
               setup_connection, test_verified_connection, teardown_connection);
   g_test_add ("/tls/connection/verified-chain", TestConnection, NULL,
-	      setup_connection, test_verified_chain, teardown_connection);
+              setup_connection, test_verified_chain, teardown_connection);
   g_test_add ("/tls/connection/verified-chain-with-redundant-root-cert", TestConnection, NULL,
-	      setup_connection, test_verified_chain_with_redundant_root_cert, teardown_connection);
+              setup_connection, test_verified_chain_with_redundant_root_cert, teardown_connection);
   g_test_add ("/tls/connection/verified-chain-with-duplicate-server-cert", TestConnection, NULL,
-	      setup_connection, test_verified_chain_with_duplicate_server_cert, teardown_connection);
+              setup_connection, test_verified_chain_with_duplicate_server_cert, teardown_connection);
   g_test_add ("/tls/connection/verified-unordered-chain", TestConnection, NULL,
-	      setup_connection, test_verified_unordered_chain, teardown_connection);
+              setup_connection, test_verified_unordered_chain, teardown_connection);
   g_test_add ("/tls/connection/verified-chain-with-alternative-ca-cert", TestConnection, NULL,
-	      setup_connection, test_verified_chain_with_alternative_ca_cert, teardown_connection);
+              setup_connection, test_verified_chain_with_alternative_ca_cert, teardown_connection);
   g_test_add ("/tls/connection/invalid-chain-with-alternative-ca-cert", TestConnection, NULL,
-	      setup_connection, test_invalid_chain_with_alternative_ca_cert, teardown_connection);
+              setup_connection, test_invalid_chain_with_alternative_ca_cert, teardown_connection);
   g_test_add ("/tls/connection/client-auth", TestConnection, NULL,
               setup_connection, test_client_auth_connection, teardown_connection);
   g_test_add ("/tls/connection/client-auth-rehandshake", TestConnection, NULL,

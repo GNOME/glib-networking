@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Red Hat, Inc.
  *
@@ -82,10 +84,10 @@ static GProxyResolverInterface *g_proxy_resolver_gnome_parent_iface;
 static void g_proxy_resolver_gnome_iface_init (GProxyResolverInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GProxyResolverGnome,
-				g_proxy_resolver_gnome,
-				G_TYPE_OBJECT, 0,
-				G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
-							       g_proxy_resolver_gnome_iface_init))
+                                g_proxy_resolver_gnome,
+                                G_TYPE_OBJECT, 0,
+                                G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
+                                                               g_proxy_resolver_gnome_iface_init))
 
 static void
 g_proxy_resolver_gnome_class_finalize (GProxyResolverGnomeClass *klass)
@@ -94,8 +96,8 @@ g_proxy_resolver_gnome_class_finalize (GProxyResolverGnomeClass *klass)
 
 static void
 gsettings_changed (GSettings   *settings,
-		   const gchar *key,
-		   gpointer     user_data)
+                   const gchar *key,
+                   gpointer     user_data)
 {
   GProxyResolverGnome *resolver = user_data;
 
@@ -112,28 +114,28 @@ g_proxy_resolver_gnome_finalize (GObject *object)
   if (resolver->proxy_settings)
     {
       g_signal_handlers_disconnect_by_func (resolver->proxy_settings,
-					    (gpointer)gsettings_changed,
-					    resolver);
+                                            (gpointer)gsettings_changed,
+                                            resolver);
       g_object_unref (resolver->proxy_settings);
 
       g_signal_handlers_disconnect_by_func (resolver->http_settings,
-					    (gpointer)gsettings_changed,
-					    resolver);
+                                            (gpointer)gsettings_changed,
+                                            resolver);
       g_object_unref (resolver->http_settings);
 
       g_signal_handlers_disconnect_by_func (resolver->https_settings,
-					    (gpointer)gsettings_changed,
-					    resolver);
+                                            (gpointer)gsettings_changed,
+                                            resolver);
       g_object_unref (resolver->https_settings);
 
       g_signal_handlers_disconnect_by_func (resolver->ftp_settings,
-					    (gpointer)gsettings_changed,
-					    resolver);
+                                            (gpointer)gsettings_changed,
+                                            resolver);
       g_object_unref (resolver->ftp_settings);
 
       g_signal_handlers_disconnect_by_func (resolver->socks_settings,
-					    (gpointer)gsettings_changed,
-					    resolver);
+                                            (gpointer)gsettings_changed,
+                                            resolver);
       g_object_unref (resolver->socks_settings);
     }
 
@@ -156,23 +158,23 @@ g_proxy_resolver_gnome_init (GProxyResolverGnome *resolver)
 
   resolver->proxy_settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
   g_signal_connect (resolver->proxy_settings, "changed",
-		    G_CALLBACK (gsettings_changed), resolver);
+                    G_CALLBACK (gsettings_changed), resolver);
   resolver->http_settings = g_settings_get_child (resolver->proxy_settings,
                                                   GNOME_PROXY_HTTP_CHILD_SCHEMA);
   g_signal_connect (resolver->http_settings, "changed",
-		    G_CALLBACK (gsettings_changed), resolver);
+                    G_CALLBACK (gsettings_changed), resolver);
   resolver->https_settings = g_settings_get_child (resolver->proxy_settings,
                                                    GNOME_PROXY_HTTPS_CHILD_SCHEMA);
   g_signal_connect (resolver->https_settings, "changed",
-		    G_CALLBACK (gsettings_changed), resolver);
+                    G_CALLBACK (gsettings_changed), resolver);
   resolver->ftp_settings = g_settings_get_child (resolver->proxy_settings,
                                                  GNOME_PROXY_FTP_CHILD_SCHEMA);
   g_signal_connect (resolver->ftp_settings, "changed",
-		    G_CALLBACK (gsettings_changed), resolver);
+                    G_CALLBACK (gsettings_changed), resolver);
   resolver->socks_settings = g_settings_get_child (resolver->proxy_settings,
                                                    GNOME_PROXY_SOCKS_CHILD_SCHEMA);
   g_signal_connect (resolver->socks_settings, "changed",
-		    G_CALLBACK (gsettings_changed), resolver);
+                    G_CALLBACK (gsettings_changed), resolver);
 
   resolver->need_update = TRUE;
 }
@@ -204,20 +206,20 @@ update_settings (GProxyResolverGnome *resolver)
     {
       GError *error = NULL;
       resolver->pacrunner =
-	g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
-				       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
-				       G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
-				       NULL,
-				       "org.gtk.GLib.PACRunner",
-				       "/org/gtk/GLib/PACRunner",
-				       "org.gtk.GLib.PACRunner",
-				       NULL, &error);
+        g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
+                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
+                                       G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+                                       NULL,
+                                       "org.gtk.GLib.PACRunner",
+                                       "/org/gtk/GLib/PACRunner",
+                                       "org.gtk.GLib.PACRunner",
+                                       NULL, &error);
       if (error)
-	{
-	  g_warning ("Could not start proxy autoconfiguration helper:"
-		     "\n    %s\nProxy autoconfiguration will not work",
-		     error->message);
-	}
+        {
+          g_warning ("Could not start proxy autoconfiguration helper:"
+                     "\n    %s\nProxy autoconfiguration will not work",
+                     error->message);
+        }
     }
   else if (resolver->mode != G_DESKTOP_PROXY_MODE_AUTO && resolver->pacrunner)
     {
@@ -247,29 +249,29 @@ update_settings (GProxyResolverGnome *resolver)
   if (host && *host)
     {
       if (g_settings_get_boolean (resolver->http_settings, GNOME_PROXY_HTTP_USE_AUTH_KEY))
-	{
-	  gchar *user, *password;
-	  gchar *enc_user, *enc_password;
+        {
+          gchar *user, *password;
+          gchar *enc_user, *enc_password;
 
-	  user = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_USER_KEY);
-	  enc_user = g_uri_escape_string (user, NULL, TRUE);
-	  g_free (user);
-	  password = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_PASSWORD_KEY);
-	  enc_password = g_uri_escape_string (password, NULL, TRUE);
-	  g_free (password);
+          user = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_USER_KEY);
+          enc_user = g_uri_escape_string (user, NULL, TRUE);
+          g_free (user);
+          password = g_settings_get_string (resolver->http_settings, GNOME_PROXY_HTTP_PASSWORD_KEY);
+          enc_password = g_uri_escape_string (password, NULL, TRUE);
+          g_free (password);
 
-	  http_proxy = g_strdup_printf ("http://%s:%s@%s:%u",
-					enc_user, enc_password,
-					host, port);
-	  g_free (enc_user);
-	  g_free (enc_password);
-	}
+          http_proxy = g_strdup_printf ("http://%s:%s@%s:%u",
+                                        enc_user, enc_password,
+                                        host, port);
+          g_free (enc_user);
+          g_free (enc_password);
+        }
       else
-	http_proxy = g_strdup_printf ("http://%s:%u", host, port);
+        http_proxy = g_strdup_printf ("http://%s:%u", host, port);
 
       g_simple_proxy_resolver_set_uri_proxy (simple, "http", http_proxy);
       if (g_settings_get_boolean (resolver->proxy_settings, GNOME_PROXY_USE_SAME_PROXY_KEY))
-	g_simple_proxy_resolver_set_default_proxy (simple, http_proxy);
+        g_simple_proxy_resolver_set_default_proxy (simple, http_proxy);
     }
   else
     http_proxy = NULL;
@@ -345,12 +347,12 @@ make_proxies (const gchar *proxy)
  */
 static gboolean
 g_proxy_resolver_gnome_lookup_internal (GProxyResolverGnome   *resolver,
-					const gchar           *uri,
-					gchar               ***out_proxies,
-					GDBusProxy           **out_pacrunner,
-					gchar                **out_autoconfig_url,
-					GCancellable          *cancellable,
-					GError               **error)
+                                        const gchar           *uri,
+                                        gchar               ***out_proxies,
+                                        GDBusProxy           **out_pacrunner,
+                                        gchar                **out_autoconfig_url,
+                                        GCancellable          *cancellable,
+                                        GError               **error)
 {
   gchar **proxies = NULL;
 
@@ -363,7 +365,7 @@ g_proxy_resolver_gnome_lookup_internal (GProxyResolverGnome   *resolver,
     update_settings (resolver);
 
   proxies = g_proxy_resolver_lookup (resolver->base_resolver,
-				     uri, cancellable, error);
+                                     uri, cancellable, error);
   if (!proxies)
     goto done;
 
@@ -395,17 +397,17 @@ g_proxy_resolver_gnome_lookup_internal (GProxyResolverGnome   *resolver,
 
 static gchar **
 g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
-			       const gchar     *uri,
-			       GCancellable    *cancellable,
-			       GError         **error)
+                               const gchar     *uri,
+                               GCancellable    *cancellable,
+                               GError         **error)
 {
   GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (proxy_resolver);
   GDBusProxy *pacrunner;
   gchar **proxies, *autoconfig_url;
 
   if (!g_proxy_resolver_gnome_lookup_internal (resolver, uri,
-					       &proxies, &pacrunner, &autoconfig_url,
-					       cancellable, error))
+                                               &proxies, &pacrunner, &autoconfig_url,
+                                               cancellable, error))
     return NULL;
 
   if (pacrunner)
@@ -413,20 +415,20 @@ g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
       GVariant *vproxies;
 
       vproxies = g_dbus_proxy_call_sync (pacrunner,
-					 "Lookup",
-					 g_variant_new ("(ss)",
-							autoconfig_url,
-							uri),
-					 G_DBUS_CALL_FLAGS_NONE,
-					 -1,
-					 cancellable, error);
+                                         "Lookup",
+                                         g_variant_new ("(ss)",
+                                                        autoconfig_url,
+                                                        uri),
+                                         G_DBUS_CALL_FLAGS_NONE,
+                                         -1,
+                                         cancellable, error);
       if (vproxies)
-	{
-	  g_variant_get (vproxies, "(^as)", &proxies);
-	  g_variant_unref (vproxies);
-	}
+        {
+          g_variant_get (vproxies, "(^as)", &proxies);
+          g_variant_unref (vproxies);
+        }
       else
-	proxies = NULL;
+        proxies = NULL;
 
       g_object_unref (pacrunner);
       g_free (autoconfig_url);
@@ -437,8 +439,8 @@ g_proxy_resolver_gnome_lookup (GProxyResolver  *proxy_resolver,
 
 static void
 got_autoconfig_proxies (GObject      *source,
-			GAsyncResult *result,
-			gpointer      user_data)
+                        GAsyncResult *result,
+                        gpointer      user_data)
 {
   GTask *task = user_data;
   GVariant *vproxies;
@@ -446,7 +448,7 @@ got_autoconfig_proxies (GObject      *source,
   GError *error = NULL;
 
   vproxies = g_dbus_proxy_call_finish (G_DBUS_PROXY (source),
-				       result, &error);
+                                       result, &error);
   if (vproxies)
     {
       g_variant_get (vproxies, "(^as)", &proxies);
@@ -460,10 +462,10 @@ got_autoconfig_proxies (GObject      *source,
 
 static void
 g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
-				     const gchar         *uri,
-				     GCancellable        *cancellable,
-				     GAsyncReadyCallback  callback,
-				     gpointer             user_data)
+                                     const gchar         *uri,
+                                     GCancellable        *cancellable,
+                                     GAsyncReadyCallback  callback,
+                                     gpointer             user_data)
 {
   GProxyResolverGnome *resolver = G_PROXY_RESOLVER_GNOME (proxy_resolver);
   GTask *task;
@@ -475,8 +477,8 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
   g_task_set_source_tag (task, g_proxy_resolver_gnome_lookup_async);
 
    if (!g_proxy_resolver_gnome_lookup_internal (resolver, uri,
-						&proxies, &pacrunner, &autoconfig_url,
-						cancellable, &error))
+                                                &proxies, &pacrunner, &autoconfig_url,
+                                                cancellable, &error))
      {
        g_task_return_error (task, error);
        g_object_unref (task);
@@ -490,23 +492,23 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
      }
 
    g_dbus_proxy_call (pacrunner,
-		      "Lookup",
-		      g_variant_new ("(ss)",
-				     autoconfig_url,
-				     uri),
-		      G_DBUS_CALL_FLAGS_NONE,
-		      -1,
-		      cancellable,
-		      got_autoconfig_proxies,
-		      task);
+                      "Lookup",
+                      g_variant_new ("(ss)",
+                                     autoconfig_url,
+                                     uri),
+                      G_DBUS_CALL_FLAGS_NONE,
+                      -1,
+                      cancellable,
+                      got_autoconfig_proxies,
+                      task);
    g_object_unref (pacrunner);
    g_free (autoconfig_url);
 }
 
 static gchar **
 g_proxy_resolver_gnome_lookup_finish (GProxyResolver  *resolver,
-				      GAsyncResult    *result,
-				      GError         **error)
+                                      GAsyncResult    *result,
+                                      GError         **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, resolver), NULL);
 
@@ -540,7 +542,7 @@ g_proxy_resolver_gnome_register (GIOModule *module)
   if (module == NULL)
     g_io_extension_point_register (G_PROXY_RESOLVER_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_PROXY_RESOLVER_EXTENSION_POINT_NAME,
-				  g_proxy_resolver_gnome_get_type(),
-				  "gnome",
-				  80);
+                                  g_proxy_resolver_gnome_get_type(),
+                                  "gnome",
+                                  80);
 }

@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Red Hat, Inc
  *
@@ -43,8 +45,8 @@ struct _GTlsBackendGnutlsPrivate
 static void g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendGnutls, g_tls_backend_gnutls, G_TYPE_OBJECT, 0,
-				G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
-							       g_tls_backend_gnutls_interface_init);)
+                                G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
+                                                               g_tls_backend_gnutls_interface_init);)
 
 #ifdef GTLS_GNUTLS_DEBUG
 static void
@@ -208,7 +210,7 @@ session_cache_cleanup (GHashTable *cache)
     {
       cache_data = value;
       if (cache_data->last_used < expired)
-	g_hash_table_iter_remove (&iter);
+        g_hash_table_iter_remove (&iter);
     }
 }
 
@@ -224,7 +226,7 @@ cache_data_free (gpointer data)
 
 static GHashTable *
 get_session_cache (unsigned int            type,
-		   gboolean                create)
+                   gboolean                create)
 {
   GHashTable **cache_p;
 
@@ -232,15 +234,15 @@ get_session_cache (unsigned int            type,
   if (!*cache_p && create)
     {
       *cache_p = g_hash_table_new_full (g_bytes_hash, g_bytes_equal,
-					NULL, cache_data_free);
+                                        NULL, cache_data_free);
     }
   return *cache_p;
 }
 
 void
 g_tls_backend_gnutls_store_session (unsigned int             type,
-				    GBytes                  *session_id,
-				    GBytes                  *session_data)
+                                    GBytes                  *session_id,
+                                    GBytes                  *session_data)
 {
   GTlsBackendGnutlsCacheData *cache_data;
   GHashTable *cache;
@@ -252,15 +254,15 @@ g_tls_backend_gnutls_store_session (unsigned int             type,
   if (cache_data)
     {
       if (!g_bytes_equal (cache_data->session_data, session_data))
-	{
-	  g_bytes_unref (cache_data->session_data);
-	  cache_data->session_data = g_bytes_ref (session_data);
-	}
+        {
+          g_bytes_unref (cache_data->session_data);
+          cache_data->session_data = g_bytes_ref (session_data);
+        }
     }
   else
     {
       if (g_hash_table_size (cache) >= SESSION_CACHE_MAX_SIZE)
-	session_cache_cleanup (cache);
+        session_cache_cleanup (cache);
 
       cache_data = g_slice_new (GTlsBackendGnutlsCacheData);
       cache_data->session_id = g_bytes_ref (session_id);
@@ -275,7 +277,7 @@ g_tls_backend_gnutls_store_session (unsigned int             type,
 
 void
 g_tls_backend_gnutls_remove_session (unsigned int             type,
-				     GBytes                  *session_id)
+                                     GBytes                  *session_id)
 {
   GHashTable *cache;
 
@@ -290,7 +292,7 @@ g_tls_backend_gnutls_remove_session (unsigned int             type,
 
 GBytes *
 g_tls_backend_gnutls_lookup_session (unsigned int             type,
-				     GBytes                  *session_id)
+                                     GBytes                  *session_id)
 {
   GTlsBackendGnutlsCacheData *cache_data;
   GBytes *session_data = NULL;
@@ -303,10 +305,10 @@ g_tls_backend_gnutls_lookup_session (unsigned int             type,
     {
       cache_data = g_hash_table_lookup (cache, session_id);
       if (cache_data)
-	{
-	  cache_data->last_used = time (NULL);
-	  session_data = g_bytes_ref (cache_data->session_data);
-	}
+        {
+          cache_data->last_used = time (NULL);
+          session_data = g_bytes_ref (cache_data->session_data);
+        }
     }
 
   G_UNLOCK (session_cache_lock);
@@ -321,7 +323,7 @@ g_tls_backend_gnutls_register (GIOModule *module)
   if (module == NULL)
     g_io_extension_point_register (G_TLS_BACKEND_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_TLS_BACKEND_EXTENSION_POINT_NAME,
-				  g_tls_backend_gnutls_get_type(),
-				  "gnutls",
-				  0);
+                                  g_tls_backend_gnutls_get_type(),
+                                  "gnutls",
+                                  0);
 }

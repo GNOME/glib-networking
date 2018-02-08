@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2011 Collabora, Ltd
  *
@@ -829,8 +831,8 @@ build_certificate_chain (GTlsDatabaseGnutlsPkcs11  *self,
 
   /* Look up whether this certificate is an anchor */
   if (g_tls_database_gnutls_pkcs11_lookup_assertion (self, certificate,
-						     G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE,
-						     purpose, identity, cancellable, error))
+                                                     G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE,
+                                                     purpose, identity, cancellable, error))
     {
       g_tls_certificate_gnutls_set_issuer (certificate, NULL);
       *anchor = certificate;
@@ -966,13 +968,13 @@ convert_certificate_chain_to_gnutls (GTlsCertificateGnutls  *chain,
 
 static GTlsCertificateFlags
 g_tls_database_gnutls_pkcs11_verify_chain (GTlsDatabase             *database,
-					   GTlsCertificate          *chain,
-					   const gchar              *purpose,
-					   GSocketConnectable       *identity,
-					   GTlsInteraction          *interaction,
-					   GTlsDatabaseVerifyFlags   flags,
-					   GCancellable             *cancellable,
-					   GError                  **error)
+                                           GTlsCertificate          *chain,
+                                           const gchar              *purpose,
+                                           GSocketConnectable       *identity,
+                                           GTlsInteraction          *interaction,
+                                           GTlsDatabaseVerifyFlags   flags,
+                                           GCancellable             *cancellable,
+                                           GError                  **error)
 {
   GTlsDatabaseGnutlsPkcs11 *self;
   GTlsCertificateFlags result;
@@ -994,8 +996,8 @@ g_tls_database_gnutls_pkcs11_verify_chain (GTlsDatabase             *database,
 
   /* First check for pinned certificate */
   if (g_tls_database_gnutls_pkcs11_lookup_assertion (self, certificate,
-						     G_TLS_DATABASE_GNUTLS_PINNED_CERTIFICATE,
-						     purpose, identity, cancellable, &err))
+                                                     G_TLS_DATABASE_GNUTLS_PINNED_CERTIFICATE,
+                                                     purpose, identity, cancellable, &err))
     {
       /*
        * A pinned certificate is verified on its own, without any further

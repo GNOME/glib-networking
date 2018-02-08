@@ -1,4 +1,6 @@
-/* GProxyResolverGnome tests
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GProxyResolverGnome tests
  *
  * Copyright 2011 Red Hat, Inc.
  *
@@ -49,7 +51,7 @@
 
 static void
 reset_proxy_settings (gpointer      fixture,
-		      gconstpointer user_data)
+                      gconstpointer user_data)
 {
   GSettings *settings, *child;
 
@@ -82,7 +84,7 @@ reset_proxy_settings (gpointer      fixture,
 
 static void
 test_proxy_uri (gpointer      fixture,
-		gconstpointer user_data)
+                gconstpointer user_data)
 {
   GSettings *settings, *child;
 
@@ -112,7 +114,7 @@ test_proxy_uri (gpointer      fixture,
 
 static void
 test_proxy_socks (gpointer      fixture,
-		  gconstpointer user_data)
+                  gconstpointer user_data)
 {
   GSettings *settings, *child;
   const gchar *ignore_hosts[2] = { "127.0.0.1", NULL };
@@ -120,7 +122,7 @@ test_proxy_socks (gpointer      fixture,
   settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
   g_settings_set_enum (settings, GNOME_PROXY_MODE_KEY, G_DESKTOP_PROXY_MODE_MANUAL);
   g_settings_set (settings, GNOME_PROXY_IGNORE_HOSTS_KEY,
-		  "@as", g_variant_new_strv (ignore_hosts, -1));
+                  "@as", g_variant_new_strv (ignore_hosts, -1));
 
   child = g_settings_get_child (settings, GNOME_PROXY_SOCKS_CHILD_SCHEMA);
   g_settings_set_string (child, GNOME_PROXY_SOCKS_HOST_KEY, "proxy.example.com");
@@ -133,14 +135,14 @@ test_proxy_socks (gpointer      fixture,
 
 static void
 test_proxy_ignore (gpointer      fixture,
-		   gconstpointer user_data)
+                   gconstpointer user_data)
 {
   GSettings *settings, *http;
 
   settings = g_settings_new (GNOME_PROXY_SETTINGS_SCHEMA);
   g_settings_set_enum (settings, GNOME_PROXY_MODE_KEY, G_DESKTOP_PROXY_MODE_MANUAL);
   g_settings_set (settings, GNOME_PROXY_IGNORE_HOSTS_KEY,
-		  "@as", g_variant_new_strv (ignore_hosts, n_ignore_hosts));
+                  "@as", g_variant_new_strv (ignore_hosts, n_ignore_hosts));
 
   http = g_settings_get_child (settings, GNOME_PROXY_HTTP_CHILD_SCHEMA);
   g_settings_set_string (http, GNOME_PROXY_HTTP_HOST_KEY, "localhost");
@@ -164,11 +166,11 @@ main (int   argc,
   g_setenv ("DESKTOP_SESSION", "gnome", TRUE);
 
   g_test_add_vtable ("/proxy/gnome/uri", 0, NULL,
-		     reset_proxy_settings, test_proxy_uri, NULL);
+                     reset_proxy_settings, test_proxy_uri, NULL);
   g_test_add_vtable ("/proxy/gnome/socks", 0, NULL,
-		     reset_proxy_settings, test_proxy_socks, NULL);
+                     reset_proxy_settings, test_proxy_socks, NULL);
   g_test_add_vtable ("/proxy/gnome/ignore", 0, NULL,
-		     reset_proxy_settings, test_proxy_ignore, NULL);
+                     reset_proxy_settings, test_proxy_ignore, NULL);
 
   return g_test_run();
 }

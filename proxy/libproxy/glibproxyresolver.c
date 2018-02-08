@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Collabora, Ltd.
  *
@@ -44,16 +46,16 @@ g_libproxy_resolver_class_finalize (GLibProxyResolverClass *klass)
 }
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GLibProxyResolver,
-				g_libproxy_resolver,
-				G_TYPE_OBJECT, 0,
-				G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
-							       g_libproxy_resolver_iface_init))
+                                g_libproxy_resolver,
+                                G_TYPE_OBJECT, 0,
+                                G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
+                                                               g_libproxy_resolver_iface_init))
 #else
 G_DEFINE_TYPE_EXTENDED (GLibProxyResolver,
-			g_libproxy_resolver,
-			G_TYPE_OBJECT, 0,
-			G_IMPLEMENT_INTERFACE (G_TYPE_PROXY_RESOLVER,
-					       g_libproxy_resolver_iface_init))
+                        g_libproxy_resolver,
+                        G_TYPE_OBJECT, 0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_PROXY_RESOLVER,
+                                               g_libproxy_resolver_iface_init))
 #endif
 
 static void
@@ -130,9 +132,9 @@ free_libproxy_proxies (gchar **proxies)
 
 static void
 get_libproxy_proxies (GTask        *task,
-		      gpointer      source_object,
-		      gpointer      task_data,
-		      GCancellable *cancellable)
+                      gpointer      source_object,
+                      gpointer      task_data,
+                      GCancellable *cancellable)
 {
   GLibProxyResolver *resolver = source_object;
   const gchar *uri = task_data;
@@ -154,16 +156,16 @@ get_libproxy_proxies (GTask        *task,
   else
     {
       g_set_error_literal (&error, G_IO_ERROR, G_IO_ERROR_FAILED,
-			   _("Proxy resolver internal error."));
+                           _("Proxy resolver internal error."));
       g_task_return_error (task, error);
     }
 }
 
 static gchar **
 g_libproxy_resolver_lookup (GProxyResolver  *iresolver,
-			    const gchar     *uri,
-			    GCancellable    *cancellable,
-			    GError         **error)
+                            const gchar     *uri,
+                            GCancellable    *cancellable,
+                            GError         **error)
 {
   GLibProxyResolver *resolver = G_LIBPROXY_RESOLVER (iresolver);
   GTask *task;
@@ -183,10 +185,10 @@ g_libproxy_resolver_lookup (GProxyResolver  *iresolver,
 
 static void
 g_libproxy_resolver_lookup_async (GProxyResolver      *resolver,
-				  const gchar         *uri,
-				  GCancellable        *cancellable,
-				  GAsyncReadyCallback  callback,
-				  gpointer             user_data)
+                                  const gchar         *uri,
+                                  GCancellable        *cancellable,
+                                  GAsyncReadyCallback  callback,
+                                  gpointer             user_data)
 {
   GTask *task;
 
@@ -200,8 +202,8 @@ g_libproxy_resolver_lookup_async (GProxyResolver      *resolver,
 
 static gchar **
 g_libproxy_resolver_lookup_finish (GProxyResolver     *resolver,
-				   GAsyncResult       *result,
-				   GError            **error)
+                                   GAsyncResult       *result,
+                                   GError            **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, resolver), NULL);
 
@@ -234,8 +236,8 @@ g_libproxy_resolver_register (GIOModule *module)
   if (module == NULL)
     g_io_extension_point_register (G_PROXY_RESOLVER_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_PROXY_RESOLVER_EXTENSION_POINT_NAME,
-				  g_libproxy_resolver_get_type(),
-				  "libproxy",
-				  0);
+                                  g_libproxy_resolver_get_type(),
+                                  "libproxy",
+                                  0);
 }
 #endif

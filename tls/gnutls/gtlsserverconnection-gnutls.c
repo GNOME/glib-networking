@@ -1,4 +1,6 @@
-/* GIO - GLib Input, Output and Streaming Library
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2010 Red Hat, Inc
  *
@@ -50,20 +52,20 @@ static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t   
                                                              gnutls_retr2_st             *st);
 
 static int            g_tls_server_connection_gnutls_db_store    (void            *user_data,
-								  gnutls_datum_t   key,
-								  gnutls_datum_t   data);
+                                                                  gnutls_datum_t   key,
+                                                                  gnutls_datum_t   data);
 static int            g_tls_server_connection_gnutls_db_remove   (void            *user_data,
-								  gnutls_datum_t   key);
+                                                                  gnutls_datum_t   key);
 static gnutls_datum_t g_tls_server_connection_gnutls_db_retrieve (void            *user_data,
-								  gnutls_datum_t   key);
+                                                                  gnutls_datum_t   key);
 
 static GInitableIface *g_tls_server_connection_gnutls_parent_initable_iface;
 
 G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
-			 G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-						g_tls_server_connection_gnutls_initable_interface_init)
-			 G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
-						g_tls_server_connection_gnutls_server_connection_interface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                g_tls_server_connection_gnutls_initable_interface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
+                                                g_tls_server_connection_gnutls_server_connection_interface_init)
                          G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_SERVER_CONNECTION,
                                                 NULL)
 )
@@ -86,8 +88,8 @@ g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
 
 static gboolean
 g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
-					      GCancellable    *cancellable,
-					      GError         **error)
+                                              GCancellable    *cancellable,
+                                              GError         **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   GTlsCertificate *cert;
@@ -106,7 +108,7 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
   if (cert && !g_tls_certificate_gnutls_has_key (G_TLS_CERTIFICATE_GNUTLS (cert)))
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-			   _("Certificate has no private key"));
+                           _("Certificate has no private key"));
       return FALSE;
     }
 
@@ -115,9 +117,9 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
 
 static void
 g_tls_server_connection_gnutls_get_property (GObject    *object,
-					     guint       prop_id,
-					     GValue     *value,
-					     GParamSpec *pspec)
+                                             guint       prop_id,
+                                             GValue     *value,
+                                             GParamSpec *pspec)
 {
   GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (object);
 
@@ -134,9 +136,9 @@ g_tls_server_connection_gnutls_get_property (GObject    *object,
 
 static void
 g_tls_server_connection_gnutls_set_property (GObject      *object,
-					     guint         prop_id,
-					     const GValue *value,
-					     GParamSpec   *pspec)
+                                             guint         prop_id,
+                                             const GValue *value,
+                                             GParamSpec   *pspec)
 {
   GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (object);
 
@@ -196,7 +198,7 @@ g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
 
 static void
 g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
-						 GError               **inout_error)
+                                                 GError               **inout_error)
 {
 }
 
@@ -204,8 +206,8 @@ g_tls_server_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *gnutls,
 
 static int
 g_tls_server_connection_gnutls_db_store (void            *user_data,
-					 gnutls_datum_t   key,
-					 gnutls_datum_t   data)
+                                         gnutls_datum_t   key,
+                                         gnutls_datum_t   data)
 {
   GBytes *session_id, *session_data;
 
@@ -220,7 +222,7 @@ g_tls_server_connection_gnutls_db_store (void            *user_data,
 
 static int
 g_tls_server_connection_gnutls_db_remove (void            *user_data,
-					  gnutls_datum_t   key)
+                                          gnutls_datum_t   key)
 {
   GBytes *session_id;
 
@@ -233,7 +235,7 @@ g_tls_server_connection_gnutls_db_remove (void            *user_data,
 
 static gnutls_datum_t
 g_tls_server_connection_gnutls_db_retrieve (void            *user_data,
-					    gnutls_datum_t   key)
+                                            gnutls_datum_t   key)
 {
   GBytes *session_id, *session_data;
   gnutls_datum_t data;

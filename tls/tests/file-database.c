@@ -1,4 +1,6 @@
-/* GIO TLS tests
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/*
+ * GIO TLS tests
  *
  * Copyright 2011 Collabora, Ltd.
  *
@@ -87,18 +89,18 @@ teardown_verify (TestVerify      *test,
 {
   g_assert (G_IS_TLS_CERTIFICATE (test->cert));
   g_object_add_weak_pointer (G_OBJECT (test->cert),
-			     (gpointer *)&test->cert);
+                             (gpointer *)&test->cert);
   g_object_unref (test->cert);
   g_assert (test->cert == NULL);
 
   g_assert (G_IS_TLS_DATABASE (test->database));
   g_object_add_weak_pointer (G_OBJECT (test->database),
-			     (gpointer *)&test->database);
+                             (gpointer *)&test->database);
   g_object_unref (test->database);
   g_assert (test->database == NULL);
 
   g_object_add_weak_pointer (G_OBJECT (test->identity),
-			     (gpointer *)&test->identity);
+                             (gpointer *)&test->identity);
   g_object_unref (test->identity);
   g_assert (test->identity == NULL);
 }
@@ -366,7 +368,7 @@ teardown_file_database (TestFileDatabase *test,
 {
   g_assert (G_IS_TLS_DATABASE (test->database));
   g_object_add_weak_pointer (G_OBJECT (test->database),
-			     (gpointer *)&test->database);
+                             (gpointer *)&test->database);
   g_object_unref (test->database);
   g_assert (test->database == NULL);
 }
