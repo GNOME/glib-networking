@@ -224,10 +224,6 @@ typedef struct
   gint64        write_timeout;
   GError       *write_error;
   GCancellable *write_cancellable;
-
-#ifndef GNUTLS_E_PREMATURE_TERMINATION
-  gboolean eof;
-#endif
 } GTlsConnectionGnutlsPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION,
@@ -981,13 +977,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       g_mutex_unlock (&priv->op_mutex);
       return status;
     }
-  else if (
-#ifdef GNUTLS_E_PREMATURE_TERMINATION
-           status == GNUTLS_E_PREMATURE_TERMINATION
-#else
-           status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH && priv->eof
-#endif
-           )
+  else if (status == GNUTLS_E_PREMATURE_TERMINATION)
     {
       if (priv->handshaking && !priv->ever_handshaked)
         {
@@ -1488,10 +1478,6 @@ g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
 
   if (ret < 0)
     set_gnutls_error (gnutls, priv->read_error);
-#ifndef GNUTLS_E_PREMATURE_TERMINATION
-  else if (ret == 0)
-    priv->eof = TRUE;
-#endif
 
   return ret;
 }
