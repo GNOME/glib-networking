@@ -25,23 +25,25 @@
 #include "config.h"
 #include "gtlsinputstream-gnutls.h"
 
+struct _GTlsInputStreamGnutls
+{
+  GInputStream parent_instance;
+
+  GWeakRef weak_conn;
+};
+
 static void g_tls_input_stream_gnutls_pollable_iface_init (GPollableInputStreamInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsInputStreamGnutls, g_tls_input_stream_gnutls, G_TYPE_INPUT_STREAM,
                          G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_gnutls_pollable_iface_init)
                          )
 
-struct _GTlsInputStreamGnutlsPrivate
-{
-  GWeakRef weak_conn;
-};
-
 static void
 g_tls_input_stream_gnutls_dispose (GObject *object)
 {
   GTlsInputStreamGnutls *stream = G_TLS_INPUT_STREAM_GNUTLS (object);
 
-  g_weak_ref_set (&stream->priv->weak_conn, NULL);
+  g_weak_ref_set (&stream->weak_conn, NULL);
 
   G_OBJECT_CLASS (g_tls_input_stream_gnutls_parent_class)->dispose (object);
 }
@@ -51,7 +53,7 @@ g_tls_input_stream_gnutls_finalize (GObject *object)
 {
   GTlsInputStreamGnutls *stream = G_TLS_INPUT_STREAM_GNUTLS (object);
 
-  g_weak_ref_clear (&stream->priv->weak_conn);
+  g_weak_ref_clear (&stream->weak_conn);
 
   G_OBJECT_CLASS (g_tls_input_stream_gnutls_parent_class)->finalize (object);
 }
@@ -67,7 +69,7 @@ g_tls_input_stream_gnutls_read (GInputStream  *stream,
   GTlsConnectionGnutls *conn;
   gssize ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   g_return_val_if_fail (conn != NULL, -1);
 
   ret = g_tls_connection_gnutls_read (conn,
@@ -84,7 +86,7 @@ g_tls_input_stream_gnutls_pollable_is_readable (GPollableInputStream *pollable)
   GTlsConnectionGnutls *conn;
   gboolean ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   g_return_val_if_fail (conn != NULL, FALSE);
 
   ret = g_tls_connection_gnutls_check (conn, G_IO_IN);
@@ -101,7 +103,7 @@ g_tls_input_stream_gnutls_pollable_create_source (GPollableInputStream *pollable
   GTlsConnectionGnutls *conn;
   GSource *ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   g_return_val_if_fail (conn != NULL, NULL);
 
   ret = g_tls_connection_gnutls_create_source (conn, G_IO_IN, cancellable);
@@ -119,7 +121,7 @@ g_tls_input_stream_gnutls_pollable_read_nonblocking (GPollableInputStream  *poll
   GTlsConnectionGnutls *conn;
   gssize ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   g_return_val_if_fail (conn != NULL, -1);
 
   ret = g_tls_connection_gnutls_read (conn, buffer, size,
@@ -138,7 +140,7 @@ g_tls_input_stream_gnutls_close (GInputStream            *stream,
   GIOStream *conn;
   gboolean ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
 
   /* Special case here because this is called by the finalize
    * of the main GTlsConnection object.
@@ -168,7 +170,7 @@ close_thread (GTask        *task,
   GError *error = NULL;
   GIOStream *conn;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
 
   if (conn && !g_tls_connection_gnutls_close_internal (conn,
                                                        G_TLS_DIRECTION_READ,
@@ -217,8 +219,6 @@ g_tls_input_stream_gnutls_class_init (GTlsInputStreamGnutlsClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GInputStreamClass *input_stream_class = G_INPUT_STREAM_CLASS (klass);
 
-  g_type_class_add_private (klass, sizeof (GTlsInputStreamGnutlsPrivate));
-
   gobject_class->dispose = g_tls_input_stream_gnutls_dispose;
   gobject_class->finalize = g_tls_input_stream_gnutls_finalize;
 
@@ -239,7 +239,6 @@ g_tls_input_stream_gnutls_pollable_iface_init (GPollableInputStreamInterface *if
 static void
 g_tls_input_stream_gnutls_init (GTlsInputStreamGnutls *stream)
 {
-  stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream, G_TYPE_TLS_INPUT_STREAM_GNUTLS, GTlsInputStreamGnutlsPrivate);
 }
 
 GInputStream *
@@ -248,7 +247,7 @@ g_tls_input_stream_gnutls_new (GTlsConnectionGnutls *conn)
   GTlsInputStreamGnutls *tls_stream;
 
   tls_stream = g_object_new (G_TYPE_TLS_INPUT_STREAM_GNUTLS, NULL);
-  g_weak_ref_init (&tls_stream->priv->weak_conn, conn);
+  g_weak_ref_init (&tls_stream->weak_conn, conn);
 
   return G_INPUT_STREAM (tls_stream);
 }

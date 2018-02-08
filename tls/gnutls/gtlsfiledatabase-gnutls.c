@@ -34,25 +34,16 @@
 
 #include "gtlscertificate-gnutls.h"
 
-static void g_tls_file_database_gnutls_file_database_interface_init (GTlsFileDatabaseInterface *iface);
-
-static void g_tls_file_database_gnutls_initable_interface_init (GInitableIface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (GTlsFileDatabaseGnutls, g_tls_file_database_gnutls, G_TYPE_TLS_DATABASE_GNUTLS,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_FILE_DATABASE,
-                                                g_tls_file_database_gnutls_file_database_interface_init);
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_file_database_gnutls_initable_interface_init);
-                         );
-
 enum
 {
   PROP_0,
   PROP_ANCHORS,
 };
 
-struct _GTlsFileDatabaseGnutlsPrivate
+struct _GTlsFileDatabaseGnutls
 {
+  GTlsDatabaseGnutls parent_instance;
+
   /* read-only after construct */
   gchar *anchor_filename;
   gnutls_x509_trust_list_t trust_list;
@@ -81,6 +72,17 @@ struct _GTlsFileDatabaseGnutlsPrivate
    */
   GHashTable *handles;
 };
+
+static void g_tls_file_database_gnutls_file_database_interface_init (GTlsFileDatabaseInterface *iface);
+
+static void g_tls_file_database_gnutls_initable_interface_init (GInitableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GTlsFileDatabaseGnutls, g_tls_file_database_gnutls, G_TYPE_TLS_DATABASE_GNUTLS,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_FILE_DATABASE,
+                                                g_tls_file_database_gnutls_file_database_interface_init);
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                g_tls_file_database_gnutls_initable_interface_init);
+                         );
 
 static GHashTable *
 bytes_multi_table_new (void)
@@ -261,16 +263,16 @@ g_tls_file_database_gnutls_finalize (GObject *object)
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (object);
 
-  g_clear_pointer (&self->priv->subjects, g_hash_table_destroy);
-  g_clear_pointer (&self->priv->issuers, g_hash_table_destroy);
-  g_clear_pointer (&self->priv->complete, g_hash_table_destroy);
-  g_clear_pointer (&self->priv->handles, g_hash_table_destroy);
-  if (self->priv->anchor_filename)
+  g_clear_pointer (&self->subjects, g_hash_table_destroy);
+  g_clear_pointer (&self->issuers, g_hash_table_destroy);
+  g_clear_pointer (&self->complete, g_hash_table_destroy);
+  g_clear_pointer (&self->handles, g_hash_table_destroy);
+  if (self->anchor_filename)
     {
-      g_free (self->priv->anchor_filename);
-      gnutls_x509_trust_list_deinit (self->priv->trust_list, 1);
+      g_free (self->anchor_filename);
+      gnutls_x509_trust_list_deinit (self->trust_list, 1);
     }
-  g_mutex_clear (&self->priv->mutex);
+  g_mutex_clear (&self->mutex);
 
   G_OBJECT_CLASS (g_tls_file_database_gnutls_parent_class)->finalize (object);
 }
@@ -286,7 +288,7 @@ g_tls_file_database_gnutls_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_ANCHORS:
-      g_value_set_string (value, self->priv->anchor_filename);
+      g_value_set_string (value, self->anchor_filename);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -313,14 +315,14 @@ g_tls_file_database_gnutls_set_property (GObject      *object,
           return;
         }
 
-      if (self->priv->anchor_filename)
+      if (self->anchor_filename)
         {
-          g_free (self->priv->anchor_filename);
-          gnutls_x509_trust_list_deinit (self->priv->trust_list, 1);
+          g_free (self->anchor_filename);
+          gnutls_x509_trust_list_deinit (self->trust_list, 1);
         }
-      self->priv->anchor_filename = g_strdup (anchor_path);
-      gnutls_x509_trust_list_init (&self->priv->trust_list, 0);
-      gnutls_x509_trust_list_add_trust_file (self->priv->trust_list,
+      self->anchor_filename = g_strdup (anchor_path);
+      gnutls_x509_trust_list_init (&self->trust_list, 0);
+      gnutls_x509_trust_list_add_trust_file (self->trust_list,
                                              anchor_path, NULL,
                                              GNUTLS_X509_FMT_PEM, 0, 0);
       break;
@@ -332,10 +334,7 @@ g_tls_file_database_gnutls_set_property (GObject      *object,
 static void
 g_tls_file_database_gnutls_init (GTlsFileDatabaseGnutls *self)
 {
-  self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                            G_TYPE_TLS_FILE_DATABASE_GNUTLS,
-                                            GTlsFileDatabaseGnutlsPrivate);
-  g_mutex_init (&self->priv->mutex);
+  g_mutex_init (&self->mutex);
 }
 
 static gchar *
@@ -350,16 +349,16 @@ g_tls_file_database_gnutls_create_certificate_handle (GTlsDatabase    *database,
   der = g_tls_certificate_gnutls_get_bytes (G_TLS_CERTIFICATE_GNUTLS (certificate));
   g_return_val_if_fail (der != NULL, FALSE);
 
-  g_mutex_lock (&self->priv->mutex);
+  g_mutex_lock (&self->mutex);
 
   /* At the same time look up whether this certificate is in list */
-  contains = g_hash_table_lookup (self->priv->complete, der) ? TRUE : FALSE;
+  contains = g_hash_table_lookup (self->complete, der) ? TRUE : FALSE;
 
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_unlock (&self->mutex);
 
   /* Certificate is in the database */
   if (contains)
-    handle = create_handle_for_certificate (self->priv->anchor_filename, der);
+    handle = create_handle_for_certificate (self->anchor_filename, der);
 
   g_bytes_unref (der);
   return handle;
@@ -385,18 +384,18 @@ g_tls_file_database_gnutls_lookup_certificate_for_handle (GTlsDatabase          
   if (!handle)
     return NULL;
 
-  g_mutex_lock (&self->priv->mutex);
+  g_mutex_lock (&self->mutex);
 
   /* Create the handles table if not already done */
-  if (!self->priv->handles)
-    self->priv->handles = create_handles_array_unlocked (self->priv->anchor_filename,
-                                                         self->priv->complete);
+  if (!self->handles)
+    self->handles = create_handles_array_unlocked (self->anchor_filename,
+                                                   self->complete);
 
-  der = g_hash_table_lookup (self->priv->handles, handle);
+  der = g_hash_table_lookup (self->handles, handle);
   if (der != NULL)
     g_bytes_ref (der);
 
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_unlock (&self->mutex);
 
   if (der == NULL)
     return NULL;
@@ -450,9 +449,9 @@ g_tls_file_database_gnutls_lookup_certificate_issuer (GTlsDatabase             *
   subject = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
   /* Find the full DER value of the certificate */
-  g_mutex_lock (&self->priv->mutex);
-  der = bytes_multi_table_lookup_ref_one (self->priv->subjects, subject);
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_lock (&self->mutex);
+  der = bytes_multi_table_lookup_ref_one (self->subjects, subject);
+  g_mutex_unlock (&self->mutex);
 
   g_bytes_unref (subject);
 
@@ -498,9 +497,9 @@ g_tls_file_database_gnutls_lookup_certificates_issued_by (GTlsDatabase          
   issuer = g_bytes_new_static (issuer_raw_dn->data, issuer_raw_dn->len);
 
   /* Find the full DER value of the certificate */
-  g_mutex_lock (&self->priv->mutex);
-  ders = bytes_multi_table_lookup_ref_all (self->priv->issuers, issuer);
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_lock (&self->mutex);
+  ders = bytes_multi_table_lookup_ref_all (self->issuers, issuer);
+  g_mutex_unlock (&self->mutex);
 
   g_bytes_unref (issuer);
 
@@ -576,7 +575,7 @@ g_tls_file_database_gnutls_verify_chain (GTlsDatabase             *database,
 
   convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain),
                                        &certs, &certs_length);
-  gerr = gnutls_x509_trust_list_verify_crt (self->priv->trust_list,
+  gerr = gnutls_x509_trust_list_verify_crt (self->trust_list,
                                             certs, certs_length,
                                             0, &gnutls_result, NULL);
 
@@ -616,8 +615,6 @@ g_tls_file_database_gnutls_class_init (GTlsFileDatabaseGnutlsClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsDatabaseClass *database_class = G_TLS_DATABASE_CLASS (klass);
 
-  g_type_class_add_private (klass, sizeof (GTlsFileDatabaseGnutlsPrivate));
-
   gobject_class->get_property = g_tls_file_database_gnutls_get_property;
   gobject_class->set_property = g_tls_file_database_gnutls_set_property;
   gobject_class->finalize     = g_tls_file_database_gnutls_finalize;
@@ -656,8 +653,8 @@ g_tls_file_database_gnutls_initable_init (GInitable     *initable,
                                     (GDestroyNotify)g_bytes_unref,
                                     (GDestroyNotify)g_bytes_unref);
 
-  if (self->priv->anchor_filename)
-    result = load_anchor_file (self->priv->anchor_filename, subjects, issuers,
+  if (self->anchor_filename)
+    result = load_anchor_file (self->anchor_filename, subjects, issuers,
         complete, error);
   else
     result = TRUE;
@@ -667,23 +664,23 @@ g_tls_file_database_gnutls_initable_init (GInitable     *initable,
 
   if (result)
     {
-      g_mutex_lock (&self->priv->mutex);
-      if (!self->priv->subjects)
+      g_mutex_lock (&self->mutex);
+      if (!self->subjects)
         {
-          self->priv->subjects = subjects;
+          self->subjects = subjects;
           subjects = NULL;
         }
-      if (!self->priv->issuers)
+      if (!self->issuers)
         {
-          self->priv->issuers = issuers;
+          self->issuers = issuers;
           issuers = NULL;
         }
-      if (!self->priv->complete)
+      if (!self->complete)
         {
-          self->priv->complete = complete;
+          self->complete = complete;
           complete = NULL;
         }
-      g_mutex_unlock (&self->priv->mutex);
+      g_mutex_unlock (&self->mutex);
     }
 
   if (subjects != NULL)

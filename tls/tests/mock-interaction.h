@@ -28,30 +28,8 @@
 G_BEGIN_DECLS
 
 #define MOCK_TYPE_INTERACTION         (mock_interaction_get_type ())
-#define MOCK_INTERACTION(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), MOCK_TYPE_INTERACTION, MockInteraction))
-#define MOCK_INTERACTION_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), MOCK_TYPE_INTERACTION, MockInteractionClass))
-#define MOCK_IS_INTERACTION(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), MOCK_TYPE_INTERACTION))
-#define MOCK_IS_INTERACTION_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), MOCK_TYPE_INTERACTION))
-#define MOCK_INTERACTION_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), MOCK_TYPE_INTERACTION, MockInteractionClass))
 
-typedef struct _MockInteraction         MockInteraction;
-typedef struct _MockInteractionClass    MockInteractionClass;
-
-struct _MockInteraction
-{
-  GTlsInteraction parent_instance;
-  gchar *static_password;
-  GTlsCertificate *static_certificate;
-  GError *static_error;
-};
-
-struct _MockInteractionClass
-{
-  GTlsInteractionClass parent_class;
-};
-
-
-GType            mock_interaction_get_type   (void);
+G_DECLARE_FINAL_TYPE (MockInteraction, mock_interaction, MOCK, INTERACTION, GTlsInteraction)
 
 GTlsInteraction *mock_interaction_new_static_password       (const gchar *password);
 

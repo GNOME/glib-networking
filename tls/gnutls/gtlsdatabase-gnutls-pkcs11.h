@@ -34,28 +34,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_DATABASE_GNUTLS_PKCS11            (g_tls_database_gnutls_pkcs11_get_type ())
-#define G_TLS_DATABASE_GNUTLS_PKCS11(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_DATABASE_GNUTLS_PKCS11, GTlsDatabaseGnutlsPkcs11))
-#define G_TLS_DATABASE_GNUTLS_PKCS11_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_DATABASE_GNUTLS_PKCS11, GTlsDatabaseGnutlsPkcs11Class))
-#define G_IS_TLS_DATABASE_GNUTLS_PKCS11(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_DATABASE_GNUTLS_PKCS11))
-#define G_IS_TLS_DATABASE_GNUTLS_PKCS11_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_DATABASE_GNUTLS_PKCS11))
-#define G_TLS_DATABASE_GNUTLS_PKCS11_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_DATABASE_GNUTLS_PKCS11, GTlsDatabaseGnutlsPkcs11Class))
 
-typedef struct _GTlsDatabaseGnutlsPkcs11Private                   GTlsDatabaseGnutlsPkcs11Private;
-typedef struct _GTlsDatabaseGnutlsPkcs11Class                     GTlsDatabaseGnutlsPkcs11Class;
-typedef struct _GTlsDatabaseGnutlsPkcs11                          GTlsDatabaseGnutlsPkcs11;
-
-struct _GTlsDatabaseGnutlsPkcs11Class
-{
-  GTlsDatabaseGnutlsClass parent_class;
-};
-
-struct _GTlsDatabaseGnutlsPkcs11
-{
-  GTlsDatabaseGnutls parent_instance;
-  GTlsDatabaseGnutlsPkcs11Private *priv;
-};
-
-GType                        g_tls_database_gnutls_pkcs11_get_type              (void) G_GNUC_CONST;
+G_DECLARE_FINAL_TYPE (GTlsDatabaseGnutlsPkcs11, g_tls_database_gnutls_pkcs11, G, TLS_DATABASE_GNUTLS_PKCS11, GTlsDatabaseGnutls)
 
 GTlsDatabase*                g_tls_database_gnutls_pkcs11_new                   (GError **error);
 

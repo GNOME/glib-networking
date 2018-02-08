@@ -31,15 +31,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CONNECTION_GNUTLS            (g_tls_connection_gnutls_get_type ())
-#define G_TLS_CONNECTION_GNUTLS(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_CONNECTION_GNUTLS, GTlsConnectionGnutls))
-#define G_TLS_CONNECTION_GNUTLS_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_CONNECTION_GNUTLS, GTlsConnectionGnutlsClass))
-#define G_IS_TLS_CONNECTION_GNUTLS(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_CONNECTION_GNUTLS))
-#define G_IS_TLS_CONNECTION_GNUTLS_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_CONNECTION_GNUTLS))
-#define G_TLS_CONNECTION_GNUTLS_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_CONNECTION_GNUTLS, GTlsConnectionGnutlsClass))
 
-typedef struct _GTlsConnectionGnutlsPrivate                   GTlsConnectionGnutlsPrivate;
-typedef struct _GTlsConnectionGnutlsClass                     GTlsConnectionGnutlsClass;
-typedef struct _GTlsConnectionGnutls                          GTlsConnectionGnutls;
+G_DECLARE_DERIVABLE_TYPE (GTlsConnectionGnutls, g_tls_connection_gnutls, G, TLS_CONNECTION_GNUTLS, GTlsConnection)
 
 struct _GTlsConnectionGnutlsClass
 {
@@ -51,14 +44,6 @@ struct _GTlsConnectionGnutlsClass
   void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
                                 GError               **inout_error);
 };
-
-struct _GTlsConnectionGnutls
-{
-  GTlsConnection parent_instance;
-  GTlsConnectionGnutlsPrivate *priv;
-};
-
-GType g_tls_connection_gnutls_get_type (void) G_GNUC_CONST;
 
 gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);
 gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);

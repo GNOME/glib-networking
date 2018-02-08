@@ -51,18 +51,20 @@ static const CK_ATTRIBUTE_TYPE KEY_ATTRIBUTE_TYPES[] = {
 
 static void g_tls_database_gnutls_pkcs11_initable_iface_init (GInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GTlsDatabaseGnutlsPkcs11, g_tls_database_gnutls_pkcs11,
-                         G_TYPE_TLS_DATABASE_GNUTLS,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_database_gnutls_pkcs11_initable_iface_init));
-
-struct _GTlsDatabaseGnutlsPkcs11Private
+struct _GTlsDatabaseGnutlsPkcs11
 {
+  GTlsDatabaseGnutls parent_instance;
+
   /* no changes after construction */
   CK_FUNCTION_LIST **modules;
   GList *pkcs11_slots;
   GList *trust_uris;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GTlsDatabaseGnutlsPkcs11, g_tls_database_gnutls_pkcs11,
+                         G_TYPE_TLS_DATABASE_GNUTLS,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                g_tls_database_gnutls_pkcs11_initable_iface_init));
 
 static gboolean
 discover_module_slots_and_options (GTlsDatabaseGnutlsPkcs11   *self,
@@ -114,7 +116,7 @@ discover_module_slots_and_options (GTlsDatabaseGnutlsPkcs11   *self,
                            "slot-id", list[i],
                            "module", module,
                            NULL);
-      self->priv->pkcs11_slots = g_list_append (self->priv->pkcs11_slots, slot);
+      self->pkcs11_slots = g_list_append (self->pkcs11_slots, slot);
     }
 
   /*
@@ -137,7 +139,7 @@ discover_module_slots_and_options (GTlsDatabaseGnutlsPkcs11   *self,
         }
       else
         {
-          self->priv->trust_uris = g_list_append (self->priv->trust_uris, uri);
+          self->trust_uris = g_list_append (self->trust_uris, uri);
         }
 
       free (string);
@@ -234,16 +236,16 @@ g_tls_database_gnutls_pkcs11_finalize (GObject *object)
   GTlsDatabaseGnutlsPkcs11 *self = G_TLS_DATABASE_GNUTLS_PKCS11 (object);
   GList *l;
 
-  for (l = self->priv->pkcs11_slots; l; l = g_list_next (l))
+  for (l = self->pkcs11_slots; l; l = g_list_next (l))
       g_object_unref (l->data);
-  g_list_free (self->priv->pkcs11_slots);
+  g_list_free (self->pkcs11_slots);
 
-  for (l = self->priv->trust_uris; l; l = g_list_next (l))
+  for (l = self->trust_uris; l; l = g_list_next (l))
     p11_kit_uri_free (l->data);
-  g_list_free (self->priv->trust_uris);
+  g_list_free (self->trust_uris);
 
-  if (self->priv->modules)
-    p11_kit_modules_release (self->priv->modules);
+  if (self->modules)
+    p11_kit_modules_release (self->modules);
 
   G_OBJECT_CLASS (g_tls_database_gnutls_pkcs11_parent_class)->finalize (object);
 }
@@ -251,11 +253,6 @@ g_tls_database_gnutls_pkcs11_finalize (GObject *object)
 static void
 g_tls_database_gnutls_pkcs11_init (GTlsDatabaseGnutlsPkcs11 *self)
 {
-
-  self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                            G_TYPE_TLS_DATABASE_GNUTLS_PKCS11,
-                                            GTlsDatabaseGnutlsPkcs11Private);
-
 }
 
 static gboolean
@@ -363,7 +360,7 @@ enumerate_assertion_exists_in_database (GTlsDatabaseGnutlsPkcs11   *self,
   GPkcs11Slot *slot;
   GList *l, *t;
 
-  for (l = self->priv->pkcs11_slots; l != NULL; l = g_list_next (l))
+  for (l = self->pkcs11_slots; l != NULL; l = g_list_next (l))
     {
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         return G_PKCS11_ENUMERATE_FAILED;
@@ -372,7 +369,7 @@ enumerate_assertion_exists_in_database (GTlsDatabaseGnutlsPkcs11   *self,
 
       /* We only search for assertions on slots that match the trust-lookup uris */
       slot_matched = FALSE;
-      for (t = self->priv->trust_uris; !slot_matched && t != NULL; t = g_list_next (t))
+      for (t = self->trust_uris; !slot_matched && t != NULL; t = g_list_next (t))
           slot_matched = g_pkcs11_slot_matches_uri (slot, t->data);
       if (!slot_matched)
         continue;
@@ -621,7 +618,7 @@ enumerate_certificates_in_database (GTlsDatabaseGnutlsPkcs11  *self,
   if (flags & ~(G_TLS_DATABASE_LOOKUP_KEYPAIR))
     return G_PKCS11_ENUMERATE_CONTINUE;
 
-  for (l = self->priv->pkcs11_slots; l; l = g_list_next (l))
+  for (l = self->pkcs11_slots; l; l = g_list_next (l))
     {
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         return G_PKCS11_ENUMERATE_FAILED;
@@ -1074,9 +1071,7 @@ g_tls_database_gnutls_pkcs11_class_init (GTlsDatabaseGnutlsPkcs11Class *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsDatabaseClass *database_class = G_TLS_DATABASE_CLASS (klass);
 
-  g_type_class_add_private (klass, sizeof (GTlsDatabaseGnutlsPkcs11Private));
-
-  gobject_class->finalize     = g_tls_database_gnutls_pkcs11_finalize;
+  gobject_class->finalize = g_tls_database_gnutls_pkcs11_finalize;
 
   database_class->create_certificate_handle = g_tls_database_gnutls_pkcs11_create_certificate_handle;
   database_class->lookup_certificate_issuer = g_tls_database_gnutls_pkcs11_lookup_certificate_issuer;
@@ -1096,15 +1091,15 @@ g_tls_database_gnutls_pkcs11_initable_init (GInitable     *initable,
   gboolean any_failure = FALSE;
   guint i;
 
-  g_return_val_if_fail (!self->priv->modules, FALSE);
+  g_return_val_if_fail (!self->modules, FALSE);
 
-  self->priv->modules = p11_kit_modules_load (NULL, 0);
-  if (self->priv->modules == NULL) {
+  self->modules = p11_kit_modules_load (NULL, 0);
+  if (self->modules == NULL) {
     g_set_error_literal (error, G_PKCS11_ERROR, CKR_FUNCTION_FAILED, p11_kit_message ());
     return FALSE;
   }
 
-  for (i = 0; self->priv->modules[i] != NULL; i++)
+  for (i = 0; self->modules[i] != NULL; i++)
     {
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         {
@@ -1113,7 +1108,7 @@ g_tls_database_gnutls_pkcs11_initable_init (GInitable     *initable,
           break;
         }
 
-      if (discover_module_slots_and_options (self, self->priv->modules[i], &err))
+      if (discover_module_slots_and_options (self, self->modules[i], &err))
         {
           /* A module was setup correctly */
           any_success = TRUE;

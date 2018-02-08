@@ -40,6 +40,13 @@ enum
   PROP_AUTHENTICATION_MODE
 };
 
+struct _GTlsServerConnectionGnutls
+{
+  GTlsConnectionGnutls parent_instance;
+
+  GTlsAuthenticationMode authentication_mode;
+};
+
 static void     g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface);
 
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
@@ -70,17 +77,10 @@ G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnu
                                                 NULL)
 )
 
-struct _GTlsServerConnectionGnutlsPrivate
-{
-  GTlsAuthenticationMode authentication_mode;
-};
-
 static void
 g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
 {
   gnutls_certificate_credentials_t creds;
-
-  gnutls->priv = G_TYPE_INSTANCE_GET_PRIVATE (gnutls, G_TYPE_TLS_SERVER_CONNECTION_GNUTLS, GTlsServerConnectionGnutlsPrivate);
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function (creds, g_tls_server_connection_gnutls_retrieve_function);
@@ -126,7 +126,7 @@ g_tls_server_connection_gnutls_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_AUTHENTICATION_MODE:
-      g_value_set_enum (value, gnutls->priv->authentication_mode);
+      g_value_set_enum (value, gnutls->authentication_mode);
       break;
       
     default:
@@ -145,7 +145,7 @@ g_tls_server_connection_gnutls_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_AUTHENTICATION_MODE:
-      gnutls->priv->authentication_mode = g_value_get_enum (value);
+      gnutls->authentication_mode = g_value_get_enum (value);
       break;
 
     default:
@@ -178,7 +178,7 @@ g_tls_server_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
   gnutls_session_t session;
   gnutls_certificate_request_t req_mode;
 
-  switch (gnutls->priv->authentication_mode)
+  switch (gnutls->authentication_mode)
     {
     case G_TLS_AUTHENTICATION_REQUESTED:
       req_mode = GNUTLS_CERT_REQUEST;
@@ -265,8 +265,6 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (GTlsServerConnectionGnutlsPrivate));
 
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;

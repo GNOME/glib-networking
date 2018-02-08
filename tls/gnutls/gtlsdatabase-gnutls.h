@@ -39,27 +39,13 @@ typedef enum {
 } GTlsDatabaseGnutlsAssertion;
 
 #define G_TYPE_TLS_DATABASE_GNUTLS            (g_tls_database_gnutls_get_type ())
-#define G_TLS_DATABASE_GNUTLS(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_DATABASE_GNUTLS, GTlsDatabaseGnutls))
-#define G_TLS_DATABASE_GNUTLS_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_DATABASE_GNUTLS, GTlsDatabaseGnutlsClass))
-#define G_IS_TLS_DATABASE_GNUTLS(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_DATABASE_GNUTLS))
-#define G_IS_TLS_DATABASE_GNUTLS_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_DATABASE_GNUTLS))
-#define G_TLS_DATABASE_GNUTLS_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_DATABASE_GNUTLS, GTlsDatabaseGnutlsClass))
 
-typedef struct _GTlsDatabaseGnutlsPrivate                   GTlsDatabaseGnutlsPrivate;
-typedef struct _GTlsDatabaseGnutlsClass                     GTlsDatabaseGnutlsClass;
-typedef struct _GTlsDatabaseGnutls                          GTlsDatabaseGnutls;
+G_DECLARE_DERIVABLE_TYPE (GTlsDatabaseGnutls, g_tls_database_gnutls, G, TLS_DATABASE_GNUTLS, GTlsDatabase)
 
 struct _GTlsDatabaseGnutlsClass
 {
   GTlsDatabaseClass parent_class;
 };
-
-struct _GTlsDatabaseGnutls
-{
-  GTlsDatabase parent_instance;
-};
-
-GType          g_tls_database_gnutls_get_type              (void) G_GNUC_CONST;
 
 G_END_DECLS
 

@@ -31,28 +31,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_SERVER_CONNECTION_GNUTLS            (g_tls_server_connection_gnutls_get_type ())
-#define G_TLS_SERVER_CONNECTION_GNUTLS(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_SERVER_CONNECTION_GNUTLS, GTlsServerConnectionGnutls))
-#define G_TLS_SERVER_CONNECTION_GNUTLS_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_SERVER_CONNECTION_GNUTLS, GTlsServerConnectionGnutlsClass))
-#define G_IS_TLS_SERVER_CONNECTION_GNUTLS(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_SERVER_CONNECTION_GNUTLS))
-#define G_IS_TLS_SERVER_CONNECTION_GNUTLS_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_SERVER_CONNECTION_GNUTLS))
-#define G_TLS_SERVER_CONNECTION_GNUTLS_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_SERVER_CONNECTION_GNUTLS, GTlsServerConnectionGnutlsClass))
 
-typedef struct _GTlsServerConnectionGnutlsPrivate                   GTlsServerConnectionGnutlsPrivate;
-typedef struct _GTlsServerConnectionGnutlsClass                     GTlsServerConnectionGnutlsClass;
-typedef struct _GTlsServerConnectionGnutls                          GTlsServerConnectionGnutls;
-
-struct _GTlsServerConnectionGnutlsClass
-{
-  GTlsConnectionGnutlsClass parent_class;
-};
-
-struct _GTlsServerConnectionGnutls
-{
-  GTlsConnectionGnutls parent_instance;
-  GTlsServerConnectionGnutlsPrivate *priv;
-};
-
-GType g_tls_server_connection_gnutls_get_type (void) G_GNUC_CONST;
+G_DECLARE_FINAL_TYPE(GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G, TLS_SERVER_CONNECTION_GNUTLS, GTlsConnectionGnutls)
 
 G_END_DECLS
 

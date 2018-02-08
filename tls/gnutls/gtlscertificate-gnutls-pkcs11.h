@@ -35,28 +35,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11            (g_tls_certificate_gnutls_pkcs11_get_type ())
-#define G_TLS_CERTIFICATE_GNUTLS_PKCS11(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11, GTlsCertificateGnutlsPkcs11))
-#define G_TLS_CERTIFICATE_GNUTLS_PKCS11_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11, GTlsCertificateGnutlsPkcs11Class))
-#define G_IS_TLS_CERTIFICATE_GNUTLS_PKCS11(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11))
-#define G_IS_TLS_CERTIFICATE_GNUTLS_PKCS11_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11))
-#define G_TLS_CERTIFICATE_GNUTLS_PKCS11_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11, GTlsCertificateGnutlsPkcs11Class))
 
-typedef struct _GTlsCertificateGnutlsPkcs11Private                   GTlsCertificateGnutlsPkcs11Private;
-typedef struct _GTlsCertificateGnutlsPkcs11Class                     GTlsCertificateGnutlsPkcs11Class;
-typedef struct _GTlsCertificateGnutlsPkcs11                          GTlsCertificateGnutlsPkcs11;
-
-struct _GTlsCertificateGnutlsPkcs11Class
-{
-  GTlsCertificateGnutlsClass parent_class;
-};
-
-struct _GTlsCertificateGnutlsPkcs11
-{
-  GTlsCertificateGnutls parent_instance;
-  GTlsCertificateGnutlsPkcs11Private *priv;
-};
-
-GType              g_tls_certificate_gnutls_pkcs11_get_type              (void) G_GNUC_CONST;
+G_DECLARE_FINAL_TYPE (GTlsCertificateGnutlsPkcs11, g_tls_certificate_gnutls_pkcs11, G, TLS_CERTIFICATE_GNUTLS_PKCS11, GTlsCertificateGnutls)
 
 GTlsCertificate *  g_tls_certificate_gnutls_pkcs11_new                   (gpointer        certificate_der,
                                                                           gsize           certificate_der_length,

@@ -29,6 +29,15 @@
 
 #include "mock-interaction.h"
 
+struct _MockInteraction
+{
+  GTlsInteraction parent_instance;
+
+  gchar *static_password;
+  GTlsCertificate *static_certificate;
+  GError *static_error;
+};
+
 G_DEFINE_TYPE (MockInteraction, mock_interaction, G_TYPE_TLS_INTERACTION);
 
 static void

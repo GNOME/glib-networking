@@ -45,8 +45,10 @@ enum {
   PROP_SLOT_ID
 };
 
-struct _GPkcs11SlotPrivate
+struct _GPkcs11Slot
 {
+  GObject parent_instance;
+
   /* read-only after construct */
   CK_FUNCTION_LIST_PTR module;
   CK_SLOT_ID slot_id;
@@ -65,7 +67,7 @@ check_if_session_logged_in (GPkcs11Slot        *self,
   CK_SESSION_INFO session_info;
   CK_RV rv;
 
-  rv = (self->priv->module->C_GetSessionInfo) (session, &session_info);
+  rv = (self->module->C_GetSessionInfo) (session, &session_info);
   if (rv != CKR_OK)
     return FALSE;
 
@@ -84,7 +86,7 @@ session_login_protected_auth_path (GPkcs11Slot       *self,
 {
   CK_RV rv;
 
-  rv = (self->priv->module->C_Login) (session, CKU_USER, NULL, 0);
+  rv = (self->module->C_Login) (session, CKU_USER, NULL, 0);
   if (rv == CKR_USER_ALREADY_LOGGED_IN)
     rv = CKR_OK;
   if (g_pkcs11_propagate_error (error, rv))
@@ -135,7 +137,7 @@ session_login_with_pin (GPkcs11Slot          *self,
 
   g_assert (interaction != NULL && password != NULL);
   value = g_tls_password_get_value (password, &length);
-  rv = (self->priv->module->C_Login) (session, CKU_USER, (CK_UTF8CHAR_PTR)value, length);
+  rv = (self->module->C_Login) (session, CKU_USER, (CK_UTF8CHAR_PTR)value, length);
   g_object_unref (password);
 
   if (rv == CKR_USER_ALREADY_LOGGED_IN)
@@ -167,7 +169,7 @@ session_login_if_necessary (GPkcs11Slot        *self,
         return TRUE;
 
       /* Get the token information, this can change between login attempts */
-      rv = (self->priv->module->C_GetTokenInfo) (self->priv->slot_id, &token_info);
+      rv = (self->module->C_GetTokenInfo) (self->slot_id, &token_info);
       if (g_pkcs11_propagate_error (error, rv))
         return FALSE;
 
@@ -225,20 +227,20 @@ session_checkout_or_open (GPkcs11Slot     *self,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return 0;
 
-  g_mutex_lock (&self->priv->mutex);
+  g_mutex_lock (&self->mutex);
 
-  if (self->priv->last_session)
+  if (self->last_session)
     {
-      session = self->priv->last_session;
-      self->priv->last_session = 0;
+      session = self->last_session;
+      self->last_session = 0;
     }
 
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_unlock (&self->mutex);
 
   if (!session)
     {
-      rv = (self->priv->module->C_OpenSession) (self->priv->slot_id, CKF_SERIAL_SESSION,
-                                                NULL, NULL, &session);
+      rv = (self->module->C_OpenSession) (self->slot_id, CKF_SERIAL_SESSION,
+                                          NULL, NULL, &session);
       if (g_pkcs11_propagate_error (error, rv))
         return 0;
     }
@@ -247,7 +249,7 @@ session_checkout_or_open (GPkcs11Slot     *self,
     {
       if (!session_login_if_necessary (self, interaction, session, cancellable, error))
         {
-          (self->priv->module->C_CloseSession) (session);
+          (self->module->C_CloseSession) (session);
           return 0;
         }
     }
@@ -263,7 +265,7 @@ session_close (GPkcs11Slot       *self,
 
   g_assert (session != 0);
 
-  rv = (self->priv->module->C_CloseSession) (session);
+  rv = (self->module->C_CloseSession) (session);
   if (rv != CKR_OK)
     g_warning ("couldn't close pkcs11 session: %s",
                p11_kit_strerror (rv));
@@ -275,15 +277,15 @@ session_checkin_or_close (GPkcs11Slot      *self,
 {
   g_assert (session != 0);
 
-  g_mutex_lock (&self->priv->mutex);
+  g_mutex_lock (&self->mutex);
 
-  if (self->priv->last_session == 0)
+  if (self->last_session == 0)
     {
-      self->priv->last_session = session;
+      self->last_session = session;
       session = 0;
     }
 
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_unlock (&self->mutex);
 
   if (session != 0)
     session_close (self, session);
@@ -312,8 +314,8 @@ retrieve_object_attributes (GPkcs11Slot              *self,
     }
 
   /* Get all the required buffer sizes */
-  rv = (self->priv->module->C_GetAttributeValue) (session, object,
-                                                  result->attrs, result->count);
+  rv = (self->module->C_GetAttributeValue) (session, object,
+                                            result->attrs, result->count);
   if (rv == CKR_ATTRIBUTE_SENSITIVE ||
       rv == CKR_ATTRIBUTE_TYPE_INVALID)
     rv = CKR_OK;
@@ -332,8 +334,8 @@ retrieve_object_attributes (GPkcs11Slot              *self,
     }
 
   /* And finally get all the values */
-  rv = (self->priv->module->C_GetAttributeValue) (session, object,
-                                                  result->attrs, result->count);
+  rv = (self->module->C_GetAttributeValue) (session, object,
+                                            result->attrs, result->count);
   if (rv == CKR_ATTRIBUTE_SENSITIVE ||
       rv == CKR_ATTRIBUTE_TYPE_INVALID ||
       rv == CKR_BUFFER_TOO_SMALL)
@@ -350,10 +352,7 @@ retrieve_object_attributes (GPkcs11Slot              *self,
 static void
 g_pkcs11_slot_init (GPkcs11Slot *self)
 {
-  self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                            G_TYPE_PKCS11_SLOT,
-                                            GPkcs11SlotPrivate);
-  g_mutex_init (&self->priv->mutex);
+  g_mutex_init (&self->mutex);
 }
 
 static void
@@ -362,12 +361,12 @@ g_pkcs11_slot_dispose (GObject *object)
   GPkcs11Slot *self = G_PKCS11_SLOT (object);
   CK_SESSION_HANDLE session = 0;
 
-  g_mutex_lock (&self->priv->mutex);
+  g_mutex_lock (&self->mutex);
 
-  session = self->priv->last_session;
-  self->priv->last_session = 0;
+  session = self->last_session;
+  self->last_session = 0;
 
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_unlock (&self->mutex);
 
   if (session)
     session_close (self, session);
@@ -380,8 +379,8 @@ g_pkcs11_slot_finalize (GObject *object)
 {
   GPkcs11Slot *self = G_PKCS11_SLOT (object);
 
-  g_assert (self->priv->last_session == 0);
-  g_mutex_clear (&self->priv->mutex);
+  g_assert (self->last_session == 0);
+  g_mutex_clear (&self->mutex);
 
   G_OBJECT_CLASS (g_pkcs11_slot_parent_class)->finalize (object);
 }
@@ -397,11 +396,11 @@ g_pkcs11_slot_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_MODULE:
-      g_value_set_pointer (value, self->priv->module);
+      g_value_set_pointer (value, self->module);
       break;
 
     case PROP_SLOT_ID:
-      g_value_set_ulong (value, self->priv->slot_id);
+      g_value_set_ulong (value, self->slot_id);
       break;
 
     default:
@@ -420,12 +419,12 @@ g_pkcs11_slot_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_MODULE:
-      self->priv->module = g_value_get_pointer (value);
-      g_assert (self->priv->module);
+      self->module = g_value_get_pointer (value);
+      g_assert (self->module);
       break;
 
     case PROP_SLOT_ID:
-      self->priv->slot_id = g_value_get_ulong (value);
+      self->slot_id = g_value_get_ulong (value);
       break;
 
     default:
@@ -437,8 +436,6 @@ static void
 g_pkcs11_slot_class_init (GPkcs11SlotClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (GPkcs11SlotPrivate));
 
   gobject_class->get_property = g_pkcs11_slot_get_property;
   gobject_class->set_property = g_pkcs11_slot_set_property;
@@ -505,14 +502,14 @@ g_pkcs11_slot_enumerate (GPkcs11Slot             *self,
       return G_PKCS11_ENUMERATE_FAILED;
     }
 
-  rv = (self->priv->module->C_FindObjectsInit) (session, match, match_count);
+  rv = (self->module->C_FindObjectsInit) (session, match, match_count);
 
   while (state == G_PKCS11_ENUMERATE_CONTINUE && rv == CKR_OK &&
          !g_cancellable_is_cancelled (cancellable))
     {
       count = 0;
-      rv = (self->priv->module->C_FindObjects) (session, objects,
-                                                G_N_ELEMENTS (objects), &count);
+      rv = (self->module->C_FindObjects) (session, objects,
+                                          G_N_ELEMENTS (objects), &count);
       if (rv == CKR_OK)
         {
           if (count == 0)
@@ -557,7 +554,7 @@ g_pkcs11_slot_enumerate (GPkcs11Slot             *self,
       state = G_PKCS11_ENUMERATE_FAILED;
     }
 
-  rv = (self->priv->module->C_FindObjectsFinal) (session);
+  rv = (self->module->C_FindObjectsFinal) (session);
   if (rv == CKR_OK)
     session_checkin_or_close (self, session);
   else
@@ -576,7 +573,7 @@ g_pkcs11_slot_get_token_info (GPkcs11Slot       *self,
   g_return_val_if_fail (token_info, FALSE);
 
   memset (token_info, 0, sizeof (CK_TOKEN_INFO));
-  rv = (self->priv->module->C_GetTokenInfo) (self->priv->slot_id, token_info);
+  rv = (self->module->C_GetTokenInfo) (self->slot_id, token_info);
   if (rv == CKR_TOKEN_NOT_PRESENT)
     return FALSE;
 
@@ -602,7 +599,7 @@ g_pkcs11_slot_matches_uri (GPkcs11Slot            *self,
   g_return_val_if_fail (uri, FALSE);
 
   memset (&library, 0, sizeof (library));
-  rv = (self->priv->module->C_GetInfo) (&library);
+  rv = (self->module->C_GetInfo) (&library);
   if (rv != CKR_OK)
     {
       g_warning ("call to C_GetInfo on PKCS#11 module failed: %s",

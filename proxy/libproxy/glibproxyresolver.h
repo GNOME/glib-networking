@@ -30,20 +30,9 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_LIBPROXY_RESOLVER         (g_libproxy_resolver_get_type ())
-#define G_LIBPROXY_RESOLVER(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), G_TYPE_LIBPROXY_RESOLVER, GLibProxyResolver))
-#define G_LIBPROXY_RESOLVER_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), G_TYPE_LIBPROXY_RESOLVER, GLibProxyResolverClass))
-#define G_IS_LIBPROXY_RESOLVER(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), G_TYPE_LIBPROXY_RESOLVER))
-#define G_IS_LIBPROXY_RESOLVER_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), G_TYPE_LIBPROXY_RESOLVER))
-#define G_LIBPROXY_RESOLVER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), G_TYPE_LIBPROXY_RESOLVER, GLibProxyResolverClass))
 
-typedef struct _GLibProxyResolver       GLibProxyResolver;
-typedef struct _GLibProxyResolverClass  GLibProxyResolverClass;
+G_DECLARE_FINAL_TYPE (GLibProxyResolver, g_libproxy_resolver, G, LIBPROXY_RESOLVER, GObject)
 
-struct _GLibProxyResolverClass {
-  GObjectClass parent_class;
-};
-
-GType g_libproxy_resolver_get_type (void);
 void  g_libproxy_resolver_register (GIOModule *module);
 
 G_END_DECLS

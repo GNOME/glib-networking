@@ -28,20 +28,9 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_PROXY_RESOLVER_GNOME         (g_proxy_resolver_gnome_get_type ())
-#define G_PROXY_RESOLVER_GNOME(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), G_TYPE_PROXY_RESOLVER_GNOME, GProxyResolverGnome))
-#define G_PROXY_RESOLVER_GNOME_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), G_TYPE_PROXY_RESOLVER_GNOME, GProxyResolverGnomeClass))
-#define G_IS_PROXY_RESOLVER_GNOME(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), G_TYPE_PROXY_RESOLVER_GNOME))
-#define G_IS_PROXY_RESOLVER_GNOME_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), G_TYPE_PROXY_RESOLVER_GNOME))
-#define G_PROXY_RESOLVER_GNOME_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), G_TYPE_PROXY_RESOLVER_GNOME, GProxyResolverGnomeClass))
 
-typedef struct _GProxyResolverGnome       GProxyResolverGnome;
-typedef struct _GProxyResolverGnomeClass  GProxyResolverGnomeClass;
+G_DECLARE_FINAL_TYPE (GProxyResolverGnome, g_proxy_resolver_gnome, G, PROXY_RESOLVER_GNOME, GObject)
 
-struct _GProxyResolverGnomeClass {
-  GObjectClass parent_class;
-};
-
-GType g_proxy_resolver_gnome_get_type (void);
 void  g_proxy_resolver_gnome_register (GIOModule *module);
 
 G_END_DECLS

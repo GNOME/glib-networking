@@ -35,26 +35,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_BACKEND_GNUTLS_PKCS11            (g_tls_backend_gnutls_pkcs11get_type ())
-#define G_TLS_BACKEND_GNUTLS_PKCS11(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_BACKEND_GNUTLS_PKCS11, GTlsBackendGnutlsPkcs11))
-#define G_TLS_BACKEND_GNUTLS_PKCS11_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_BACKEND_GNUTLS_PKCS11, GTlsBackendGnutlsPkcs11Class))
-#define G_IS_TLS_BACKEND_GNUTLS_PKCS11(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_BACKEND_GNUTLS_PKCS11))
-#define G_IS_TLS_BACKEND_GNUTLS_PKCS11_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_BACKEND_GNUTLS_PKCS11))
-#define G_TLS_BACKEND_GNUTLS_PKCS11_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_BACKEND_GNUTLS_PKCS11, GTlsBackendGnutlsPkcs11Class))
 
-typedef struct _GTlsBackendGnutlsPkcs11        GTlsBackendGnutlsPkcs11;
-typedef struct _GTlsBackendGnutlsPkcs11Class   GTlsBackendGnutlsPkcs11Class;
-
-struct _GTlsBackendGnutlsPkcs11Class
-{
-  GTlsBackendGnutlsClass parent_class;
-};
-
-struct _GTlsBackendGnutlsPkcs11
-{
-  GTlsBackendGnutls parent_instance;
-};
-
-GType        g_tls_backend_gnutls_pkcs11_get_type           (void) G_GNUC_CONST;
+G_DECLARE_FINAL_TYPE (GTlsBackendGnutlsPkcs11, g_tls_backend_gnutls_pkcs11, G, TLS_BACKEND_GNUTLS_PKCS11, GTlsBackendGnutls)
 
 void         g_tls_backend_gnutls_pkcs11_register           (GIOModule *module);
 

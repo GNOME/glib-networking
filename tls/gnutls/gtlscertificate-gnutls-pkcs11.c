@@ -33,9 +33,6 @@
 #include "gtlscertificate-gnutls.h"
 #include "gtlscertificate-gnutls-pkcs11.h"
 
-G_DEFINE_TYPE (GTlsCertificateGnutlsPkcs11, g_tls_certificate_gnutls_pkcs11,
-               G_TYPE_TLS_CERTIFICATE_GNUTLS);
-
 enum
 {
   PROP_0,
@@ -44,19 +41,24 @@ enum
   PROP_PRIVATE_KEY_URI
 };
 
-struct _GTlsCertificateGnutlsPkcs11Private
+struct _GTlsCertificateGnutlsPkcs11
 {
+  GTlsCertificateGnutls parent_instance;
+
   gchar *certificate_uri;
   gchar *private_key_uri;
 };
+
+G_DEFINE_TYPE (GTlsCertificateGnutlsPkcs11, g_tls_certificate_gnutls_pkcs11,
+               G_TYPE_TLS_CERTIFICATE_GNUTLS);
 
 static void
 g_tls_certificate_gnutls_pkcs11_finalize (GObject *object)
 {
   GTlsCertificateGnutlsPkcs11 *self = G_TLS_CERTIFICATE_GNUTLS_PKCS11 (object);
 
-  g_free (self->priv->certificate_uri);
-  g_free (self->priv->private_key_uri);
+  g_free (self->certificate_uri);
+  g_free (self->private_key_uri);
 
   G_OBJECT_CLASS (g_tls_certificate_gnutls_pkcs11_parent_class)->finalize (object);
 }
@@ -72,10 +74,10 @@ g_tls_certificate_gnutls_pkcs11_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_CERTIFICATE_URI:
-      g_value_set_string (value, self->priv->certificate_uri);
+      g_value_set_string (value, self->certificate_uri);
       break;
     case PROP_PRIVATE_KEY_URI:
-      g_value_set_string (value, self->priv->private_key_uri);
+      g_value_set_string (value, self->private_key_uri);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -93,12 +95,12 @@ g_tls_certificate_gnutls_pkcs11_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_CERTIFICATE_URI:
-      g_free (self->priv->certificate_uri);
-      self->priv->certificate_uri = g_value_dup_string (value);
+      g_free (self->certificate_uri);
+      self->certificate_uri = g_value_dup_string (value);
       break;
     case PROP_PRIVATE_KEY_URI:
-      g_free (self->priv->private_key_uri);
-      self->priv->private_key_uri = g_value_dup_string (value);
+      g_free (self->private_key_uri);
+      self->private_key_uri = g_value_dup_string (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -108,9 +110,6 @@ g_tls_certificate_gnutls_pkcs11_set_property (GObject      *object,
 static void
 g_tls_certificate_gnutls_pkcs11_init (GTlsCertificateGnutlsPkcs11 *self)
 {
-  self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
-                                            G_TYPE_TLS_CERTIFICATE_GNUTLS_PKCS11,
-                                            GTlsCertificateGnutlsPkcs11Private);
 }
 
 static void
@@ -150,8 +149,6 @@ g_tls_certificate_gnutls_pkcs11_class_init (GTlsCertificateGnutlsPkcs11Class *kl
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsCertificateGnutlsClass *gnutls_class = G_TLS_CERTIFICATE_GNUTLS_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (GTlsCertificateGnutlsPkcs11Private));
 
   gobject_class->get_property = g_tls_certificate_gnutls_pkcs11_get_property;
   gobject_class->set_property = g_tls_certificate_gnutls_pkcs11_set_property;
@@ -202,22 +199,22 @@ g_tls_certificate_gnutls_pkcs11_build_certificate_uri (GTlsCertificateGnutlsPkcs
                                                        const gchar *interaction_id)
 {
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS_PKCS11 (self), NULL);
-  if (self->priv->certificate_uri == NULL)
+  if (self->certificate_uri == NULL)
     return NULL;
   else if (interaction_id)
-    return g_strdup_printf ("%s;pinfile=%s", self->priv->certificate_uri, interaction_id);
+    return g_strdup_printf ("%s;pinfile=%s", self->certificate_uri, interaction_id);
   else
-    return g_strdup (self->priv->certificate_uri);
+    return g_strdup (self->certificate_uri);
 }
 
 gchar *
 g_tls_certificate_gnutls_pkcs11_build_private_key_uri (GTlsCertificateGnutlsPkcs11 *self,
                                                        const gchar *interaction_id)
 {
-  if (self->priv->private_key_uri == NULL)
+  if (self->private_key_uri == NULL)
     return NULL;
   else if (interaction_id)
-    return g_strdup_printf ("%s;pinfile=%s", self->priv->private_key_uri, interaction_id);
+    return g_strdup_printf ("%s;pinfile=%s", self->private_key_uri, interaction_id);
   else
-    return g_strdup (self->priv->private_key_uri);
+    return g_strdup (self->private_key_uri);
 }

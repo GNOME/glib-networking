@@ -31,15 +31,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_BACKEND_GNUTLS            (g_tls_backend_gnutls_get_type ())
-#define G_TLS_BACKEND_GNUTLS(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutls))
-#define G_TLS_BACKEND_GNUTLS_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutlsClass))
-#define G_IS_TLS_BACKEND_GNUTLS(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_BACKEND_GNUTLS))
-#define G_IS_TLS_BACKEND_GNUTLS_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_BACKEND_GNUTLS))
-#define G_TLS_BACKEND_GNUTLS_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutlsClass))
 
-typedef struct _GTlsBackendGnutls        GTlsBackendGnutls;
-typedef struct _GTlsBackendGnutlsClass   GTlsBackendGnutlsClass;
-typedef struct _GTlsBackendGnutlsPrivate GTlsBackendGnutlsPrivate;
+G_DECLARE_DERIVABLE_TYPE (GTlsBackendGnutls, g_tls_backend_gnutls, G, TLS_BACKEND_GNUTLS, GObject)
 
 struct _GTlsBackendGnutlsClass
 {
@@ -49,13 +42,6 @@ struct _GTlsBackendGnutlsClass
                                            GError                    **error);
 };
 
-struct _GTlsBackendGnutls
-{
-  GObject parent_instance;
-  GTlsBackendGnutlsPrivate *priv;
-};
-
-GType g_tls_backend_gnutls_get_type (void) G_GNUC_CONST;
 void  g_tls_backend_gnutls_register (GIOModule *module);
 
 void    g_tls_backend_gnutls_store_session  (unsigned int             type,

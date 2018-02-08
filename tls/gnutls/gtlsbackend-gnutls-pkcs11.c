@@ -30,6 +30,11 @@
 #include "gtlsbackend-gnutls-pkcs11.h"
 #include "gtlsdatabase-gnutls-pkcs11.h"
 
+struct _GTlsBackendGnutlsPkcs11
+{
+  GTlsBackendGnutls parent_instance;
+};
+
 G_DEFINE_DYNAMIC_TYPE (GTlsBackendGnutlsPkcs11, g_tls_backend_gnutls_pkcs11, G_TYPE_TLS_BACKEND_GNUTLS);
 
 static void

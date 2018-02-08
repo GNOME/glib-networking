@@ -36,15 +36,16 @@
 #include "gtlsfiledatabase-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
 
-struct _GTlsBackendGnutlsPrivate
+typedef struct
 {
   GMutex mutex;
   GTlsDatabase *default_database;
-};
+} GTlsBackendGnutlsPrivate;
 
 static void g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendGnutls, g_tls_backend_gnutls, G_TYPE_OBJECT, 0,
+                                G_ADD_PRIVATE_DYNAMIC (GTlsBackendGnutls);
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
                                                                g_tls_backend_gnutls_interface_init);)
 
@@ -82,6 +83,8 @@ static GOnce gnutls_inited = G_ONCE_INIT;
 static void
 g_tls_backend_gnutls_init (GTlsBackendGnutls *backend)
 {
+  GTlsBackendGnutlsPrivate *priv = g_tls_backend_gnutls_get_instance_private (backend);
+
   /* Once we call gtls_gnutls_init(), we can't allow the module to be
    * unloaded (since if gnutls gets unloaded but gcrypt doesn't, then
    * gcrypt will have dangling pointers to gnutls's mutex functions).
@@ -91,18 +94,18 @@ g_tls_backend_gnutls_init (GTlsBackendGnutls *backend)
    */
   g_once (&gnutls_inited, gtls_gnutls_init, NULL);
 
-  backend->priv = G_TYPE_INSTANCE_GET_PRIVATE (backend, G_TYPE_TLS_BACKEND_GNUTLS, GTlsBackendGnutlsPrivate);
-  g_mutex_init (&backend->priv->mutex);
+  g_mutex_init (&priv->mutex);
 }
 
 static void
 g_tls_backend_gnutls_finalize (GObject *object)
 {
   GTlsBackendGnutls *backend = G_TLS_BACKEND_GNUTLS (object);
+  GTlsBackendGnutlsPrivate *priv = g_tls_backend_gnutls_get_instance_private (backend);
 
-  if (backend->priv->default_database)
-    g_object_unref (backend->priv->default_database);
-  g_mutex_clear (&backend->priv->mutex);
+  if (priv->default_database)
+    g_object_unref (priv->default_database);
+  g_mutex_clear (&priv->mutex);
 
   G_OBJECT_CLASS (g_tls_backend_gnutls_parent_class)->finalize (object);
 }
@@ -124,7 +127,6 @@ g_tls_backend_gnutls_class_init (GTlsBackendGnutlsClass *backend_class)
   GObjectClass *gobject_class = G_OBJECT_CLASS (backend_class);
   gobject_class->finalize = g_tls_backend_gnutls_finalize;
   backend_class->create_database = g_tls_backend_gnutls_real_create_database;
-  g_type_class_add_private (backend_class, sizeof (GTlsBackendGnutlsPrivate));
 }
 
 static void
@@ -136,14 +138,15 @@ static GTlsDatabase*
 g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
 {
   GTlsBackendGnutls *self = G_TLS_BACKEND_GNUTLS (backend);
+  GTlsBackendGnutlsPrivate *priv = g_tls_backend_gnutls_get_instance_private (self);
   GTlsDatabase *result;
   GError *error = NULL;
 
-  g_mutex_lock (&self->priv->mutex);
+  g_mutex_lock (&priv->mutex);
 
-  if (self->priv->default_database)
+  if (priv->default_database)
     {
-      result = g_object_ref (self->priv->default_database);
+      result = g_object_ref (priv->default_database);
     }
   else
     {
@@ -158,11 +161,11 @@ g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
       else
         {
           g_assert (result);
-          self->priv->default_database = g_object_ref (result);
+          priv->default_database = g_object_ref (result);
         }
     }
 
-  g_mutex_unlock (&self->priv->mutex);
+  g_mutex_unlock (&priv->mutex);
 
   return result;
 }

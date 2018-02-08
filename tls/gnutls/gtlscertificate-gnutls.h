@@ -31,15 +31,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CERTIFICATE_GNUTLS            (g_tls_certificate_gnutls_get_type ())
-#define G_TLS_CERTIFICATE_GNUTLS(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_CERTIFICATE_GNUTLS, GTlsCertificateGnutls))
-#define G_TLS_CERTIFICATE_GNUTLS_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_CERTIFICATE_GNUTLS, GTlsCertificateGnutlsClass))
-#define G_IS_TLS_CERTIFICATE_GNUTLS(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_CERTIFICATE_GNUTLS))
-#define G_IS_TLS_CERTIFICATE_GNUTLS_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_CERTIFICATE_GNUTLS))
-#define G_TLS_CERTIFICATE_GNUTLS_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_CERTIFICATE_GNUTLS, GTlsCertificateGnutlsClass))
 
-typedef struct _GTlsCertificateGnutlsPrivate                   GTlsCertificateGnutlsPrivate;
-typedef struct _GTlsCertificateGnutlsClass                     GTlsCertificateGnutlsClass;
-typedef struct _GTlsCertificateGnutls                          GTlsCertificateGnutls;
+G_DECLARE_DERIVABLE_TYPE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G, TLS_CERTIFICATE_GNUTLS, GTlsCertificate)
 
 struct _GTlsCertificateGnutlsClass
 {
@@ -49,14 +42,6 @@ struct _GTlsCertificateGnutlsClass
                                            const gchar              *interaction_id,
                                            gnutls_retr2_st          *st);
 };
-
-struct _GTlsCertificateGnutls
-{
-  GTlsCertificate parent_instance;
-  GTlsCertificateGnutlsPrivate *priv;
-};
-
-GType g_tls_certificate_gnutls_get_type (void) G_GNUC_CONST;
 
 GTlsCertificate *            g_tls_certificate_gnutls_new             (const gnutls_datum_t  *datum,
                                                                        GTlsCertificate       *issuer);
