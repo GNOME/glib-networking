@@ -62,14 +62,7 @@ if enable_gnome_proxy_support
 endif
 
 # *** Checks for GnuTLS     ***
-gnutls_dep = dependency('gnutls', version: '>= 3.3.5', required: true)
-
-msg = 'location of system Certificate Authority list: '
-res = run_command(join_paths(meson.source_root(), 'find-ca-certificates'), get_option('ca_certificates_path'))
-assert(res.returncode() == 0, msg + ' could not find any CA certificate store. Use -Dca_certificates_path=PATH to set')
-ca_certificates_path = res.stdout().strip()
-message(msg + ca_certificates_path)
-config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates_path, description: 'The system CA list')
+gnutls_dep = dependency('gnutls', version: '>= 3.4', required: true)
 
 # *** Checks for p11-kit  ***
 enable_pkcs11_support = get_option('pkcs11_support')
@@ -126,5 +119,4 @@ meson.add_install_script('meson_post_install.py', gio_module_dir)
 output = '\n\n  libproxy support:    ' + enable_libproxy_support.to_string() + '\n'
 output += '  GNOME proxy support: ' + enable_gnome_proxy_support.to_string() + '\n'
 output += '  PKCS#11 support:     ' + enable_pkcs11_support.to_string() + '\n'
-output += '  TLS CA file:         ' + ca_certificates_path + '\n'
 message(output)

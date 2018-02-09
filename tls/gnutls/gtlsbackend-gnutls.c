@@ -114,11 +114,7 @@ static GTlsDatabase*
 g_tls_backend_gnutls_real_create_database (GTlsBackendGnutls  *self,
                                            GError            **error)
 {
-  const gchar *anchor_file = NULL;
-#ifdef GTLS_SYSTEM_CA_FILE
-  anchor_file = GTLS_SYSTEM_CA_FILE;
-#endif
-  return g_tls_file_database_new (anchor_file, error);
+  return g_tls_file_database_new (NULL, error);
 }
 
 static void

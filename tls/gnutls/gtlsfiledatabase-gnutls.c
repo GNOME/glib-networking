@@ -149,13 +149,24 @@ create_handle_for_certificate (const gchar *filename,
   gchar *uri;
 
   /*
-   * Here we create a URI that looks like:
+   * Here we create a URI that looks like
    * file:///etc/ssl/certs/ca-certificates.crt#11b2641821252596420e468c275771f5e51022c121a17bd7a89a2f37b6336c8f
+   * or system-trust:#11b2641821252596420e468c275771f5e51022c121a17bd7a89a2f37b6336c8f.
+   *
+   * system-trust is a meaningless URI scheme; we just need some stable way to
+   * uniquely identify these certificates.
    */
 
-  uri_part = g_filename_to_uri (filename, NULL, NULL);
-  if (!uri_part)
-    return NULL;
+  if (filename)
+    {
+      uri_part = g_filename_to_uri (filename, NULL, NULL);
+      if (!uri_part)
+        return NULL;
+    }
+  else
+    {
+      uri_part = g_strdup ("system-trust:");
+    }
 
   bookmark = g_compute_checksum_for_bytes (G_CHECKSUM_SHA256, der);
   uri = g_strconcat (uri_part, "#", bookmark, NULL);
@@ -189,40 +200,29 @@ create_handles_array_unlocked (const gchar *filename,
   return handles;
 }
 
-static gboolean
-load_anchor_file (const gchar  *filename,
-                  GHashTable   *subjects,
-                  GHashTable   *issuers,
-                  GHashTable   *complete,
-                  GError      **error)
+static void
+initialize_tables (gnutls_x509_trust_list_t  trust_list,
+                   GHashTable               *subjects,
+                   GHashTable               *issuers,
+                   GHashTable               *complete)
 {
-  GList *list, *l;
-  gnutls_x509_crt_t cert;
+  gnutls_x509_trust_list_iter_t iter = NULL;
+  gnutls_x509_crt_t cert = NULL;
   gnutls_datum_t dn;
-  GBytes *der;
-  GBytes *subject;
-  GBytes *issuer;
+  GBytes *der = NULL;
+  GBytes *subject = NULL;
+  GBytes *issuer = NULL;
   gint gerr;
-  GError *my_error = NULL;
 
-  list = g_tls_certificate_list_new_from_file (filename, &my_error);
-  if (my_error)
+  while ((gerr = gnutls_x509_trust_list_iter_get_ca (trust_list, &iter, &cert)) == 0)
     {
-      g_propagate_error (error, my_error);
-      return FALSE;
-    }
-
-  for (l = list; l; l = l->next)
-    {
-      cert = g_tls_certificate_gnutls_get_cert (l->data);
       gerr = gnutls_x509_crt_get_raw_dn (cert, &dn);
       if (gerr < 0)
         {
           g_warning ("failed to get subject of anchor certificate: %s",
                      gnutls_strerror (gerr));
-          continue;
+          goto next;
         }
-
       subject = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
       gerr = gnutls_x509_crt_get_raw_issuer_dn (cert, &dn);
@@ -230,13 +230,18 @@ load_anchor_file (const gchar  *filename,
         {
           g_warning ("failed to get issuer of anchor certificate: %s",
                      gnutls_strerror (gerr));
-          continue;
+          goto next;
         }
-
       issuer = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
-      der = g_tls_certificate_gnutls_get_bytes (l->data);
-      g_return_val_if_fail (der != NULL, FALSE);
+      gerr = gnutls_x509_crt_export2 (cert, GNUTLS_X509_FMT_DER, &dn);
+      if (gerr < 0)
+        {
+          g_warning ("failed to get certificate DER: %s",
+                     gnutls_strerror (gerr));
+          goto next;
+        }
+      der = g_bytes_new_with_free_func (dn.data, dn.size, gnutls_free, dn.data);
 
       /* Three different ways of looking up same certificate */
       bytes_multi_table_insert (subjects, subject, der);
@@ -245,15 +250,12 @@ load_anchor_file (const gchar  *filename,
       g_hash_table_insert (complete, g_bytes_ref (der),
                            g_bytes_ref (der));
 
-      g_bytes_unref (der);
-      g_bytes_unref (subject);
-      g_bytes_unref (issuer);
-
-      g_object_unref (l->data);
+next:
+      g_clear_pointer (&der, g_bytes_unref);
+      g_clear_pointer (&subject, g_bytes_unref);
+      g_clear_pointer (&issuer, g_bytes_unref);
+      g_clear_pointer (&cert, gnutls_x509_crt_deinit);
     }
-  g_list_free (list);
-
-  return TRUE;
 }
 
 
@@ -267,11 +269,10 @@ g_tls_file_database_gnutls_finalize (GObject *object)
   g_clear_pointer (&self->issuers, g_hash_table_destroy);
   g_clear_pointer (&self->complete, g_hash_table_destroy);
   g_clear_pointer (&self->handles, g_hash_table_destroy);
-  if (self->anchor_filename)
-    {
-      g_free (self->anchor_filename);
-      gnutls_x509_trust_list_deinit (self->trust_list, 1);
-    }
+  g_clear_pointer (&self->anchor_filename, g_free);
+
+  gnutls_x509_trust_list_deinit (self->trust_list, 1);
+
   g_mutex_clear (&self->mutex);
 
   G_OBJECT_CLASS (g_tls_file_database_gnutls_parent_class)->finalize (object);
@@ -303,6 +304,7 @@ g_tls_file_database_gnutls_set_property (GObject      *object,
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (object);
   const char *anchor_path;
+  int gerr;
 
   switch (prop_id)
     {
@@ -320,11 +322,24 @@ g_tls_file_database_gnutls_set_property (GObject      *object,
           g_free (self->anchor_filename);
           gnutls_x509_trust_list_deinit (self->trust_list, 1);
         }
+
       self->anchor_filename = g_strdup (anchor_path);
       gnutls_x509_trust_list_init (&self->trust_list, 0);
-      gnutls_x509_trust_list_add_trust_file (self->trust_list,
-                                             anchor_path, NULL,
-                                             GNUTLS_X509_FMT_PEM, 0, 0);
+
+      if (self->anchor_filename)
+        {
+          gnutls_x509_trust_list_add_trust_file (self->trust_list,
+                                                 anchor_path, NULL,
+                                                 GNUTLS_X509_FMT_PEM, 0, 0);
+        }
+      else
+        {
+          gerr = gnutls_x509_trust_list_add_system_trust (self->trust_list, 0, 0);
+          if (gerr == GNUTLS_E_UNIMPLEMENTED_FEATURE)
+            g_warning ("Failed to load system trust store: gnutls_x509_trust_list_add_system_trust is not implemented for this platform");
+          else if (gerr < 0)
+            g_warning ("Failed to load system trust store: %s", gnutls_strerror (gerr));
+        }
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -641,7 +656,7 @@ g_tls_file_database_gnutls_initable_init (GInitable     *initable,
 {
   GTlsFileDatabaseGnutls *self = G_TLS_FILE_DATABASE_GNUTLS (initable);
   GHashTable *subjects, *issuers, *complete;
-  gboolean result;
+  gboolean result = TRUE;
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return FALSE;
@@ -653,11 +668,7 @@ g_tls_file_database_gnutls_initable_init (GInitable     *initable,
                                     (GDestroyNotify)g_bytes_unref,
                                     (GDestroyNotify)g_bytes_unref);
 
-  if (self->anchor_filename)
-    result = load_anchor_file (self->anchor_filename, subjects, issuers,
-        complete, error);
-  else
-    result = TRUE;
+  initialize_tables (self->trust_list, subjects, issuers, complete);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     result = FALSE;
