@@ -163,7 +163,7 @@ main (int   argc,
   g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/proxy/gnome/.libs", TRUE);
   g_setenv ("GIO_USE_PROXY_RESOLVER", "gnome", TRUE);
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
-  g_setenv ("DESKTOP_SESSION", "gnome", TRUE);
+  g_setenv ("XDG_CURRENT_DESKTOP", "GNOME", TRUE);
 
   g_test_add_vtable ("/proxy/gnome/uri", 0, NULL,
                      reset_proxy_settings, test_proxy_uri, NULL);

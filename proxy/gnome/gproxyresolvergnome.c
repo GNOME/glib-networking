@@ -315,17 +315,17 @@ update_settings (GProxyResolverGnome *resolver)
 static gboolean
 g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
 {
-  const char *session;
+  const char *desktop;
 
-  if (g_getenv ("GNOME_DESKTOP_SESSION_ID"))
-    return TRUE;
-
-  session = g_getenv ("DESKTOP_SESSION");
-  if (session == NULL)
+  desktop = g_getenv ("XDG_CURRENT_DESKTOP");
+  if (desktop == NULL)
     return FALSE;
 
-  return g_str_has_prefix (session, "gnome") ||
-         strcmp (session, "ubuntu") == 0;
+  /* Remember that XDG_CURRENT_DESKTOP is a list of strings. Desktops that
+   * pretend to be GNOME, like Unity, add themselves here. That's fine, but
+   * if so they'd better really support our proxy settings.
+   */
+  return strstr (desktop, "GNOME") != NULL;
 }
 
 static inline gchar **
