@@ -140,6 +140,10 @@ main (int argc, char *argv[])
   g_unsetenv ("DESKTOP_SESSION");
   g_unsetenv ("KDE_FULL_SESSION");
 
+  /* Unset variables that libproxy would look at if it were smarter, and which
+   * it might possibly look at in the future. Just covering our bases. */
+  g_unsetenv ("XDG_CURRENT_DESKTOP");
+
   /* Unset static proxy settings */
   g_unsetenv ("http_proxy");
   g_unsetenv ("HTTP_PROXY");
