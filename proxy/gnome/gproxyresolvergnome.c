@@ -315,17 +315,17 @@ update_settings (GProxyResolverGnome *resolver)
 static gboolean
 g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
 {
-  const char *desktop;
+  const char *desktops;
 
-  desktop = g_getenv ("XDG_CURRENT_DESKTOP");
-  if (desktop == NULL)
+  desktops = g_getenv ("XDG_CURRENT_DESKTOP");
+  if (desktops == NULL)
     return FALSE;
 
   /* Remember that XDG_CURRENT_DESKTOP is a list of strings. Desktops that
    * pretend to be GNOME and want to use our proxy settings will list
    * themselves alongside GNOME. That's fine; they'll get our proxy settings.
    */
-  return strstr (desktop, "GNOME") != NULL;
+  return strstr (desktops, "GNOME") != NULL;
 }
 
 static inline gchar **
