@@ -1,3 +1,14 @@
+2.55.90 - February 12, 2018
+===========================
+
+- Fix unit tests when SSLv3 is unavailable (#782853)
+- Allow static linking (#791100, Xavier Claessens)
+- Fix issues found by coverity (#792402, Philip Withnall)
+- Remove TLS build option; it is now mandatory
+- Try to ensure that GnuTLS is only initialized if TLS is actually used
+- Update use of GObject to follow current best practices
+- Use XDG_CURRENT_DESKTOP to determine which proxy module to load
+
 2.55.2 - December 13, 2017
 ==========================
 
