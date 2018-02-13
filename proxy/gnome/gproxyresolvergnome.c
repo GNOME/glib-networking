@@ -322,8 +322,8 @@ g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
     return FALSE;
 
   /* Remember that XDG_CURRENT_DESKTOP is a list of strings. Desktops that
-   * pretend to be GNOME, like Unity, add themselves here. That's fine, but
-   * if so they'd better really support our proxy settings.
+   * pretend to be GNOME and want to use our proxy settings will list
+   * themselves alongside GNOME. That's fine; they'll get our proxy settings.
    */
   return strstr (desktop, "GNOME") != NULL;
 }
