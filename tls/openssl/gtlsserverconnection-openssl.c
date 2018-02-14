@@ -297,10 +297,12 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
             SSL_OP_CIPHER_SERVER_PREFERENCE |
             SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
             SSL_OP_SINGLE_ECDH_USE |
+#ifdef SSL_OP_NO_TLSv1_1
+            SSL_OP_NO_TLSv1_1 |
+#endif
             SSL_OP_NO_SSLv2 |
             SSL_OP_NO_SSLv3 |
-            SSL_OP_NO_TLSv1 |
-            SSL_OP_NO_TLSv1_1;
+            SSL_OP_NO_TLSv1;
 
 #if OPENSSL_VERSION_NUMBER >= 0x10200000L && !defined (LIBRESSL_VERSION_NUMBER)
   options |= SSL_OP_NO_RENEGOTIATION;
