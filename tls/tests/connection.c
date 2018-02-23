@@ -2007,14 +2007,13 @@ test_output_stream_close (TestConnection *test,
     g_main_context_iteration (NULL, TRUE);
 
   ret = g_output_stream_close (g_io_stream_get_output_stream (test->client_connection),
-      NULL, &error);
+                               NULL, &error);
   g_assert_no_error (error);
   g_assert (ret);
 
-
   /* Verify that double close returns TRUE */
   ret = g_output_stream_close (g_io_stream_get_output_stream (test->client_connection),
-      NULL, &error);
+                               NULL, &error);
   g_assert_no_error (error);
   g_assert (ret);
 
