@@ -304,6 +304,10 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
   GByteArray *dn;
   int i;
 
+  /* FIXME: Here we are supposed to ensure that the certificate supports one of
+   * the algorithms given in pk_algos.
+   */
+
   gnutls->cert_requested = TRUE;
 
   accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
