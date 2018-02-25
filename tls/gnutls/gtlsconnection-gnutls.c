@@ -658,8 +658,8 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
   st->ncerts = 0;
 
   if (cert)
-      g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
-                                     priv->interaction_id, st);
+    g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
+                                   priv->interaction_id, st);
 }
 
 typedef enum {
