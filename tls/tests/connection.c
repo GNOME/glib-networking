@@ -2109,7 +2109,7 @@ main (int   argc,
   g_test_add ("/tls/connection/fallback", TestConnection, NULL,
               setup_connection, test_fallback, teardown_connection);
 
-  ret = g_test_run();
+  ret = g_test_run ();
 
   /* for valgrinding */
   g_main_context_unref (g_main_context_default ());
