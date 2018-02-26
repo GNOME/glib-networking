@@ -1,3 +1,12 @@
+News in 2.50.7
+--------------
+* Fix build with openssl 1.1.0
+* Fix build with openssl 0.9.8
+* Improvements on Visual Studio build experience
+* Fix memory leak
+* Misc bug fixes
+* Translation updates
+
 News in 2.50.6
 --------------
 * Fix crash if an anchors file is not available
