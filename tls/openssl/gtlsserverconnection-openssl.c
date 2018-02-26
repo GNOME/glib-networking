@@ -238,6 +238,7 @@ set_cipher_list (GTlsServerConnectionOpenssl *server)
   SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list);
 }
 
+#ifdef SSL_CTX_set1_sigalgs_list
 static void
 set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
 {
@@ -252,7 +253,9 @@ set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
 
   SSL_CTX_set1_sigalgs_list (priv->ssl_ctx, signature_algorithm_list);
 }
+#endif
 
+#ifdef SSL_CTX_set1_curves_list
 static void
 set_curve_list (GTlsServerConnectionOpenssl *server)
 {
@@ -267,6 +270,7 @@ set_curve_list (GTlsServerConnectionOpenssl *server)
 
   SSL_CTX_set1_curves_list (priv->ssl_ctx, curve_list);
 }
+#endif
 
 static gboolean
 g_tls_server_connection_openssl_initable_init (GInitable       *initable,
@@ -363,8 +367,14 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
   set_cipher_list (server);
+
+#ifdef SSL_CTX_set1_sigalgs_list
   set_signature_algorithm_list (server);
+#endif
+
+#ifdef SSL_CTX_set1_curves_list
   set_curve_list (server);
+#endif
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
 # ifdef SSL_CTX_set_ecdh_auto
