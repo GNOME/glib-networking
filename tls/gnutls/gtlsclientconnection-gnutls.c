@@ -56,7 +56,7 @@ struct _GTlsClientConnectionGnutls
   GBytes *session_id;
   GBytes *session_data;
 
-  gboolean cert_requested;
+  gboolean requested_cert_missing;
   GError *cert_error;
   GPtrArray *accepted_cas;
 };
@@ -308,8 +308,6 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
    * the algorithms given in pk_algos.
    */
 
-  gnutls->cert_requested = TRUE;
-
   accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
   for (i = 0; i < nreqs; i++)
     {
@@ -330,6 +328,27 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
       g_clear_error (&gnutls->cert_error);
       if (g_tls_connection_gnutls_request_certificate (conn, &gnutls->cert_error))
         g_tls_connection_gnutls_get_certificate (conn, st);
+
+      if (st->ncerts == 0)
+        {
+          /* If there is still no client certificate, this connection will
+           * probably fail, but no reason to give up: let's try anyway.
+           */
+          gnutls->requested_cert_missing = TRUE;
+          return 0;
+        }
+    }
+
+  g_assert (st->key_type == GNUTLS_PRIVKEY_X509 ||
+            st->key_type == GNUTLS_PRIVKEY_PKCS11);
+  if ((st->key_type == GNUTLS_PRIVKEY_X509 && st->key.x509 == NULL) ||
+      (st->key_type == GNUTLS_PRIVKEY_PKCS11 && st->key.pkcs11 == NULL))
+    {
+      /* No private key. GnuTLS expects it to be non-null if ncerts is nonzero,
+       * so we have to abort now.
+       */
+      gnutls->requested_cert_missing = TRUE;
+      return -1;
     }
 
   return 0;
@@ -375,7 +394,7 @@ g_tls_client_connection_gnutls_begin_handshake (GTlsConnectionGnutls *conn)
         }
     }
 
-  gnutls->cert_requested = FALSE;
+  gnutls->requested_cert_missing = FALSE;
 }
 
 static void
@@ -387,8 +406,7 @@ g_tls_client_connection_gnutls_finish_handshake (GTlsConnectionGnutls  *conn,
 
   g_assert (inout_error != NULL);
 
-  if (g_error_matches (*inout_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS) &&
-      gnutls->cert_requested)
+  if (*inout_error != NULL && gnutls->requested_cert_missing)
     {
       g_clear_error (inout_error);
       if (gnutls->cert_error)

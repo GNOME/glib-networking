@@ -410,6 +410,7 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
     }
 
   st->ncerts = 0;
+  st->cert_type = GNUTLS_CRT_X509;
   st->cert.x509 = gnutls_malloc (sizeof (gnutls_x509_crt_t) * num_certs);
 
   /* Now do the actual copy of the whole chain. */
@@ -443,8 +444,9 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
         {
           gnutls_x509_privkey_init (&st->key.x509);
           gnutls_x509_privkey_cpy (st->key.x509, priv->key);
-          st->key_type = GNUTLS_PRIVKEY_X509;
         }
+
+      st->key_type = GNUTLS_PRIVKEY_X509;
     }
 
   st->deinit_all = TRUE;

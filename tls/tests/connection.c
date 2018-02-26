@@ -1088,6 +1088,47 @@ test_client_auth_failure (TestConnection *test,
 }
 
 static void
+test_client_auth_fail_missing_client_private_key (TestConnection *test,
+                                                  gconstpointer   data)
+{
+  GTlsCertificate *cert;
+  GIOStream *connection;
+  GError *error = NULL;
+
+  g_test_bug ("793712");
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (test->database);
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* Oops: we "accidentally" set client.pem rather than client-and-key.pem. The
+   * connection will fail, but we should not crash.
+   */
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client.pem"), &error);
+  g_assert_no_error (error);
+
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  g_assert_no_error (test->server_error);
+}
+
+static void
 test_client_auth_request_cert (TestConnection *test,
                                gconstpointer   data)
 {
@@ -2072,6 +2113,8 @@ main (int   argc,
               setup_connection, test_client_auth_rehandshake, teardown_connection);
   g_test_add ("/tls/connection/client-auth-failure", TestConnection, NULL,
               setup_connection, test_client_auth_failure, teardown_connection);
+  g_test_add ("/tls/connection/client-auth-fail-missing-client-private-key", TestConnection, NULL,
+              setup_connection, test_client_auth_fail_missing_client_private_key, teardown_connection);
   g_test_add ("/tls/connection/client-auth-request-cert", TestConnection, NULL,
               setup_connection, test_client_auth_request_cert, teardown_connection);
   g_test_add ("/tls/connection/client-auth-request-fail", TestConnection, NULL,
