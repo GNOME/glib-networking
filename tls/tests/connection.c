@@ -2078,6 +2078,39 @@ test_output_stream_close (TestConnection *test,
   g_assert (ret);
 }
 
+static void
+test_garbage_database (TestConnection *test,
+                       gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("garbage.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (test->database);
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  /* Should reject the server's certificate, because our TLS database contains
+   * no valid certificates.
+   */
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_no_error (test->server_error);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -2151,6 +2184,8 @@ main (int   argc,
               setup_connection, test_output_stream_close, teardown_connection);
   g_test_add ("/tls/connection/fallback", TestConnection, NULL,
               setup_connection, test_fallback, teardown_connection);
+  g_test_add ("/tls/connection/garbage-database", TestConnection, NULL,
+              setup_connection, test_garbage_database, teardown_connection);
 
   ret = g_test_run ();
 

@@ -226,6 +226,24 @@ test_create_certificate_with_issuer (TestCertificate   *test,
 }
 
 static void
+test_create_certificate_with_garbage_input (TestCertificate *test,
+                                            gconstpointer data)
+{
+  GTlsCertificate *cert;
+  GError *error = NULL;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("garbage.pem"), &error);
+  g_assert (cert == NULL);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_clear_error (&error);
+
+  cert = g_tls_certificate_new_from_pem ("I am not a very good certificate.", -1, &error);
+  g_assert (cert == NULL);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_clear_error (&error);
+}
+
+static void
 test_create_certificate_chain (void)
 {
   GTlsCertificate *cert, *intermediate, *root;
@@ -554,6 +572,9 @@ main (int   argc,
               setup_certificate, test_create_with_key_der, teardown_certificate);
   g_test_add ("/tls/certificate/create-with-issuer", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_issuer, teardown_certificate);
+  g_test_add ("/tls/certificate/create-with-garbage-input", TestCertificate, NULL,
+              setup_certificate, test_create_certificate_with_garbage_input, teardown_certificate);
+
   g_test_add_func ("/tls/certificate/create-chain", test_create_certificate_chain);
   g_test_add_func ("/tls/certificate/create-no-chain", test_create_certificate_no_chain);
   g_test_add_func ("/tls/certificate/create-list", test_create_list);
