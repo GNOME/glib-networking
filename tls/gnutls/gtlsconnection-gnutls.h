@@ -26,6 +26,7 @@
 #define __G_TLS_CONNECTION_GNUTLS_H__
 
 #include <gio/gio.h>
+#include <gnutls/abstract.h>
 #include <gnutls/gnutls.h>
 
 G_BEGIN_DECLS
@@ -49,7 +50,9 @@ gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsCo
 gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
 
 void     g_tls_connection_gnutls_get_certificate     (GTlsConnectionGnutls  *gnutls,
-                                                      gnutls_retr2_st       *st);
+                                                      gnutls_pcert_st      **pcert,
+                                                      unsigned int          *pcert_length,
+                                                      gnutls_privkey_t      *pkey);
 
 gboolean g_tls_connection_gnutls_request_certificate (GTlsConnectionGnutls  *gnutls,
                                                       GError               **error);

@@ -66,12 +66,14 @@ static void     g_tls_client_connection_gnutls_initable_interface_init (GInitabl
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
 static void g_tls_client_connection_gnutls_dtls_client_connection_interface_init (GDtlsClientConnectionInterface *iface);
 
-static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             session,
-                                                             const gnutls_datum_t        *req_ca_rdn,
-                                                             int                          nreqs,
-                                                             const gnutls_pk_algorithm_t *pk_algos,
-                                                             int                          pk_algos_length,
-                                                             gnutls_retr2_st             *st);
+static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              session,
+                                                             const gnutls_datum_t         *req_ca_rdn,
+                                                             int                           nreqs,
+                                                             const gnutls_pk_algorithm_t  *pk_algos,
+                                                             int                           pk_algos_length,
+                                                             gnutls_pcert_st             **pcert,
+                                                             unsigned int                 *pcert_length,
+                                                             gnutls_privkey_t             *pkey);
 
 static GInitableIface *g_tls_client_connection_gnutls_parent_initable_iface;
 
@@ -90,7 +92,7 @@ g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
   gnutls_certificate_credentials_t creds;
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function (creds, g_tls_client_connection_gnutls_retrieve_function);
+  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_retrieve_function);
 }
 
 static const gchar *
@@ -291,12 +293,14 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 }
 
 static int
-g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             session,
-                                                  const gnutls_datum_t        *req_ca_rdn,
-                                                  int                          nreqs,
-                                                  const gnutls_pk_algorithm_t *pk_algos,
-                                                  int                          pk_algos_length,
-                                                  gnutls_retr2_st             *st)
+g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              session,
+                                                  const gnutls_datum_t         *req_ca_rdn,
+                                                  int                           nreqs,
+                                                  const gnutls_pk_algorithm_t  *pk_algos,
+                                                  int                           pk_algos_length,
+                                                  gnutls_pcert_st             **pcert,
+                                                  unsigned int                 *pcert_length,
+                                                  gnutls_privkey_t             *pkey)
 {
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
   GTlsConnectionGnutls *conn = G_TLS_CONNECTION_GNUTLS (gnutls);
@@ -321,15 +325,15 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
   gnutls->accepted_cas = accepted_cas;
   g_object_notify (G_OBJECT (gnutls), "accepted-cas");
 
-  g_tls_connection_gnutls_get_certificate (conn, st);
+  g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
 
-  if (st->ncerts == 0)
+  if (*pcert_length == 0)
     {
       g_clear_error (&gnutls->cert_error);
       if (g_tls_connection_gnutls_request_certificate (conn, &gnutls->cert_error))
-        g_tls_connection_gnutls_get_certificate (conn, st);
+        g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
 
-      if (st->ncerts == 0)
+      if (*pcert_length == 0)
         {
           /* If there is still no client certificate, this connection will
            * probably fail, but no reason to give up: let's try anyway.
@@ -339,13 +343,10 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t             s
         }
     }
 
-  g_assert (st->key_type == GNUTLS_PRIVKEY_X509 ||
-            st->key_type == GNUTLS_PRIVKEY_PKCS11);
-  if ((st->key_type == GNUTLS_PRIVKEY_X509 && st->key.x509 == NULL) ||
-      (st->key_type == GNUTLS_PRIVKEY_PKCS11 && st->key.pkcs11 == NULL))
+  if (*pkey == NULL)
     {
-      /* No private key. GnuTLS expects it to be non-null if ncerts is nonzero,
-       * so we have to abort now.
+      /* No private key. GnuTLS expects it to be non-null if pcert_length is
+       * nonzero, so we have to abort now.
        */
       gnutls->requested_cert_missing = TRUE;
       return -1;

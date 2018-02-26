@@ -652,20 +652,28 @@ g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
 }
 
 void
-g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls *gnutls,
-                                         gnutls_retr2_st      *st)
+g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls  *gnutls,
+                                         gnutls_pcert_st      **pcert,
+                                         unsigned int          *pcert_length,
+                                         gnutls_privkey_t      *pkey)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   GTlsCertificate *cert;
 
-  st->cert_type = GNUTLS_CRT_X509;
-  st->ncerts = 0;
-
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (gnutls));
 
   if (cert)
-    g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
-                                   priv->interaction_id, st);
+    {
+      g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
+                                     priv->interaction_id,
+                                     pcert, pcert_length, pkey);
+    }
+  else
+    {
+      *pcert = NULL;
+      *pcert_length = 0;
+      *pkey = NULL;
+    }
 }
 
 typedef enum {

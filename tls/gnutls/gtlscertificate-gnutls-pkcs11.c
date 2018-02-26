@@ -115,31 +115,37 @@ g_tls_certificate_gnutls_pkcs11_init (GTlsCertificateGnutlsPkcs11 *self)
 static void
 g_tls_certificate_gnutls_pkcs11_copy (GTlsCertificateGnutls    *gnutls,
                                       const gchar              *interaction_id,
-                                      gnutls_retr2_st          *st)
+                                      gnutls_pcert_st         **pcert,
+                                      unsigned int             *pcert_length,
+                                      gnutls_privkey_t         *pkey)
 {
   GTlsCertificateGnutlsPkcs11 *self = G_TLS_CERTIFICATE_GNUTLS_PKCS11 (gnutls);
   gchar *uri;
 
-  st->key.x509 = NULL;
-
   /* Let the base class copy certificate in */
   G_TLS_CERTIFICATE_GNUTLS_CLASS (g_tls_certificate_gnutls_pkcs11_parent_class)->copy (gnutls,
                                                                                        interaction_id,
-                                                                                       st);
-
-  /* This is the allocation behavior we expect from base class */
-  g_assert (st->deinit_all);
+                                                                                       pcert,
+                                                                                       pcert_length,
+                                                                                       pkey);
 
   /* If the base class somehow put a key in, then respect that */
-  if (st->key.x509 == NULL)
+  if (*pkey == NULL)
     {
       uri = g_tls_certificate_gnutls_pkcs11_build_private_key_uri (self, interaction_id);
       if (uri != NULL)
         {
-          gnutls_pkcs11_privkey_init (&st->key.pkcs11);
-          gnutls_pkcs11_privkey_import_url (st->key.pkcs11, uri, GNUTLS_PKCS11_URL_GENERIC);
-          st->key_type = GNUTLS_PRIVKEY_PKCS11;
+          gnutls_pkcs11_privkey_t pkcs11_privkey;
+          gnutls_privkey_t privkey;
+
+          gnutls_pkcs11_privkey_init (&pkcs11_privkey);
+          gnutls_pkcs11_privkey_import_url (pkcs11_privkey, uri, GNUTLS_PKCS11_URL_GENERIC);
           g_free (uri);
+
+          gnutls_privkey_init (&privkey);
+          gnutls_privkey_import_pkcs11 (privkey, pkcs11_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
+          *pkey = privkey;
+          gnutls_pkcs11_privkey_deinit (pkcs11_privkey);
         }
     }
 }

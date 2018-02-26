@@ -389,11 +389,11 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
 static void
 g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
                                     const gchar              *interaction_id,
-                                    gnutls_retr2_st          *st)
+                                    gnutls_pcert_st         **pcert,
+                                    unsigned int             *pcert_length,
+                                    gnutls_privkey_t         *pkey)
 {
   GTlsCertificateGnutls *chain;
-  gnutls_x509_crt_t cert;
-  gnutls_datum_t data;
   guint num_certs = 0;
   size_t size = 0;
   int status;
@@ -409,15 +409,18 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
       chain = priv->issuer;
     }
 
-  st->ncerts = 0;
-  st->cert_type = GNUTLS_CRT_X509;
-  st->cert.x509 = gnutls_malloc (sizeof (gnutls_x509_crt_t) * num_certs);
+  *pcert_length = 0;
+  *pcert = gnutls_malloc (sizeof (gnutls_pcert_st) * num_certs);
+  if (*pcert == NULL)
+    g_error ("%s: out of memory", __FUNCTION__);
 
   /* Now do the actual copy of the whole chain. */
   chain = gnutls;
   while (chain != NULL)
     {
       GTlsCertificateGnutlsPrivate *priv = g_tls_certificate_gnutls_get_instance_private (chain);
+      gnutls_x509_crt_t cert;
+      gnutls_datum_t data;
 
       gnutls_x509_crt_export (priv->cert, GNUTLS_X509_FMT_DER,
                               NULL, &size);
@@ -431,8 +434,9 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
       g_warn_if_fail (status == 0);
       g_free (data.data);
 
-      st->cert.x509[st->ncerts] = cert;
-      st->ncerts++;
+      gnutls_pcert_import_x509 (*pcert + *pcert_length, cert, 0);
+      gnutls_x509_crt_deinit (cert);
+      (*pcert_length)++;
 
       chain = priv->issuer;
     }
@@ -442,14 +446,22 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
 
       if (priv->key != NULL)
         {
-          gnutls_x509_privkey_init (&st->key.x509);
-          gnutls_x509_privkey_cpy (st->key.x509, priv->key);
+          gnutls_x509_privkey_t x509_privkey;
+          gnutls_privkey_t privkey;
+
+          gnutls_x509_privkey_init (&x509_privkey);
+          gnutls_x509_privkey_cpy (x509_privkey, priv->key);
+
+          gnutls_privkey_init (&privkey);
+          gnutls_privkey_import_x509 (privkey, x509_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
+          *pkey = privkey;
+          gnutls_x509_privkey_deinit (x509_privkey);
         }
-
-      st->key_type = GNUTLS_PRIVKEY_X509;
+      else
+        {
+          *pkey = NULL;
+        }
     }
-
-  st->deinit_all = TRUE;
 }
 
 static void
@@ -524,14 +536,23 @@ g_tls_certificate_gnutls_has_key (GTlsCertificateGnutls *gnutls)
 }
 
 void
-g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls *gnutls,
-                                const gchar           *interaction_id,
-                                gnutls_retr2_st       *st)
+g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
+                                const gchar            *interaction_id,
+                                gnutls_pcert_st       **pcert,
+                                unsigned int           *pcert_length,
+                                gnutls_privkey_t       *pkey)
 {
   g_return_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (gnutls));
-  g_return_if_fail (st != NULL);
+  g_return_if_fail (pcert != NULL);
+  g_return_if_fail (pcert_length != NULL);
+  g_return_if_fail (pkey != NULL);
   g_return_if_fail (G_TLS_CERTIFICATE_GNUTLS_GET_CLASS (gnutls)->copy);
-  G_TLS_CERTIFICATE_GNUTLS_GET_CLASS (gnutls)->copy (gnutls, interaction_id, st);
+
+  G_TLS_CERTIFICATE_GNUTLS_GET_CLASS (gnutls)->copy (gnutls,
+                                                     interaction_id,
+                                                     pcert,
+                                                     pcert_length,
+                                                     pkey);
 }
 
 static const struct {

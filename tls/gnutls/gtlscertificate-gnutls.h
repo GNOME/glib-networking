@@ -26,6 +26,7 @@
 #define __G_TLS_CERTIFICATE_GNUTLS_H__
 
 #include <gio/gio.h>
+#include <gnutls/abstract.h>
 #include <gnutls/gnutls.h>
 
 G_BEGIN_DECLS
@@ -40,7 +41,9 @@ struct _GTlsCertificateGnutlsClass
 
   void              (*copy)               (GTlsCertificateGnutls    *gnutls,
                                            const gchar              *interaction_id,
-                                           gnutls_retr2_st          *st);
+                                           gnutls_pcert_st         **pcert,
+                                           unsigned int             *pcert_length,
+                                           gnutls_privkey_t         *pkey);
 };
 
 GTlsCertificate *            g_tls_certificate_gnutls_new             (const gnutls_datum_t  *datum,
@@ -54,9 +57,11 @@ void                         g_tls_certificate_gnutls_set_data        (GTlsCerti
 const gnutls_x509_crt_t      g_tls_certificate_gnutls_get_cert        (GTlsCertificateGnutls *gnutls);
 gboolean                     g_tls_certificate_gnutls_has_key         (GTlsCertificateGnutls *gnutls);
 
-void                         g_tls_certificate_gnutls_copy            (GTlsCertificateGnutls *gnutls,
-                                                                       const gchar           *interaction_id,
-                                                                       gnutls_retr2_st       *st);
+void                         g_tls_certificate_gnutls_copy            (GTlsCertificateGnutls  *gnutls,
+                                                                       const gchar            *interaction_id,
+                                                                       gnutls_pcert_st       **pcert,
+                                                                       unsigned int           *pcert_length,
+                                                                       gnutls_privkey_t       *pkey);
 
 GTlsCertificateFlags         g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
                                                                        GSocketConnectable    *identity);
