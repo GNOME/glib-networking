@@ -222,7 +222,7 @@ on_server_close_finish (GObject        *object,
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
   if (test->expect_server_error)
-    g_assert (error != NULL);
+    g_assert_nonnull (error);
   else
     g_assert_no_error (error);
   test->server_running = FALSE;
@@ -242,7 +242,7 @@ on_output_write_finish (GObject        *object,
 {
   TestConnection *test = user_data;
 
-  g_assert (test->server_error == NULL);
+  g_assert_no_error (test->server_error);
   g_output_stream_write_finish (G_OUTPUT_STREAM (object), res, &test->server_error);
 
   if (!test->server_error && test->rehandshake)
@@ -451,7 +451,7 @@ on_input_read_finish (GObject        *object,
                                                NULL, &test->read_error);
   if (!test->read_error)
     {
-      g_assert (line);
+      g_assert_nonnull (line);
 
       check = g_strdup (TEST_DATA);
       g_strstrip (check);
@@ -470,7 +470,7 @@ read_test_data_async (TestConnection *test)
   GDataInputStream *stream;
 
   stream = g_data_input_stream_new (g_io_stream_get_input_stream (test->client_connection));
-  g_assert (stream);
+  g_assert_nonnull (stream);
 
   g_data_input_stream_read_line_async (stream, G_PRIORITY_DEFAULT, NULL,
                                        on_input_read_finish, test);
@@ -509,12 +509,12 @@ test_verified_connection (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -546,19 +546,19 @@ test_verified_chain (TestConnection *test,
   /* Prepare the intermediate cert. */
   intermediate_cert = g_tls_certificate_new_from_file (tls_test_file_path ("intermediate-ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (intermediate_cert);
+  g_assert_nonnull (intermediate_cert);
 
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
                        &key_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (key_data);
+  g_assert_nonnull (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
                                 NULL, &error,
@@ -567,7 +567,7 @@ test_verified_chain (TestConnection *test,
                                 "private-key-pem", key_data,
                                 NULL);
   g_assert_no_error (error);
-  g_assert (server_cert);
+  g_assert_nonnull (server_cert);
 
   g_object_unref (intermediate_cert);
   g_free (cert_data);
@@ -594,13 +594,13 @@ test_verified_chain_with_redundant_root_cert (TestConnection *test,
   /* The root is redundant. It should not hurt anything. */
   root_cert = g_tls_certificate_new_from_file (tls_test_file_path ("ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (root_cert);
+  g_assert_nonnull (root_cert);
 
   /* Prepare the intermediate cert. */
   g_file_get_contents (tls_test_file_path ("intermediate-ca.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   intermediate_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
                                       NULL, &error,
@@ -608,19 +608,19 @@ test_verified_chain_with_redundant_root_cert (TestConnection *test,
                                       "certificate-pem", cert_data,
                                       NULL);
   g_assert_no_error (error);
-  g_assert (intermediate_cert);
+  g_assert_nonnull (intermediate_cert);
 
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
                        &key_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (key_data);
+  g_assert_nonnull (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
                                 NULL, &error,
@@ -629,7 +629,7 @@ test_verified_chain_with_redundant_root_cert (TestConnection *test,
                                 "private-key-pem", key_data,
                                 NULL);
   g_assert_no_error (error);
-  g_assert (server_cert);
+  g_assert_nonnull (server_cert);
 
   g_object_unref (intermediate_cert);
   g_object_unref (root_cert);
@@ -662,19 +662,19 @@ test_verified_chain_with_duplicate_server_cert (TestConnection *test,
   /* Prepare the intermediate cert. */
   intermediate_cert = g_tls_certificate_new_from_file (tls_test_file_path ("intermediate-ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (intermediate_cert);
+  g_assert_nonnull (intermediate_cert);
 
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
                        &key_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (key_data);
+  g_assert_nonnull (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
                                 NULL, &error,
@@ -682,7 +682,7 @@ test_verified_chain_with_duplicate_server_cert (TestConnection *test,
                                 "certificate-pem", cert_data,
                                 NULL);
   g_assert_no_error (error);
-  g_assert (server_cert);
+  g_assert_nonnull (server_cert);
 
   /* Prepare the server cert... again. Private key must go on this one. */
   extra_server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
@@ -692,7 +692,7 @@ test_verified_chain_with_duplicate_server_cert (TestConnection *test,
                                       "private-key-pem", key_data,
                                       NULL);
   g_assert_no_error (error);
-  g_assert (extra_server_cert);
+  g_assert_nonnull (extra_server_cert);
 
   g_object_unref (intermediate_cert);
   g_object_unref (server_cert);
@@ -721,11 +721,11 @@ test_verified_unordered_chain (TestConnection *test,
   intermediate_cert = g_tls_certificate_new_from_file (tls_test_file_path ("intermediate-ca.pem"),
                                                        &error);
   g_assert_no_error (error);
-  g_assert (intermediate_cert);
+  g_assert_nonnull (intermediate_cert);
 
   g_file_get_contents (tls_test_file_path ("ca.pem"), &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   /* Prepare the root cert (to be sent in the middle of the chain). */
   root_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
@@ -734,18 +734,18 @@ test_verified_unordered_chain (TestConnection *test,
                               "certificate-pem", cert_data,
                               NULL);
   g_assert_no_error (error);
-  g_assert (root_cert);
+  g_assert_nonnull (root_cert);
 
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
                        &key_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (key_data);
+  g_assert_nonnull (key_data);
 
   /* Prepare the server cert. */
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
@@ -755,7 +755,7 @@ test_verified_unordered_chain (TestConnection *test,
                                 "private-key-pem", key_data,
                                 NULL);
   g_assert_no_error (error);
-  g_assert (server_cert);
+  g_assert_nonnull (server_cert);
 
   g_object_unref (intermediate_cert);
   g_object_unref (root_cert);
@@ -786,7 +786,7 @@ test_verified_chain_with_alternative_ca_cert (TestConnection *test,
    * fail, since the issuer is untrusted. */
   root_cert = g_tls_certificate_new_from_file (tls_test_file_path ("ca-alternative.pem"), &error);
   g_assert_no_error (error);
-  g_assert (root_cert);
+  g_assert_nonnull (root_cert);
 
   /* Prepare the intermediate cert. Modern TLS libraries are expected to notice
    * that it is signed by the same public key as a certificate in the root
@@ -797,7 +797,7 @@ test_verified_chain_with_alternative_ca_cert (TestConnection *test,
   g_file_get_contents (tls_test_file_path ("intermediate-ca.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   intermediate_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
                                       NULL, &error,
@@ -805,19 +805,19 @@ test_verified_chain_with_alternative_ca_cert (TestConnection *test,
                                       "certificate-pem", cert_data,
                                       NULL);
   g_assert_no_error (error);
-  g_assert (intermediate_cert);
+  g_assert_nonnull (intermediate_cert);
 
   /* Prepare the server cert. */
   g_clear_pointer (&cert_data, g_free);
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
                        &key_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (key_data);
+  g_assert_nonnull (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
                                 NULL, &error,
@@ -826,7 +826,7 @@ test_verified_chain_with_alternative_ca_cert (TestConnection *test,
                                 "private-key-pem", key_data,
                                 NULL);
   g_assert_no_error (error);
-  g_assert (server_cert);
+  g_assert_nonnull (server_cert);
 
   g_object_unref (intermediate_cert);
   g_object_unref (root_cert);
@@ -854,19 +854,19 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
   /* This certificate has the same public key as a certificate in the root store. */
   root_cert = g_tls_certificate_new_from_file (tls_test_file_path ("ca-alternative.pem"), &error);
   g_assert_no_error (error);
-  g_assert (root_cert);
+  g_assert_nonnull (root_cert);
 
   /* The intermediate cert is not sent. The chain should be rejected, since without intermediate.pem
    * there is no proof that ca-alternative.pem signed server-intermediate.pem. */
   g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
                        &cert_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (cert_data);
+  g_assert_nonnull (cert_data);
 
   g_file_get_contents (tls_test_file_path ("server-intermediate-key.pem"),
                        &key_data, NULL, &error);
   g_assert_no_error (error);
-  g_assert (key_data);
+  g_assert_nonnull (key_data);
 
   server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
                                 NULL, &error,
@@ -875,7 +875,7 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
                                 "private-key-pem", key_data,
                                 NULL);
   g_assert_no_error (error);
-  g_assert (server_cert);
+  g_assert_nonnull (server_cert);
 
   g_object_unref (root_cert);
   g_free (cert_data);
@@ -885,7 +885,7 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -907,7 +907,7 @@ on_notify_accepted_cas (GObject *obj,
                         gpointer user_data)
 {
   gboolean *changed = user_data;
-  g_assert (*changed == FALSE);
+  g_assert_false (*changed);
   *changed = TRUE;
 }
 
@@ -924,12 +924,12 @@ test_client_auth_connection (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -954,9 +954,9 @@ test_client_auth_connection (TestConnection *test,
   g_assert_no_error (test->server_error);
 
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
-  g_assert (peer != NULL);
-  g_assert (g_tls_certificate_is_same (peer, cert));
-  g_assert (cas_changed == TRUE);
+  g_assert_nonnull (peer);
+  g_assert_true (g_tls_certificate_is_same (peer, cert));
+  g_assert_true (cas_changed);
 
   g_object_unref (cert);
   g_object_unref (test->database);
@@ -987,8 +987,8 @@ test_client_auth_connection (TestConnection *test,
 
   /* peer should see the second client cert */
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
-  g_assert (peer != NULL);
-  g_assert (g_tls_certificate_is_same (peer, cert));
+  g_assert_nonnull (peer);
+  g_assert_true (g_tls_certificate_is_same (peer, cert));
 }
 
 static void
@@ -1013,12 +1013,12 @@ test_client_auth_failure (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -1039,7 +1039,7 @@ test_client_auth_failure (TestConnection *test,
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
-  g_assert (accepted_changed == TRUE);
+  g_assert_true (accepted_changed);
 
   g_object_unref (test->client_connection);
   g_object_unref (test->database);
@@ -1080,9 +1080,9 @@ test_client_auth_failure (TestConnection *test,
   g_assert_no_error (test->server_error);
 
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
-  g_assert (peer != NULL);
-  g_assert (g_tls_certificate_is_same (peer, cert));
-  g_assert (accepted_changed == TRUE);
+  g_assert_nonnull (peer);
+  g_assert_true (g_tls_certificate_is_same (peer, cert));
+  g_assert_true (accepted_changed);
 
   g_object_unref (cert);
 }
@@ -1099,12 +1099,12 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -1141,12 +1141,12 @@ test_client_auth_request_cert (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -1173,9 +1173,9 @@ test_client_auth_request_cert (TestConnection *test,
   g_assert_no_error (test->server_error);
 
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
-  g_assert (peer != NULL);
-  g_assert (g_tls_certificate_is_same (peer, cert));
-  g_assert (cas_changed == TRUE);
+  g_assert_nonnull (peer);
+  g_assert_true (g_tls_certificate_is_same (peer, cert));
+  g_assert_true (cas_changed);
 
   g_object_unref (cert);
 }
@@ -1190,12 +1190,12 @@ test_client_auth_request_fail (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -1228,7 +1228,7 @@ test_connection_no_database (TestConnection *test,
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   /* Overrides loading of the default database */
@@ -1338,9 +1338,9 @@ test_connection_socket_client (TestConnection *test,
   connection = (GSocketConnection *)test->client_connection;
   test->client_connection = NULL;
 
-  g_assert (G_IS_TCP_WRAPPER_CONNECTION (connection));
+  g_assert_true (G_IS_TCP_WRAPPER_CONNECTION (connection));
   base = g_tcp_wrapper_connection_get_base_io_stream (G_TCP_WRAPPER_CONNECTION (connection));
-  g_assert (G_IS_TLS_CONNECTION (base));
+  g_assert_true (G_IS_TLS_CONNECTION (base));
 
   g_io_stream_close (G_IO_STREAM (connection), NULL, &error);
   g_assert_no_error (error);
@@ -1458,9 +1458,9 @@ test_connection_read_time_out_write (TestConnection *test,
   connection = (GSocketConnection *)test->client_connection;
   test->client_connection = NULL;
 
-  g_assert (G_IS_TCP_WRAPPER_CONNECTION (connection));
+  g_assert_true (G_IS_TCP_WRAPPER_CONNECTION (connection));
   base = g_tcp_wrapper_connection_get_base_io_stream (G_TCP_WRAPPER_CONNECTION (connection));
-  g_assert (G_IS_TLS_CONNECTION (base));
+  g_assert_true (G_IS_TLS_CONNECTION (base));
 
   g_io_stream_close (G_IO_STREAM (connection), NULL, &error);
   g_assert_no_error (error);
@@ -2050,17 +2050,17 @@ test_output_stream_close (TestConnection *test,
   ret = g_output_stream_close (g_io_stream_get_output_stream (test->client_connection),
                                NULL, &error);
   g_assert_no_error (error);
-  g_assert (ret);
+  g_assert_true (ret);
 
   /* Verify that double close returns TRUE */
   ret = g_output_stream_close (g_io_stream_get_output_stream (test->client_connection),
                                NULL, &error);
   g_assert_no_error (error);
-  g_assert (ret);
+  g_assert_true (ret);
 
   size = g_output_stream_write (g_io_stream_get_output_stream (test->client_connection),
                                 "data", 4, NULL, &error);
-  g_assert (size == -1);
+  g_assert_cmpint (size, ==, -1);
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CLOSED);
   g_clear_error (&error);
 
@@ -2075,7 +2075,7 @@ test_output_stream_close (TestConnection *test,
 
   ret = g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
-  g_assert (ret);
+  g_assert_true (ret);
 }
 
 static void
@@ -2087,12 +2087,12 @@ test_garbage_database (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("garbage.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
-  g_assert (test->client_connection);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);

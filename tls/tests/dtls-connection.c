@@ -328,7 +328,7 @@ close_server_connection (TestConnection *test,
   while (g_main_context_iteration (test->server_context, FALSE));
 
   if (graceful && test->expect_server_error)
-    g_assert (error != NULL);
+    g_assert_nonnull (error);
   else if (graceful)
     g_assert_no_error (error);
 
@@ -628,7 +628,7 @@ read_test_data_async (TestConnection *test)
 
       check = g_strdup (TEST_DATA);
       g_assert_cmpuint (strlen (check), ==, message.bytes_received);
-      g_assert (strncmp (check, (const char *)buf, message.bytes_received) == 0);
+      g_assert_cmpint (strncmp (check, (const char *)buf, message.bytes_received), ==, 0);
       g_free (check);
     }
 

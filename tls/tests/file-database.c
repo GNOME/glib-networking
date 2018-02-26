@@ -74,35 +74,35 @@ setup_verify (TestVerify     *test,
 
   test->cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (test->cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (test->cert));
 
   test->identity = g_network_address_new ("server.example.com", 80);
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_DATABASE (test->database));
+  g_assert_true (G_IS_TLS_DATABASE (test->database));
 }
 
 static void
 teardown_verify (TestVerify      *test,
                  gconstpointer    data)
 {
-  g_assert (G_IS_TLS_CERTIFICATE (test->cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (test->cert));
   g_object_add_weak_pointer (G_OBJECT (test->cert),
                              (gpointer *)&test->cert);
   g_object_unref (test->cert);
-  g_assert (test->cert == NULL);
+  g_assert_null (test->cert);
 
-  g_assert (G_IS_TLS_DATABASE (test->database));
+  g_assert_true (G_IS_TLS_DATABASE (test->database));
   g_object_add_weak_pointer (G_OBJECT (test->database),
                              (gpointer *)&test->database);
   g_object_unref (test->database);
-  g_assert (test->database == NULL);
+  g_assert_null (test->database);
 
   g_object_add_weak_pointer (G_OBJECT (test->identity),
                              (gpointer *)&test->identity);
   g_object_unref (test->identity);
-  g_assert (test->identity == NULL);
+  g_assert_null (test->identity);
 }
 
 static void
@@ -154,7 +154,7 @@ test_verify_database_bad_ca (TestVerify      *test,
   /* Use another certificate which isn't in our CA list */
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-self.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   errors = g_tls_database_verify_chain (test->database, cert,
                                         G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER,
@@ -176,7 +176,7 @@ test_verify_database_bad_before (TestVerify      *test,
   /* This is a certificate in the future */
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-future.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   errors = g_tls_database_verify_chain (test->database, cert,
                                         G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER,
@@ -198,7 +198,7 @@ test_verify_database_bad_expired (TestVerify      *test,
   /* This is a certificate in the future */
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-past.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   errors = g_tls_database_verify_chain (test->database, cert,
                                         G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER,
@@ -220,7 +220,7 @@ test_verify_database_bad_combo (TestVerify      *test,
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-self.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   /*
    * - Use is self signed
@@ -302,11 +302,11 @@ test_verify_with_incorrect_root_in_chain (void)
    */
   database = g_tls_file_database_new (tls_test_file_path ("ca-verisign-sha1.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_DATABASE (database));
+  g_assert_true (G_IS_TLS_DATABASE (database));
 
   ca_verisign_sha1 = g_tls_certificate_new_from_file (tls_test_file_path ("ca-verisign-sha1.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (ca_verisign_sha1));
+  g_assert_true (G_IS_TLS_CERTIFICATE (ca_verisign_sha1));
 
   /*
    * This certificate chain contains a root certificate with that same issuer, public key:
@@ -318,12 +318,12 @@ test_verify_with_incorrect_root_in_chain (void)
    */
   chain = load_certificate_chain (tls_test_file_path ("chain-with-verisign-md2.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (chain));
+  g_assert_true (G_IS_TLS_CERTIFICATE (chain));
 
-  g_assert (g_tls_certificate_get_issuer (chain) != NULL);
-  g_assert (g_tls_certificate_get_issuer (g_tls_certificate_get_issuer (chain)) != NULL);
-  g_assert (is_certificate_in_chain (chain, chain));
-  g_assert (!is_certificate_in_chain (chain, ca_verisign_sha1));
+  g_assert_nonnull (g_tls_certificate_get_issuer (chain));
+  g_assert_nonnull (g_tls_certificate_get_issuer (g_tls_certificate_get_issuer (chain)));
+  g_assert_true (is_certificate_in_chain (chain, chain));
+  g_assert_false (is_certificate_in_chain (chain, ca_verisign_sha1));
 
 
   identity = g_network_address_new ("secure-test.streamline-esolutions.com", 443);
@@ -359,18 +359,18 @@ setup_file_database (TestFileDatabase *test,
   test->path = tls_test_file_path ("ca-roots.pem");
   test->database = g_tls_file_database_new (test->path, &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_DATABASE (test->database));
+  g_assert_true (G_IS_TLS_DATABASE (test->database));
 }
 
 static void
 teardown_file_database (TestFileDatabase *test,
                         gconstpointer     data)
 {
-  g_assert (G_IS_TLS_DATABASE (test->database));
+  g_assert_true (G_IS_TLS_DATABASE (test->database));
   g_object_add_weak_pointer (G_OBJECT (test->database),
                              (gpointer *)&test->database);
   g_object_unref (test->database);
-  g_assert (test->database == NULL);
+  g_assert_null (test->database);
 }
 
 static void
@@ -390,17 +390,17 @@ test_file_database_handle (TestFileDatabase *test,
 
   certificate = g_tls_certificate_new_from_file (tls_test_file_path ("ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (certificate));
+  g_assert_true (G_IS_TLS_CERTIFICATE (certificate));
 
   handle = g_tls_database_create_certificate_handle (test->database, certificate);
-  g_assert (handle != NULL);
-  g_assert (g_str_has_prefix (handle, "file:///"));
+  g_assert_nonnull (handle);
+  g_assert_true (g_str_has_prefix (handle, "file:///"));
 
   check = g_tls_database_lookup_certificate_for_handle (test->database, handle,
                                                         NULL, G_TLS_DATABASE_LOOKUP_NONE,
                                                         NULL, &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (check));
+  g_assert_true (G_IS_TLS_CERTIFICATE (check));
 
   g_free (handle);
   g_object_unref (check);
@@ -418,7 +418,7 @@ test_file_database_handle_invalid (TestFileDatabase *test,
                                                               NULL, G_TLS_DATABASE_LOOKUP_NONE,
                                                               NULL, &error);
   g_assert_no_error (error);
-  g_assert (certificate == NULL);
+  g_assert_null (certificate);
 }
 
 /* -----------------------------------------------------------------------------
@@ -507,11 +507,11 @@ test_lookup_certificates_issued_by (void)
 
   g_assert_cmpuint (g_list_length (certificates), ==, 4);
 
-  g_assert (certificate_is_in_list (certificates, tls_test_file_path ("client.pem")));
-  g_assert (certificate_is_in_list (certificates, tls_test_file_path ("client-future.pem")));
-  g_assert (certificate_is_in_list (certificates, tls_test_file_path ("client-past.pem")));
-  g_assert (certificate_is_in_list (certificates, tls_test_file_path ("server.pem")));
-  g_assert (!certificate_is_in_list (certificates, tls_test_file_path ("server-self.pem")));
+  g_assert_true (certificate_is_in_list (certificates, tls_test_file_path ("client.pem")));
+  g_assert_true (certificate_is_in_list (certificates, tls_test_file_path ("client-future.pem")));
+  g_assert_true (certificate_is_in_list (certificates, tls_test_file_path ("client-past.pem")));
+  g_assert_true (certificate_is_in_list (certificates, tls_test_file_path ("server.pem")));
+  g_assert_false (certificate_is_in_list (certificates, tls_test_file_path ("server-self.pem")));
 
   g_list_free_full (certificates, g_object_unref);
   g_object_unref (database);
@@ -525,13 +525,13 @@ test_default_database_is_singleton (void)
   GTlsDatabase *check;
 
   backend = g_tls_backend_get_default ();
-  g_assert (G_IS_TLS_BACKEND (backend));
+  g_assert_true (G_IS_TLS_BACKEND (backend));
 
   database = g_tls_backend_get_default_database (backend);
-  g_assert (G_IS_TLS_DATABASE (database));
+  g_assert_true (G_IS_TLS_DATABASE (database));
 
   check = g_tls_backend_get_default_database (backend);
-  g_assert (database == check);
+  g_assert_true (database == check);
 
   g_object_unref (database);
   g_object_unref (check);

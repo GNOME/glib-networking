@@ -119,7 +119,7 @@ test_create_pem (TestCertificate *test,
 
   cert = g_tls_certificate_new_from_pem (test->cert_pem, test->cert_pem_length, &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   g_object_get (cert, "certificate-pem", &pem, NULL);
   g_assert_cmpstr (pem, ==, test->cert_pem);
@@ -127,7 +127,7 @@ test_create_pem (TestCertificate *test,
 
   g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (cert == NULL);
+  g_assert_null (cert);
 }
 
 static void
@@ -142,11 +142,11 @@ test_create_with_key_pem (TestCertificate *test,
                          "private-key-pem", test->key_pem,
                          NULL);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (cert == NULL);
+  g_assert_null (cert);
 }
 
 static void
@@ -161,18 +161,18 @@ test_create_der (TestCertificate *test,
                          "certificate", test->cert_der,
                          NULL);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   g_object_get (cert, "certificate", &der, NULL);
-  g_assert (der);
+  g_assert_nonnull (der);
   g_assert_cmpuint (der->len, ==, test->cert_der->len);
-  g_assert (memcmp (der->data, test->cert_der->data, der->len) == 0);
+  g_assert_cmpint (memcmp (der->data, test->cert_der->data, der->len), ==, 0);
 
   g_byte_array_unref (der);
 
   g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (cert == NULL);
+  g_assert_null (cert);
 }
 
 static void
@@ -187,11 +187,11 @@ test_create_with_key_der (TestCertificate *test,
                          "private-key", test->key_der,
                          NULL);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (cert == NULL);
+  g_assert_null (cert);
 }
 
 static void
@@ -203,26 +203,26 @@ test_create_certificate_with_issuer (TestCertificate   *test,
 
   issuer = g_tls_certificate_new_from_file (tls_test_file_path ("ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (issuer));
+  g_assert_true (G_IS_TLS_CERTIFICATE (issuer));
 
   cert = g_initable_new (test->cert_gtype, NULL, &error,
                          "certificate-pem", test->cert_pem,
                          "issuer", issuer,
                          NULL);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   g_object_add_weak_pointer (G_OBJECT (issuer), (gpointer *)&issuer);
   g_object_unref (issuer);
-  g_assert (issuer != NULL);
+  g_assert_nonnull (issuer);
 
   check = g_tls_certificate_get_issuer (cert);
-  g_assert (check == issuer);
+  g_assert_true (check == issuer);
 
   g_object_add_weak_pointer (G_OBJECT (cert), (gpointer *)&cert);
   g_object_unref (cert);
-  g_assert (cert == NULL);
-  g_assert (issuer == NULL);
+  g_assert_null (cert);
+  g_assert_null (issuer);
 }
 
 static void
@@ -233,12 +233,12 @@ test_create_certificate_with_garbage_input (TestCertificate *test,
   GError *error = NULL;
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("garbage.pem"), &error);
-  g_assert (cert == NULL);
+  g_assert_null (cert);
   g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
   g_clear_error (&error);
 
   cert = g_tls_certificate_new_from_pem ("I am not a very good certificate.", -1, &error);
-  g_assert (cert == NULL);
+  g_assert_null (cert);
   g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
   g_clear_error (&error);
 }
@@ -251,15 +251,15 @@ test_create_certificate_chain (void)
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("chain.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   intermediate = g_tls_certificate_get_issuer (cert);
-  g_assert (G_IS_TLS_CERTIFICATE (intermediate));
+  g_assert_true (G_IS_TLS_CERTIFICATE (intermediate));
 
   root = g_tls_certificate_get_issuer (intermediate);
-  g_assert (G_IS_TLS_CERTIFICATE (root));
+  g_assert_true (G_IS_TLS_CERTIFICATE (root));
 
-  g_assert (g_tls_certificate_get_issuer (root) == NULL);
+  g_assert_null (g_tls_certificate_get_issuer (root));
 
   g_object_unref (cert);
 }
@@ -274,10 +274,10 @@ test_create_certificate_no_chain (void)
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("non-ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   issuer = g_tls_certificate_get_issuer (cert);
-  g_assert (issuer == NULL);
+  g_assert_null (issuer);
   g_object_unref (cert);
 
   /* Truncate a valid chain certificate file. We should only get the
@@ -290,10 +290,10 @@ test_create_certificate_no_chain (void)
   cert = g_tls_certificate_new_from_pem (cert_pem, cert_pem_length - 100, &error);
   g_free (cert_pem);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   issuer = g_tls_certificate_get_issuer (cert);
-  g_assert (issuer == NULL);
+  g_assert_null (issuer);
   g_object_unref (cert);
 }
 
@@ -341,44 +341,44 @@ setup_verify (TestVerify     *test,
 
   test->cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (test->cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (test->cert));
 
   test->identity = g_network_address_new ("server.example.com", 80);
 
   test->anchor = g_tls_certificate_new_from_file (tls_test_file_path ("ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (test->anchor));
+  g_assert_true (G_IS_TLS_CERTIFICATE (test->anchor));
   test->database = g_tls_file_database_new (tls_test_file_path ("ca.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_DATABASE (test->database));
+  g_assert_true (G_IS_TLS_DATABASE (test->database));
 }
 
 static void
 teardown_verify (TestVerify      *test,
                  gconstpointer    data)
 {
-  g_assert (G_IS_TLS_CERTIFICATE (test->cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (test->cert));
   g_object_add_weak_pointer (G_OBJECT (test->cert),
                              (gpointer *)&test->cert);
   g_object_unref (test->cert);
-  g_assert (test->cert == NULL);
+  g_assert_null (test->cert);
 
-  g_assert (G_IS_TLS_CERTIFICATE (test->anchor));
+  g_assert_true (G_IS_TLS_CERTIFICATE (test->anchor));
   g_object_add_weak_pointer (G_OBJECT (test->anchor),
                              (gpointer *)&test->anchor);
   g_object_unref (test->anchor);
-  g_assert (test->anchor == NULL);
+  g_assert_null (test->anchor);
 
-  g_assert (G_IS_TLS_DATABASE (test->database));
+  g_assert_true (G_IS_TLS_DATABASE (test->database));
   g_object_add_weak_pointer (G_OBJECT (test->database),
                              (gpointer *)&test->database);
   g_object_unref (test->database);
-  g_assert (test->database == NULL);
+  g_assert_null (test->database);
 
   g_object_add_weak_pointer (G_OBJECT (test->identity),
                              (gpointer *)&test->identity);
   g_object_unref (test->identity);
-  g_assert (test->identity == NULL);
+  g_assert_null (test->identity);
 }
 
 static void
@@ -441,7 +441,7 @@ test_verify_certificate_bad_ca (TestVerify      *test,
   /* Use a client certificate as the CA, which is wrong */
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   errors = g_tls_certificate_verify (test->cert, test->identity, cert);
   g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_UNKNOWN_CA);
@@ -460,7 +460,7 @@ test_verify_certificate_bad_before (TestVerify      *test,
   /* This is a certificate in the future */
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-future.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   errors = g_tls_certificate_verify (cert, NULL, test->anchor);
   g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_NOT_ACTIVATED);
@@ -479,7 +479,7 @@ test_verify_certificate_bad_expired (TestVerify      *test,
   /* This is a certificate in the future */
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-past.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   errors = g_tls_certificate_verify (cert, NULL, test->anchor);
   g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_EXPIRED);
@@ -499,12 +499,12 @@ test_verify_certificate_bad_combo (TestVerify      *test,
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-past.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
 
   /* Unrelated cert used as certificate authority */
   cacert = g_tls_certificate_new_from_file (tls_test_file_path ("server-self.pem"), &error);
   g_assert_no_error (error);
-  g_assert (G_IS_TLS_CERTIFICATE (cacert));
+  g_assert_true (G_IS_TLS_CERTIFICATE (cacert));
 
   /*
    * - Use unrelated cert as CA
@@ -540,12 +540,12 @@ test_certificate_is_same (void)
   three = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
   g_assert_no_error (error);
 
-  g_assert (g_tls_certificate_is_same (one, two) == TRUE);
-  g_assert (g_tls_certificate_is_same (two, one) == TRUE);
-  g_assert (g_tls_certificate_is_same (three, one) == FALSE);
-  g_assert (g_tls_certificate_is_same (one, three) == FALSE);
-  g_assert (g_tls_certificate_is_same (two, three) == FALSE);
-  g_assert (g_tls_certificate_is_same (three, two) == FALSE);
+  g_assert_true (g_tls_certificate_is_same (one, two));
+  g_assert_true (g_tls_certificate_is_same (two, one));
+  g_assert_false (g_tls_certificate_is_same (three, one));
+  g_assert_false (g_tls_certificate_is_same (one, three));
+  g_assert_false (g_tls_certificate_is_same (two, three));
+  g_assert_false (g_tls_certificate_is_same (three, two));
 
   g_object_unref (one);
   g_object_unref (two);
