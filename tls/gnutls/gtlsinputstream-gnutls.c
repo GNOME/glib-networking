@@ -186,7 +186,7 @@ close_thread (GTask        *task,
 
 
 static void
-g_tls_input_stream_gnutls_close_async (GInputStream            *stream,
+g_tls_input_stream_gnutls_close_async (GInputStream             *stream,
                                        int                       io_priority,
                                        GCancellable             *cancellable,
                                        GAsyncReadyCallback       callback,
