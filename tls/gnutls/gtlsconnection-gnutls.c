@@ -464,7 +464,7 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_clear_error (&priv->read_error);
   g_clear_error (&priv->write_error);
 
-  /* This must always be NULL at this, as it holds a referehce to @gnutls as
+  /* This must always be NULL here, as it holds a reference to @gnutls as
    * its source object. However, we clear it anyway just in case this changes
    * in future. */
   g_clear_object (&priv->implicit_handshake);
