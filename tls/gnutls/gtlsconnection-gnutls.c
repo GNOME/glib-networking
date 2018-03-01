@@ -144,8 +144,14 @@ enum
 
 typedef struct
 {
-  /* When operating in stream mode.
-   * Mutually exclusive with base_socket.
+  /* When operating in stream mode, as a GTlsConnection. These are
+   * mutually-exclusive with base_socket. There are two different
+   * GIOStreams here: base_io_stream and GTlsConnectionGnutls itself.
+   * base_io_stream is the GIOStream used to create the GTlsConnection,
+   * and corresponds to the GTlsConnection::base-io-stream property.
+   * base_istream and base_ostream correspond to the GIOStream::input-stream
+   * and GIOStream::output-stream properties, respectively, that
+   * GTlsConnection inherits from GIOStream.
    */
   GIOStream *base_io_stream;
   GPollableInputStream *base_istream;
@@ -158,8 +164,8 @@ typedef struct
   GInputStream *tls_istream;
   GOutputStream *tls_ostream;
 
-  /* When operating in datagram mode.
-   * Mutually exclusive with base_io_stream.
+  /* When operating in datagram mode, as a GDtlsConnection. These are
+   * mutually-exclusive with base_io_stream.
    */
   GDatagramBased *base_socket;
 
