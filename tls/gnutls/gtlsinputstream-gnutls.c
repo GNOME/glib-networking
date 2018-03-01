@@ -25,6 +25,8 @@
 #include "config.h"
 #include "gtlsinputstream-gnutls.h"
 
+#include <glib/gi18n.h>
+
 struct _GTlsInputStreamGnutls
 {
   GInputStream parent_instance;
@@ -70,7 +72,12 @@ g_tls_input_stream_gnutls_read (GInputStream  *stream,
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, -1);
+  if (conn == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
+                           _("Connection is closed"));
+      return -1;
+    }
 
   ret = g_tls_connection_gnutls_read (conn,
                                       buffer, count, -1  /* blocking */,
@@ -87,7 +94,8 @@ g_tls_input_stream_gnutls_pollable_is_readable (GPollableInputStream *pollable)
   gboolean ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, FALSE);
+  if (conn == NULL)
+    return FALSE;
 
   ret = g_tls_connection_gnutls_check (conn, G_IO_IN);
 
@@ -104,7 +112,12 @@ g_tls_input_stream_gnutls_pollable_create_source (GPollableInputStream *pollable
   GSource *ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, NULL);
+  if (conn == NULL)
+    {
+      ret = g_idle_source_new ();
+      g_source_set_name (ret, "[glib-networking] g_tls_input_stream_gnutls_pollable_create_source dummy source");
+      return ret;
+    }
 
   ret = g_tls_connection_gnutls_create_source (conn, G_IO_IN, cancellable);
   g_object_unref (conn);
@@ -122,7 +135,12 @@ g_tls_input_stream_gnutls_pollable_read_nonblocking (GPollableInputStream  *poll
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, -1);
+  if (conn == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
+                           _("Connection is closed"));
+      return -1;
+    }
 
   ret = g_tls_connection_gnutls_read (conn, buffer, size,
                                       0  /* non-blocking */, NULL, error);
@@ -142,9 +160,6 @@ g_tls_input_stream_gnutls_close (GInputStream            *stream,
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
 
-  /* Special case here because this is called by the finalize
-   * of the main GTlsConnection object.
-   */
   if (conn == NULL)
     return TRUE;
 

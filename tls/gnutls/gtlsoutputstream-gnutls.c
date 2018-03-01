@@ -25,6 +25,8 @@
 #include "config.h"
 #include "gtlsoutputstream-gnutls.h"
 
+#include <glib/gi18n.h>
+
 struct _GTlsOutputStreamGnutls
 {
   GOutputStream parent_instance;
@@ -70,7 +72,12 @@ g_tls_output_stream_gnutls_write (GOutputStream  *stream,
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, -1);
+  if (conn == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
+                           _("Connection is closed"));
+      return -1;
+    }
 
   ret = g_tls_connection_gnutls_write (conn, buffer, count, -1  /* blocking */,
                                        cancellable, error);
@@ -86,7 +93,8 @@ g_tls_output_stream_gnutls_pollable_is_writable (GPollableOutputStream *pollable
   gboolean ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, FALSE);
+  if (conn == NULL)
+    return FALSE;
 
   ret = g_tls_connection_gnutls_check (conn, G_IO_OUT);
 
@@ -104,7 +112,12 @@ g_tls_output_stream_gnutls_pollable_create_source (GPollableOutputStream *pollab
   GSource *ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, NULL);
+  if (conn == NULL)
+    {
+      ret = g_idle_source_new ();
+      g_source_set_name (ret, "[glib-networking] g_tls_output_stream_gnutls_pollable_create_source dummy source");
+      return ret;
+    }
 
   ret = g_tls_connection_gnutls_create_source (conn,
                                                G_IO_OUT,
@@ -124,7 +137,12 @@ g_tls_output_stream_gnutls_pollable_write_nonblocking (GPollableOutputStream  *p
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, -1);
+  if (conn == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
+                           _("Connection is closed"));
+      return -1;
+    }
 
   ret = g_tls_connection_gnutls_write (conn, buffer, size,
                                        0  /* non-blocking */, NULL, error);
@@ -143,10 +161,6 @@ g_tls_output_stream_gnutls_close (GOutputStream            *stream,
   gboolean ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-
-  /* Special case here because this is called by the finalize
-   * of the main GTlsConnection object.
-   */
   if (conn == NULL)
     return TRUE;
 

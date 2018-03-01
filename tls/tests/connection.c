@@ -2111,6 +2111,50 @@ test_garbage_database (TestConnection *test,
   g_assert_no_error (test->server_error);
 }
 
+static void
+test_readwrite_after_connection_destroyed (TestConnection *test,
+                                           gconstpointer   data)
+{
+  GIOStream *connection;
+  GOutputStream *ostream;
+  GInputStream *istream;
+  unsigned char buffer[1];
+  GError *error = NULL;
+
+  g_test_bug ("792219");
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED, TRUE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  istream = g_object_ref (g_io_stream_get_input_stream (test->client_connection));
+  ostream = g_object_ref (g_io_stream_get_output_stream (test->client_connection));
+  g_clear_object (&test->client_connection);
+
+  /* The GTlsConnection has been destroyed, but its underlying streams
+   * live on, because we have reffed them. Verify that attempts to read
+   * and write produce only nice GErrors.
+   */
+  g_input_stream_read (istream, buffer, sizeof (buffer), NULL, &error);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CLOSED);
+  g_clear_error (&error);
+
+  g_output_stream_write (ostream, TEST_DATA, TEST_DATA_LENGTH,
+                         G_PRIORITY_DEFAULT, &error);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CLOSED);
+  g_clear_error (&error);
+
+  g_input_stream_close (istream, NULL, &error);
+  g_assert_no_error (error);
+
+  g_output_stream_close (ostream, NULL, &error);
+  g_assert_no_error (error);
+
+  g_object_unref (istream);
+  g_object_unref (ostream);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -2186,6 +2230,8 @@ main (int   argc,
               setup_connection, test_fallback, teardown_connection);
   g_test_add ("/tls/connection/garbage-database", TestConnection, NULL,
               setup_connection, test_garbage_database, teardown_connection);
+  g_test_add ("/tls/connection/readwrite-after-connection-destroyed", TestConnection, NULL,
+              setup_connection, test_readwrite_after_connection_destroyed, teardown_connection);
 
   ret = g_test_run ();
 
