@@ -201,10 +201,12 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 #define BEGIN_OPENSSL_IO(openssl, direction, blocking, cancellable)        \
   g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),        \
                                  direction, blocking, cancellable);        \
-  do {
+  do {                                                                      \
+    char error_str[256];                                                  \
 
 #define END_OPENSSL_IO(openssl, direction, ret, status, errmsg, err)        \
-    status = end_openssl_io (openssl, direction, ret, err, errmsg, ERR_error_string (SSL_get_error (ssl, ret), NULL)); \
+    ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof(error_str)); \
+    status = end_openssl_io (openssl, direction, ret, err, errmsg, error_str, NULL); \
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
 static GTlsConnectionBaseStatus
