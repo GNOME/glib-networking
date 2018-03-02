@@ -202,7 +202,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),        \
                                  direction, blocking, cancellable);        \
   do {                                                                      \
-    char error_str[256];                                                  \
+    char error_str[256];
 
 #define END_OPENSSL_IO(openssl, direction, ret, status, errmsg, err)        \
     ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof(error_str)); \
