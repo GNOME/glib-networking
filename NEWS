@@ -1,3 +1,8 @@
+News in 2.50.8
+--------------
+* Fix important crash on multithreaded environments
+* Improve meson scripts
+
 News in 2.50.7
 --------------
 * Fix build with openssl 1.1.0
