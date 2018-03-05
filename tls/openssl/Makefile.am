@@ -45,7 +45,3 @@ MSVCPROJS = libgioopenssl
 
 libgioopenssl_FILES = $(libgioopenssl_la_SOURCES)
 libgioopenssl_EXCLUDES = dummy
-
-include $(top_srcdir)/win32/Makefile.msvcproj
-
-dist-hook: $(top_builddir)/win32/vs9/libgioopenssl.vcproj

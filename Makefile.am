@@ -3,7 +3,7 @@ include $(top_srcdir)/glib-openssl.mk
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-SUBDIRS = po tls/base tls/openssl tls/tests win32
+SUBDIRS = po tls/base tls/openssl tls/tests
 
 install-exec-hook:
 	if test -n "$(GIO_QUERYMODULES)" -a -z "$(DESTDIR)"; then \
@@ -18,8 +18,6 @@ uninstall-hook:
 EXTRA_DIST +=			\
 	tap-driver.sh		\
 	tap-test		\
-	config.h.win32.in	\
-	config.h.win32		\
 	meson.build		\
 	meson_options.txt	\
 	po/meson.build		\

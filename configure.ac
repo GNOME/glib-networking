@@ -168,14 +168,6 @@ dnl *****************************
 dnl *** done                  ***
 dnl *****************************
 AC_CONFIG_FILES([Makefile
-                 config.h.win32
-                 win32/Makefile
-                 win32/vs9/Makefile
-                 win32/vs10/Makefile
-                 win32/vs11/Makefile
-                 win32/vs12/Makefile
-                 win32/vs14/Makefile
-                 win32/vs15/Makefile
                  po/Makefile.in po/Makefile
                  tls/base/Makefile
                  tls/openssl/Makefile
