@@ -53,7 +53,7 @@ static void g_tls_database_gnutls_pkcs11_initable_iface_init (GInitableIface *if
 
 struct _GTlsDatabaseGnutlsPkcs11
 {
-  GTlsDatabaseGnutls parent_instance;
+  GTlsDatabase parent_instance;
 
   /* no changes after construction */
   CK_FUNCTION_LIST **modules;
@@ -62,7 +62,7 @@ struct _GTlsDatabaseGnutlsPkcs11
 };
 
 G_DEFINE_TYPE_WITH_CODE (GTlsDatabaseGnutlsPkcs11, g_tls_database_gnutls_pkcs11,
-                         G_TYPE_TLS_DATABASE_GNUTLS,
+                         G_TYPE_TLS_DATABASE,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_tls_database_gnutls_pkcs11_initable_iface_init));
 

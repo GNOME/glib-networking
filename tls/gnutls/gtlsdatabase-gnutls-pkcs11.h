@@ -35,7 +35,7 @@ G_BEGIN_DECLS
 
 #define G_TYPE_TLS_DATABASE_GNUTLS_PKCS11            (g_tls_database_gnutls_pkcs11_get_type ())
 
-G_DECLARE_FINAL_TYPE (GTlsDatabaseGnutlsPkcs11, g_tls_database_gnutls_pkcs11, G, TLS_DATABASE_GNUTLS_PKCS11, GTlsDatabaseGnutls)
+G_DECLARE_FINAL_TYPE (GTlsDatabaseGnutlsPkcs11, g_tls_database_gnutls_pkcs11, G, TLS_DATABASE_GNUTLS_PKCS11, GTlsDatabase)
 
 GTlsDatabase*                g_tls_database_gnutls_pkcs11_new                   (GError **error);
 
