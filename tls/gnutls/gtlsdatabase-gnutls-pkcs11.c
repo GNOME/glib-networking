@@ -41,6 +41,11 @@
 #include "pkcs11/gpkcs11util.h"
 #include "pkcs11/pkcs11-trust-assertions.h"
 
+typedef enum {
+  G_TLS_DATABASE_GNUTLS_PINNED_CERTIFICATE = 1,
+  G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE = 2,
+} GTlsDatabaseGnutlsAssertion;
+
 static const CK_ATTRIBUTE_TYPE CERTIFICATE_ATTRIBUTE_TYPES[] = {
     CKA_ID, CKA_LABEL, CKA_CLASS, CKA_VALUE
 };

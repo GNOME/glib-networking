@@ -28,15 +28,11 @@
 #define __G_TLS_DATABASE_GNUTLS_H__
 
 #include <gio/gio.h>
+#include <gnutls/x509.h>
 
 #include "gtlscertificate-gnutls.h"
 
 G_BEGIN_DECLS
-
-typedef enum {
-  G_TLS_DATABASE_GNUTLS_PINNED_CERTIFICATE = 1,
-  G_TLS_DATABASE_GNUTLS_ANCHORED_CERTIFICATE = 2,
-} GTlsDatabaseGnutlsAssertion;
 
 #define G_TYPE_TLS_DATABASE_GNUTLS            (g_tls_database_gnutls_get_type ())
 
@@ -45,7 +41,15 @@ G_DECLARE_DERIVABLE_TYPE (GTlsDatabaseGnutls, g_tls_database_gnutls, G, TLS_DATA
 struct _GTlsDatabaseGnutlsClass
 {
   GTlsDatabaseClass parent_class;
+
+  gchar    *(*create_handle_for_certificate)  (GTlsDatabaseGnutls        *self,
+                                               GBytes                    *der);
+  gboolean  (*populate_trust_list)            (GTlsDatabaseGnutls        *self,
+                                               gnutls_x509_trust_list_t   trust_list,
+                                               GError                   **error);
 };
+
+GTlsDatabaseGnutls *g_tls_database_gnutls_new (GError **error);
 
 G_END_DECLS
 

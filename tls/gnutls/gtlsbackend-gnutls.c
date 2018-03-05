@@ -114,7 +114,7 @@ static GTlsDatabase*
 g_tls_backend_gnutls_real_create_database (GTlsBackendGnutls  *self,
                                            GError            **error)
 {
-  return g_tls_file_database_new (NULL, error);
+  return G_TLS_DATABASE (g_tls_database_gnutls_new (error));
 }
 
 static void
@@ -150,8 +150,7 @@ g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
       result = G_TLS_BACKEND_GNUTLS_GET_CLASS (self)->create_database (self, &error);
       if (error)
         {
-          g_warning ("couldn't load TLS file database: %s",
-                     error->message);
+          g_warning ("couldn't load TLS file database: %s", error->message);
           g_clear_error (&error);
         }
       else
