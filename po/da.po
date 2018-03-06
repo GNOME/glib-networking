@@ -1,18 +1,19 @@
 # Danish translation for glib-networking.
-# Copyright (C) 2011-2013, 2017 glib-networking's COPYRIGHT HOLDER
+# Copyright (C) 2018 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
 # Kris Thomsen <lakristho@gmail.com>, 2011.
 # Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-2013, 2017.
+# Joe Hansen (joedalton2@yahoo.dk), 2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2017-08-26 16:44+0000\n"
-"PO-Revision-Date: 2017-08-28 23:02+0200\n"
-"Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
+"POT-Creation-Date: 2018-02-13 03:00+0000\n"
+"PO-Revision-Date: 2018-03-03 23:02+0200\n"
+"Last-Translator: Joe Hansen (joedalton2@yahoo.dk)\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -20,104 +21,143 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: proxy/libproxy/glibproxyresolver.c:157
+#: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Intern fejl i proxy-opløser."
 
-#: tls/gnutls/gtlscertificate-gnutls.c:176
+#: tls/gnutls/gtlscertificate-gnutls.c:182
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Kunne ikke fortolke DER-certifikat: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:197
+#: tls/gnutls/gtlscertificate-gnutls.c:203
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Kunne ikke fortolke PEM-certifikat: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:228
+#: tls/gnutls/gtlscertificate-gnutls.c:234
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Kunne ikke fortolke privat nøgle for DER: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:259
+#: tls/gnutls/gtlscertificate-gnutls.c:265
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Kunne ikke fortolke privat nøgle for PEM: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:299
+#: tls/gnutls/gtlscertificate-gnutls.c:304
 msgid "No certificate data provided"
 msgstr "Ingen certifikatdata angivet"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:375
+#: tls/gnutls/gtlsclientconnection-gnutls.c:398
 msgid "Server required TLS certificate"
 msgstr "Server kræver et TLS-certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:310
+#: tls/gnutls/gtlsconnection-gnutls.c:392
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunne ikke oprette TLS-forbindelse: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:572
+#: tls/gnutls/gtlsconnection-gnutls.c:697
 msgid "Connection is closed"
 msgstr "Forbindelsen er lukket"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:645
-#: tls/gnutls/gtlsconnection-gnutls.c:1528
+#: tls/gnutls/gtlsconnection-gnutls.c:772
+#: tls/gnutls/gtlsconnection-gnutls.c:2184
 msgid "Operation would block"
 msgstr "Forbindelsen ville blokere"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:792
-#: tls/gnutls/gtlsconnection-gnutls.c:831
+#: tls/gnutls/gtlsconnection-gnutls.c:813
+#: tls/gnutls/gtlsconnection-gnutls.c:1400
+msgid "Socket I/O timed out"
+msgstr "Sokkel-I/O fik tidsudløb"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:952
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 msgid "Peer failed to perform TLS handshake"
 msgstr "Modpart mislykkedes i at udføre TLS-forhandling"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:810
+#: tls/gnutls/gtlsconnection-gnutls.c:970
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Modpart forspurgte illegalt TLS-genforhandling"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:837
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-forbindelse lukkede uventet ned"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:847
+#: tls/gnutls/gtlsconnection-gnutls.c:1001
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-modpart sendte ikke noget certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:853
+#: tls/gnutls/gtlsconnection-gnutls.c:1007
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Peer sendte fatal TLS-alarm: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1274
+#: tls/gnutls/gtlsconnection-gnutls.c:1015
 #, c-format
-msgid "Error performing TLS handshake: %s"
-msgstr "Fejl under udførsel af TLS-handshake: %s"
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Beskeden er for stor til en DTLS-forbindelse; maksimum er %u byte"
+msgstr[1] "Beskeden er for stor til en DTLS-forbindelse; maksimum er %u byte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1284
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
+msgid "The operation timed out"
+msgstr "Operationen fik tidsudløb"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1808
+#: tls/gnutls/gtlsconnection-gnutls.c:1859
+msgid "Error performing TLS handshake"
+msgstr "Der opstod en fejl under udførsel af TLS-forhandling"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1869
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serveren returnerede ikke et gyldigt TLS-certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1354
+#: tls/gnutls/gtlsconnection-gnutls.c:1946
 msgid "Unacceptable TLS certificate"
 msgstr "Uacceptabelt TLS-certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1562
-#, c-format
-msgid "Error reading data from TLS socket: %s"
-msgstr "Fejl under læsning af data fra TLS-sokkel: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2218
+#: tls/gnutls/gtlsconnection-gnutls.c:2310
+msgid "Error reading data from TLS socket"
+msgstr "Der opstod en fejl under læsning af data fra TLS-sokkel"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1591
+#: tls/gnutls/gtlsconnection-gnutls.c:2340
 #, c-format
-msgid "Error writing data to TLS socket: %s"
-msgstr "Fejl under skrivning af data til TLS-sokkel: %s"
+msgid "Receive flags are not supported"
+msgstr "Modtageflag er ikke understøttet"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1655
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:2417
+#: tls/gnutls/gtlsconnection-gnutls.c:2489
+msgid "Error writing data to TLS socket"
+msgstr "Der opstod en fejl under skrivning af data til TLS-sokkel"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2459
 #, c-format
-msgid "Error performing TLS close: %s"
-msgstr "Fejl under nedlukning af TLS: %s"
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "En besked med størrelsen %lu byte er for stor til en DTLS-forbindelse"
+msgstr[1] "En besked med størrelsen %lu byte er for stor til en DTLS-forbindelse"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:107
+#: tls/gnutls/gtlsconnection-gnutls.c:2461
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(maksimum er %u byte)"
+msgstr[1] "(maksimum er %u byte)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Sendflag er ikke understøttet"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2623
+msgid "Error performing TLS close"
+msgstr "Der opstod en fejl under nedlukning af TLS"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:111
 msgid "Certificate has no private key"
 msgstr "Certifikatet har ingen privat nøgle"
 
@@ -141,19 +181,19 @@ msgstr ""
 msgid "The PIN entered is incorrect."
 msgstr "Den indtastede PIN er forkert."
 
-#: tls/pkcs11/gpkcs11slot.c:449
+#: tls/pkcs11/gpkcs11slot.c:447
 msgid "Module"
 msgstr "Modul"
 
-#: tls/pkcs11/gpkcs11slot.c:450
+#: tls/pkcs11/gpkcs11slot.c:448
 msgid "PKCS#11 Module Pointer"
 msgstr "PKCS#11-modulpointer"
 
-#: tls/pkcs11/gpkcs11slot.c:457
+#: tls/pkcs11/gpkcs11slot.c:455
 msgid "Slot ID"
 msgstr "Plads-id"
 
-#: tls/pkcs11/gpkcs11slot.c:458
+#: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 plads-identifikation"
 
