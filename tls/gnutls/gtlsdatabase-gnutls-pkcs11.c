@@ -1044,7 +1044,7 @@ g_tls_database_gnutls_pkcs11_verify_chain (GTlsDatabase             *database,
 
   gerr = gnutls_x509_crt_list_verify (certs, certs_length,
                                       anchors, anchors_length,
-                                      NULL, 0, GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
+                                      NULL, 0, 0,
                                       &gnutls_result);
 
   g_free (certs);

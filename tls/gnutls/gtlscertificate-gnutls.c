@@ -349,8 +349,7 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
       ca = priv->cert;
       status = gnutls_x509_crt_list_verify (chain, num_certs,
                                             &ca, 1,
-                                            NULL, 0,
-                                            GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT,
+                                            NULL, 0, 0,
                                             &gnutls_flags);
       if (status != 0)
         {

@@ -252,8 +252,6 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
   gint unique_id;
 
   gnutls_certificate_allocate_credentials (&priv->creds);
-  gnutls_certificate_set_verify_flags (priv->creds,
-                                       GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT);
 
   priv->need_handshake = TRUE;
 
