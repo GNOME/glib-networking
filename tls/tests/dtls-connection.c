@@ -628,7 +628,7 @@ read_test_data_async (TestConnection *test)
 
       check = g_strdup (TEST_DATA);
       g_assert_cmpuint (strlen (check), ==, message.bytes_received);
-      g_assert (strncmp (check, (const char *) buf, message.bytes_received) == 0);
+      g_assert (strncmp (check, (const char *)buf, message.bytes_received) == 0);
       g_free (check);
     }
 

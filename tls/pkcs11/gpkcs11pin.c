@@ -95,7 +95,7 @@ g_pkcs11_pin_set_value (GTlsPassword  *password,
     }
 
   if (length < 0)
-    length = strlen ((gchar *) value);
+    length = strlen ((gchar *)value);
 
   self->pin = p11_kit_pin_new_for_buffer (value, length, destroy);
 }

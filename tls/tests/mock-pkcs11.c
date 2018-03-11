@@ -76,7 +76,7 @@ static GHashTable *the_objects = NULL;
 static void
 free_session (gpointer data)
 {
-  Session *sess = (Session*)data;
+  Session *sess = (Session *)data;
   if (sess)
     g_hash_table_destroy (sess->objects);
   g_free (sess);
@@ -557,12 +557,12 @@ mock_specific_args_C_InitToken (CK_SLOT_ID slotID,
 
   g_return_val_if_fail (pPin, CKR_PIN_INVALID);
   g_return_val_if_fail (strlen ("TEST PIN") == ulPinLen, CKR_PIN_INVALID);
-  g_return_val_if_fail (strncmp ((gchar*)pPin, "TEST PIN", ulPinLen) == 0, CKR_PIN_INVALID);
+  g_return_val_if_fail (strncmp ((gchar *)pPin, "TEST PIN", ulPinLen) == 0, CKR_PIN_INVALID);
   g_return_val_if_fail (pLabel != NULL, CKR_PIN_INVALID);
-  g_return_val_if_fail (strcmp ((gchar*)pPin, "TEST LABEL") == 0, CKR_PIN_INVALID);
+  g_return_val_if_fail (strcmp ((gchar *)pPin, "TEST LABEL") == 0, CKR_PIN_INVALID);
 
   g_free (the_pin);
-  the_pin = g_strndup ((gchar*)pPin, ulPinLen);
+  the_pin = g_strndup ((gchar *)pPin, ulPinLen);
   n_the_pin = ulPinLen;
   return CKR_OK;
 }
@@ -696,7 +696,7 @@ mock_C_InitPIN (CK_SESSION_HANDLE hSession, CK_UTF8CHAR_PTR pPin,
   g_return_val_if_fail (session, CKR_SESSION_HANDLE_INVALID);
 
   g_free (the_pin);
-  the_pin = g_strndup ((gchar*)pPin, ulPinLen);
+  the_pin = g_strndup ((gchar *)pPin, ulPinLen);
   n_the_pin = ulPinLen;
   return CKR_OK;
 }
@@ -714,12 +714,12 @@ mock_C_SetPIN (CK_SESSION_HANDLE hSession,
   session = g_hash_table_lookup (the_sessions, GUINT_TO_POINTER (hSession));
   g_return_val_if_fail (session, CKR_SESSION_HANDLE_INVALID);
 
-  old = g_strndup ((gchar*)pOldPin, ulOldLen);
+  old = g_strndup ((gchar *)pOldPin, ulOldLen);
   if (!old || !g_str_equal (old, the_pin))
     return CKR_PIN_INCORRECT;
 
   g_free (the_pin);
-  the_pin = g_strndup ((gchar*)pNewPin, ulNewLen);
+  the_pin = g_strndup ((gchar *)pNewPin, ulNewLen);
   n_the_pin = ulNewLen;
   return CKR_OK;
 }
@@ -764,7 +764,7 @@ mock_C_Login (CK_SESSION_HANDLE hSession,
 
   if (pPinLen != strlen (the_pin))
     return CKR_PIN_INCORRECT;
-  if (strncmp ((gchar*)pPin, the_pin, pPinLen) != 0)
+  if (strncmp ((gchar *)pPin, the_pin, pPinLen) != 0)
     return CKR_PIN_INCORRECT;
 
   if (userType == CKU_CONTEXT_SPECIFIC)

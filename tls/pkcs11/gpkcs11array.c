@@ -48,14 +48,14 @@ g_pkcs11_array_new (void)
   array->len = 0;
   array->ref_count = 1;
 
-  return (GPkcs11Array*) array;
+  return (GPkcs11Array *)array;
 }
 
 void
 g_pkcs11_array_add (GPkcs11Array *array,
                     CK_ATTRIBUTE *attr)
 {
-  GRealPkcs11Array *rarray = (GRealPkcs11Array*)array;
+  GRealPkcs11Array *rarray = (GRealPkcs11Array *)array;
 
   g_return_if_fail (array);
   g_return_if_fail (attr);
@@ -133,7 +133,7 @@ g_pkcs11_array_set (GPkcs11Array *array,
   g_return_if_fail (attr->ulValueLen != (CK_ATTRIBUTE_TYPE)-1 || !attr->pValue);
   g_return_if_fail (attr->pValue || !attr->ulValueLen);
 
-  previous = (CK_ATTRIBUTE*)g_pkcs11_array_find (array, attr->type);
+  previous = (CK_ATTRIBUTE *)g_pkcs11_array_find (array, attr->type);
   if (previous == NULL)
     {
       g_pkcs11_array_add (array, attr);
@@ -232,7 +232,7 @@ g_pkcs11_array_find_boolean (GPkcs11Array         *array,
   attr = g_pkcs11_array_find (array, type);
   if (!attr || !attr->pValue || attr->ulValueLen != sizeof (CK_BBOOL))
     return FALSE;
-  *value = *((CK_BBOOL*)attr->pValue) ? TRUE : FALSE;
+  *value = *((CK_BBOOL *)attr->pValue) ? TRUE : FALSE;
   return TRUE;
 }
 
@@ -249,14 +249,14 @@ g_pkcs11_array_find_ulong (GPkcs11Array         *array,
   attr = g_pkcs11_array_find (array, type);
   if (!attr || !attr->pValue || attr->ulValueLen != sizeof (CK_ULONG))
     return FALSE;
-  *value = *((CK_ULONG*)attr->pValue);
+  *value = *((CK_ULONG *)attr->pValue);
   return TRUE;
 }
 
 GPkcs11Array*
 g_pkcs11_array_ref (GPkcs11Array *array)
 {
-  GRealPkcs11Array *rarray = (GRealPkcs11Array*) array;
+  GRealPkcs11Array *rarray = (GRealPkcs11Array *)array;
 
   g_return_val_if_fail (array, NULL);
   g_return_val_if_fail (g_atomic_int_get (&rarray->ref_count) > 0, array);
@@ -267,7 +267,7 @@ g_pkcs11_array_ref (GPkcs11Array *array)
 void
 g_pkcs11_array_unref (GPkcs11Array *array)
 {
-  GRealPkcs11Array *rarray = (GRealPkcs11Array*) array;
+  GRealPkcs11Array *rarray = (GRealPkcs11Array *)array;
   CK_ULONG i;
 
   g_return_if_fail (array);

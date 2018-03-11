@@ -62,7 +62,7 @@ static void
 test_proxy_ignore (gpointer      fixture,
                    gconstpointer user_data)
 {
-  gchar *no_proxy = g_strjoinv (",", (gchar **) ignore_hosts);
+  gchar *no_proxy = g_strjoinv (",", (gchar **)ignore_hosts);
 
   g_setenv ("http_proxy", "http://localhost:8080", TRUE);
   g_setenv ("no_proxy", no_proxy, TRUE);

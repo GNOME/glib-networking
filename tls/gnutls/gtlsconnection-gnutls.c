@@ -1144,7 +1144,7 @@ gnutls_source_sync (GTlsConnectionGnutlsSource *gnutls_source)
   gboolean io_waiting, op_waiting;
 
   /* Was the source destroyed earlier in this main context iteration? */
-  if (g_source_is_destroyed ((GSource *) gnutls_source))
+  if (g_source_is_destroyed ((GSource *)gnutls_source))
     return;
 
   g_mutex_lock (&priv->op_mutex);
@@ -1197,7 +1197,7 @@ gnutls_source_dispatch (GSource     *source,
 {
   GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc) callback;
   GPollableSourceFunc pollable_func = (GPollableSourceFunc) callback;
-  GTlsConnectionGnutlsSource *gnutls_source = (GTlsConnectionGnutlsSource *) source;
+  GTlsConnectionGnutlsSource *gnutls_source = (GTlsConnectionGnutlsSource *)source;
   gboolean ret;
 
   if (G_IS_DATAGRAM_BASED (gnutls_source->base))
@@ -1564,7 +1564,7 @@ g_tls_connection_gnutls_vec_push_func (gnutls_transport_ptr_t  transport_data,
       G_STRUCT_OFFSET (GOutputVector, size))
     /* ABI is compatible */
     {
-      message.vectors = (GOutputVector *) iov;
+      message.vectors = (GOutputVector *)iov;
       message.num_vectors = iovcnt;
     }
   else
@@ -1575,7 +1575,7 @@ g_tls_connection_gnutls_vec_push_func (gnutls_transport_ptr_t  transport_data,
       message.vectors = g_newa (GOutputVector, iovcnt);
       for (i = 0; i < iovcnt; i++)
         {
-          message.vectors[i].buffer = (void *) iov[i].iov_base;
+          message.vectors[i].buffer = (void *)iov[i].iov_base;
           message.vectors[i].size = iov[i].iov_len;
         }
       message.num_vectors = iovcnt;
@@ -1781,7 +1781,7 @@ handshake_thread (GTask        *task,
   /* A timeout, in microseconds, must be provided as a gint64* task_data. */
   g_assert (task_data != NULL);
 
-  timeout = *((gint64 *) task_data);
+  timeout = *((gint64 *)task_data);
   start_time = g_get_monotonic_time ();
   priv->started_handshake = FALSE;
 
