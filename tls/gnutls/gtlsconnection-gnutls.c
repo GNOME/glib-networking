@@ -1882,6 +1882,11 @@ handshake_thread (GTask        *task,
         }
     }
 
+  /* This calls the finish_handshake code of GTlsClientConnectionGnutls
+   * or GTlsServerConnectionGnutls. It has nothing to do with
+   * GTlsConnenctionGnutls's own finish_handshake function, which still
+   * needs to be called at this point.
+   */
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->finish_handshake (gnutls, &error);
 
   if (error)
