@@ -317,7 +317,6 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
   guint num_certs, i;
   gnutls_x509_crt_t *chain;
   GTlsCertificateFlags gtls_flags;
-  time_t t, now;
 
   cert_gnutls = G_TLS_CERTIFICATE_GNUTLS (cert);
   num_certs = 0;
@@ -361,21 +360,6 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
     }
   else
     gtls_flags = 0;
-
-  /* We have to check these ourselves since gnutls_x509_crt_list_verify
-   * won't bother if it gets an UNKNOWN_CA.
-   */
-  now = time (NULL);
-  for (i = 0; i < num_certs; i++)
-    {
-      t = gnutls_x509_crt_get_activation_time (chain[i]);
-      if (t == (time_t) -1 || t > now)
-        gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
-
-      t = gnutls_x509_crt_get_expiration_time (chain[i]);
-      if (t == (time_t) -1 || t < now)
-        gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
-    }
 
   g_free (chain);
 
