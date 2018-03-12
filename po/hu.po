@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2017-11-03 18:26+0000\n"
-"PO-Revision-Date: 2018-01-21 22:02+0100\n"
+"POT-Creation-Date: 2018-03-07 02:14+0000\n"
+"PO-Revision-Date: 2018-03-12 07:50+0100\n"
 "Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
 "Language: hu\n"
@@ -20,151 +20,164 @@ msgstr ""
 "X-Generator: Lokalize 1.2\n"
 "Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 
-#: proxy/libproxy/glibproxyresolver.c:157
+#: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Proxyfeloldó belső hiba."
 
-#: tls/gnutls/gtlscertificate-gnutls.c:176
+#: tls/gnutls/gtlscertificate-gnutls.c:182
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "A DER tanúsítvány nem dolgozható fel: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:197
+#: tls/gnutls/gtlscertificate-gnutls.c:203
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "A PEM tanúsítvány nem dolgozható fel: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:228
+#: tls/gnutls/gtlscertificate-gnutls.c:234
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "A DER személyes kulcs nem dolgozható fel: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:259
+#: tls/gnutls/gtlscertificate-gnutls.c:265
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "A PEM személyes kulcs nem dolgozható fel: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:299
+#: tls/gnutls/gtlscertificate-gnutls.c:304
 msgid "No certificate data provided"
 msgstr "Nincsenek megadva tanúsítványadatok"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:396
+#: tls/gnutls/gtlsclientconnection-gnutls.c:421
 msgid "Server required TLS certificate"
 msgstr "A kiszolgáló TLS-tanúsítványt kért"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:382
+#: tls/gnutls/gtlsconnection-gnutls.c:398
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nem sikerült létrehozni TLS-kapcsolatot: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:677
+#: tls/gnutls/gtlsconnection-gnutls.c:711
+#: tls/gnutls/gtlsinputstream-gnutls.c:78
+#: tls/gnutls/gtlsinputstream-gnutls.c:141
+#: tls/gnutls/gtlsoutputstream-gnutls.c:78
+#: tls/gnutls/gtlsoutputstream-gnutls.c:143
 msgid "Connection is closed"
 msgstr "A kapcsolat lezárva"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:752
-#: tls/gnutls/gtlsconnection-gnutls.c:2152
+#: tls/gnutls/gtlsconnection-gnutls.c:786
+#: tls/gnutls/gtlsconnection-gnutls.c:2198
 msgid "Operation would block"
 msgstr "A művelet blokkoló lenne"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:793
-#: tls/gnutls/gtlsconnection-gnutls.c:1374
+#: tls/gnutls/gtlsconnection-gnutls.c:827
+#: tls/gnutls/gtlsconnection-gnutls.c:1414
 msgid "Socket I/O timed out"
 msgstr "A foglalat túllépte az I/O időkorlátot"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:927
 #: tls/gnutls/gtlsconnection-gnutls.c:966
+#: tls/gnutls/gtlsconnection-gnutls.c:999
 msgid "Peer failed to perform TLS handshake"
 msgstr "A partner nem tudta végrehajtani a TLS-kézfogást"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:945
+#: tls/gnutls/gtlsconnection-gnutls.c:984
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "A partner illegális ismételt TLS-kézfogást kért"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:972
+#: tls/gnutls/gtlsconnection-gnutls.c:1005
 msgid "TLS connection closed unexpectedly"
 msgstr "A TLS-kapcsolat váratlanul befejeződött"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/gnutls/gtlsconnection-gnutls.c:1015
 msgid "TLS connection peer did not send a certificate"
 msgstr "A TLS kapcsolat partner nem küldött tanúsítványt"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:988
+#: tls/gnutls/gtlsconnection-gnutls.c:1021
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "A partner végzetes TLS riasztást küldött: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:996
+#: tls/gnutls/gtlsconnection-gnutls.c:1029
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "Az üzenet túl nagy a DTLS kapcsolathoz; legfeljebb %u bájt lehet"
 msgstr[1] "Az üzenet túl nagy a DTLS kapcsolathoz; legfeljebb %u bájt lehet"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
+#: tls/gnutls/gtlsconnection-gnutls.c:1036
 msgid "The operation timed out"
 msgstr "A művelet túllépte az időkorlátot"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1780
-#: tls/gnutls/gtlsconnection-gnutls.c:1831
-#| msgid "Error performing TLS handshake: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:1822
+#: tls/gnutls/gtlsconnection-gnutls.c:1873
 msgid "Error performing TLS handshake"
 msgstr "Hiba a TLS-kézfogás végrehajtásakor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1841
+#: tls/gnutls/gtlsconnection-gnutls.c:1883
 msgid "Server did not return a valid TLS certificate"
 msgstr "A kiszolgáló nem adott vissza érvényes TLS-tanúsítványt"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1917
+#: tls/gnutls/gtlsconnection-gnutls.c:1960
 msgid "Unacceptable TLS certificate"
 msgstr "Elfogadhatatlan TLS-tanúsítvány"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2185
-#: tls/gnutls/gtlsconnection-gnutls.c:2276
-#| msgid "Error reading data from TLS socket: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2232
+#: tls/gnutls/gtlsconnection-gnutls.c:2324
 msgid "Error reading data from TLS socket"
 msgstr "Hiba az adatok olvasásakor a TLS-foglalatból"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2306
+#: tls/gnutls/gtlsconnection-gnutls.c:2354
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "A fogadási jelzők nem támogatottak"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2382
-#: tls/gnutls/gtlsconnection-gnutls.c:2453
-#| msgid "Error writing data to TLS socket: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2431
+#: tls/gnutls/gtlsconnection-gnutls.c:2503
 msgid "Error writing data to TLS socket"
 msgstr "Hiba az adatok TLS-foglalatba írásakor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2423
+#: tls/gnutls/gtlsconnection-gnutls.c:2473
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "A(z) %lu bájt méretű üzenet túl nagy a DTLS kapcsolathoz"
 msgstr[1] "A(z) %lu bájt méretű üzenet túl nagy a DTLS kapcsolathoz"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2425
+#: tls/gnutls/gtlsconnection-gnutls.c:2475
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(legfeljebb %u bájt)"
 msgstr[1] "(legfeljebb %u bájt)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2484
+#: tls/gnutls/gtlsconnection-gnutls.c:2534
 #, c-format
 msgid "Send flags are not supported"
 msgstr "A küldési jelzők nem támogatottak"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2584
-#| msgid "Error performing TLS close: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2637
 msgid "Error performing TLS close"
 msgstr "Hiba a TLS-lezárás végrehajtásakor"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:109
+#: tls/gnutls/gtlsdatabase-gnutls.c:553
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Nem sikerült betölteni a rendszer megbízhatósági tárát: a GnuTLS nem rendszer "
+"megbízhatósággal lett beállítva"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Nem sikerült betölteni a rendszer megbízhatósági tárát: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:113
 msgid "Certificate has no private key"
 msgstr "A tanúsítványnak nincs személyes kulcsa"
 
-#: tls/pkcs11/gpkcs11pin.c:110
+#: tls/pkcs11/gpkcs11pin.c:111
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
@@ -172,7 +185,7 @@ msgstr ""
 "Ez az utolsó lehetősége a helyes PIN megadására, mielőtt a jelsor zárolásra "
 "kerül."
 
-#: tls/pkcs11/gpkcs11pin.c:112
+#: tls/pkcs11/gpkcs11pin.c:113
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
@@ -180,23 +193,23 @@ msgstr ""
 "Több PiN-megadás sikertelen volt, és a további sikertelen próbálkozások után "
 "a jelsor zárolásra kerül."
 
-#: tls/pkcs11/gpkcs11pin.c:114
+#: tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
 msgstr "A megadott PIN helytelen."
 
-#: tls/pkcs11/gpkcs11slot.c:448
+#: tls/pkcs11/gpkcs11slot.c:447
 msgid "Module"
 msgstr "Modul"
 
-#: tls/pkcs11/gpkcs11slot.c:449
+#: tls/pkcs11/gpkcs11slot.c:448
 msgid "PKCS#11 Module Pointer"
 msgstr "PKCS#11 modulmutató"
 
-#: tls/pkcs11/gpkcs11slot.c:456
+#: tls/pkcs11/gpkcs11slot.c:455
 msgid "Slot ID"
 msgstr "Nyílásazonosító"
 
-#: tls/pkcs11/gpkcs11slot.c:457
+#: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 nyílásazonosító"
 
