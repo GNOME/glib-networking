@@ -9,15 +9,15 @@ msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-02-08 06:15+0000\n"
-"PO-Revision-Date: 2018-02-01 23:40+0100\n"
+"POT-Creation-Date: 2018-03-10 20:07+0000\n"
+"PO-Revision-Date: 2018-03-12 01:18+0100\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.5\n"
+"X-Generator: Poedit 2.0.6\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
@@ -137,8 +137,8 @@ msgstr "Fel vid skrivning av data till TLS-uttag"
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
-msgstr[0] "Meddelande med storleken %lu är för stort för DTLS-anslutning"
-msgstr[1] "Meddelande med storleken %lu är för stort för DTLS-anslutning"
+msgstr[0] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
+msgstr[1] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:2461
 #, c-format
