@@ -92,6 +92,7 @@ pkg = import('pkgconfig')
 po_dir = join_paths(meson.source_root(), 'po')
 
 top_inc = include_directories('.')
+tls_inc = include_directories('tls')
 
 subdir('po')
 
@@ -113,8 +114,6 @@ if enable_libproxy_support or enable_gnome_proxy_support
 endif
 
 if enable_pkcs11_support
-  tls_inc = include_directories('tls')
-
   subdir('tls/pkcs11')
 endif
 
