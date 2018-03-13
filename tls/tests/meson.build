@@ -1,4 +1,7 @@
-incs = [top_inc]
+incs = [
+  top_inc,
+  tls_inc
+]
 
 deps = [
   gio_dep,
@@ -25,8 +28,6 @@ test_programs = [
 ]
 
 if enable_pkcs11_support
-  incs += tls_inc
-
   pkcs11_deps = deps + [
     libgiopkcs11_dep,
     pkcs11_dep
