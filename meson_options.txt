@@ -4,4 +4,3 @@ option('ca_certificates_path', type: 'string', value: '', description: 'path to 
 option('pkcs11_support', type: 'boolean', value: true, description: 'support for PKCS#11 using p11-kit')
 option('installed_tests', type: 'boolean', value: false, description: 'enable installed tests')
 option('static_modules', type: 'boolean', value: false, description: 'build static modules')
-option('gio_module_dir', type: 'string', value: '', description: 'custom directory for GIO modules')
