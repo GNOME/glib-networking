@@ -57,6 +57,10 @@ struct _GTlsFileDatabaseOpenssl
 
 GType                        g_tls_file_database_openssl_get_type              (void) G_GNUC_CONST;
 
+GTlsCertificateFlags         g_tls_file_database_openssl_verify_ocsp_response  (GTlsDatabase    *database,
+                                                                                GTlsCertificate *chain,
+                                                                                OCSP_RESPONSE   *resp);
+
 G_END_DECLS
 
 #endif /* __G_TLS_FILE_DATABASE_OPENSSL_H___ */

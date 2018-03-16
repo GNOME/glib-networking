@@ -29,10 +29,15 @@
 #include <stdarg.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_OCSP)
+#include <openssl/ocsp.h>
+#endif
+
 
 #include "gtlsconnection-openssl.h"
 #include "gtlsbackend-openssl.h"
 #include "gtlscertificate-openssl.h"
+#include "gtlsfiledatabase-openssl.h"
 #include "gtlsbio.h"
 
 #include <glib/gi18n-lib.h>
@@ -271,6 +276,36 @@ get_peer_certificate (GTlsConnectionOpenssl *openssl)
 }
 
 static GTlsCertificateFlags
+verify_ocsp_response (GTlsConnectionOpenssl *openssl,
+                      GTlsDatabase          *database,
+                      GTlsCertificate       *peer_certificate)
+{
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
+  !defined(OPENSSL_NO_OCSP)
+  SSL *ssl = NULL;
+  OCSP_RESPONSE *resp = NULL;
+  long len = 0;
+  const unsigned char *p = NULL;
+
+  ssl = g_tls_connection_openssl_get_ssl (openssl);
+  len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
+  /* Soft fail in case of no response is the best we can do */
+  if (p == NULL)
+    return 0;
+
+  resp = d2i_OCSP_RESPONSE (NULL, &p, len);
+  if (resp == NULL)
+    return G_TLS_CERTIFICATE_GENERIC_ERROR;
+
+  return g_tls_file_database_openssl_verify_ocsp_response (database,
+                                                           peer_certificate,
+                                                           resp);
+#else
+  return 0;
+#endif
+}
+
+static GTlsCertificateFlags
 verify_peer_certificate (GTlsConnectionOpenssl *openssl,
                          GTlsCertificate       *peer_certificate)
 {
@@ -314,6 +349,9 @@ verify_peer_certificate (GTlsConnectionOpenssl *openssl,
           g_clear_error (&error);
         }
     }
+
+  if (is_client && (errors == 0))
+    errors = verify_ocsp_response (openssl, database, peer_certificate);
 
   return errors;
 }

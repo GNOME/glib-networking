@@ -466,6 +466,12 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 #endif
 
 static gboolean
+use_ocsp (void)
+{
+  return g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED") != NULL;
+}
+
+static gboolean
 g_tls_client_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
                                                GError         **error)
@@ -550,6 +556,12 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 #endif
 
   SSL_set_connect_state (priv->ssl);
+
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
+    !defined(OPENSSL_NO_OCSP)
+  if (use_ocsp())
+    SSL_set_tlsext_status_type (priv->ssl, TLSEXT_STATUSTYPE_ocsp);
+#endif
 
   if (!g_tls_client_connection_openssl_parent_initable_iface->
       init (initable, cancellable, error))

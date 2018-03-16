@@ -29,6 +29,9 @@
 #include <gio/gio.h>
 #include <glib/gi18n-lib.h>
 #include <openssl/ssl.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_OCSP)
+#include <openssl/ocsp.h>
+#endif
 
 typedef struct _GTlsFileDatabaseOpensslPrivate
 {
@@ -741,4 +744,111 @@ static void
 g_tls_file_database_openssl_initable_interface_init (GInitableIface *iface)
 {
   iface->init = g_tls_file_database_openssl_initable_init;
+}
+
+GTlsCertificateFlags
+g_tls_file_database_openssl_verify_ocsp_response (GTlsDatabase    *database,
+                                                  GTlsCertificate *chain,
+                                                  OCSP_RESPONSE   *resp)
+{
+  GTlsCertificateFlags errors = 0;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
+  !defined(OPENSSL_NO_OCSP)
+  GTlsFileDatabaseOpenssl *file_database;
+  GTlsFileDatabaseOpensslPrivate *priv;
+  STACK_OF(X509) *chain_openssl = NULL;
+  X509_STORE *store = NULL;
+  OCSP_BASICRESP *basic_resp = NULL;
+  int ocsp_status = 0;
+
+  ocsp_status = OCSP_response_status (resp);
+  if (ocsp_status != OCSP_RESPONSE_STATUS_SUCCESSFUL)
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  basic_resp = OCSP_response_get1_basic (resp);
+  if (basic_resp == NULL)
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  chain_openssl = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
+  file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
+  priv = g_tls_file_database_openssl_get_instance_private (file_database);
+  store = X509_STORE_new ();
+  if ((chain_openssl == NULL) ||
+      (file_database == NULL) ||
+      (priv == NULL) ||
+      (priv->trusted == NULL) ||
+      (store == NULL))
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  for (int i = 0; i < sk_X509_num (priv->trusted); i++)
+    {
+      X509_STORE_add_cert (store, sk_X509_value (priv->trusted, i));
+    }
+
+  if (OCSP_basic_verify (basic_resp, chain_openssl, store, 0) <= 0)
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  for (int i = 0; i < OCSP_resp_count (basic_resp); i++)
+    {
+      OCSP_SINGLERESP *single_resp = OCSP_resp_get0 (basic_resp, i);
+      ASN1_GENERALIZEDTIME *revocation_time = NULL;
+      ASN1_GENERALIZEDTIME *this_update_time = NULL;
+      ASN1_GENERALIZEDTIME *next_update_time = NULL;
+      int crl_reason = 0;
+      int cert_status = 0;
+
+      if (single_resp == NULL)
+        continue;
+
+      cert_status = OCSP_single_get0_status (single_resp,
+                                             &crl_reason,
+                                             &revocation_time,
+                                             &this_update_time,
+                                             &next_update_time);
+      if (!OCSP_check_validity (this_update_time,
+                                next_update_time,
+                                300L,
+                                -1L))
+        {
+          errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+          goto end;
+        }
+
+      switch (cert_status)
+        {
+        case V_OCSP_CERTSTATUS_GOOD:
+          break;
+        case V_OCSP_CERTSTATUS_REVOKED:
+          errors = G_TLS_CERTIFICATE_REVOKED;
+          goto end;
+        case V_OCSP_CERTSTATUS_UNKNOWN:
+          errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+          goto end;
+        }
+    }
+
+end:
+  if (store != NULL)
+    X509_STORE_free (store);
+
+  if (basic_resp != NULL)
+    OCSP_BASICRESP_free (basic_resp);
+
+  if (resp != NULL)
+    OCSP_RESPONSE_free (resp);
+
+#endif
+  return errors;
 }
