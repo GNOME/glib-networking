@@ -8,13 +8,14 @@ foreach program: proxy_test_programs
   test_conf.set('installed_tests_dir', installed_tests_execdir)
   test_conf.set('program', program[0])
 
-  configure_file(
-    input: test_template,
-    output: program[0] + '.test',
-    install: enable_installed_tests,
-    install_dir: installed_tests_metadir,
-    configuration: test_conf
-  )
+  if enable_installed_tests
+    configure_file(
+      input: test_template,
+      output: program[0] + '.test',
+      install_dir: installed_tests_metadir,
+      configuration: test_conf
+    )
+  endif
 
   exe = executable(
     program[0],
