@@ -1,154 +1,195 @@
 # Chinese (China) translation for glib-networking.
-# Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
+# Copyright (C) 2011-2018 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # Funda Wang <fundawang@gmail.com>, 2011
 # YunQiang Su <wzssyqa@gmail.com>, 2012.
+# Mingcong Bai <jeffbai@aosc.xyz>, 2017.
+# Dingzhong Chen <wsxy162@@gmail.com>, 2018.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"Project-Id-Version: glib-networking 2.56\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2013-12-18 19:40+0000\n"
-"PO-Revision-Date: 2014-01-24 21:26+0800\n"
-"Last-Translator: YunQiang Su <wzssyqa@gmail.com>\n"
-"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"POT-Creation-Date: 2018-02-28 13:29+0000\n"
+"PO-Revision-Date: 2018-03-03 17:04+0800\n"
+"Last-Translator: Dingzhong Chen <wsxy162@@gmail.com>\n"
+"Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bits\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Gtranslator 2.91.5\n"
+"X-Generator: Gtranslator 2.91.7\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:157
+#: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "代理服务器解析器内部错误。"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:173
+#: tls/gnutls/gtlscertificate-gnutls.c:182
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "无法分析 DER 证书：%s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:194
+#: tls/gnutls/gtlscertificate-gnutls.c:203
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "无法分析 PEM 证书：%s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:225
+#: tls/gnutls/gtlscertificate-gnutls.c:234
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "无法分析 DER 私钥：%s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:256
+#: tls/gnutls/gtlscertificate-gnutls.c:265
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "无法分析 PEM 私钥：%s"
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:296
+#: tls/gnutls/gtlscertificate-gnutls.c:304
 msgid "No certificate data provided"
 msgstr "没有提供证书数据"
 
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:324
+#: tls/gnutls/gtlsclientconnection-gnutls.c:398
 msgid "Server required TLS certificate"
 msgstr "服务器需要 TLS 证书"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:267
+#: tls/gnutls/gtlsconnection-gnutls.c:392
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "无法创建 TLS 连接：%s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:531
+#: tls/gnutls/gtlsconnection-gnutls.c:697
 msgid "Connection is closed"
 msgstr "连接被关闭"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:594
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1461
+#: tls/gnutls/gtlsconnection-gnutls.c:772
+#: tls/gnutls/gtlsconnection-gnutls.c:2184
 msgid "Operation would block"
 msgstr "操作被阻塞"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:733
-#: ../tls/gnutls/gtlsconnection-gnutls.c:772
+#: tls/gnutls/gtlsconnection-gnutls.c:813
+#: tls/gnutls/gtlsconnection-gnutls.c:1400
+msgid "Socket I/O timed out"
+msgstr "套接字 I/O 超时"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:952
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 msgid "Peer failed to perform TLS handshake"
 msgstr "执行 TLS 握手失败"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:751
+#: tls/gnutls/gtlsconnection-gnutls.c:970
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "请求了无效的 TLS 再握手"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:778
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS 连接被异常关闭"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:788
-#| msgid "Server did not return a valid TLS certificate"
+#: tls/gnutls/gtlsconnection-gnutls.c:1001
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS 连接的对方未发送证书"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1174
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1207
+#: tls/gnutls/gtlsconnection-gnutls.c:1007
 #, c-format
-msgid "Error performing TLS handshake: %s"
-msgstr "执行 TLS 握手时出错：%s"
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "对方发送了致命 TLS 警报：%s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1217
+#: tls/gnutls/gtlsconnection-gnutls.c:1015
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "消息对于 DTLS 连接太长；最大为 %u 字节"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
+msgid "The operation timed out"
+msgstr "操作超时"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1808
+#: tls/gnutls/gtlsconnection-gnutls.c:1859
+msgid "Error performing TLS handshake"
+msgstr "执行 TLS 握手时出错"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1869
 msgid "Server did not return a valid TLS certificate"
 msgstr "服务器未返回有效的 TLS 证书"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1292
+#: tls/gnutls/gtlsconnection-gnutls.c:1946
 msgid "Unacceptable TLS certificate"
 msgstr "无法接受的 TLS 证书"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1495
+#: tls/gnutls/gtlsconnection-gnutls.c:2218
+#: tls/gnutls/gtlsconnection-gnutls.c:2310
+msgid "Error reading data from TLS socket"
+msgstr "从 TLS 套接字读取数据时出错"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2340
 #, c-format
-msgid "Error reading data from TLS socket: %s"
-msgstr "从 TLS 套接字读取数据时出错：%s"
+msgid "Receive flags are not supported"
+msgstr "不支持接收标志"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1524
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:2417
+#: tls/gnutls/gtlsconnection-gnutls.c:2489
+msgid "Error writing data to TLS socket"
+msgstr "向 TLS 套接字写入数据时出错"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2459
 #, c-format
-msgid "Error writing data to TLS socket: %s"
-msgstr "向 TLS 套接字写入数据时出错：%s"
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "%lu 字节大小的消息对于 DTLS 连接太大了"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1568
-msgid "Connection is already closed"
-msgstr "连接已经关闭"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1578
+#: tls/gnutls/gtlsconnection-gnutls.c:2461
 #, c-format
-msgid "Error performing TLS close: %s"
-msgstr "执行 TLS 关闭时出错：%s"
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "（最大为 %u 字节）"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#, c-format
+msgid "Send flags are not supported"
+msgstr "不支持发送标志"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:2623
+msgid "Error performing TLS close"
+msgstr "执行 TLS 关闭时出错"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:111
 msgid "Certificate has no private key"
 msgstr "证书没有私钥"
 
-#: ../tls/pkcs11/gpkcs11pin.c:108
+#: tls/pkcs11/gpkcs11pin.c:111
 msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
 msgstr "这是最后一次输入正确 PIN 的机会，之后令牌会锁定。"
 
-#: ../tls/pkcs11/gpkcs11pin.c:110
+#: tls/pkcs11/gpkcs11pin.c:113
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
 msgstr "几次 PIN 尝试都不正确，如果再出错令牌将会锁定。"
 
-#: ../tls/pkcs11/gpkcs11pin.c:112
+#: tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
 msgstr "输入的 PIN 不正确。"
 
-#: ../tls/pkcs11/gpkcs11slot.c:446
+#: tls/pkcs11/gpkcs11slot.c:447
 msgid "Module"
 msgstr "模块"
 
-#: ../tls/pkcs11/gpkcs11slot.c:447
+#: tls/pkcs11/gpkcs11slot.c:448
 msgid "PKCS#11 Module Pointer"
 msgstr "PKCS#11 模块指针"
 
-#: ../tls/pkcs11/gpkcs11slot.c:454
+#: tls/pkcs11/gpkcs11slot.c:455
 msgid "Slot ID"
 msgstr "槽 ID"
 
-#: ../tls/pkcs11/gpkcs11slot.c:455
+#: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 槽标识符"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "连接已经关闭"
