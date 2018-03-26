@@ -29,6 +29,8 @@ sources = files(
 deps = [
   gio_dep,
   glib_dep,
+  gmodule_dep,
+  gobject_dep,
   libproxy_dep
 ]
 

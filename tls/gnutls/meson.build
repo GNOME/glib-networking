@@ -16,6 +16,8 @@ incs = [top_inc]
 deps = [
   gio_dep,
   glib_dep,
+  gmodule_dep,
+  gobject_dep,
   gnutls_dep
 ]
 

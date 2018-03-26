@@ -6,6 +6,8 @@ sources = files(
 deps = [
   gio_dep,
   glib_dep,
+  gmodule_dep,
+  gobject_dep,
   gsettings_desktop_schemas_dep
 ]
 

@@ -43,11 +43,23 @@ if host_machine.system().contains('linux')
 endif
 
 # *** Check GLib GIO        ***
-glib_dep = dependency('glib-2.0', version: '>= 2.55.1')
-gio_dep = dependency('gio-2.0')
+glib_dep = dependency('glib-2.0', version: '>= 2.55.1',
+  fallback: ['glib', 'libglib_dep'])
+gio_dep = dependency('gio-2.0',
+  fallback: ['glib', 'libgio_dep'])
+gobject_dep = dependency('gio-2.0',
+  fallback: ['glib', 'libgobject_dep'])
+gmodule_dep = dependency('gmodule-2.0',
+  fallback: ['glib', 'libgmodule_dep'])
 
-gio_module_dir = gio_dep.get_pkgconfig_variable('giomoduledir',
-                                                define_variable: ['libdir', libdir])
+if glib_dep.type_name() == 'internal'
+  glib_proj = subproject('glib')
+  gio_module_dir = glib_proj.get_variable('glib_giomodulesdir')
+else
+  gio_module_dir = gio_dep.get_pkgconfig_variable('giomoduledir',
+                                                  define_variable: ['libdir', libdir])
+endif
+
 assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 
 # *** Checks for LibProxy   ***

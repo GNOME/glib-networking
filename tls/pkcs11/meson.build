@@ -7,6 +7,9 @@ sources = files(
 
 deps = [
   glib_dep,
+  gio_dep,
+  gmodule_dep,
+  gobject_dep,
   pkcs11_dep
 ]
 
