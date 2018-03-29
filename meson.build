@@ -75,7 +75,7 @@ if enable_gnome_proxy_support
 endif
 
 # *** Checks for GnuTLS     ***
-gnutls_dep = dependency('gnutls', version: '>= 3.4', required: true)
+gnutls_dep = dependency('gnutls', version: '>= 3.4.6', required: true)
 
 # *** Checks for p11-kit  ***
 enable_pkcs11_support = get_option('pkcs11_support')
