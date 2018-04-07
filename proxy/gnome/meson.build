@@ -28,6 +28,7 @@ if get_option('static_modules')
     install: true,
     install_dir: gio_module_dir
   )
+  pkg.generate(module)
 endif
 
 proxy_test_programs += [['gnome', deps]]
