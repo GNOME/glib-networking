@@ -3,15 +3,15 @@
 # This file is distributed under the same license as the glib-openssl package.
 #
 # Klemen Košir <klemen.kosir@gmx.com>, 2011.
-# Matej Urbančič <mateju@svn.gnome.org>, + 2017
+# Matej Urbančič <mateju@svn.gnome.org>, + 2017–2018
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-openssl master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product=glib-"
 "openssl&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2017-02-23 07:59+0000\n"
-"PO-Revision-Date: 2017-05-04 08:25+0200\n"
+"POT-Creation-Date: 2018-03-20 07:49+0000\n"
+"PO-Revision-Date: 2018-04-10 22:00+0200\n"
 "Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 2.0.1\n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: tls/base/gtlsconnection-base.c:282
 msgid "Connection is closed"
@@ -59,65 +59,73 @@ msgstr "Zasebnega ključa PEM ni mogoče razčleniti: %s"
 msgid "No certificate data provided"
 msgstr "Podatki o potrdilu niso bili podani"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:434
-#: tls/openssl/gtlsserverconnection-openssl.c:228
+#: tls/openssl/gtlsclientconnection-openssl.c:492
+#: tls/openssl/gtlsserverconnection-openssl.c:293
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Povezave TLS ni mogoče ustvariti: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:472
-#: tls/openssl/gtlsserverconnection-openssl.c:296
+#: tls/openssl/gtlsclientconnection-openssl.c:543
+#: tls/openssl/gtlsserverconnection-openssl.c:402
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Povezave TLS ni mogoče ustvariti: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:149
+#: tls/openssl/gtlsconnection-openssl.c:155
 msgid "Peer failed to perform TLS handshake"
 msgstr "Soležniku ni uspelo izvesti izmenjave signalov TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:157
+#: tls/openssl/gtlsconnection-openssl.c:176
 msgid "TLS connection peer did not send a certificate"
 msgstr "Povezani soležnik ni vrnil veljavnega potrdila TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:212
-#: tls/openssl/gtlsconnection-openssl.c:308
+#: tls/openssl/gtlsconnection-openssl.c:184
+msgid "Digest too big for RSA key"
+msgstr "Povzetek je preobsežen za ključ RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:239
+msgid "Peer requested illegal TLS rehandshake"
+msgstr "Soležnik je zahteval nedovoljeno ponovno izmenjavo signalov TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:248
+#: tls/openssl/gtlsconnection-openssl.c:377
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Napaka med izvajanjem izmenjave signalov TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:318
+#: tls/openssl/gtlsconnection-openssl.c:387
 msgid "Server did not return a valid TLS certificate"
 msgstr "Strežnik ni vrnil veljavnega potrdila TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:348
+#: tls/openssl/gtlsconnection-openssl.c:417
 msgid "Unacceptable TLS certificate"
 msgstr "Nesprejemljivo potrdilo TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:432
+#: tls/openssl/gtlsconnection-openssl.c:501
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Napaka med branjem podatkov iz vtiča TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:458
+#: tls/openssl/gtlsconnection-openssl.c:527
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Napaka med zapisovanjem podatkov v vtič TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:484
+#: tls/openssl/gtlsconnection-openssl.c:553
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Napaka med izvajanjem zapiranja TLS: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:250
+#: tls/openssl/gtlsserverconnection-openssl.c:329
 msgid "Certificate has no private key"
 msgstr "Potrdilo nima določenega zasebnega ključa"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:257
+#: tls/openssl/gtlsserverconnection-openssl.c:336
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Z zasebnim ključem potrdila so težave: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:266
+#: tls/openssl/gtlsserverconnection-openssl.c:345
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "S potrdilom so težave: %s"
@@ -125,20 +133,25 @@ msgstr "S potrdilom so težave: %s"
 #~ msgid "Proxy resolver internal error."
 #~ msgstr "Notranja napaka razreševalnika posredniškega strežnika."
 
-#~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr "Soležnik je zahteval nedovoljeno ponovno izmenjavo signalov TLS"
-
 #~ msgid "TLS connection closed unexpectedly"
 #~ msgstr "Povezava TLS se je nepričakovano zaprla"
 
 #~ msgid "Connection is already closed"
 #~ msgstr "Povezava je že zaprta"
 
-#~ msgid "This is the last chance to enter the PIN correctly before the token is locked."
-#~ msgstr "To je zadnja priložnost za pravilen vnos gesla PIN, preden se dostop popolnoma zaklene."
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "To je zadnja priložnost za pravilen vnos gesla PIN, preden se dostop "
+#~ "popolnoma zaklene."
 
-#~ msgid "Several PIN attempts have been incorrect, and the token will be locked after further failures."
-#~ msgstr "Več poskusov vnosa gesla PIN je bilo neuspešnih. Vnos bo ob ponovni napaki popolnoma zakljenjen."
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "Več poskusov vnosa gesla PIN je bilo neuspešnih. Vnos bo ob ponovni "
+#~ "napaki popolnoma zakljenjen."
 
 #~ msgid "The PIN entered is incorrect."
 #~ msgstr "Vneseno geslo PIN je nepravilno."
