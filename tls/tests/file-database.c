@@ -333,6 +333,7 @@ test_verify_with_incorrect_root_in_chain (void)
                                         identity, NULL, 0, NULL, &error);
   g_assert_no_error (error);
   errors &= ~G_TLS_CERTIFICATE_EXPIRED; /* so that this test doesn't expire */
+  errors &= ~G_TLS_CERTIFICATE_INSECURE; /* allow MD2 */
   g_assert_cmpuint (errors, ==, 0);
 
   g_object_unref (chain);
