@@ -82,9 +82,6 @@ main (int   argc,
   g_unsetenv ("DESKTOP_SESSION");
   g_unsetenv ("KDE_FULL_SESSION");
 
-  /* Use the just-built libproxy module */
-  g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/proxy/libproxy/.libs", TRUE);
-
   g_test_add_vtable ("/proxy/libproxy/uri", 0, NULL,
                      reset_proxy_settings, test_proxy_uri, NULL);
   g_test_add_vtable ("/proxy/libproxy/socks", 0, NULL,

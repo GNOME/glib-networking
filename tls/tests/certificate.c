@@ -559,7 +559,6 @@ main (int   argc,
   g_test_init (&argc, &argv, NULL);
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
-  g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/tls/gnutls/.libs", TRUE);
   g_setenv ("GIO_USE_TLS", "gnutls", TRUE);
 
   g_test_add ("/tls/certificate/create-pem", TestCertificate, NULL,

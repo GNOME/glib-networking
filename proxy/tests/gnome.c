@@ -160,7 +160,6 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_setenv ("GIO_EXTRA_MODULES", TOP_BUILDDIR "/proxy/gnome/.libs", TRUE);
   g_setenv ("GIO_USE_PROXY_RESOLVER", "gnome", TRUE);
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("XDG_CURRENT_DESKTOP", "GNOME", TRUE);
