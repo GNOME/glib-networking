@@ -32,7 +32,7 @@
 #include <glib.h>
 #include <glib/gi18n-lib.h>
 
-struct _GLibProxyResolver {
+struct _GLibproxyResolver {
   GObject parent_instance;
   pxProxyFactory *factory;
 };
@@ -41,17 +41,17 @@ static void g_libproxy_resolver_iface_init (GProxyResolverInterface *iface);
 
 #ifdef GLIBPROXY_MODULE
 static void
-g_libproxy_resolver_class_finalize (GLibProxyResolverClass *klass)
+g_libproxy_resolver_class_finalize (GLibproxyResolverClass *klass)
 {
 }
 
-G_DEFINE_DYNAMIC_TYPE_EXTENDED (GLibProxyResolver,
+G_DEFINE_DYNAMIC_TYPE_EXTENDED (GLibproxyResolver,
                                 g_libproxy_resolver,
                                 G_TYPE_OBJECT, 0,
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
                                                                g_libproxy_resolver_iface_init))
 #else
-G_DEFINE_TYPE_EXTENDED (GLibProxyResolver,
+G_DEFINE_TYPE_EXTENDED (GLibproxyResolver,
                         g_libproxy_resolver,
                         G_TYPE_OBJECT, 0,
                         G_IMPLEMENT_INTERFACE (G_TYPE_PROXY_RESOLVER,
@@ -61,7 +61,7 @@ G_DEFINE_TYPE_EXTENDED (GLibProxyResolver,
 static void
 g_libproxy_resolver_finalize (GObject *object)
 {
-  GLibProxyResolver *resolver = G_LIBPROXY_RESOLVER (object);
+  GLibproxyResolver *resolver = G_LIBPROXY_RESOLVER (object);
   
   if (resolver->factory)
     {
@@ -74,7 +74,7 @@ g_libproxy_resolver_finalize (GObject *object)
 }
 
 static void
-g_libproxy_resolver_init (GLibProxyResolver *resolver)
+g_libproxy_resolver_init (GLibproxyResolver *resolver)
 {
   resolver->factory = px_proxy_factory_new ();
 }
@@ -82,7 +82,7 @@ g_libproxy_resolver_init (GLibProxyResolver *resolver)
 static gboolean
 g_libproxy_resolver_is_supported (GProxyResolver *object)
 {
-  GLibProxyResolver *resolver = G_LIBPROXY_RESOLVER (object);
+  GLibproxyResolver *resolver = G_LIBPROXY_RESOLVER (object);
   return resolver->factory != NULL;
 }
 
@@ -136,7 +136,7 @@ get_libproxy_proxies (GTask        *task,
                       gpointer      task_data,
                       GCancellable *cancellable)
 {
-  GLibProxyResolver *resolver = source_object;
+  GLibproxyResolver *resolver = source_object;
   const gchar *uri = task_data;
   GError *error = NULL;
   gchar **proxies;
@@ -167,7 +167,7 @@ g_libproxy_resolver_lookup (GProxyResolver  *iresolver,
                             GCancellable    *cancellable,
                             GError         **error)
 {
-  GLibProxyResolver *resolver = G_LIBPROXY_RESOLVER (iresolver);
+  GLibproxyResolver *resolver = G_LIBPROXY_RESOLVER (iresolver);
   GTask *task;
   gchar **proxies;
 
@@ -211,7 +211,7 @@ g_libproxy_resolver_lookup_finish (GProxyResolver     *resolver,
 }
 
 static void
-g_libproxy_resolver_class_init (GLibProxyResolverClass *resolver_class)
+g_libproxy_resolver_class_init (GLibproxyResolverClass *resolver_class)
 {
   GObjectClass *object_class;
   

@@ -31,7 +31,7 @@ G_BEGIN_DECLS
 
 #define G_TYPE_LIBPROXY_RESOLVER         (g_libproxy_resolver_get_type ())
 
-G_DECLARE_FINAL_TYPE (GLibProxyResolver, g_libproxy_resolver, G, LIBPROXY_RESOLVER, GObject)
+G_DECLARE_FINAL_TYPE (GLibproxyResolver, g_libproxy_resolver, G, LIBPROXY_RESOLVER, GObject)
 
 void  g_libproxy_resolver_register (GIOModule *module);
 
