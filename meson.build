@@ -57,7 +57,7 @@ if glib_dep.type_name() == 'internal'
   gio_module_dir = glib_proj.get_variable('glib_giomodulesdir')
 else
   gio_module_dir = gio_dep.get_pkgconfig_variable('giomoduledir',
-                                                  define_variable: ['libdir', libdir])
+                                                  define_variable: ['prefix', prefix])
 endif
 
 assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
