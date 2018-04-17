@@ -1,3 +1,24 @@
+2.57.1 - April 16, 2018
+=======================
+
+- Use GnuTLS system trust and remove build option to specify cert bundle (#753260)
+- Fix criticals when child streams outlast the parent GTlsConnection (#792219)
+- Fix crash when setting client cert without private key (#793712)
+- Update tests for compatibility with GnuTLS 3.6.2 (#794286)
+- Never install GIO modules outside build prefix (#794358)
+- Don't install test files if installed tests are disabled (#794372)
+- Fix build with -Dpkcs11=false (#794292, Tom Schoonjans)
+- Allow building as meson subproject (#794709, Mathieu Duponchelle)
+
+- g_tls_certificate_verify() no longer manually verifies certificate
+  activation/expiration time, matching the current behavior of
+  g_tls_database_verify_chain().
+
+2.56.0 - March 20, 2018
+=======================
+
+- Updated translations
+
 2.55.90 - February 12, 2018
 ===========================
 
