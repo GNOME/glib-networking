@@ -1567,14 +1567,8 @@ check_gnutls_has_rehandshaking_bug (void)
 {
   const char *version = gnutls_check_version (NULL);
 
-  return (!strcmp (version, "3.1.27") ||
-          !strcmp (version, "3.1.28") ||
-          !strcmp (version, "3.2.19") ||
-          !strcmp (version, "3.3.8") ||
-          !strcmp (version, "3.3.9") ||
-          !strcmp (version, "3.3.10") ||
-          !strcmp (version, "3.6.1") ||
-          !strcmp (version, "3.6.2"));
+  return !strcmp (version, "3.6.1") ||
+         !strcmp (version, "3.6.2");
 }
 
 static void
@@ -1583,7 +1577,7 @@ test_simultaneous_async_rehandshake (TestConnection *test,
 {
   if (check_gnutls_has_rehandshaking_bug ())
     {
-      g_test_skip ("test would fail due to https://bugzilla.gnome.org/show_bug.cgi?id=794286#c13");
+      g_test_skip ("test would fail due to https://gitlab.com/gnutls/gnutls/issues/426");
       return;
     }
 
@@ -1683,7 +1677,7 @@ test_simultaneous_sync_rehandshake (TestConnection *test,
 {
   if (check_gnutls_has_rehandshaking_bug ())
     {
-      g_test_skip ("test would fail due to https://bugzilla.gnome.org/show_bug.cgi?id=794286#c13");
+      g_test_skip ("test would fail due to https://gitlab.com/gnutls/gnutls/issues/426");
       return;
     }
 
