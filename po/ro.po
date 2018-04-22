@@ -7,8 +7,8 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-02-13 03:00+0000\n"
-"PO-Revision-Date: 2018-04-14 20:07+0300\n"
+"POT-Creation-Date: 2018-04-18 18:32+0000\n"
+"PO-Revision-Date: 2018-04-19 23:53+0300\n"
 "Last-Translator: Florentina Mușat <florentina.musat.28@gmail.com>\n"
 "Language-Team: Romanian Gnome Team <gnomero-list@lists.sourceforge.net>\n"
 "Language: ro\n"
@@ -47,54 +47,58 @@ msgstr "Nu s-a putut parsa cheia privată PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nu s-au furnizat date de certificat"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:398
+#: tls/gnutls/gtlsclientconnection-gnutls.c:421
 msgid "Server required TLS certificate"
 msgstr "Serverul necesită certificat TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:392
+#: tls/gnutls/gtlsconnection-gnutls.c:396
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nu s-a putut crea conexiunea TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:697
+#: tls/gnutls/gtlsconnection-gnutls.c:709
+#: tls/gnutls/gtlsinputstream-gnutls.c:78
+#: tls/gnutls/gtlsinputstream-gnutls.c:141
+#: tls/gnutls/gtlsoutputstream-gnutls.c:78
+#: tls/gnutls/gtlsoutputstream-gnutls.c:143
 msgid "Connection is closed"
 msgstr "Conexiunea este închisă"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:772
-#: tls/gnutls/gtlsconnection-gnutls.c:2184
+#: tls/gnutls/gtlsconnection-gnutls.c:784
+#: tls/gnutls/gtlsconnection-gnutls.c:2201
 msgid "Operation would block"
 msgstr "Operația ar bloca"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:813
-#: tls/gnutls/gtlsconnection-gnutls.c:1400
+#: tls/gnutls/gtlsconnection-gnutls.c:825
+#: tls/gnutls/gtlsconnection-gnutls.c:1412
 msgid "Socket I/O timed out"
 msgstr "I/O de soclu a depășit limita de timp"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:952
-#: tls/gnutls/gtlsconnection-gnutls.c:985
+#: tls/gnutls/gtlsconnection-gnutls.c:964
+#: tls/gnutls/gtlsconnection-gnutls.c:997
 msgid "Peer failed to perform TLS handshake"
 msgstr "Celălalt capăt al conexiunii nu a reușit să efectueze handshake-ul TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:970
+#: tls/gnutls/gtlsconnection-gnutls.c:982
 msgid "Peer requested illegal TLS rehandshake"
 msgstr ""
 "Celălalt capăt al conexiunii a solicitat ilegal reefectuarea handshake-ului "
 "TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:991
+#: tls/gnutls/gtlsconnection-gnutls.c:1003
 msgid "TLS connection closed unexpectedly"
 msgstr "Conexiunea TLS a fost închisă în mod neașteptat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1001
+#: tls/gnutls/gtlsconnection-gnutls.c:1013
 msgid "TLS connection peer did not send a certificate"
 msgstr "Partenerul conexiunii TLS nu a trimis un certificat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1019
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Partenerul a trimis o alertă TLS fatală: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1015
+#: tls/gnutls/gtlsconnection-gnutls.c:1027
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -103,40 +107,40 @@ msgstr[1] "Mesajul este prea mare pentru conexiunea DTLS; maxim este %u octeți"
 msgstr[2] ""
 "Mesajul este prea mare pentru conexiunea DTLS; maxim este %u de octeți"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1022
+#: tls/gnutls/gtlsconnection-gnutls.c:1034
 msgid "The operation timed out"
 msgstr "Operația a depășit limita de timp"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1808
-#: tls/gnutls/gtlsconnection-gnutls.c:1859
+#: tls/gnutls/gtlsconnection-gnutls.c:1820
+#: tls/gnutls/gtlsconnection-gnutls.c:1871
 msgid "Error performing TLS handshake"
 msgstr "Eroare la executarea handshake-ului TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1869
+#: tls/gnutls/gtlsconnection-gnutls.c:1881
 msgid "Server did not return a valid TLS certificate"
 msgstr "Serverul nu a întors un certificat TLS valid"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1946
+#: tls/gnutls/gtlsconnection-gnutls.c:1963
 msgid "Unacceptable TLS certificate"
 msgstr "Certificat TLS inacceptabil"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2218
-#: tls/gnutls/gtlsconnection-gnutls.c:2310
+#: tls/gnutls/gtlsconnection-gnutls.c:2235
+#: tls/gnutls/gtlsconnection-gnutls.c:2327
 msgid "Error reading data from TLS socket"
 msgstr "Eroare la citirea datelor de la soclul TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2340
+#: tls/gnutls/gtlsconnection-gnutls.c:2357
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Fanioanele de primire nu sunt suportate"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2417
-#: tls/gnutls/gtlsconnection-gnutls.c:2489
+#: tls/gnutls/gtlsconnection-gnutls.c:2434
+#: tls/gnutls/gtlsconnection-gnutls.c:2506
 msgid "Error writing data to TLS socket"
 msgstr "Eroare la scrierea datelor la soclul TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2459
+#: tls/gnutls/gtlsconnection-gnutls.c:2476
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -147,7 +151,7 @@ msgstr[1] ""
 msgstr[2] ""
 "Mesajul de dimensiunea %lu de octeți este prea mare pentru conexiunea DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2461
+#: tls/gnutls/gtlsconnection-gnutls.c:2478
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -155,16 +159,29 @@ msgstr[0] "(maxim este %u octet)"
 msgstr[1] "(maxim este %u octeți)"
 msgstr[2] "(maxim este %u de octeți)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#: tls/gnutls/gtlsconnection-gnutls.c:2537
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Trimite fanioanele care nu sunt suportate"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2623
+#: tls/gnutls/gtlsconnection-gnutls.c:2640
 msgid "Error performing TLS close"
 msgstr "Eroare la executarea închiderii TLS"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:111
+#: tls/gnutls/gtlsdatabase-gnutls.c:553
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Nu s-a putut încărca stocarea de încredere a sistemului: GnuTLS nu a fost "
+"configurat cu o încredere de sistem"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Nu s-a putut încărca stocarea de încredere a sistemului: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:113
 msgid "Certificate has no private key"
 msgstr "Certificatul nu are nicio cheie privată"
 
