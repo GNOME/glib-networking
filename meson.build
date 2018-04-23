@@ -2,7 +2,7 @@ project(
   'glib-networking', 'c',
   version: '2.57.1',
   license: 'LGPL2.1+',
-  meson_version: '>= 0.43.0',
+  meson_version: '>= 0.46.0',
   default_options: ['c_std=c11']
 )
 
@@ -38,8 +38,7 @@ module_ldflags = []
 
 if host_machine.system().contains('linux')
   test_ldflag = '-Wl,--version-script,' + symbol_map
-
-  module_ldflags += cc.get_supported_arguments(test_ldflag)
+  module_ldflags += cc.get_supported_link_arguments(test_ldflag)
 endif
 
 # *** Check GLib GIO        ***
