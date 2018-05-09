@@ -85,6 +85,12 @@ if enable_pkcs11_support
                description: 'Building with PKCS#11 support')
 endif
 
+libintl_dep = cc.find_library('intl', required : false)
+if not libintl_dep.found() and host_machine.system() == 'windows'
+  # Used only when the gettext library is not available (MSVC, not MinGW)
+  libintl_dep = subproject('proxy-libintl').get_variable('intl_dep')
+endif
+
 configure_file(
   output: 'config.h',
   configuration: config_h
