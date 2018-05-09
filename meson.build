@@ -131,7 +131,11 @@ endif
 subdir('tls/gnutls')
 subdir('tls/tests')
 
-meson.add_install_script('meson_post_install.py', gio_module_dir)
+# Will automatically pick it up from the cross file if defined
+gio_querymodules = find_program('gio-querymodules', required : false)
+if gio_querymodules.found()
+  meson.add_install_script('meson_post_install.py', gio_querymodules.path(), gio_module_dir)
+endif
 
 output = '\n\n  libproxy support:    ' + enable_libproxy_support.to_string() + '\n'
 output += '  GNOME proxy support: ' + enable_gnome_proxy_support.to_string() + '\n'
