@@ -18,8 +18,7 @@ deps = [
   glib_dep,
   gmodule_dep,
   gobject_dep,
-  gnutls_dep,
-  libintl_dep,
+  gnutls_dep
 ]
 
 if enable_pkcs11_support
