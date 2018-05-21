@@ -10,8 +10,8 @@ glib = dependency('glib-2.0', version: '>=' + glib_req)
 gobject = dependency('gobject-2.0', version: '>=' + glib_req)
 gio = dependency('gio-2.0', version: '>=' + glib_req)
 
-gio_module_dir = gio_dep.get_pkgconfig_variable('giomoduledir',
-                                                define_variable: ['libdir', libdir])
+gio_module_dir = gio.get_pkgconfig_variable('giomoduledir',
+                                            define_variable: ['libdir', get_option('libdir')])
 assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 
 gio_querymodules = find_program('gio-querymodules')
