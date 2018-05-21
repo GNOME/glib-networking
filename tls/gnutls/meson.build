@@ -40,6 +40,7 @@ module = shared_module(
   dependencies: deps,
   link_args: module_ldflags,
   link_depends: symbol_map,
+  name_suffix: module_suffix,
   install: true,
   install_dir: gio_module_dir
 )

@@ -42,6 +42,7 @@ module = shared_module(
   c_args: '-DGLIBPROXY_MODULE',
   link_args: module_ldflags,
   link_depends: symbol_map,
+  name_suffix: module_suffix,
   install: true,
   install_dir: gio_module_dir
 )

@@ -16,6 +16,7 @@ installed_tests_metadir = join_paths(datadir, 'installed-tests', meson.project_n
 installed_tests_execdir = join_paths(libexecdir, 'installed-tests', meson.project_name())
 
 cc = meson.get_compiler('c')
+host_system = host_machine.system()
 
 config_h = configuration_data()
 
@@ -36,7 +37,7 @@ symbol_map = join_paths(meson.current_source_dir(), meson.project_name() + '.map
 
 module_ldflags = []
 
-if host_machine.system().contains('linux')
+if host_system.contains('linux')
   test_ldflag = '-Wl,--version-script,' + symbol_map
   module_ldflags += cc.get_supported_link_arguments(test_ldflag)
 endif
@@ -103,6 +104,13 @@ subdir('po')
 
 enable_installed_tests = get_option('installed_tests')
 test_template = files('template.test.in')
+
+module_suffix = ''
+# Keep the autotools convention for shared module suffix because GModule
+# depends on it: https://gitlab.gnome.org/GNOME/glib/issues/520
+if ['darwin', 'ios'].contains(host_system)
+  module_suffix = 'so'
+endif
 
 if enable_libproxy_support or enable_gnome_proxy_support
   proxy_test_programs = []
