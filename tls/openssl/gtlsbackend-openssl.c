@@ -186,22 +186,31 @@ g_tls_backend_openssl_real_create_database (GTlsBackendOpenssl  *self,
   GTlsDatabase *database;
 
 #ifdef G_OS_WIN32
-  gchar *module_dir;
-  gchar *cert_path;
+  if (g_getenv ("G_TLS_OPENSSL_HANDLE_CERT_RELOCATABLE") != NULL)
+    {
+      gchar *module_dir;
 
-  module_dir = g_win32_get_package_installation_directory_of_module (NULL);
-  cert_path = g_build_filename (module_dir, "bin", "cert.pem", NULL);
-  g_free (module_dir);
-
-  if (g_file_test (cert_path, G_FILE_TEST_IS_REGULAR))
-    anchor_file = cert_path;
-  else
-    g_free (cert_path);
-#else
-# ifdef GTLS_SYSTEM_CA_FILE
-  anchor_file = g_strdup (GTLS_SYSTEM_CA_FILE);
-# endif
+      module_dir = g_win32_get_package_installation_directory_of_module (NULL);
+      anchor_file = g_build_filename (module_dir, "bin", "cert.pem", NULL);
+      g_free (module_dir);
+    }
 #endif
+
+#ifdef GTLS_SYSTEM_CA_FILE
+  if (anchor_file == NULL)
+    anchor_file = g_strdup (GTLS_SYSTEM_CA_FILE);
+#endif
+
+  if (anchor_file == NULL)
+    {
+      const gchar *openssl_cert_file;
+
+      openssl_cert_file = g_getenv (X509_get_default_cert_file_env ());
+      if (openssl_cert_file == NULL)
+        openssl_cert_file = X509_get_default_cert_file ();
+
+      anchor_file = g_strdup (openssl_cert_file);
+    }
 
   database = g_tls_file_database_new (anchor_file, error);
   g_free (anchor_file);
