@@ -28,7 +28,7 @@
 #include <gio/gio.h>
 
 #include "gtlsconnection-base.h"
-#include <openssl/ssl.h>
+#include "openssl-include.h"
 
 G_BEGIN_DECLS
 

@@ -64,7 +64,7 @@
 #ifndef __G_TLS_OPENSSL_UTIL_H__
 #define __G_TLS_OPENSSL_UTIL_H__
 
-#include <openssl/x509.h>
+#include "openssl-include.h"
 
 /*
  * Always check subject name for host match even if subject alt names present

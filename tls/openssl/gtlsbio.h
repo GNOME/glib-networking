@@ -26,7 +26,7 @@
 #define __G_TLS_BIO_H__
 
 #include <gio/gio.h>
-#include <openssl/bio.h>
+#include "openssl-include.h"
 
 G_BEGIN_DECLS
 

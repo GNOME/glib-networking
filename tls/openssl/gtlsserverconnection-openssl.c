@@ -27,8 +27,7 @@
 #include "gtlsserverconnection-openssl.h"
 #include "gtlscertificate-openssl.h"
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include "openssl-include.h"
 #include <glib/gi18n-lib.h>
 
 typedef struct _GTlsServerConnectionOpensslPrivate

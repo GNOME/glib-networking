@@ -22,6 +22,7 @@ libgioopenssl_la_SOURCES = 		\
 	gtlsbio.c			\
 	openssl-util.h			\
 	openssl-util.c			\
+	openssl-include.h			\
 	$(NULL)
 
 AM_CPPFLAGS +=				\

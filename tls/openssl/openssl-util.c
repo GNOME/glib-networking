@@ -65,7 +65,7 @@
 
 #include "openssl-util.h"
 #include <string.h>
-#include <openssl/x509v3.h>
+#include "openssl-include.h"
 
 #ifdef _MSC_VER
 #define strncasecmp _strnicmp

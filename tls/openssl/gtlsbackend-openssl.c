@@ -28,8 +28,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include <openssl/ssl.h>
-#include <openssl/crypto.h>
+#include "openssl-include.h"
 
 #include "gtlsbackend-openssl.h"
 #include "gtlscertificate-openssl.h"

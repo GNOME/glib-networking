@@ -28,10 +28,7 @@
 
 #include <gio/gio.h>
 #include <glib/gi18n-lib.h>
-#include <openssl/ssl.h>
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_OCSP)
-#include <openssl/ocsp.h>
-#endif
+#include "openssl-include.h"
 
 typedef struct _GTlsFileDatabaseOpensslPrivate
 {

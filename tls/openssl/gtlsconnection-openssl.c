@@ -27,12 +27,7 @@
 
 #include <errno.h>
 #include <stdarg.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_OCSP)
-#include <openssl/ocsp.h>
-#endif
-
+#include "openssl-include.h"
 
 #include "gtlsconnection-openssl.h"
 #include "gtlsbackend-openssl.h"

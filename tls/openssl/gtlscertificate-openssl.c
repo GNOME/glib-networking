@@ -25,9 +25,7 @@
 #include "config.h"
 
 #include <string.h>
-#include <openssl/err.h>
-#include <openssl/x509.h>
-#include <openssl/x509_vfy.h>
+#include "openssl-include.h"
 
 #include "gtlscertificate-openssl.h"
 #include "openssl-util.h"

@@ -25,16 +25,10 @@
 #include "config.h"
 #include "glib.h"
 
-#ifdef G_OS_WIN32
-#define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <errno.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/x509_vfy.h>
 #include <string.h>
 
+#include "openssl-include.h"
 #include "gtlsconnection-base.h"
 #include "gtlsclientconnection-openssl.h"
 #include "gtlsbackend-openssl.h"

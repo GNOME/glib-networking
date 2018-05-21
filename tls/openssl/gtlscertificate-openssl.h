@@ -26,7 +26,7 @@
 #define __G_TLS_CERTIFICATE_OPENSSL_H__
 
 #include <gio/gio.h>
-#include <openssl/ssl.h>
+#include "openssl-include.h"
 
 G_BEGIN_DECLS
 
