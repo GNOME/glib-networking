@@ -1,3 +1,12 @@
+2.57.2 - May 21, 2018
+=====================
+
+This release disables build of the gnutls-pkcs11 backend by default. Please
+direct any complaints to https://bugzilla.gnome.org/show_bug.cgi?id=793281.
+
+- Several meson build system improvements
+  (#794978, #795043, and #795982, Xavier Claessens and Nirbheek Chauhan)
+
 2.57.1 - April 16, 2018
 =======================
 
