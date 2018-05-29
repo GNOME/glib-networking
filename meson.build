@@ -105,7 +105,7 @@ subdir('po')
 enable_installed_tests = get_option('installed_tests')
 test_template = files('template.test.in')
 
-module_suffix = ''
+module_suffix = []
 # Keep the autotools convention for shared module suffix because GModule
 # depends on it: https://gitlab.gnome.org/GNOME/glib/issues/520
 if ['darwin', 'ios'].contains(host_system)
