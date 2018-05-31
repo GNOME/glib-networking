@@ -11,7 +11,7 @@
 Currently it contains a GnuTLS-based implementation of GTlsBackend, a libproxy-based implementation of GProxyResolver, and a GNOME GProxyResolver that uses the proxy information from the GSettings schemas in gsettings-desktop-schemas.</description>
 
   <download-page rdf:resource="http://download.gnome.org/sources/glib-networking" />
-  <bug-database rdf:resource="http://bugzilla.gnome.org/browse.cgi?product=glib" />
+  <bug-database rdf:resource="https://gitlab.gnome.org/GNOME/glib-networking/issues" />
   <category rdf:resource="http://api.gnome.org/doap-extensions#core" />
   <programming-language>C</programming-language>
 

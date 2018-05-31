@@ -2,7 +2,7 @@
 =====================
 
 This release disables build of the gnutls-pkcs11 backend by default. Please
-direct any complaints to https://bugzilla.gnome.org/show_bug.cgi?id=793281.
+direct any complaints to https://gitlab.gnome.org/GNOME/glib-networking/issues/7
 
 - Several meson build system improvements
   (#794978, #795043, and #795982, Xavier Claessens and Nirbheek Chauhan)
