@@ -157,7 +157,7 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
           session_id = g_strdup_printf ("%s/%s/%d/%s", addrstr,
                                         server_hostname ? server_hostname : "",
                                         port,
-                                        cert_hash ?: "");
+                                        cert_hash ? cert_hash : "");
           gnutls->session_id = g_bytes_new_take (session_id, strlen (session_id));
           g_free (addrstr);
           g_free (cert_hash);
