@@ -59,6 +59,10 @@ struct _GTlsClientConnectionGnutls
   gboolean requested_cert_missing;
   GError *cert_error;
   GPtrArray *accepted_cas;
+
+  gnutls_pcert_st *pcert;
+  unsigned int pcert_length;
+  gnutls_privkey_t pkey;
 };
 
 static void     g_tls_client_connection_gnutls_initable_interface_init (GInitableIface  *iface);
@@ -85,6 +89,15 @@ G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionGnutls, g_tls_client_connection_gnu
                          G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CLIENT_CONNECTION,
                                                 g_tls_client_connection_gnutls_dtls_client_connection_interface_init));
 
+static void
+clear_gnutls_certificate_copy (GTlsClientConnectionGnutls *gnutls)
+{
+  g_tls_certificate_gnutls_copy_free (gnutls->pcert, gnutls->pcert_length, gnutls->pkey);
+
+  gnutls->pcert = NULL;
+  gnutls->pcert_length = 0;
+  gnutls->pkey = NULL;
+}
 
 static void
 g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
@@ -177,6 +190,8 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
   g_clear_pointer (&gnutls->session_id, g_bytes_unref);
   g_clear_pointer (&gnutls->session_data, g_bytes_unref);
   g_clear_error (&gnutls->cert_error);
+
+  clear_gnutls_certificate_copy (gnutls);
 
   G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->finalize (object);
 }
@@ -325,16 +340,21 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
   gnutls->accepted_cas = accepted_cas;
   g_object_notify (G_OBJECT (gnutls), "accepted-cas");
 
+  clear_gnutls_certificate_copy (gnutls);
   g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
 
   if (*pcert_length == 0)
     {
+      g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
       g_clear_error (&gnutls->cert_error);
+
       if (g_tls_connection_gnutls_request_certificate (conn, &gnutls->cert_error))
         g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
 
       if (*pcert_length == 0)
         {
+          g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+
           /* If there is still no client certificate, this connection will
            * probably fail, but no reason to give up: let's try anyway.
            */
@@ -345,12 +365,18 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
 
   if (*pkey == NULL)
     {
+      g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+
       /* No private key. GnuTLS expects it to be non-null if pcert_length is
        * nonzero, so we have to abort now.
        */
       gnutls->requested_cert_missing = TRUE;
       return -1;
     }
+
+  gnutls->pcert = *pcert;
+  gnutls->pcert_length = *pcert_length;
+  gnutls->pkey = *pkey;
 
   return 0;
 }

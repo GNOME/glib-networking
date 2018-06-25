@@ -392,9 +392,7 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
     }
 
   *pcert_length = 0;
-  *pcert = gnutls_malloc (sizeof (gnutls_pcert_st) * num_certs);
-  if (*pcert == NULL)
-    g_error ("%s: out of memory", __FUNCTION__);
+  *pcert = g_malloc (sizeof (gnutls_pcert_st) * num_certs);
 
   /* Now do the actual copy of the whole chain. */
   chain = gnutls;
@@ -530,6 +528,22 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
                                                      pcert,
                                                      pcert_length,
                                                      pkey);
+}
+
+void
+g_tls_certificate_gnutls_copy_free (gnutls_pcert_st  *pcert,
+                                    unsigned int      pcert_length,
+                                    gnutls_privkey_t  pkey)
+{
+  if (pcert != NULL)
+    {
+      for (unsigned int i = 0; i < pcert_length; i++)
+        gnutls_pcert_deinit (&pcert[i]);
+      g_free (pcert);
+    }
+
+  if (pkey != NULL)
+    gnutls_privkey_deinit (pkey);
 }
 
 static const struct {

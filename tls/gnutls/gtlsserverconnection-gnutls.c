@@ -45,6 +45,10 @@ struct _GTlsServerConnectionGnutls
   GTlsConnectionGnutls parent_instance;
 
   GTlsAuthenticationMode authentication_mode;
+
+  gnutls_pcert_st *pcert;
+  unsigned int pcert_length;
+  gnutls_privkey_t pkey;
 };
 
 static void     g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface);
@@ -80,12 +84,32 @@ G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnu
 )
 
 static void
+clear_gnutls_certificate_copy (GTlsServerConnectionGnutls *gnutls)
+{
+  g_tls_certificate_gnutls_copy_free (gnutls->pcert, gnutls->pcert_length, gnutls->pkey);
+
+  gnutls->pcert = NULL;
+  gnutls->pcert_length = 0;
+  gnutls->pkey = NULL;
+}
+
+static void
 g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
 {
   gnutls_certificate_credentials_t creds;
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function2 (creds, g_tls_server_connection_gnutls_retrieve_function);
+}
+
+static void
+g_tls_server_connection_gnutls_finalize (GObject *object)
+{
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (object);
+
+  clear_gnutls_certificate_copy (gnutls);
+
+  G_OBJECT_CLASS (g_tls_server_connection_gnutls_parent_class)->finalize (object);
 }
 
 static gboolean
@@ -165,8 +189,17 @@ g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t              
                                                   unsigned int                 *pcert_length,
                                                   gnutls_privkey_t             *pkey)
 {
-  g_tls_connection_gnutls_get_certificate (gnutls_transport_get_ptr (session),
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (gnutls_transport_get_ptr (session));
+
+  clear_gnutls_certificate_copy (gnutls);
+
+  g_tls_connection_gnutls_get_certificate (G_TLS_CONNECTION_GNUTLS (gnutls),
                                            pcert, pcert_length, pkey);
+
+  gnutls->pcert = *pcert;
+  gnutls->pcert_length = *pcert_length;
+  gnutls->pkey = *pkey;
+
   return 0;
 }
 
@@ -271,6 +304,7 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionGnutlsClass *connection_gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
+  gobject_class->finalize = g_tls_server_connection_gnutls_finalize;
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 

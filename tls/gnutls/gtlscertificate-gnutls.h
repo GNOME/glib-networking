@@ -63,6 +63,10 @@ void                         g_tls_certificate_gnutls_copy            (GTlsCerti
                                                                        unsigned int           *pcert_length,
                                                                        gnutls_privkey_t       *pkey);
 
+void                         g_tls_certificate_gnutls_copy_free       (gnutls_pcert_st        *pcert,
+                                                                       unsigned int            pcert_length,
+                                                                       gnutls_privkey_t        pkey);
+
 GTlsCertificateFlags         g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
                                                                        GSocketConnectable    *identity);
 
