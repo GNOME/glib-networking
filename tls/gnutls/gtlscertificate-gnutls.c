@@ -378,7 +378,6 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
 {
   GTlsCertificateGnutls *chain;
   guint num_certs = 0;
-  size_t size = 0;
   int status;
 
   /* We will do this loop twice. It's probably more efficient than
@@ -405,17 +404,12 @@ g_tls_certificate_gnutls_real_copy (GTlsCertificateGnutls    *gnutls,
       gnutls_x509_crt_t cert;
       gnutls_datum_t data;
 
-      gnutls_x509_crt_export (priv->cert, GNUTLS_X509_FMT_DER,
-                              NULL, &size);
-      data.data = g_malloc (size);
-      data.size = size;
-      gnutls_x509_crt_export (priv->cert, GNUTLS_X509_FMT_DER,
-                              data.data, &size);
+      gnutls_x509_crt_export2 (priv->cert, GNUTLS_X509_FMT_DER, &data);
 
       gnutls_x509_crt_init (&cert);
       status = gnutls_x509_crt_import (cert, &data, GNUTLS_X509_FMT_DER);
       g_warn_if_fail (status == 0);
-      g_free (data.data);
+      gnutls_free (data.data);
 
       gnutls_pcert_import_x509 (*pcert + *pcert_length, cert, 0);
       gnutls_x509_crt_deinit (cert);
