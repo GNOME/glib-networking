@@ -1,3 +1,10 @@
+2.57.3 - July 16, 2018
+======================
+
+- Fix memory leaks when calling g_tls_connection_gnutls_get_certificate()
+- Use .so for modules on macOS instead of dylib (Nirbheek Chauhan)
+- Fix build with MSVCC (Nirbheek Chauhan)
+
 2.57.2 - May 21, 2018
 =====================
 
