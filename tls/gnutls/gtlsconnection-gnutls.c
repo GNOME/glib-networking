@@ -146,26 +146,28 @@ typedef struct
 {
   /* When operating in stream mode, as a GTlsConnection. These are
    * mutually-exclusive with base_socket. There are two different
-   * GIOStreams here: base_io_stream and GTlsConnectionGnutls itself.
-   * base_io_stream is the GIOStream used to create the GTlsConnection,
+   * GIOStreams here: (a) base_io_stream and (b) the GTlsConnectionGnutls
+   * itself. base_io_stream is the GIOStream used to create the GTlsConnection,
    * and corresponds to the GTlsConnection::base-io-stream property.
-   * base_istream and base_ostream correspond to the GIOStream::input-stream
-   * and GIOStream::output-stream properties, respectively, that
-   * GTlsConnection inherits from GIOStream.
+   * base_istream and base_ostream are the GInputStream and GOutputStream,
+   * respectively, of base_io_stream. These are for the underlying sockets that
+   * don't know about TLS.
+   *
+   * Then the GTlsConnectionGnutls also has tls_istream and tls_ostream which
+   * wrap the aforementioned base streams with a TLS session.
+   *
+   * When operating in datagram mode, none of these are used.
    */
   GIOStream *base_io_stream;
   GPollableInputStream *base_istream;
   GPollableOutputStream *base_ostream;
-
-  /* When operating in stream mode; when operating in datagram mode, the
-   * GTlsConnectionGnutls itself is the DTLS GDatagramBased (and uses
-   * base_socket for its underlying I/O):
-   */
   GInputStream *tls_istream;
   GOutputStream *tls_ostream;
 
-  /* When operating in datagram mode, as a GDtlsConnection. These are
-   * mutually-exclusive with base_io_stream.
+  /* When operating in datagram mode, as a GDtlsConnection, the
+   * GTlsConnectionGnutls is itself the DTLS GDatagramBased. It uses base_socket
+   * for the underlying I/O. It is mutually-exclusive with base_io_stream and
+   * the other streams.
    */
   GDatagramBased *base_socket;
 
@@ -921,6 +923,12 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   g_assert (direction & (G_IO_IN | G_IO_OUT));
   g_assert (!error || !*error);
 
+  /* We intentionally do not check for GNUTLS_E_INTERRUPTED here
+   * Instead, the caller may poll for the source to become ready again.
+   * (Note that GTlsOutputStreamGnutls and GTlsInputStreamGnutls inherit
+   * from GPollableOutputStream and GPollableInputStream, respectively.)
+   * See also the comment in set_gnutls_error().
+   */
   if (status == GNUTLS_E_AGAIN ||
       status == GNUTLS_E_WARNING_ALERT_RECEIVED)
     return GNUTLS_E_AGAIN;
