@@ -320,7 +320,7 @@ g_tls_connection_gnutls_init_priorities (void)
     {
       /* %COMPAT is intentionally duplicated here, to ensure it gets added for
        * the fallback even if the default priority has been changed. */
-      fallback_priority = g_strdup_printf ("%s:%%COMPAT:!VERS-TLS-ALL:+VERS-%s",
+      fallback_priority = g_strdup_printf ("%s:%%COMPAT:!VERS-TLS-ALL:+VERS-%s:%%FALLBACK_SCSV",
                                            DEFAULT_BASE_PRIORITY,
                                            gnutls_protocol_get_name (fallback_proto));
     }
@@ -1026,6 +1026,17 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Peer sent fatal TLS alert: %s"),
                    gnutls_alert_get_name (gnutls_alert_get (priv->session)));
+      return status;
+    }
+  else if (status == GNUTLS_E_INAPPROPRIATE_FALLBACK)
+    {
+      g_set_error_literal (error, G_TLS_ERROR,
+#if GLIB_CHECK_VERSION(2, 57, 90)
+                           G_TLS_ERROR_INAPPROPRIATE_FALLBACK,
+#else
+                           G_TLS_ERROR_MISC,
+#endif
+                           _("Protocol version downgrade attack detected"));
       return status;
     }
   else if (status == GNUTLS_E_LARGE_PACKET)

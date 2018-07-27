@@ -1974,7 +1974,8 @@ quit_on_handshake_complete (GObject      *object,
   GError *error = NULL;
 
   g_tls_connection_handshake_finish (G_TLS_CONNECTION (object), result, &error);
-  g_assert_no_error (error);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+  g_error_free (error);
 
   g_main_loop_quit (test->loop);
   return;
@@ -1988,7 +1989,7 @@ test_fallback (TestConnection *test,
   GTlsConnection *tlsconn;
   GError *error = NULL;
 
-  connection = start_echo_server_and_connect_to_it (test);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
   test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
   g_assert_no_error (error);
   tlsconn = G_TLS_CONNECTION (test->client_connection);
@@ -2009,12 +2010,17 @@ test_fallback (TestConnection *test,
                                     quit_on_handshake_complete, test);
   g_main_loop_run (test->loop);
 
-  /* In 2.42 we don't have the API to test that the correct version was negotiated,
-   * so we merely test that the connection succeeded at all.
+  /* The server should detect a protocol downgrade attack and terminate the connection.
    */
 
   g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
+
+#if GLIB_CHECK_VERSION(2, 57, 90)
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_INAPPROPRIATE_FALLBACK);
+#else
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_MISC);
+#endif
 }
 
 static void
