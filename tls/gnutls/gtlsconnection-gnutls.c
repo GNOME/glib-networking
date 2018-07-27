@@ -1213,8 +1213,8 @@ gnutls_source_dispatch (GSource     *source,
                         GSourceFunc  callback,
                         gpointer     user_data)
 {
-  GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc) callback;
-  GPollableSourceFunc pollable_func = (GPollableSourceFunc) callback;
+  GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc)callback;
+  GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
   GTlsConnectionGnutlsSource *gnutls_source = (GTlsConnectionGnutlsSource *)source;
   gboolean ret;
 
@@ -1670,7 +1670,7 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
 
       /* Create a timeout source. */
       timeout_source = g_timeout_source_new (ms);
-      g_source_set_callback (timeout_source, (GSourceFunc) read_timeout_cb,
+      g_source_set_callback (timeout_source, (GSourceFunc)read_timeout_cb,
                              &timed_out, NULL);
 
       /* Create a read source. We cannot use g_source_set_ready_time() on this
@@ -1679,13 +1679,13 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
       if (g_tls_connection_gnutls_is_dtls (gnutls))
         {
           read_source = g_datagram_based_create_source (priv->base_socket, G_IO_IN, NULL);
-          g_source_set_callback (read_source, (GSourceFunc) read_datagram_based_cb,
+          g_source_set_callback (read_source, (GSourceFunc)read_datagram_based_cb,
                                  &read_done, NULL);
         }
       else
         {
           read_source = g_pollable_input_stream_create_source (priv->base_istream, NULL);
-          g_source_set_callback (read_source, (GSourceFunc) read_pollable_cb,
+          g_source_set_callback (read_source, (GSourceFunc)read_pollable_cb,
                                  &read_done, NULL);
         }
 
