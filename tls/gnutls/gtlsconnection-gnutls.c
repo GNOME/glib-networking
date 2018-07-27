@@ -782,8 +782,9 @@ claim_op (GTlsConnectionGnutls    *gnutls,
 
       if (timeout == 0)
         {
-          g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK,
-                               _("Operation would block"));
+          /* Intentionally not translated because this is not a fatal error to be
+           * presented to the user, and to avoid this showing up in profiling. */
+          g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, "Operation would block");
           return FALSE;
         }
 
@@ -2224,8 +2225,9 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
       g_task_run_in_thread (priv->implicit_handshake,
                             async_handshake_thread);
 
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK,
-                           _("Operation would block"));
+      /* Intentionally not translated because this is not a fatal error to be
+       * presented to the user, and to avoid this showing up in profiling. */
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, "Operation would block");
       return FALSE;
     }
 }
