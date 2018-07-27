@@ -301,8 +301,9 @@ on_incoming_connection (GSocketService     *service,
 }
 
 static void
-start_async_server_service (TestConnection *test, GTlsAuthenticationMode auth_mode,
-                            gboolean should_close)
+start_async_server_service (TestConnection         *test,
+                            GTlsAuthenticationMode  auth_mode,
+                            gboolean                should_close)
 {
   test->service = g_socket_service_new ();
   start_server (test);
@@ -314,15 +315,14 @@ start_async_server_service (TestConnection *test, GTlsAuthenticationMode auth_mo
 }
 
 static GIOStream *
-start_async_server_and_connect_to_it (TestConnection *test,
-                                      GTlsAuthenticationMode auth_mode,
-                                      gboolean should_close)
+start_async_server_and_connect_to_it (TestConnection         *test,
+                                      GTlsAuthenticationMode  auth_mode)
 {
   GSocketClient *client;
   GError *error = NULL;
   GSocketConnection *connection;
 
-  start_async_server_service (test, auth_mode, should_close);
+  start_async_server_service (test, auth_mode, TRUE);
 
   client = g_socket_client_new ();
   connection = g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
@@ -484,7 +484,7 @@ test_basic_connection (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
@@ -511,7 +511,7 @@ test_verified_connection (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -882,7 +882,7 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
   g_free (key_data);
 
   test->server_certificate = server_cert;
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -926,7 +926,7 @@ test_client_auth_connection (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -1015,7 +1015,7 @@ test_client_auth_failure (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -1101,7 +1101,7 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -1143,7 +1143,7 @@ test_client_auth_request_cert (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -1192,7 +1192,7 @@ test_client_auth_request_fail (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -1225,7 +1225,7 @@ test_connection_no_database (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -1273,7 +1273,7 @@ test_failed_connection (TestConnection *test,
   GError *error = NULL;
   GSocketConnectable *bad_addr;
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
 
   bad_addr = g_network_address_new ("wrong.example.com", 80);
   test->client_connection = g_tls_client_connection_new (connection, bad_addr, &error);
@@ -1692,7 +1692,7 @@ test_close_immediately (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
@@ -1738,7 +1738,7 @@ test_close_during_handshake (TestConnection *test,
 
   g_test_bug ("688751");
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
   test->expect_server_error = TRUE;
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
@@ -1791,7 +1791,7 @@ test_output_stream_close_during_handshake (TestConnection *test,
 
   g_test_bug ("688751");
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
@@ -1845,7 +1845,7 @@ test_write_during_handshake (TestConnection *test,
 
   g_test_bug ("697754");
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
@@ -1930,7 +1930,7 @@ test_async_implicit_handshake (TestConnection *test, gconstpointer   data)
 
   g_test_bug ("710691");
 
-  stream = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  stream = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (stream, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (stream);
@@ -1989,7 +1989,7 @@ test_fallback (TestConnection *test,
   GTlsConnection *tlsconn;
   GError *error = NULL;
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
   g_assert_no_error (error);
   tlsconn = G_TLS_CONNECTION (test->client_connection);
@@ -2033,7 +2033,7 @@ test_output_stream_close (TestConnection *test,
   gboolean handshake_complete = FALSE;
   gssize size;
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
@@ -2091,7 +2091,7 @@ test_garbage_database (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
@@ -2125,7 +2125,7 @@ test_readwrite_after_connection_destroyed (TestConnection *test,
 
   g_test_bug ("792219");
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED, TRUE);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
