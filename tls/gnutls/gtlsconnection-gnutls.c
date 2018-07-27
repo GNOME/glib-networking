@@ -2076,6 +2076,8 @@ sync_handshake_thread_completed (GObject      *object,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
 
+  g_assert (g_main_context_is_owner (priv->handshake_context));
+
   g_mutex_lock (&priv->op_mutex);
   priv->need_finish_handshake = TRUE;
   g_mutex_unlock (&priv->op_mutex);
@@ -2089,6 +2091,10 @@ crank_sync_handshake_context (GTlsConnectionGnutls *gnutls,
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
 
+  /* need_finish_handshake will be set inside sync_handshake_thread_completed(),
+   * which should only ever be invoked while iterating the handshake context
+   * here. So need_finish_handshake should only change on this thread.
+   */
   g_mutex_lock (&priv->op_mutex);
   priv->need_finish_handshake = FALSE;
   while (!priv->need_finish_handshake && !g_cancellable_is_cancelled (cancellable))
@@ -2121,6 +2127,7 @@ g_tls_connection_gnutls_handshake (GTlsConnection   *conn,
 
   task = g_task_new (conn, cancellable, sync_handshake_thread_completed, NULL);
   g_task_set_source_tag (task, g_tls_connection_gnutls_handshake);
+  g_task_set_return_on_cancel (task, TRUE);
 
   timeout = g_new0 (gint64, 1);
   *timeout = -1;  /* blocking */
@@ -2329,6 +2336,8 @@ do_implicit_handshake (GTlsConnectionGnutls  *gnutls,
       *thread_timeout = timeout;
 
       g_mutex_unlock (&priv->op_mutex);
+
+      g_task_set_return_on_cancel (priv->implicit_handshake, TRUE);
       g_task_run_in_thread (priv->implicit_handshake, handshake_thread);
       crank_sync_handshake_context (gnutls, cancellable);
 
