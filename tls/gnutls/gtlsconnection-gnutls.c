@@ -1789,7 +1789,6 @@ handshake_thread (GTask        *task,
 {
   GTlsConnectionGnutls *gnutls = object;
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  gboolean is_client;
   GError *error = NULL;
   int ret;
   gint64 start_time;
@@ -1811,37 +1810,46 @@ handshake_thread (GTask        *task,
 
   g_clear_error (&priv->handshake_error);
 
-  is_client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
-
-  if (!is_client && priv->ever_handshaked && !priv->implicit_handshake)
+  if (priv->ever_handshaked && !priv->implicit_handshake)
     {
-      /* Adjust the timeout for the next operation in the sequence. */
-      if (timeout > 0)
+      if (priv->rehandshake_mode != G_TLS_REHANDSHAKE_UNSAFELY &&
+          !gnutls_safe_renegotiation_status (priv->session))
         {
-          unsigned int timeout_ms;
-
-          timeout -= (g_get_monotonic_time () - start_time);
-          if (timeout <= 0)
-            timeout = 1;
-
-          /* Convert from microseconds to milliseconds, but ensure the timeout
-           * remains positive. */
-          timeout_ms = (timeout + 999) / 1000;
-
-          gnutls_handshake_set_timeout (priv->session, timeout_ms);
-          gnutls_dtls_set_timeouts (priv->session, 1000 /* default */,
-                                    timeout_ms);
+          g_task_return_new_error (task, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                                   _("Peer does not support safe renegotiation"));
+          return;
         }
 
-      BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
-      ret = gnutls_rehandshake (priv->session);
-      END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-                     _("Error performing TLS handshake"), &error);
-
-      if (error)
+      if (!G_IS_TLS_CLIENT_CONNECTION (gnutls))
         {
-          g_task_return_error (task, error);
-          return;
+          /* Adjust the timeout for the next operation in the sequence. */
+          if (timeout > 0)
+            {
+              unsigned int timeout_ms;
+
+              timeout -= (g_get_monotonic_time () - start_time);
+              if (timeout <= 0)
+                timeout = 1;
+
+              /* Convert from microseconds to milliseconds, but ensure the timeout
+               * remains positive. */
+              timeout_ms = (timeout + 999) / 1000;
+
+              gnutls_handshake_set_timeout (priv->session, timeout_ms);
+              gnutls_dtls_set_timeouts (priv->session, 1000 /* default */,
+                                        timeout_ms);
+            }
+
+          BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
+          ret = gnutls_rehandshake (priv->session);
+          END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
+                         _("Error performing TLS handshake"), &error);
+
+          if (error)
+            {
+              g_task_return_error (task, error);
+              return;
+            }
         }
     }
 
