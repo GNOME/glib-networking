@@ -1,0 +1,22 @@
+image: fedora:rawhide
+
+variables:
+  DEPENDENCIES: gsettings-desktop-schemas redhat-rpm-config
+
+build_stable:
+  before_script:
+    - dnf update -y --nogpgcheck
+    - dnf build-dep -y --nogpgcheck glib-networking
+    - dnf install -y --nogpgcheck $DEPENDENCIES
+  script:
+    - mkdir build
+    - cd build
+    - meson ..
+    - ninja
+    - ninja test
+    - ninja install
+  artifacts:
+    paths:
+      - build/test-results
+    when: on_failure
+
