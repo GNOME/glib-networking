@@ -6,7 +6,8 @@ variables:
 build_stable:
   before_script:
     - dnf update -y --nogpgcheck
-    - dnf build-dep -y --nogpgcheck glib-networking
+    - dnf install -y 'dnf-command(builddep)'
+    - dnf builddep -y --nogpgcheck glib-networking
     - dnf install -y --nogpgcheck $DEPENDENCIES
   script:
     - mkdir build
