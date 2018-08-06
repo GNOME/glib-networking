@@ -11,10 +11,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-02-13 03:00+0000\n"
-"PO-Revision-Date: 2018-02-25 15:53+0300\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2018-07-27 21:02+0000\n"
+"PO-Revision-Date: 2018-08-05 00:09+0300\n"
 "Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
 "Language: tr\n"
@@ -52,116 +51,132 @@ msgstr "PEM özel anahtarı ayrıştırılamadı: %s"
 msgid "No certificate data provided"
 msgstr "Sertifika verisi sağlanmadı"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:398
+#: tls/gnutls/gtlsclientconnection-gnutls.c:447
 msgid "Server required TLS certificate"
 msgstr "Sunucu, TLS sertifikası istedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:392
+#: tls/gnutls/gtlsconnection-gnutls.c:398
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS bağlantısı oluşturulamadı: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:697
+#: tls/gnutls/gtlsconnection-gnutls.c:711
+#: tls/gnutls/gtlsinputstream-gnutls.c:78
+#: tls/gnutls/gtlsinputstream-gnutls.c:141
+#: tls/gnutls/gtlsoutputstream-gnutls.c:78
+#: tls/gnutls/gtlsoutputstream-gnutls.c:143
 msgid "Connection is closed"
 msgstr "Bağlantı kapalı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:772
-#: tls/gnutls/gtlsconnection-gnutls.c:2184
-msgid "Operation would block"
-msgstr "Bloke eden işlem"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:813
-#: tls/gnutls/gtlsconnection-gnutls.c:1400
+#: tls/gnutls/gtlsconnection-gnutls.c:828
+#: tls/gnutls/gtlsconnection-gnutls.c:1432
 msgid "Socket I/O timed out"
 msgstr "G/Ç soketi zaman aşımına uğradı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:952
-#: tls/gnutls/gtlsconnection-gnutls.c:985
+#: tls/gnutls/gtlsconnection-gnutls.c:973
+#: tls/gnutls/gtlsconnection-gnutls.c:1006
 msgid "Peer failed to perform TLS handshake"
 msgstr "Eş, TLS el sıkışmasını başaramadı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:970
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Eş, kural dışı bir TLS yeniden el sıkışması istedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:991
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS bağlantısı beklenmedik biçimde sonlandı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1001
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS bağlantısı eşi sertifika göndermedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1028
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Eş, ölümcül TLS uyarısı gönderdi: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1015
+#: tls/gnutls/gtlsconnection-gnutls.c:1040
+msgid "Protocol version downgrade attack detected"
+msgstr "İletişim kuralı sürümünü düşürme saldırısı saptandı"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "İleti, DTLS bağlantısı için çok büyük; azami %u bayt"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1022
+#: tls/gnutls/gtlsconnection-gnutls.c:1054
 msgid "The operation timed out"
 msgstr "İşlem zaman aşımına uğradı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1808
-#: tls/gnutls/gtlsconnection-gnutls.c:1859
-#| msgid "Error performing TLS handshake: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:1820
+msgid "Peer does not support safe renegotiation"
+msgstr "Eş, güvenli yeniden anlaşmayı desteklemiyor"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1847
+#: tls/gnutls/gtlsconnection-gnutls.c:1899
 msgid "Error performing TLS handshake"
 msgstr "TLS el sıkışması sırasında hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1869
+#: tls/gnutls/gtlsconnection-gnutls.c:1909
 msgid "Server did not return a valid TLS certificate"
 msgstr "Sunucu geçerli bir TLS sertifikası döndürmedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1946
+#: tls/gnutls/gtlsconnection-gnutls.c:1991
 msgid "Unacceptable TLS certificate"
 msgstr "Kabul edilemez bir TLS sertifikası"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2218
-#: tls/gnutls/gtlsconnection-gnutls.c:2310
-#| msgid "Error reading data from TLS socket: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2264
+#: tls/gnutls/gtlsconnection-gnutls.c:2356
 msgid "Error reading data from TLS socket"
 msgstr "TLS soketinden veri okurken hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2340
+#: tls/gnutls/gtlsconnection-gnutls.c:2386
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Bayrak alma desteklenmiyor"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2417
-#: tls/gnutls/gtlsconnection-gnutls.c:2489
-#| msgid "Error writing data to TLS socket: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2463
+#: tls/gnutls/gtlsconnection-gnutls.c:2535
 msgid "Error writing data to TLS socket"
 msgstr "TLS soketine veri yazarken hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2459
+#: tls/gnutls/gtlsconnection-gnutls.c:2505
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "%lu bayt ileti boyutu DTLS bağlantısı için çok büyük"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2461
+#: tls/gnutls/gtlsconnection-gnutls.c:2507
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(azami %u bayt)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#: tls/gnutls/gtlsconnection-gnutls.c:2566
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Bayrak gönderme desteklenmiyor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2623
-#| msgid "Error performing TLS close: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:2669
 msgid "Error performing TLS close"
 msgstr "TLS kapatma işleminde hata"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:111
+#: tls/gnutls/gtlsdatabase-gnutls.c:553
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Sistem güven deposu yüklenemedi: GnuTLS, bir sistem güveniyle "
+"yapılandırılmamış "
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Sistem güven deposu yüklenemedi: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:137
 msgid "Certificate has no private key"
 msgstr "Sertifikanın özel anahtarı yok"
 
@@ -170,14 +185,14 @@ msgid ""
 "This is the last chance to enter the PIN correctly before the token is "
 "locked."
 msgstr ""
-"Bu, simge (token) kilitlenmeden önce PIN kodunu doğru girmeniz için son "
+"Bu, jeton (token) kilitlenmeden önce PIN kodunu doğru girmeniz için son "
 "şanstır."
 
 #: tls/pkcs11/gpkcs11pin.c:113
 msgid ""
 "Several PIN attempts have been incorrect, and the token will be locked after "
 "further failures."
-msgstr "PIN daha çok yanlış girilirse simge (token) kilitlenecektir."
+msgstr "PIN daha çok yanlış girilirse jeton (token) kilitlenecektir."
 
 #: tls/pkcs11/gpkcs11pin.c:115
 msgid "The PIN entered is incorrect."
@@ -193,11 +208,14 @@ msgstr "PKCS#11 Modül İşaretçisi"
 
 #: tls/pkcs11/gpkcs11slot.c:455
 msgid "Slot ID"
-msgstr "Yuva Kimliği (Slot ID)"
+msgstr "Yuva Kimliği"
 
 #: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 Yuva Tanımlayıcısı"
+
+#~ msgid "Operation would block"
+#~ msgstr "Bloke eden işlem"
 
 #~ msgid "Connection is already closed"
 #~ msgstr "Bağlantı zaten kapalı"
