@@ -2016,7 +2016,7 @@ test_fallback (TestConnection *test,
   g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
 
-#if GLIB_CHECK_VERSION(2, 57, 90)
+#if GLIB_CHECK_VERSION(2, 59, 1)
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_INAPPROPRIATE_FALLBACK);
 #else
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_MISC);

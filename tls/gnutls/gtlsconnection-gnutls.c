@@ -1032,7 +1032,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   else if (status == GNUTLS_E_INAPPROPRIATE_FALLBACK)
     {
       g_set_error_literal (error, G_TLS_ERROR,
-#if GLIB_CHECK_VERSION(2, 57, 90)
+#if GLIB_CHECK_VERSION(2, 59, 1)
                            G_TLS_ERROR_INAPPROPRIATE_FALLBACK,
 #else
                            G_TLS_ERROR_MISC,
