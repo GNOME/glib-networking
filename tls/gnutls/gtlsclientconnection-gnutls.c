@@ -213,8 +213,15 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
   if (hostname)
     {
+      gchar *normalized_hostname = g_strdup (hostname);
+
+      if (hostname[strlen (hostname) - 1] == '.')
+        normalized_hostname[strlen (hostname) - 1] = '\0';
+
       gnutls_server_name_set (session, GNUTLS_NAME_DNS,
-                              hostname, strlen (hostname));
+                              normalized_hostname, strlen (normalized_hostname));
+
+      g_free (normalized_hostname);
     }
 
   return TRUE;
