@@ -1,7 +1,7 @@
 image: fedora:rawhide
 
 variables:
-  DEPENDENCIES: gsettings-desktop-schemas redhat-rpm-config
+  DEPENDENCIES: gsettings-desktop-schemas
 
 build_stable:
   before_script:
