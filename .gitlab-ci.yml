@@ -14,7 +14,11 @@ build_stable:
     - cd build
     - meson ..
     - ninja
-    - ninja test
+    - |
+      for i in {1..100}; do
+        echo "Test run $i"
+        ninja test
+      done
     - ninja install
   artifacts:
     paths:
