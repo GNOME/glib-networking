@@ -1,7 +1,7 @@
 image: fedora:28
 
 variables:
-  DEPENDENCIES: gsettings-desktop-schemas
+  DEPENDENCIES: gsettings-desktop-schemas gcc
 
 build_stable:
   before_script:
