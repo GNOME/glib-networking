@@ -12,7 +12,7 @@ build_stable:
   script:
     - mkdir build
     - cd build
-    - meson ..
+    - meson .. -Db_sanitize=address
     - ninja
     - ninja test
     - ninja install
