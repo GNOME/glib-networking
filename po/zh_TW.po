@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking 2.31.6\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2018-07-27 21:02+0000\n"
+"POT-Creation-Date: 2018-08-12 10:25+0000\n"
 "PO-Revision-Date: 2018-08-12 15:55+0800\n"
 "Last-Translator: pan93412 <pan93412@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
@@ -46,112 +46,117 @@ msgstr "無法解析 PEM 編碼的私鑰：%s"
 msgid "No certificate data provided"
 msgstr "沒有提供憑證資料"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:447
+#: tls/gnutls/gtlsclientconnection-gnutls.c:454
 msgid "Server required TLS certificate"
 msgstr "伺服器要求的 TLS 憑證"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:398
+#: tls/gnutls/gtlsconnection-gnutls.c:410
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "無法建立 TLS 連線：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:711 tls/gnutls/gtlsinputstream-gnutls.c:78
+#: tls/gnutls/gtlsconnection-gnutls.c:727
+#: tls/gnutls/gtlsinputstream-gnutls.c:78
 #: tls/gnutls/gtlsinputstream-gnutls.c:141
 #: tls/gnutls/gtlsoutputstream-gnutls.c:78
 #: tls/gnutls/gtlsoutputstream-gnutls.c:143
 msgid "Connection is closed"
 msgstr "連線已關閉"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:828 tls/gnutls/gtlsconnection-gnutls.c:1432
+#: tls/gnutls/gtlsconnection-gnutls.c:845
+#: tls/gnutls/gtlsconnection-gnutls.c:1455
 msgid "Socket I/O timed out"
 msgstr "I/O 接口逾時"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:973 tls/gnutls/gtlsconnection-gnutls.c:1006
+#: tls/gnutls/gtlsconnection-gnutls.c:990
+#: tls/gnutls/gtlsconnection-gnutls.c:1023
 msgid "Peer failed to perform TLS handshake"
-msgstr "對等執行 TLS 交握對等失敗"
+msgstr "目標主機執行 TLS 交握時失敗"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:991
+#: tls/gnutls/gtlsconnection-gnutls.c:1008
 msgid "Peer requested illegal TLS rehandshake"
-msgstr "對等要求了不合法的 TLS 重交握"
+msgstr "目標主機要求了不合法的 TLS 重新交握"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1012
+#: tls/gnutls/gtlsconnection-gnutls.c:1029
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS 連線無預警的關閉了"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1022
+#: tls/gnutls/gtlsconnection-gnutls.c:1039
 msgid "TLS connection peer did not send a certificate"
-msgstr "TLS 連線對等點沒有傳回憑證"
+msgstr "TLS 連線目標主機沒有傳回憑證"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1028
+#: tls/gnutls/gtlsconnection-gnutls.c:1045
+#: tls/gnutls/gtlsconnection-gnutls.c:2062
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "不接受的 TLS 憑證"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1051
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
-msgstr "對等送出了重大 TLS 警告：%s"
+msgstr "目標主機送出了重大 TLS 警告：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1040
+#: tls/gnutls/gtlsconnection-gnutls.c:1063
 msgid "Protocol version downgrade attack detected"
 msgstr "偵測到協定版本降級攻擊"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1047
+#: tls/gnutls/gtlsconnection-gnutls.c:1070
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "對於 DTLS 來說，訊息太大；最大值為 %u 位元組"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1054
+#: tls/gnutls/gtlsconnection-gnutls.c:1077
 msgid "The operation timed out"
 msgstr "動作逾時"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1820
+#: tls/gnutls/gtlsconnection-gnutls.c:1939
 msgid "Peer does not support safe renegotiation"
-msgstr "Peer 不支援 safe renegotiation"
+msgstr "目標主機不支援 safe renegotiation"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1847
-#: tls/gnutls/gtlsconnection-gnutls.c:1899
+#: tls/gnutls/gtlsconnection-gnutls.c:1966
+#: tls/gnutls/gtlsconnection-gnutls.c:2018
 msgid "Error performing TLS handshake"
 msgstr "執行 TLS 交握時發生錯誤"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1909
+#: tls/gnutls/gtlsconnection-gnutls.c:2023
 msgid "Server did not return a valid TLS certificate"
 msgstr "伺服器沒有回傳有效的 TLS 憑證"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1991
-msgid "Unacceptable TLS certificate"
-msgstr "不接受的 TLS 憑證"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:2264
-#: tls/gnutls/gtlsconnection-gnutls.c:2356
+#: tls/gnutls/gtlsconnection-gnutls.c:2406
+#: tls/gnutls/gtlsconnection-gnutls.c:2498
 msgid "Error reading data from TLS socket"
 msgstr "從 TLS socket 讀取資料時發生錯誤"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2386
+#: tls/gnutls/gtlsconnection-gnutls.c:2528
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "接收旗標不被支援"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2463
-#: tls/gnutls/gtlsconnection-gnutls.c:2535
+#: tls/gnutls/gtlsconnection-gnutls.c:2605
+#: tls/gnutls/gtlsconnection-gnutls.c:2677
 msgid "Error writing data to TLS socket"
 msgstr "寫入資料到 TLS socket 時發生錯誤"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2505
+#: tls/gnutls/gtlsconnection-gnutls.c:2647
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "訊息大小 %lu 位元組對於 DTLS 連線來說太大"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2507
+#: tls/gnutls/gtlsconnection-gnutls.c:2649
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "（最大值為 %u 位元組）"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2566
+#: tls/gnutls/gtlsconnection-gnutls.c:2708
 #, c-format
 msgid "Send flags are not supported"
 msgstr "傳送旗標不被支援"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2669
+#: tls/gnutls/gtlsconnection-gnutls.c:2811
 msgid "Error performing TLS close"
 msgstr "執行 TLS 關閉時發生錯誤"
 
@@ -172,7 +177,8 @@ msgstr "憑證沒有私鑰"
 
 #: tls/pkcs11/gpkcs11pin.c:111
 msgid ""
-"This is the last chance to enter the PIN correctly before the token is locked."
+"This is the last chance to enter the PIN correctly before the token is "
+"locked."
 msgstr "這是在您的智慧卡被鎖定之前最後輸入正確 PIN 的機會。"
 
 #: tls/pkcs11/gpkcs11pin.c:113
