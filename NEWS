@@ -1,3 +1,12 @@
+2.57.90 - August 12, 2018
+=========================
+
+ - Properly check for server errors in connection tests (#4)
+ - Perform certificate verification during, not after, TLS handshake (#6)
+ - Avoid trailing dots in SNI hostnames (#11)
+ - Send fallback SCSV with fallback connection attempts
+ - Fail unsafe rehandshake attempts initiated by API request
+
 2.57.3 - July 16, 2018
 ======================
 
