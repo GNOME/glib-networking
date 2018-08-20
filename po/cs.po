@@ -6,10 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-03-23 16:23+0000\n"
-"PO-Revision-Date: 2018-04-22 07:26+0200\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2018-07-27 21:02+0000\n"
+"PO-Revision-Date: 2018-08-20 13:39+0200\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: čeština <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -47,16 +46,16 @@ msgstr "Nelze zpracovat soukromý klíč PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nebyla poskytnuta žádná data certifikátu"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:421
+#: tls/gnutls/gtlsclientconnection-gnutls.c:447
 msgid "Server required TLS certificate"
 msgstr "Server požaduje certifikát TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:398
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nelze vytvořit připojení TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:709
+#: tls/gnutls/gtlsconnection-gnutls.c:711
 #: tls/gnutls/gtlsinputstream-gnutls.c:78
 #: tls/gnutls/gtlsinputstream-gnutls.c:141
 #: tls/gnutls/gtlsoutputstream-gnutls.c:78
@@ -64,39 +63,38 @@ msgstr "Nelze vytvořit připojení TLS: %s"
 msgid "Connection is closed"
 msgstr "Připojení je uzavřeno"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:784
-#: tls/gnutls/gtlsconnection-gnutls.c:2201
-msgid "Operation would block"
-msgstr "Operace by blokovala"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:825
-#: tls/gnutls/gtlsconnection-gnutls.c:1412
+#: tls/gnutls/gtlsconnection-gnutls.c:828
+#: tls/gnutls/gtlsconnection-gnutls.c:1432
 msgid "Socket I/O timed out"
 msgstr "Vypršel časový limit V/V operace soketu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:964
-#: tls/gnutls/gtlsconnection-gnutls.c:997
+#: tls/gnutls/gtlsconnection-gnutls.c:973
+#: tls/gnutls/gtlsconnection-gnutls.c:1006
 msgid "Peer failed to perform TLS handshake"
 msgstr "Protějšek selhal při navazování spojení TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Protějšek požadoval neplatné znovunavázání spojení TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
 msgid "TLS connection closed unexpectedly"
 msgstr "Připojení TLS bylo neočekávaně zavřeno"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
 msgid "TLS connection peer did not send a certificate"
 msgstr "Protějšek připojení TLS neposlal certifikát"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1019
+#: tls/gnutls/gtlsconnection-gnutls.c:1028
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Protějšek zaslal kritické varování TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1027
+#: tls/gnutls/gtlsconnection-gnutls.c:1040
+msgid "Protocol version downgrade attack detected"
+msgstr "Zjištěn útok pomocí snížení verze protokolu"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -104,40 +102,44 @@ msgstr[0] "Zpráva je příliš velká pro připojení DTLS; maximum je %u bajt"
 msgstr[1] "Zpráva je příliš velká pro připojení DTLS; maximum jsou %u bajty"
 msgstr[2] "Zpráva je příliš velká pro připojení DTLS; maximum je %u bajtů"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1034
+#: tls/gnutls/gtlsconnection-gnutls.c:1054
 msgid "The operation timed out"
 msgstr "Vypršel časový limit operace"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1820
-#: tls/gnutls/gtlsconnection-gnutls.c:1871
+msgid "Peer does not support safe renegotiation"
+msgstr "Protějšek nepodporuje bezpečné opětovné vyjednávání"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1847
+#: tls/gnutls/gtlsconnection-gnutls.c:1899
 msgid "Error performing TLS handshake"
 msgstr "Chyba při vyjednávání spojení TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1881
+#: tls/gnutls/gtlsconnection-gnutls.c:1909
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server nevrátil platný certifikát TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1963
+#: tls/gnutls/gtlsconnection-gnutls.c:1991
 msgid "Unacceptable TLS certificate"
 msgstr "Nepřijatelný certifikát TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2235
-#: tls/gnutls/gtlsconnection-gnutls.c:2327
+#: tls/gnutls/gtlsconnection-gnutls.c:2264
+#: tls/gnutls/gtlsconnection-gnutls.c:2356
 msgid "Error reading data from TLS socket"
 msgstr "Chyba při čtení dat ze soketu TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2357
+#: tls/gnutls/gtlsconnection-gnutls.c:2386
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Příznaky příjmu nejsou podporované"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2434
-#: tls/gnutls/gtlsconnection-gnutls.c:2506
+#: tls/gnutls/gtlsconnection-gnutls.c:2463
+#: tls/gnutls/gtlsconnection-gnutls.c:2535
 msgid "Error writing data to TLS socket"
 msgstr "Chyba při zápisu dat do soketu TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2476
+#: tls/gnutls/gtlsconnection-gnutls.c:2505
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -145,7 +147,7 @@ msgstr[0] "Zpráva o velikosti %lu bajt je příliš velká pro připojení DTLS
 msgstr[1] "Zpráva o velikosti %lu bajty je příliš velká pro připojení DTLS"
 msgstr[2] "Zpráva o velikosti %lu bajtů je příliš velká pro připojení DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2478
+#: tls/gnutls/gtlsconnection-gnutls.c:2507
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -153,12 +155,12 @@ msgstr[0] "(maximum je %u bajt)"
 msgstr[1] "(maximum jsou %u bajty)"
 msgstr[2] "(maximum je %u bajtů)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2537
+#: tls/gnutls/gtlsconnection-gnutls.c:2566
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Příznaky odesílání nejsou podporované"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2640
+#: tls/gnutls/gtlsconnection-gnutls.c:2669
 msgid "Error performing TLS close"
 msgstr "Chyba při zavírání TLS"
 
@@ -175,7 +177,7 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Selhalo načtení úložiště systému důvěry: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:113
+#: tls/gnutls/gtlsserverconnection-gnutls.c:137
 msgid "Certificate has no private key"
 msgstr "Certifikát nemá soukromý klíč"
 
@@ -212,6 +214,9 @@ msgstr "ID slotu"
 #: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "Identifikátor slotu PKCS#11"
+
+#~ msgid "Operation would block"
+#~ msgstr "Operace by blokovala"
 
 #, fuzzy
 #~ msgid "Connection is already closed"
