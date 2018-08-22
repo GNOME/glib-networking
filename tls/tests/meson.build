@@ -91,6 +91,7 @@ if enable_installed_tests
     'files/client-future.pem',
     'files/client-past.pem',
     'files/client.pem',
+    'files/garbage.pem',
     'files/intermediate-ca.pem',
     'files/non-ca.pem',
     'files/server-and-key.pem',
