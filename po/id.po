@@ -7,10 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-03-23 16:23+0000\n"
-"PO-Revision-Date: 2018-04-23 13:29+0700\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2018-07-27 21:02+0000\n"
+"PO-Revision-Date: 2018-07-30 15:12+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome@i15n.org>\n"
 "Language: id\n"
@@ -48,16 +47,16 @@ msgstr "Tak bisa mengurai kunci privat PEM: %s"
 msgid "No certificate data provided"
 msgstr "Data sertifikat tak disediakan"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:421
+#: tls/gnutls/gtlsclientconnection-gnutls.c:447
 msgid "Server required TLS certificate"
 msgstr "Server memerlukan sertifikat TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:398
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Tak bisa membuat koneksi TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:709
+#: tls/gnutls/gtlsconnection-gnutls.c:711
 #: tls/gnutls/gtlsinputstream-gnutls.c:78
 #: tls/gnutls/gtlsinputstream-gnutls.c:141
 #: tls/gnutls/gtlsoutputstream-gnutls.c:78
@@ -65,95 +64,98 @@ msgstr "Tak bisa membuat koneksi TLS: %s"
 msgid "Connection is closed"
 msgstr "Koneksi ditutup"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:784
-#: tls/gnutls/gtlsconnection-gnutls.c:2201
-msgid "Operation would block"
-msgstr "Operasi akan memblokir"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:825
-#: tls/gnutls/gtlsconnection-gnutls.c:1412
+#: tls/gnutls/gtlsconnection-gnutls.c:828
+#: tls/gnutls/gtlsconnection-gnutls.c:1432
 msgid "Socket I/O timed out"
 msgstr "I/O soket kehabisan waktu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:964
-#: tls/gnutls/gtlsconnection-gnutls.c:997
+#: tls/gnutls/gtlsconnection-gnutls.c:973
+#: tls/gnutls/gtlsconnection-gnutls.c:1006
 msgid "Peer failed to perform TLS handshake"
 msgstr "Peer gagal melakukan jabat tangan TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Peer meminta jabat tangan ulang TLS yang ilegal"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
 msgid "TLS connection closed unexpectedly"
 msgstr "Koneksi TLS tertutup tak disangka-sangka"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
 msgid "TLS connection peer did not send a certificate"
 msgstr "Pasangan koneksi TLS tak mengembalikan sertifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1019
+#: tls/gnutls/gtlsconnection-gnutls.c:1028
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Peer mengirim peringatan TLS yang fatal: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1027
+#: tls/gnutls/gtlsconnection-gnutls.c:1040
+msgid "Protocol version downgrade attack detected"
+msgstr "Serangan versi penurunan protokol terdeteksi"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "Pesan terlalu besar untuk koneksi DTLS; maksimum adalah %u byte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1034
+#: tls/gnutls/gtlsconnection-gnutls.c:1054
 msgid "The operation timed out"
 msgstr "Waktu operasi habis"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1820
-#: tls/gnutls/gtlsconnection-gnutls.c:1871
+msgid "Peer does not support safe renegotiation"
+msgstr "Peer tidak mendukung renegosiasi yang aman"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1847
+#: tls/gnutls/gtlsconnection-gnutls.c:1899
 msgid "Error performing TLS handshake"
 msgstr "Galat melakukan jabat tangan TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1881
+#: tls/gnutls/gtlsconnection-gnutls.c:1909
 msgid "Server did not return a valid TLS certificate"
 msgstr "Server tak mengembalikan sertifikat TLS yang valid"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1963
+#: tls/gnutls/gtlsconnection-gnutls.c:1991
 msgid "Unacceptable TLS certificate"
 msgstr "Sertifikat TLS tak dapat diterima"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2235
-#: tls/gnutls/gtlsconnection-gnutls.c:2327
+#: tls/gnutls/gtlsconnection-gnutls.c:2264
+#: tls/gnutls/gtlsconnection-gnutls.c:2356
 msgid "Error reading data from TLS socket"
 msgstr "Galat saat membaca data dari soket TLS:"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2357
+#: tls/gnutls/gtlsconnection-gnutls.c:2386
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Menerima tanda tidak didukung"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2434
-#: tls/gnutls/gtlsconnection-gnutls.c:2506
+#: tls/gnutls/gtlsconnection-gnutls.c:2463
+#: tls/gnutls/gtlsconnection-gnutls.c:2535
 msgid "Error writing data to TLS socket"
 msgstr "Galat saat menulis data ke soket TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2476
+#: tls/gnutls/gtlsconnection-gnutls.c:2505
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Pesan ukuran %lu byte terlalu besar untuk koneksi DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2478
+#: tls/gnutls/gtlsconnection-gnutls.c:2507
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(maksimum adalah %u byte)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2537
+#: tls/gnutls/gtlsconnection-gnutls.c:2566
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Mengirim tanda tidak didukung"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2640
+#: tls/gnutls/gtlsconnection-gnutls.c:2669
 msgid "Error performing TLS close"
 msgstr "Galat melaksanakan penutupan TLS"
 
@@ -170,7 +172,7 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Gagal memuat penyimpanan terpercaya sistem: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:113
+#: tls/gnutls/gtlsserverconnection-gnutls.c:137
 msgid "Certificate has no private key"
 msgstr "Sertifikatnya tidak memiliki kunci privat"
 
@@ -208,6 +210,9 @@ msgstr "ID Slot"
 #: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "Identifair Slot PKCS#11"
+
+#~ msgid "Operation would block"
+#~ msgstr "Operasi akan memblokir"
 
 #~ msgid "Connection is already closed"
 #~ msgstr "Koneksi telah ditutup"
