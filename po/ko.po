@@ -7,10 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-02-13 03:00+0000\n"
-"PO-Revision-Date: 2018-02-25 10:00+0900\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2018-08-25 17:36+0000\n"
+"PO-Revision-Date: 2018-08-27 11:15+0900\n"
 "Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
 "Language-Team: Korean <gnome-kr@googlegroups.com>\n"
 "Language: ko\n"
@@ -47,112 +46,131 @@ msgstr "PEM 개인 키를 파싱할 수 없습니다: %s"
 msgid "No certificate data provided"
 msgstr "인증서 데이터를 제공하지 않았습니다"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:398
+#: tls/gnutls/gtlsclientconnection-gnutls.c:454
 msgid "Server required TLS certificate"
 msgstr "서버에 TLS 인증서가 필요합니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:392
+#: tls/gnutls/gtlsconnection-gnutls.c:398
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS 연결을 만들 수 없습니다: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:697
+#: tls/gnutls/gtlsconnection-gnutls.c:711
+#: tls/gnutls/gtlsinputstream-gnutls.c:78
+#: tls/gnutls/gtlsinputstream-gnutls.c:141
+#: tls/gnutls/gtlsoutputstream-gnutls.c:78
+#: tls/gnutls/gtlsoutputstream-gnutls.c:143
 msgid "Connection is closed"
 msgstr "연결이 닫혔습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:772
-#: tls/gnutls/gtlsconnection-gnutls.c:2184
-msgid "Operation would block"
-msgstr "동작이 중단됩니다"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:813
-#: tls/gnutls/gtlsconnection-gnutls.c:1400
+#: tls/gnutls/gtlsconnection-gnutls.c:828
+#: tls/gnutls/gtlsconnection-gnutls.c:1432
 msgid "Socket I/O timed out"
 msgstr "소켓 입출력 제한 시간이 넘었습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:952
-#: tls/gnutls/gtlsconnection-gnutls.c:985
+#: tls/gnutls/gtlsconnection-gnutls.c:973
+#: tls/gnutls/gtlsconnection-gnutls.c:1006
 msgid "Peer failed to perform TLS handshake"
 msgstr "상대편이 TLS 핸드셰이킹에 실패했습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:970
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "상대편이 잘못된 TLS 핸드셰이킹을 요청했습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:991
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS 연결이 예상치 못하게 닫혔습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1001
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS 연결 상대가 인증서를 보내지 않았습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1028
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "상대가 치명적인 TLS 알림을 보냈습니다: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1015
+#: tls/gnutls/gtlsconnection-gnutls.c:1040
+msgid "Protocol version downgrade attack detected"
+msgstr "프로토콜 버전 다운그레이드 공격 감지됨"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
-msgstr[0] "DTLS 연결에 사용하기에는 메시지 크기가 너무 큽니다: 최대는 %u바이트입니다"
+msgstr[0] ""
+"DTLS 연결에 사용하기에는 메시지 크기가 너무 큽니다: 최대는 %u바이트입니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1022
+#: tls/gnutls/gtlsconnection-gnutls.c:1054
 msgid "The operation timed out"
 msgstr "작업이 제한 시간을 넘었습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1808
-#: tls/gnutls/gtlsconnection-gnutls.c:1859
+#: tls/gnutls/gtlsconnection-gnutls.c:1820
+msgid "Peer does not support safe renegotiation"
+msgstr "상대가 안전한 재협상을 지원하지 않습니다"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1847
+#: tls/gnutls/gtlsconnection-gnutls.c:1899
 msgid "Error performing TLS handshake"
 msgstr "TLS 핸드셰이킹에 오류가 발생했습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1869
+#: tls/gnutls/gtlsconnection-gnutls.c:1909
 msgid "Server did not return a valid TLS certificate"
 msgstr "서버에서 올바른 TLS 인증서를 반환하지 않았습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1946
+#: tls/gnutls/gtlsconnection-gnutls.c:1991
 msgid "Unacceptable TLS certificate"
 msgstr "TLS 핸드셰이킹을 받아들일 수 없습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2218
-#: tls/gnutls/gtlsconnection-gnutls.c:2310
+#: tls/gnutls/gtlsconnection-gnutls.c:2265
+#: tls/gnutls/gtlsconnection-gnutls.c:2357
 msgid "Error reading data from TLS socket"
 msgstr "TLS 소켓에서 데이터를 읽는데 오류가 발생했습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2340
+#: tls/gnutls/gtlsconnection-gnutls.c:2387
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "받기 플래그를 지원하지 않습니다"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2417
-#: tls/gnutls/gtlsconnection-gnutls.c:2489
+#: tls/gnutls/gtlsconnection-gnutls.c:2464
+#: tls/gnutls/gtlsconnection-gnutls.c:2536
 msgid "Error writing data to TLS socket"
 msgstr "TLS 소켓에 데이터를 쓰는데 오류가 발생했습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2459
+#: tls/gnutls/gtlsconnection-gnutls.c:2506
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "크기가 %lu바이트인 메시지는 DTLS 연결에 사용하기에는 너무 큽니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2461
+#: tls/gnutls/gtlsconnection-gnutls.c:2508
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(최대는 %u바이트입니다)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#: tls/gnutls/gtlsconnection-gnutls.c:2567
 #, c-format
 msgid "Send flags are not supported"
 msgstr "보내기 플래그를 지원하지 않습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2623
+#: tls/gnutls/gtlsconnection-gnutls.c:2670
 msgid "Error performing TLS close"
 msgstr "TLS 닫기에 오류가 발생했습니다"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:111
+#: tls/gnutls/gtlsdatabase-gnutls.c:553
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr "시스템 신뢰 정보를 읽어들이는데 실패했습니다: GnuTLS 설정에 시스템 신뢰 정보가 없습니다"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "시스템 신뢰 정보를 읽어들이는데 실패했습니다: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:137
 msgid "Certificate has no private key"
 msgstr "인증서에 개인 키가 없습니다"
 
@@ -189,6 +207,3 @@ msgstr "슬롯 아이디"
 #: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11 슬롯 아이디"
-
-#~ msgid "Connection is already closed"
-#~ msgstr "연결이 이미 닫혔습니다"
