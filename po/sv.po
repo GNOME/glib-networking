@@ -7,17 +7,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-03-10 20:07+0000\n"
-"PO-Revision-Date: 2018-03-12 01:18+0100\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2018-07-27 21:02+0000\n"
+"PO-Revision-Date: 2018-09-02 23:36+0200\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.1.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
@@ -48,115 +47,137 @@ msgstr "Kunde inte tolka privat PEM-nyckel: %s"
 msgid "No certificate data provided"
 msgstr "Inget certifikatdata tillhandahölls"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:398
+#: tls/gnutls/gtlsclientconnection-gnutls.c:447
 msgid "Server required TLS certificate"
 msgstr "Servern krävde TLS-certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:392
+#: tls/gnutls/gtlsconnection-gnutls.c:398
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunde inte skapa TLS-anslutning: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:697
+#: tls/gnutls/gtlsconnection-gnutls.c:711
+#: tls/gnutls/gtlsinputstream-gnutls.c:78
+#: tls/gnutls/gtlsinputstream-gnutls.c:141
+#: tls/gnutls/gtlsoutputstream-gnutls.c:78
+#: tls/gnutls/gtlsoutputstream-gnutls.c:143
 msgid "Connection is closed"
 msgstr "Anslutningen är stängd"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:772
-#: tls/gnutls/gtlsconnection-gnutls.c:2184
-msgid "Operation would block"
-msgstr "Operationen skulle blockera"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:813
-#: tls/gnutls/gtlsconnection-gnutls.c:1400
+#: tls/gnutls/gtlsconnection-gnutls.c:828
+#: tls/gnutls/gtlsconnection-gnutls.c:1432
 msgid "Socket I/O timed out"
 msgstr "Tidsgräns för in/ut på uttaget överskreds"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:952
-#: tls/gnutls/gtlsconnection-gnutls.c:985
+#: tls/gnutls/gtlsconnection-gnutls.c:973
+#: tls/gnutls/gtlsconnection-gnutls.c:1006
 msgid "Peer failed to perform TLS handshake"
 msgstr "Motparten misslyckades med att genomföra TLS-handskakning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:970
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Motparten begärde otillåten TLS-återhandskakning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:991
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-anslutningen stängdes oväntat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1001
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-anslutningens motpart sände inte ett certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1028
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Motparten sände ödesdiger TLS-varning: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1015
+#: tls/gnutls/gtlsconnection-gnutls.c:1040
+msgid "Protocol version downgrade attack detected"
+msgstr "Protokollversionsnedgraderingsattack upptäcktes"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "Meddelandet är för stort för DTLS-anslutning, max är %u byte"
 msgstr[1] "Meddelandet är för stort för DTLS-anslutning, max är %u byte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1022
+#: tls/gnutls/gtlsconnection-gnutls.c:1054
 msgid "The operation timed out"
 msgstr "Åtgärdens tidsgräns överskreds"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1808
-#: tls/gnutls/gtlsconnection-gnutls.c:1859
+#: tls/gnutls/gtlsconnection-gnutls.c:1820
+msgid "Peer does not support safe renegotiation"
+msgstr "Motparten stöder inte säker omförhandling"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1847
+#: tls/gnutls/gtlsconnection-gnutls.c:1899
 msgid "Error performing TLS handshake"
 msgstr "Fel vid genomförande av TLS-handskakning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1869
+#: tls/gnutls/gtlsconnection-gnutls.c:1909
 msgid "Server did not return a valid TLS certificate"
 msgstr "Servern returnerade inte ett giltigt TLS-certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1946
+#: tls/gnutls/gtlsconnection-gnutls.c:1991
 msgid "Unacceptable TLS certificate"
 msgstr "Ej acceptabelt TLS-certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2218
-#: tls/gnutls/gtlsconnection-gnutls.c:2310
+#: tls/gnutls/gtlsconnection-gnutls.c:2264
+#: tls/gnutls/gtlsconnection-gnutls.c:2356
 msgid "Error reading data from TLS socket"
 msgstr "Fel vid läsning av data från TLS-uttag"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2340
+#: tls/gnutls/gtlsconnection-gnutls.c:2386
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Mottagningsflaggor stöds inte"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2417
-#: tls/gnutls/gtlsconnection-gnutls.c:2489
+#: tls/gnutls/gtlsconnection-gnutls.c:2463
+#: tls/gnutls/gtlsconnection-gnutls.c:2535
 msgid "Error writing data to TLS socket"
 msgstr "Fel vid skrivning av data till TLS-uttag"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2459
+#: tls/gnutls/gtlsconnection-gnutls.c:2505
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
 msgstr[1] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2461
+#: tls/gnutls/gtlsconnection-gnutls.c:2507
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(maximum är %u byte)"
 msgstr[1] "(maximum är %u byte)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#: tls/gnutls/gtlsconnection-gnutls.c:2566
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Sändflaggor stöds inte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2623
+#: tls/gnutls/gtlsconnection-gnutls.c:2669
 msgid "Error performing TLS close"
 msgstr "Fel vid genomförande av TLS-stängning"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:111
+# osäker
+#: tls/gnutls/gtlsdatabase-gnutls.c:553
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Misslyckades med att läsa in systemets trust store: GnuTLS konfigurerades "
+"inte med en system trust"
+
+# osäker
+#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Misslyckades med att läsa in systemets trust store: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:137
 msgid "Certificate has no private key"
 msgstr "Certifikatet har ingen privat nyckel"
 
@@ -193,6 +214,9 @@ msgstr "Plats-id"
 #: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "PKCS#11-platsidentifierare"
+
+#~ msgid "Operation would block"
+#~ msgstr "Operationen skulle blockera"
 
 #~ msgid "Connection is already closed"
 #~ msgstr "Anslutningen är redan stängd"
