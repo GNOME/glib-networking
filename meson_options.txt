@@ -1,3 +1,4 @@
+option('gnutls_support', type: 'boolean', value: true, description: 'support for GNUTLS networking configration')
 option('libproxy_support', type: 'boolean', value: true, description: 'support for libproxy proxy configration')
 option('gnome_proxy_support', type: 'boolean', value: true, description: 'support for GNOME desktop proxy configuration')
 option('pkcs11_support', type: 'boolean', value: false, description: 'support for PKCS#11 using p11-kit')
