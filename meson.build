@@ -133,6 +133,8 @@ if pkcs11_dep.found()
   subdir('tls/pkcs11')
 endif
 
+subdir('tls/base')
+
 if gnutls_dep.found()
   subdir('tls/gnutls')
 endif
