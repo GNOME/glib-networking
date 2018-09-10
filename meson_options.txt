@@ -1,4 +1,5 @@
 option('gnutls', type: 'feature', value: 'auto', description: 'support for GnuTLS networking configration')
+option('openssl', type: 'feature', value: 'disabled', description: 'support for OpenSSL networking configration')
 option('libproxy', type: 'feature', value: 'auto', description: 'support for libproxy proxy configration')
 option('gnome_proxy', type: 'feature', value: 'auto', description: 'support for GNOME desktop proxy configuration')
 option('pkcs11', type: 'feature', value: 'disabled', description: 'support for PKCS#11 using p11-kit')
