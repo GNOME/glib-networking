@@ -31,7 +31,8 @@ module = shared_module(
   link_depends: symbol_map,
   name_suffix: module_suffix,
   install: true,
-  install_dir: gio_module_dir
+  install_dir: gio_module_dir,
+  c_args: extra_args
 )
 
 if get_option('static_modules')
