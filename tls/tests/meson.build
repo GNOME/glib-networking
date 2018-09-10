@@ -8,8 +8,13 @@ deps = [
   glib_dep,
   gmodule_dep,
   gobject_dep,
-  gnutls_dep
 ]
+
+if enable_gnutls_support
+  deps += [
+    gnutls_dep
+  ]
+endif
 
 cflags = [
   '-DSRCDIR="@0@"'.format(meson.current_source_dir()),
@@ -19,7 +24,6 @@ cflags = [
 envs = [
   'G_TEST_SRCDIR=' + meson.current_source_dir(),
   'G_TEST_BUILDDIR=' + meson.current_build_dir(),
-  'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', 'gnutls')
 ]
 
 test_programs = [
@@ -43,35 +47,47 @@ if enable_pkcs11_support
   ]
 endif
 
-foreach program: test_programs
-  test_conf = configuration_data()
-  test_conf.set('installed_tests_dir', installed_tests_execdir)
-  test_conf.set('program', program[0])
+foreach backend: backends
+  foreach program: test_programs
+    program_name = program[0] + '-' + backend
 
-  if enable_installed_tests
-    configure_file(
-      input: test_template,
-      output: program[0] + '.test',
-      install_dir: installed_tests_metadir,
-      configuration: test_conf
+    test_conf = configuration_data()
+    test_conf.set('installed_tests_dir', installed_tests_execdir)
+    test_conf.set('program', program_name)
+
+    if enable_installed_tests
+      configure_file(
+        input: test_template,
+        output: program_name + '.test',
+        install_dir: installed_tests_metadir,
+        configuration: test_conf
+      )
+    endif
+
+    test_cflags = cflags + [
+      '-DBACKEND="@0@"'.format(backend),
+    ]
+
+    exe = executable(
+      program_name,
+      [program[0] + '.c'] + program[1],
+      include_directories: incs,
+      dependencies: program[2],
+      c_args: test_cflags,
+      install: enable_installed_tests,
+      install_dir: installed_tests_execdir
     )
-  endif
 
-  exe = executable(
-    program[0],
-    [program[0] + '.c'] + program[1],
-    include_directories: incs,
-    dependencies: program[2],
-    c_args: cflags,
-    install: enable_installed_tests,
-    install_dir: installed_tests_execdir
-  )
+    test_envs = envs + [
+      'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
+    ]
 
-  test(
-    program[0],
-    exe,
-    env: envs
-  )
+    test(
+      program_name,
+      exe,
+      env: test_envs
+    )
+  endforeach
 endforeach
 
 if enable_installed_tests
