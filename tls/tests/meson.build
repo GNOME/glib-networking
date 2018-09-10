@@ -22,10 +22,10 @@ envs = [
 ]
 
 test_programs = [
-  ['certificate', [], deps],
-  ['file-database', [], deps],
-  ['connection', ['mock-interaction.c'], deps],
-  ['dtls-connection', ['mock-interaction.c'], deps],
+  ['certificate', [], deps, []],
+  ['file-database', [], deps, []],
+  ['connection', ['mock-interaction.c'], deps, []],
+  ['dtls-connection', ['mock-interaction.c'], deps, ['openssl']],
 ]
 
 if pkcs11_dep.found()
@@ -44,44 +44,46 @@ endif
 
 foreach backend: backends
   foreach program: test_programs
-    program_name = program[0] + '-' + backend
+    if not program[3].contains(backend)
+      program_name = program[0] + '-' + backend
 
-    test_conf = configuration_data()
-    test_conf.set('installed_tests_dir', installed_tests_execdir)
-    test_conf.set('program', program_name)
+      test_conf = configuration_data()
+      test_conf.set('installed_tests_dir', installed_tests_execdir)
+      test_conf.set('program', program_name)
 
-    if enable_installed_tests
-      configure_file(
-        input: test_template,
-        output: program_name + '.test',
-        install_dir: installed_tests_metadir,
-        configuration: test_conf
+      if enable_installed_tests
+        configure_file(
+          input: test_template,
+          output: program_name + '.test',
+          install_dir: installed_tests_metadir,
+          configuration: test_conf
+        )
+      endif
+
+      test_cflags = cflags + [
+        '-DBACKEND="@0@"'.format(backend),
+      ]
+
+      exe = executable(
+        program_name,
+        [program[0] + '.c'] + program[1],
+        include_directories: incs,
+        dependencies: program[2],
+        c_args: test_cflags,
+        install: enable_installed_tests,
+        install_dir: installed_tests_execdir
+      )
+
+      test_envs = envs + [
+        'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
+      ]
+
+      test(
+        program_name,
+        exe,
+        env: test_envs
       )
     endif
-
-    test_cflags = cflags + [
-      '-DBACKEND="@0@"'.format(backend),
-    ]
-
-    exe = executable(
-      program_name,
-      [program[0] + '.c'] + program[1],
-      include_directories: incs,
-      dependencies: program[2],
-      c_args: test_cflags,
-      install: enable_installed_tests,
-      install_dir: installed_tests_execdir
-    )
-
-    test_envs = envs + [
-      'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
-    ]
-
-    test(
-      program_name,
-      exe,
-      env: test_envs
-    )
   endforeach
 endforeach
 
