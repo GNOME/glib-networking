@@ -136,6 +136,8 @@ if enable_pkcs11_support
   subdir('tls/pkcs11')
 endif
 
+subdir('tls/base')
+
 if enable_gnutls_support
   subdir('tls/gnutls')
 endif
