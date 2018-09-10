@@ -83,6 +83,53 @@ if enable_gnutls_support
   backends += ['gnutls']
 endif
 
+# *** Checks for OpenSSL    ***
+enable_openssl_support = get_option('openssl_support')
+  if enable_openssl_support
+  # MSVC builds of OpenSSL does not generate pkg-config files,
+  # so we check for it manually here in this case, if we can't find those files
+  openssl_dep = dependency('openssl', required: cc.get_id() != 'msvc')
+
+  if not openssl_dep.found()
+    # Based on the CMake check for OpenSSL in CURL's CMakeLists.txt,
+    # on which headers we should check for
+    cc.has_header('openssl/crypto.h')
+    cc.has_header('openssl/engine.h')
+    cc.has_header('openssl/err.h')
+    cc.has_header('openssl/pem.h')
+    cc.has_header('openssl/rsa.h')
+    cc.has_header('openssl/ssl.h')
+    cc.has_header('openssl/x509.h')
+    cc.has_header('openssl/rand.h')
+    cc.has_header('openssl/tls1.h')
+
+    # OpenSSL 1.1.x and 1.0.x (or earlier) have different .lib names,
+    # so we need to look for the correct pair
+
+    # Find either libcrypto.lib (1.1.x) or libeay32.lib (1.0.x or earlier) first
+    libcrypto_dep = cc.find_library('libcrypto', required: false)
+    if not libcrypto_dep.found()
+      libeay_dep = cc.find_library('libeay32')
+    endif
+
+    # Find the corresponding SSL library depending on which crypto .lib we found
+    if libcrypto_dep.found()
+      libssl_dep = cc.find_library('libssl')
+    elif libeay_dep.found()
+      ssleay_dep = cc.find_library('ssleay32')
+    endif
+
+    # Now set the openssl dependency to the corresponding pair of .lib files that we found
+    if libcrypto_dep.found()
+      openssl_dep = [libcrypto_dep, libssl_dep]
+    else
+      openssl_dep = [libeay_dep, ssleay_dep]
+    endif
+  endif
+
+  backends += ['openssl']
+endif
+
 # *** Checks for p11-kit  ***
 enable_pkcs11_support = get_option('pkcs11_support')
 if enable_pkcs11_support
@@ -140,6 +187,10 @@ subdir('tls/base')
 
 if enable_gnutls_support
   subdir('tls/gnutls')
+endif
+
+if enable_openssl_support
+  subdir('tls/openssl')
 endif
 
 subdir('tls/tests')
