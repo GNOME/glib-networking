@@ -67,6 +67,7 @@ foreach backend: backends
 
       test_cflags = cflags + [
         '-DBACKEND="@0@"'.format(backend),
+        '-DBACKEND_IS_' + backend.to_upper(),
       ]
 
       exe = executable(
