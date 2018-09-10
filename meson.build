@@ -127,6 +127,27 @@ enable_openssl_support = get_option('openssl_support')
     endif
   endif
 
+  if host_machine.system() != 'windows'
+    ca_certificates = get_option('ca_certificates')
+    if ca_certificates == 'no'
+      message('CA certificates disabled')
+    else
+      if ca_certificates == ''
+        detect_certificates = run_command(join_paths(meson.source_root(), 'detect_certificates.py'))
+
+        if detect_certificates.returncode() == 1
+          error('Could not find certificates. Use -Dca_certificates=path to set, or -Dca_certificates=no to disable it')
+        endif
+
+        ca_certificates = detect_certificates.stdout().strip()
+      endif
+
+      message('CA certificates: ' + ca_certificates)
+
+      config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates)
+    endif
+  endif
+
   backends += ['openssl']
 endif
 
