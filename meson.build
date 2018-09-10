@@ -74,8 +74,14 @@ if enable_gnome_proxy_support
   gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas')
 endif
 
+backends = []
+
 # *** Checks for GnuTLS     ***
-gnutls_dep = dependency('gnutls', version: '>= 3.4.4')
+enable_gnutls_support = get_option('gnutls_support')
+if enable_gnutls_support
+  gnutls_dep = dependency('gnutls', version: '>= 3.4.4')
+  backends += ['gnutls']
+endif
 
 # *** Checks for p11-kit  ***
 enable_pkcs11_support = get_option('pkcs11_support')
@@ -139,7 +145,8 @@ if gio_querymodules.found()
   meson.add_install_script('meson_post_install.py', gio_querymodules.path(), gio_module_dir)
 endif
 
-output = '\n\n  libproxy support:    ' + enable_libproxy_support.to_string() + '\n'
+output = '\n\n gnutls support:    ' + enable_gnutls_support.to_string() + '\n'
+output += '  libproxy support:    ' + enable_libproxy_support.to_string() + '\n'
 output += '  GNOME proxy support: ' + enable_gnome_proxy_support.to_string() + '\n'
 output += '  PKCS#11 support:     ' + enable_pkcs11_support.to_string() + '\n'
 message(output)
