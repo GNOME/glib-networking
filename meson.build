@@ -65,22 +65,22 @@ assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 # *** Checks for LibProxy   ***
 enable_libproxy_support = get_option('libproxy_support')
 if enable_libproxy_support
-  libproxy_dep = dependency('libproxy-1.0', version: '>= 0.3.1', required: true)
+  libproxy_dep = dependency('libproxy-1.0', version: '>= 0.3.1')
 endif
 
 # *** Checks for GNOME      ***
 enable_gnome_proxy_support = get_option('gnome_proxy_support')
 if enable_gnome_proxy_support
-  gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required: true)
+  gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas')
 endif
 
 # *** Checks for GnuTLS     ***
-gnutls_dep = dependency('gnutls', version: '>= 3.4.4', required: true)
+gnutls_dep = dependency('gnutls', version: '>= 3.4.4')
 
 # *** Checks for p11-kit  ***
 enable_pkcs11_support = get_option('pkcs11_support')
 if enable_pkcs11_support
-  pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: true)
+  pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20')
 
   config_h.set('HAVE_PKCS11', enable_pkcs11_support,
                description: 'Building with PKCS#11 support')
