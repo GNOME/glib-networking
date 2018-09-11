@@ -10,7 +10,7 @@ deps = [
   gobject_dep,
 ]
 
-if enable_gnutls_support
+if gnutls_dep.found()
   deps += [
     gnutls_dep
   ]
@@ -33,7 +33,7 @@ test_programs = [
   ['dtls-connection', ['mock-interaction.c'], deps],
 ]
 
-if enable_pkcs11_support
+if pkcs11_dep.found()
   pkcs11_deps = deps + [
     libgiopkcs11_dep,
     pkcs11_dep
