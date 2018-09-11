@@ -23,6 +23,8 @@
 #include "config.h"
 #include "gtlsoutputstream-base.h"
 
+#include <glib/gi18n.h>
+
 static void g_tls_output_stream_base_pollable_iface_init (GPollableOutputStreamInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsOutputStreamBase, g_tls_output_stream_base, G_TYPE_OUTPUT_STREAM,
@@ -66,7 +68,12 @@ g_tls_output_stream_base_write (GOutputStream  *stream,
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
-  g_return_val_if_fail (conn != NULL, -1);
+  if (conn == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
+                           _("Connection is closed"));
+      return -1;
+    }
 
   ret = g_tls_connection_base_write (conn, buffer, count, TRUE,
                                      cancellable, error);
