@@ -1,7 +1,7 @@
 image: fedora:28
 
 variables:
-  ADDITIONAL_DEPENDENCIES: gsettings-desktop-schemas gcc libasan
+  ADDITIONAL_DEPENDENCIES: gsettings-desktop-schemas gcc libasan openssl-devel
 
 build_stable:
   before_script:
