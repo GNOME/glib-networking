@@ -75,14 +75,14 @@ gnutls_dep = dependency('gnutls', version: '>= 3.4.4', required: get_option('gnu
 
 if gnutls_dep.found()
   backends += ['gnutls']
-endif
 
-# *** Checks for p11-kit  ***
-pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: get_option('pkcs11'))
+  # *** Checks for p11-kit  ***
+  pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: get_option('pkcs11'))
 
-if pkcs11_dep.found()
-  config_h.set('HAVE_PKCS11', 1,
-               description: 'Building with PKCS#11 support')
+  if pkcs11_dep.found()
+    config_h.set('HAVE_PKCS11', 1,
+                 description: 'Building with PKCS#11 support')
+  endif
 endif
 
 configure_file(
