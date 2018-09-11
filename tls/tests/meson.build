@@ -8,13 +8,8 @@ deps = [
   glib_dep,
   gmodule_dep,
   gobject_dep,
+  gnutls_dep
 ]
-
-if gnutls_dep.found()
-  deps += [
-    gnutls_dep
-  ]
-endif
 
 cflags = [
   '-DSRCDIR="@0@"'.format(meson.current_source_dir()),
