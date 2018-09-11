@@ -10,6 +10,7 @@ build_stable:
     - dnf builddep -y --nogpgcheck glib-networking
     - dnf install -y --nogpgcheck $ADDITIONAL_DEPENDENCIES
   script:
+    - export ASAN_OPTIONS=suppressions=$PWD/asan.supp
     - mkdir build
     - cd build
     - meson .. -Db_sanitize=address
