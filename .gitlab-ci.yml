@@ -14,7 +14,7 @@ build_stable:
     - cd build
     - meson .. -Db_sanitize=address
     - ninja
-    - export ASAN_OPTIONS=suppressions=../asan.supp
+    - export ASAN_OPTIONS=suppressions=$$PWD/asan.supp
     - ninja test
     - ninja install
   artifacts:
