@@ -1981,11 +1981,6 @@ test_readwrite_after_connection_destroyed (TestConnection *test,
   unsigned char buffer[1];
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
   g_test_bug ("792219");
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
