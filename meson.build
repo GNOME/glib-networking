@@ -85,6 +85,10 @@ if gnutls_dep.found()
   endif
 endif
 
+if backends.length() == 0
+  error('No TLS backends enabled. Please enable at least one TLS backend')
+endif
+
 configure_file(
   output: 'config.h',
   configuration: config_h
