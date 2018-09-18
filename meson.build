@@ -133,28 +133,28 @@ elif cc.get_id() == 'msvc'
     openssl_dep = [libeay_dep, ssleay_dep]
   endif
 
-  if host_machine.system() != 'windows'
-    ca_certificates = get_option('ca_certificates')
-    if ca_certificates == 'no'
-      message('CA certificates disabled')
-    else
-      if ca_certificates == ''
-        detect_certificates = run_command(join_paths(meson.source_root(), 'detect_certificates.py'))
+  backends += ['openssl']
+endif
 
-        if detect_certificates.returncode() == 1
-          error('Could not find certificates. Use -Dca_certificates=path to set, or -Dca_certificates=no to disable it')
-        endif
+if backends.contains('openssl') and host_machine.system() != 'windows'
+  ca_certificates = get_option('ca_certificates')
+  if ca_certificates == 'no'
+    message('CA certificates disabled')
+  else
+    if ca_certificates == ''
+      detect_certificates = run_command(join_paths(meson.source_root(), 'detect_certificates.py'))
 
-        ca_certificates = detect_certificates.stdout().strip()
+      if detect_certificates.returncode() == 1
+        error('Could not find certificates. Use -Dca_certificates=path to set, or -Dca_certificates=no to disable it')
       endif
 
-      message('CA certificates: ' + ca_certificates)
-
-      config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates)
+      ca_certificates = detect_certificates.stdout().strip()
     endif
-  endif
 
-  backends += ['openssl']
+    message('CA certificates: ' + ca_certificates)
+
+    config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates)
+  endif
 endif
 
 if backends.length() == 0
