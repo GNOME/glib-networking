@@ -13,7 +13,7 @@ build_stable:
     - export LSAN_OPTIONS=suppressions=$PWD/tls/tests/asan.supp
     - mkdir build
     - cd build
-    - meson .. -Db_sanitize=address
+    - meson .. -Dopenssl=auto -Db_sanitize=address
     - ninja
     - ninja test
     - ninja install
