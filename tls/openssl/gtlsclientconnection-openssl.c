@@ -35,7 +35,7 @@
 #include "gtlscertificate-openssl.h"
 #include <glib/gi18n-lib.h>
 
-#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
+#define DEFAULT_CIPHER_LIST "PROFILE=SYSTEM"
 
 typedef struct _GTlsClientConnectionOpensslPrivate
 {
