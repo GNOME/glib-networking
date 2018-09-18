@@ -44,7 +44,7 @@ enum
   PROP_AUTHENTICATION_MODE
 };
 
-#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
+#define DEFAULT_CIPHER_LIST "PROFILE=SYSTEM"
 
 static void g_tls_server_connection_openssl_initable_interface_init (GInitableIface  *iface);
 
