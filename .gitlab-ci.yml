@@ -2,6 +2,7 @@ image: fedora:28
 
 variables:
   ADDITIONAL_DEPENDENCIES: gsettings-desktop-schemas gcc libasan openssl-devel
+  ADDITIONAL_DEBUG_INFO: openssl
 
 build_stable:
   before_script:
@@ -9,6 +10,7 @@ build_stable:
     - dnf install -y 'dnf-command(builddep)'
     - dnf builddep -y --nogpgcheck glib-networking
     - dnf install -y --nogpgcheck $ADDITIONAL_DEPENDENCIES
+    - dnf -y debuginfo-install $ADDITIONAL_DEBUG_INFO
   script:
     - export LSAN_OPTIONS=suppressions=$PWD/tls/tests/asan.supp
     - env
