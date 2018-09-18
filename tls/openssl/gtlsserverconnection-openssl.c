@@ -30,6 +30,12 @@
 #include "openssl-include.h"
 #include <glib/gi18n-lib.h>
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+#  define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
+#else
+#  define DEFAULT_CIPHER_LIST "PROFILE=SYSTEM"
+#endif
+
 typedef struct _GTlsServerConnectionOpensslPrivate
 {
   GTlsAuthenticationMode authentication_mode;
@@ -43,8 +49,6 @@ enum
   PROP_0,
   PROP_AUTHENTICATION_MODE
 };
-
-#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
 
 static void g_tls_server_connection_openssl_initable_interface_init (GInitableIface  *iface);
 
