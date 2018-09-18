@@ -12,8 +12,6 @@ build_stable:
     - dnf install -y --nogpgcheck $ADDITIONAL_DEPENDENCIES
     - dnf install-debuginfo $ADDITIONAL_DEBUG_INFO
   script:
-    - export LSAN_OPTIONS=suppressions=$PWD/tls/tests/asan.supp
-    - env
     - mkdir build
     - cd build
     - meson .. -Dopenssl=auto -Db_sanitize=address
