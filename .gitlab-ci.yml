@@ -10,7 +10,7 @@ build_stable:
     - dnf builddep -y --nogpgcheck glib-networking
     - dnf install -y --nogpgcheck $ADDITIONAL_DEPENDENCIES
   script:
-    - export ASAN_OPTIONS=suppressions=$PWD/tls/tests/asan.supp
+    - export LSAN_OPTIONS=suppressions=$PWD/tls/tests/asan.supp
     - env
     - mkdir build
     - cd build
