@@ -1,2 +1,1 @@
-leak:CRYPTO_malloc
-leak:CRYPTO_realloc
+leak:/lib64/libcrypto.so*
