@@ -261,9 +261,13 @@ get_peer_certificate (GTlsConnectionOpenssl *openssl)
 
   certs = SSL_get_peer_cert_chain (ssl);
   if (certs == NULL)
-    return NULL;
+    {
+      X509_free (peer);
+      return NULL;
+    }
 
   chain = g_tls_certificate_openssl_build_chain (peer, certs);
+  X509_free (peer);
   if (!chain)
     return NULL;
 
