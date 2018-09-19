@@ -1,1 +1,1 @@
-leak:/lib64/libcrypto.so*
+leak:X509_verify_cert
