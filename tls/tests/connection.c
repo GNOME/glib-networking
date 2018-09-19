@@ -1225,7 +1225,11 @@ test_client_auth_request_fail (TestConnection *test,
   read_test_data_async (test);
   g_main_loop_run (test->loop);
 
+#if OPENSSL_VERSION_NUMBER > 0x10100000L
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+#else
   g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
+#endif
 
   g_io_stream_close (test->server_connection, NULL, NULL);
   g_io_stream_close (test->client_connection, NULL, NULL);
