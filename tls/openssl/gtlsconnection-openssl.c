@@ -164,7 +164,11 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     }
 #endif
 
-  if (reason == SSL_R_PEER_DID_NOT_RETURN_A_CERTIFICATE)
+  if (reason == SSL_R_PEER_DID_NOT_RETURN_A_CERTIFICATE
+#ifdef SSL_R_TLSV13_ALERT_CERTIFICATE_REQUIRED
+      || reason == SSL_R_TLSV13_ALERT_CERTIFICATE_REQUIRED
+#endif
+     )
     {
       g_clear_error (&my_error);
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
