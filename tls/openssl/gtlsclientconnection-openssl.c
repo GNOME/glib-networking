@@ -503,13 +503,13 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   hostname = get_server_identity (client);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10200000L && !defined (LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L && !defined (LIBRESSL_VERSION_NUMBER)
   if (hostname)
     {
       X509_VERIFY_PARAM *param;
 
       param = X509_VERIFY_PARAM_new ();
-      X509_VERIFY_PARAM_set1_host (param, hostname);
+      X509_VERIFY_PARAM_set1_host (param, hostname, 0);
       SSL_CTX_set1_param (priv->ssl_ctx, param);
       X509_VERIFY_PARAM_free (param);
     }
