@@ -1,4 +1,6 @@
 tls/base/gtlsconnection-base.c
+tls/base/gtlsinputstream-base.c
+tls/base/gtlsoutputstream-base.c
 tls/openssl/gtlscertificate-openssl.c
 tls/openssl/gtlsclientconnection-openssl.c
 tls/openssl/gtlsconnection-openssl.c
