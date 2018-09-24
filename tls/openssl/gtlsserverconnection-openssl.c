@@ -311,7 +311,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
             SSL_OP_NO_SSLv3 |
             SSL_OP_NO_TLSv1;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10200000L && !defined (LIBRESSL_VERSION_NUMBER)
+#ifdef SSL_OP_NO_RENEGOTIATION
   options |= SSL_OP_NO_RENEGOTIATION;
 #endif
 
