@@ -5,10 +5,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
-"product=glib&keywords=I18N+L10N&component=network\n"
-"POT-Creation-Date: 2018-02-13 03:00+0000\n"
-"PO-Revision-Date: 2018-02-21 21:47+0100\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2018-07-27 21:02+0000\n"
+"PO-Revision-Date: 2018-09-29 11:51+0200\n"
 "Last-Translator: Марко М. Костић <marko.m.kostic@gmail.com>\n"
 "Language-Team: српски <gnome-sr@googlegroups.org>\n"
 "Language: sr\n"
@@ -48,52 +47,55 @@ msgstr "Не могу да обрадим приватни ПЕМ кључ: %s"
 msgid "No certificate data provided"
 msgstr "Нису обезбеђени подаци уверења"
 
-#: tls/gnutls/gtlsclientconnection-gnutls.c:398
+#: tls/gnutls/gtlsclientconnection-gnutls.c:447
 msgid "Server required TLS certificate"
 msgstr "ТЛС уверење које захтева сервер"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:392
+#: tls/gnutls/gtlsconnection-gnutls.c:398
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Не могу да направим ТЛС везу: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:697
+#: tls/gnutls/gtlsconnection-gnutls.c:711
+#: tls/gnutls/gtlsinputstream-gnutls.c:78
+#: tls/gnutls/gtlsinputstream-gnutls.c:141
+#: tls/gnutls/gtlsoutputstream-gnutls.c:78
+#: tls/gnutls/gtlsoutputstream-gnutls.c:143
 msgid "Connection is closed"
 msgstr "Веза је затворена"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:772
-#: tls/gnutls/gtlsconnection-gnutls.c:2184
-msgid "Operation would block"
-msgstr "Поступак би блокирао"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:813
-#: tls/gnutls/gtlsconnection-gnutls.c:1400
+#: tls/gnutls/gtlsconnection-gnutls.c:828
+#: tls/gnutls/gtlsconnection-gnutls.c:1432
 msgid "Socket I/O timed out"
 msgstr "Истекло време У/И утичнице"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:952
-#: tls/gnutls/gtlsconnection-gnutls.c:985
+#: tls/gnutls/gtlsconnection-gnutls.c:973
+#: tls/gnutls/gtlsconnection-gnutls.c:1006
 msgid "Peer failed to perform TLS handshake"
 msgstr "Парњак није успео да изврши ТЛС руковање"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:970
+#: tls/gnutls/gtlsconnection-gnutls.c:991
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Парњак је затражио илегално ТЛС поновно руковање"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:991
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
 msgid "TLS connection closed unexpectedly"
 msgstr "ТЛС веза је неочекивано затворена"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1001
+#: tls/gnutls/gtlsconnection-gnutls.c:1022
 msgid "TLS connection peer did not send a certificate"
 msgstr "Парњак ТЛС везе није послао уверење"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1028
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Парњак је послао кобно ТЛС упозорење: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1015
+#: tls/gnutls/gtlsconnection-gnutls.c:1040
+msgid "Protocol version downgrade attack detected"
+msgstr "Уочен је напад уназађивања издања протокола"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -102,40 +104,44 @@ msgstr[1] "Порука је предугачка за ДТЛС везу, нај
 msgstr[2] "Порука је предугачка за ДТЛС везу, највише је дозвољено %u бајтова"
 msgstr[3] "Порука је предугачка за ДТЛС везу, највише је дозвољен један бајт"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1022
+#: tls/gnutls/gtlsconnection-gnutls.c:1054
 msgid "The operation timed out"
 msgstr "Време извршавања радње је истекло"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1808
-#: tls/gnutls/gtlsconnection-gnutls.c:1859
+#: tls/gnutls/gtlsconnection-gnutls.c:1820
+msgid "Peer does not support safe renegotiation"
+msgstr "Парњак не подржава безбедно поновно преговарање"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1847
+#: tls/gnutls/gtlsconnection-gnutls.c:1899
 msgid "Error performing TLS handshake"
 msgstr "Грешка у извршавању ТЛС руковања"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1869
+#: tls/gnutls/gtlsconnection-gnutls.c:1909
 msgid "Server did not return a valid TLS certificate"
 msgstr "Сервер није вратио исправно ТЛС уверење"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1946
+#: tls/gnutls/gtlsconnection-gnutls.c:1991
 msgid "Unacceptable TLS certificate"
 msgstr "Неприхватљиво ТЛС уверење"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2218
-#: tls/gnutls/gtlsconnection-gnutls.c:2310
+#: tls/gnutls/gtlsconnection-gnutls.c:2264
+#: tls/gnutls/gtlsconnection-gnutls.c:2356
 msgid "Error reading data from TLS socket"
 msgstr "Грешка приликом читања података са ТЛС прикључка"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2340
+#: tls/gnutls/gtlsconnection-gnutls.c:2386
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Пријемне заставице нису подржане"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2417
-#: tls/gnutls/gtlsconnection-gnutls.c:2489
+#: tls/gnutls/gtlsconnection-gnutls.c:2463
+#: tls/gnutls/gtlsconnection-gnutls.c:2535
 msgid "Error writing data to TLS socket"
 msgstr "Грешка приликом уписивања података у ТЛС прикључак"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2459
+#: tls/gnutls/gtlsconnection-gnutls.c:2505
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -144,7 +150,7 @@ msgstr[1] "Порука од %lu бајта је предугачка за ДТ�
 msgstr[2] "Порука од %lu бајтова је предугачка за ДТЛС везу"
 msgstr[3] "Порука од једног бајта је предугачка за ДТЛС везу"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2461
+#: tls/gnutls/gtlsconnection-gnutls.c:2507
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -153,16 +159,29 @@ msgstr[1] "(највише %u бајта)"
 msgstr[2] "(највише %u бајтова)"
 msgstr[3] "(највише један бајт)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2520
+#: tls/gnutls/gtlsconnection-gnutls.c:2566
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Отпремне заставице нису подржане"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2623
+#: tls/gnutls/gtlsconnection-gnutls.c:2669
 msgid "Error performing TLS close"
 msgstr "Грешка у извршавању ТЛС затварања"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:111
+#: tls/gnutls/gtlsdatabase-gnutls.c:553
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Нисам успео да учитам системско складиште уверења: Гну-ТЛС није подешен са "
+"системским уверењем"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Нисам успео да учитам системско складиште уверења: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:137
 msgid "Certificate has no private key"
 msgstr "Уверење нема приватни кључ"
 
@@ -201,6 +220,9 @@ msgstr "ИБ слота"
 #: tls/pkcs11/gpkcs11slot.c:456
 msgid "PKCS#11 Slot Identifier"
 msgstr "Одредник ПКЦС#11 слота"
+
+#~ msgid "Operation would block"
+#~ msgstr "Поступак би блокирао"
 
 #~ msgid "Connection is already closed"
 #~ msgstr "Веза је већ затворена"
