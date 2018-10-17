@@ -1859,7 +1859,8 @@ handshake_thread (GTask        *task,
   g_clear_object (&priv->peer_certificate);
   priv->peer_certificate_errors = 0;
 
-  g_tls_connection_gnutls_set_handshake_priority (gnutls);
+  if (!priv->ever_handshaked)
+    g_tls_connection_gnutls_set_handshake_priority (gnutls);
 
   /* Adjust the timeout for the next operation in the sequence. */
   if (timeout > 0)
