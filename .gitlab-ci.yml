@@ -18,3 +18,59 @@ build_stable:
     paths:
       - build/test-results
     when: on_failure
+
+.bst:
+  image: "buildstream/buildstream-fedora:master-113-499df6a5"
+  variables:
+    # Store all the bst stuff under the "${CI_PROJECT_DIR}" directory.
+    # Note that GitLab CI will only cache stuff inside the "${CI_PROJECT_DIR}" folder.
+    XDG_CACHE_HOME: "${CI_PROJECT_DIR}/cache"
+    GET_SOURCES_ATTEMPTS: 3
+    BST: "bst --no-strict --config build.conf --log-file ../logs/build.log --colors"
+    BST_SHA: "10abe77fe8d77385d86f225b503d9185f4ef7f3a" #  1.2.3
+
+  before_script:
+    - dnf install -y xorg-x11-server-Xvfb
+
+    # Use specific version of BuildStream
+    - git clone https://gitlab.com/BuildStream/buildstream.git
+    - git -C buildstream/ checkout $BST_SHA
+    - pip3 install buildstream/
+
+    # Clone the GNOME moduleset
+    - git clone --depth=1 https://gitlab.gnome.org/GNOME/gnome-build-meta.git
+
+    # Ensure the log directory exists
+    - mkdir -p logs
+  script:
+    - cd gnome-build-meta/
+    # Ideally this would not be needed, but can't figure out a better way
+    - ${BST} build --track-all ${ELEMENT}
+    - ${BST} workspace open --no-checkout --track ${ELEMENT} ../
+    # FIXME: extract logs
+    - |
+      xvfb-run -a -s "-screen 0 1024x768x24" \
+        dbus-run-session \
+        ${BST} shell --build ${ELEMENT} -- /bin/bash -c \
+        'meson build && ninja -C build && NO_AT_BRIDGE=1 meson test -C build --print-errorlogs'
+    - ${BST} workspace close ${ELEMENT}
+
+  # Store all the downloaded git and ostree repos in the cache.
+  # This saves us fetching them on every build
+  cache:
+    key: "bst"
+    paths:
+      - "${XDG_CACHE_HOME}/buildstream/sources/"
+
+  # Store artifacts so we can inspect build failures
+  artifacts:
+    when: "always"
+    paths:
+      - "logs"
+      - "gnome-build-meta/project.refs"
+
+bst:
+  variables:
+    ELEMENT: "core/glib-networking.bst"
+  extends: .bst
+
