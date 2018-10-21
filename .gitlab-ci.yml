@@ -1,9 +1,7 @@
-image: fedora:28
-
-variables:
-  ADDITIONAL_DEPENDENCIES: gsettings-desktop-schemas gcc libasan
-
 build_stable:
+  image: fedora:28
+  variables:
+    ADDITIONAL_DEPENDENCIES: gsettings-desktop-schemas gcc libasan
   before_script:
     - dnf update -y --nogpgcheck
     - dnf install -y 'dnf-command(builddep)'
