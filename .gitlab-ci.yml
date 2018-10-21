@@ -45,7 +45,7 @@ build_stable:
   script:
     - cd gnome-build-meta/
     # Ideally this would not be needed, but can't figure out a better way
-    - ${BST} build --track-all ${ELEMENT}
+    - ${BST} build --track-all freedesktop-sdk.bst:base.bst ${ELEMENT}
     - ${BST} workspace open --no-checkout --track ${ELEMENT} ../
     # FIXME: extract logs
     - |
