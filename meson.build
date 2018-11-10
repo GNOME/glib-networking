@@ -145,7 +145,7 @@ if gio_querymodules.found()
   meson.add_install_script('meson_post_install.py', gio_querymodules.path(), gio_module_dir)
 endif
 
-output = '\n\n gnutls support:    ' + libproxy_dep.found().to_string() + '\n'
+output = '\n\n  gnutls support:    ' + libproxy_dep.found().to_string() + '\n'
 output += '  libproxy support:    ' + libproxy_dep.found().to_string() + '\n'
 output += '  GNOME proxy support: ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
 output += '  PKCS#11 support:     ' + pkcs11_dep.found().to_string() + '\n'
