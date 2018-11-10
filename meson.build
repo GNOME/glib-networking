@@ -71,7 +71,7 @@ gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required
 backends = []
 
 # *** Checks for GnuTLS     ***
-gnutls_dep = dependency('gnutls', version: '>= 3.4.4', required: get_option('gnutls'))
+gnutls_dep = dependency('gnutls', version: '>= 3.4.6', required: get_option('gnutls'))
 
 if gnutls_dep.found()
   backends += ['gnutls']
