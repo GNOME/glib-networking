@@ -56,6 +56,7 @@
 #endif
 
 #include <glib/gi18n-lib.h>
+#include <glib/gprintf.h>
 
 /*
  * GTlsConnectionGnutls is the base abstract implementation of TLS and DTLS
@@ -2981,4 +2982,35 @@ g_tls_connection_gnutls_request_certificate (GTlsConnectionGnutls  *gnutls,
   res = g_tls_interaction_invoke_request_certificate (interaction, conn, 0,
                                                       priv->read_cancellable, error);
   return res != G_TLS_INTERACTION_FAILED;
+}
+
+void
+GTLS_DEBUG (gpointer    gnutls,
+            const char *message,
+            ...)
+{
+  char *result = NULL;
+  int ret;
+
+  g_assert (G_IS_TLS_CONNECTION (gnutls));
+
+  va_list args;
+  va_start (args, message);
+
+  ret = g_vasprintf (&result, message, args);
+  g_assert (ret > 0);
+
+  if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+    g_printf ("CLIENT %p: ", gnutls);
+  else if (G_IS_TLS_SERVER_CONNECTION (gnutls))
+    g_printf ("SERVER %p: ", gnutls);
+  else
+    g_assert_not_reached ();
+
+  g_printf ("%s\n", result);
+
+  fflush (stdout);
+
+  g_free (result);
+  va_end (args);
 }

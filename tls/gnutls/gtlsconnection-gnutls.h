@@ -90,6 +90,10 @@ gboolean g_tls_connection_gnutls_close_internal (GIOStream            *stream,
                                                  GCancellable         *cancellable,
                                                  GError              **error);
 
+void GTLS_DEBUG (gpointer    gnutls,
+                 const char *message,
+                 ...);
+
 G_END_DECLS
 
 #endif /* __G_TLS_CONNECTION_GNUTLS_H___ */
