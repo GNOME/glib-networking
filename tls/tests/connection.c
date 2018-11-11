@@ -72,6 +72,7 @@ typedef struct {
   GTlsAuthenticationMode auth_mode;
   gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
+  GError *expected_client_close_error;
   GError *read_error;
   GError *expected_server_error;
   GError *server_error;
@@ -149,7 +150,10 @@ teardown_connection (TestConnection *test, gconstpointer data)
   g_clear_object (&test->address);
   g_clear_object (&test->identity);
   g_clear_object (&test->server_certificate);
+
   g_main_loop_unref (test->loop);
+
+  g_clear_error (&test->expected_client_close_error);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
   g_clear_error (&test->expected_server_error);
@@ -439,7 +443,11 @@ on_client_connection_close_finish (GObject        *object,
   GError *error = NULL;
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
-  g_assert_no_error (error);
+
+  if (test->expected_client_close_error)
+    g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
+  else
+    g_assert_no_error (error);
 
   g_main_loop_quit (test->loop);
 }
@@ -1005,6 +1013,23 @@ test_client_auth_rehandshake (TestConnection *test,
   test_client_auth_connection (test, data);
 }
 
+/* FIXME: This isn't good to have different API behavior depending on
+ * the version of GnuTLS in use. And how is OpenSSL supposed to deal
+ * with this?
+ */
+static gboolean
+client_can_receive_certificate_required_errors (TestConnection *test)
+{
+  /* This is an imperfect heuristic, but we'll assume GnuTLS 3.6.0 or
+   * higher means TLS 1.3. Broken pipe is expected here because in TLS
+   * 1.3 the client handshake succeeds before the client has sent its
+   * certificate to the server, so the client doesn't realize the server
+   * has rejected its certificate until it tries performing I/O.
+   * Unfortunate but probably unavoidable.
+   */
+  return !gnutls_check_version_numeric (3, 6, 0);
+}
+
 static void
 test_client_auth_failure (TestConnection *test,
                           gconstpointer   data)
@@ -1039,18 +1064,24 @@ test_client_auth_failure (TestConnection *test,
   g_signal_connect (test->client_connection, "notify::accepted-cas",
                     G_CALLBACK (on_notify_accepted_cas), &accepted_changed);
 
+  if (!client_can_receive_certificate_required_errors (test))
+    g_set_error_literal (&test->expected_client_close_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE, "");
   g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED, "");
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
 
-  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  if (client_can_receive_certificate_required_errors (test))
+    g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  else
+    g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_MISC);
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
   g_assert_true (accepted_changed);
 
   g_object_unref (test->client_connection);
   g_object_unref (test->database);
+  g_clear_error (&test->expected_client_close_error);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
   g_clear_error (&test->expected_server_error);
@@ -1219,12 +1250,18 @@ test_client_auth_request_fail (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
 
+  if (!client_can_receive_certificate_required_errors (test))
+    g_set_error_literal (&test->expected_client_close_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE, "");
   g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED, "");
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
 
-  g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
+  /* FIXME: G_FILE_ERROR_ACCES is not a very great error to get here. */
+  if (client_can_receive_certificate_required_errors (test))
+    g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
+  else
+    g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_MISC);
 
   g_io_stream_close (test->server_connection, NULL, NULL);
   g_io_stream_close (test->client_connection, NULL, NULL);
