@@ -1848,6 +1848,9 @@ accept_certificate_cb (gpointer user_data)
 
   g_mutex_lock (&priv->verify_certificate_mutex);
 
+  g_clear_object (&priv->peer_certificate);
+  priv->peer_certificate_errors = 0;
+
   if (gnutls_certificate_type_get (priv->session) == GNUTLS_CRT_X509)
     {
       priv->peer_certificate = get_peer_certificate_from_session (gnutls);
@@ -1975,9 +1978,6 @@ handshake_thread (GTask        *task,
     }
 
   priv->started_handshake = TRUE;
-
-  g_clear_object (&priv->peer_certificate);
-  priv->peer_certificate_errors = 0;
 
   if (!priv->ever_handshaked)
     g_tls_connection_gnutls_set_handshake_priority (gnutls);
