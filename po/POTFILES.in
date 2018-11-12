@@ -6,5 +6,3 @@ tls/gnutls/gtlsdatabase-gnutls.c
 tls/gnutls/gtlsinputstream-gnutls.c
 tls/gnutls/gtlsoutputstream-gnutls.c
 tls/gnutls/gtlsserverconnection-gnutls.c
-tls/pkcs11/gpkcs11pin.c
-tls/pkcs11/gpkcs11slot.c

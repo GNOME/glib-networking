@@ -75,14 +75,6 @@ gnutls_dep = dependency('gnutls', version: '>= 3.4.6', required: get_option('gnu
 
 if gnutls_dep.found()
   backends += ['gnutls']
-
-  # *** Checks for p11-kit  ***
-  pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: get_option('pkcs11'))
-
-  if pkcs11_dep.found()
-    config_h.set('HAVE_PKCS11', 1,
-                 description: 'Building with PKCS#11 support')
-  endif
 endif
 
 if backends.length() == 0
@@ -129,10 +121,6 @@ if libproxy_dep.found() or gsettings_desktop_schemas_dep.found()
   subdir('proxy/tests')
 endif
 
-if pkcs11_dep.found()
-  subdir('tls/pkcs11')
-endif
-
 if gnutls_dep.found()
   subdir('tls/gnutls')
 endif
@@ -145,8 +133,8 @@ if gio_querymodules.found()
   meson.add_install_script('meson_post_install.py', gio_querymodules.path(), gio_module_dir)
 endif
 
-output = '\n\n  gnutls support:    ' + libproxy_dep.found().to_string() + '\n'
+output = '\n\n'
+output += '  GnuTLS support:      ' + libproxy_dep.found().to_string() + '\n'
 output += '  libproxy support:    ' + libproxy_dep.found().to_string() + '\n'
 output += '  GNOME proxy support: ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
-output += '  PKCS#11 support:     ' + pkcs11_dep.found().to_string() + '\n'
 message(output)

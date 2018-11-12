@@ -28,7 +28,6 @@
 #include <glib/gi18n-lib.h>
 
 #include "gtlsbackend-gnutls.h"
-#include "gtlsbackend-gnutls-pkcs11.h"
 
 
 void
@@ -40,9 +39,6 @@ g_io_gnutls_load (GIOModule *module)
 #endif
 
   g_tls_backend_gnutls_register (module);
-#ifdef HAVE_PKCS11
-  g_tls_backend_gnutls_pkcs11_register (module);
-#endif
 
 #ifdef G_OS_WIN32
   base_dir = g_win32_get_package_installation_directory_of_module (NULL);

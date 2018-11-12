@@ -21,18 +21,6 @@ deps = [
   gnutls_dep
 ]
 
-if pkcs11_dep.found()
-  sources += files(
-    'gtlsbackend-gnutls-pkcs11.c',
-    'gtlscertificate-gnutls-pkcs11.c',
-    'gtlsdatabase-gnutls-pkcs11.c'
-  )
-
-  incs += tls_inc
-
-  deps += libgiopkcs11_dep
-endif
-
 module = shared_module(
   'giognutls',
   sources: sources,
