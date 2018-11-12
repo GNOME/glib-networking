@@ -1,3 +1,20 @@
+2.59.1 - November 11, 2018
+==========================
+
+This release removes the gnutls-pkcs11 backend, which was disabled in 2.57.2,
+due to lack of any feedback whatsoever regarding its disablement. If you think
+it is still useful to you, given that the normal gnutls backend now supports
+PKCS#11, speak up now.
+
+This release also includes several changes to properly support TLS 1.3.
+
+Other changes:
+
+ - Perform certificate verification during, not after, TLS handshake
+ - Dramatically improve the reliability of the non-DTLS tests. (DTLS is still having problems.)
+ - Regenerate test certificates to prepare for OpenSSL support
+ - Several meson build system improvements to prepare for OpenSSL support
+
 2.58.0 - September 2, 2018
 ==========================
 
