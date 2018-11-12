@@ -1013,21 +1013,24 @@ test_client_auth_rehandshake (TestConnection *test,
   test_client_auth_connection (test, data);
 }
 
-/* FIXME: This isn't good to have different API behavior depending on
+/* In TLS 1.3 the client handshake succeeds before the client has sent
+ * its certificate to the server, so the client doesn't realize the
+ * server has rejected its certificate until it tries performing I/O.
+ * This results in different errors bubbling up to the API level. The
+ * differences are unfortunate but difficult to avoid.
+ *
+ * FIXME: This isn't good to have different API behavior depending on
  * the version of GnuTLS in use. And how is OpenSSL supposed to deal
  * with this?
  */
 static gboolean
 client_can_receive_certificate_required_errors (TestConnection *test)
 {
-  /* This is an imperfect heuristic, but we'll assume GnuTLS 3.6.0 or
-   * higher means TLS 1.3. Broken pipe is expected here because in TLS
-   * 1.3 the client handshake succeeds before the client has sent its
-   * certificate to the server, so the client doesn't realize the server
-   * has rejected its certificate until it tries performing I/O.
-   * Unfortunate but probably unavoidable.
+  /* This is a very imperfect check, since it returns true on Fedora 28,
+   * where GNUTLS_TLS1_3 is defined but TLS 1.3 is disabled anyway.
+   * The tests will just remain broken there, I guess.
    */
-  return !gnutls_check_version_numeric (3, 6, 0);
+  return GNUTLS_TLS_VERSION_MAX <= GNUTLS_TLS1_2;
 }
 
 static void
