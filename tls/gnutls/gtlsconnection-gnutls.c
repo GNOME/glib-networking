@@ -286,6 +286,9 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 /* First field is "fallback", second is "allow unsafe rehandshaking" */
 static gnutls_priority_t priorities[2][2];
 
+/* TODO: Get rid of this in favor of gnutls_set_default_priority_append()
+ * when upgrading to GnuTLS 3.6.3.
+ */
 #define DEFAULT_BASE_PRIORITY "NORMAL:%COMPAT"
 
 static void
