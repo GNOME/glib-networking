@@ -1026,11 +1026,35 @@ test_client_auth_rehandshake (TestConnection *test,
 static gboolean
 client_can_receive_certificate_required_errors (TestConnection *test)
 {
-  /* This is a very imperfect check, since it returns true on Fedora 28,
-   * where GNUTLS_TLS1_3 is defined but TLS 1.3 is disabled anyway.
-   * The tests will just remain broken there, I guess.
+  gnutls_priority_t priority_cache;
+  int ret;
+  int i;
+  int nprotos;
+  static int max_proto = 0;
+  const guint *protos;
+
+  /* Determine whether GNUTLS_TLS1_3 is available at *runtime* (using
+   * the default priority) so that these tests work in Fedora 28, which
+   * has GnuTLS 3.6 (and therefore GNUTLS_TLS1_3) but with TLS 1.3
+   * disabled.
    */
-  return GNUTLS_TLS_VERSION_MAX <= GNUTLS_TLS1_2;
+  if (max_proto == 0)
+    {
+      ret = gnutls_priority_init (&priority_cache, "NORMAL", NULL);
+      g_assert_cmpint (ret, ==, GNUTLS_E_SUCCESS);
+
+      nprotos = gnutls_priority_protocol_list (priority_cache, &protos);
+
+      for (i = 0; i < nprotos; i++)
+        {
+          if (protos[i] > max_proto)
+            max_proto = protos[i];
+        }
+
+        gnutls_priority_deinit (priority_cache);
+    }
+
+  return max_proto <= GNUTLS_TLS1_2;
 }
 
 static void
