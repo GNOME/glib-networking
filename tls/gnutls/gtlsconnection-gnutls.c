@@ -1825,7 +1825,7 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
 
   g_assert (g_main_context_is_owner (priv->handshake_context));
 
-  if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+  if (G_IS_TLS_CLIENT_CONNECTION (gnutls) && priv->peer_certificate != NULL)
     {
       GTlsCertificateFlags validation_flags;
 
