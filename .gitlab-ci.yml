@@ -1,4 +1,4 @@
-image: fedora:28
+image: fedora:29
 
 variables:
   ADDITIONAL_DEPENDENCIES: gsettings-desktop-schemas gcc libasan
