@@ -1051,7 +1051,7 @@ client_can_receive_certificate_required_errors (TestConnection *test)
             max_proto = protos[i];
         }
 
-        gnutls_priority_deinit (priority_cache);
+      gnutls_priority_deinit (priority_cache);
     }
 
   return max_proto <= GNUTLS_TLS1_2;
