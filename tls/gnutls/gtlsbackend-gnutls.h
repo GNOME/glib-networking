@@ -32,15 +32,7 @@ G_BEGIN_DECLS
 
 #define G_TYPE_TLS_BACKEND_GNUTLS            (g_tls_backend_gnutls_get_type ())
 
-G_DECLARE_DERIVABLE_TYPE (GTlsBackendGnutls, g_tls_backend_gnutls, G, TLS_BACKEND_GNUTLS, GObject)
-
-struct _GTlsBackendGnutlsClass
-{
-  GObjectClass parent_class;
-
-  GTlsDatabase*   (*create_database)      (GTlsBackendGnutls          *self,
-                                           GError                    **error);
-};
+G_DECLARE_FINAL_TYPE (GTlsBackendGnutls, g_tls_backend_gnutls, G, TLS_BACKEND_GNUTLS, GObject)
 
 void  g_tls_backend_gnutls_register (GIOModule *module);
 
