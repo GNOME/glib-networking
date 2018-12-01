@@ -33,18 +33,7 @@ G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CERTIFICATE_GNUTLS            (g_tls_certificate_gnutls_get_type ())
 
-G_DECLARE_DERIVABLE_TYPE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G, TLS_CERTIFICATE_GNUTLS, GTlsCertificate)
-
-struct _GTlsCertificateGnutlsClass
-{
-  GTlsCertificateClass parent_class;
-
-  void              (*copy)               (GTlsCertificateGnutls    *gnutls,
-                                           const gchar              *interaction_id,
-                                           gnutls_pcert_st         **pcert,
-                                           unsigned int             *pcert_length,
-                                           gnutls_privkey_t         *pkey);
-};
+G_DECLARE_FINAL_TYPE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G, TLS_CERTIFICATE_GNUTLS, GTlsCertificate)
 
 GTlsCertificate *            g_tls_certificate_gnutls_new             (const gnutls_datum_t  *datum,
                                                                        GTlsCertificate       *issuer);
