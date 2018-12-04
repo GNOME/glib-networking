@@ -207,7 +207,7 @@ cache_data_free (gpointer data)
 
   g_bytes_unref (cache_data->session_id);
   g_bytes_unref (cache_data->session_data);
-  g_slice_free (GTlsBackendGnutlsCacheData, cache_data);
+  g_free (cache_data);
 }
 
 static GHashTable *
@@ -250,7 +250,7 @@ g_tls_backend_gnutls_store_session (unsigned int             type,
       if (g_hash_table_size (cache) >= SESSION_CACHE_MAX_SIZE)
         session_cache_cleanup (cache);
 
-      cache_data = g_slice_new (GTlsBackendGnutlsCacheData);
+      cache_data = g_new (GTlsBackendGnutlsCacheData, 1);
       cache_data->session_id = g_bytes_ref (session_id);
       cache_data->session_data = g_bytes_ref (session_data);
 
