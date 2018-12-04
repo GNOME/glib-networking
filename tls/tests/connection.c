@@ -187,8 +187,10 @@ start_server (TestConnection *test)
 }
 
 static gboolean
-on_accept_certificate (GTlsClientConnection *conn, GTlsCertificate *cert,
-                       GTlsCertificateFlags errors, gpointer user_data)
+on_accept_certificate (GTlsConnection       *conn,
+                       GTlsCertificate      *cert,
+                       GTlsCertificateFlags  errors,
+                       gpointer              user_data)
 {
   TestConnection *test = user_data;
   return errors == test->accept_flags;
