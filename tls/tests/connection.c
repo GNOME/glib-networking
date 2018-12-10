@@ -59,7 +59,8 @@ tls_test_file_path (const char *name)
   g_free (path);
   return const_path;
 }
-
+// FIXME
+#include <stdio.h>
 #define TEST_DATA "You win again, gravity!\n"
 #define TEST_DATA_LENGTH 24
 
@@ -261,7 +262,8 @@ on_output_write_finish (GObject        *object,
 
   g_assert_no_error (test->server_error);
   g_output_stream_write_finish (G_OUTPUT_STREAM (object), res, &test->server_error);
-
+printf("on_output_write_finish\n");
+fflush(stdout);
   if (!test->server_error && test->rehandshake)
     {
       test->rehandshake = FALSE;
@@ -315,7 +317,8 @@ on_incoming_connection (GSocketService     *service,
 #endif
 
   stream = g_io_stream_get_output_stream (test->server_connection);
-
+printf ("%s: calling g_output_stream_write_async!\n", __FUNCTION__);
+fflush (stdout);
   g_output_stream_write_async (stream, TEST_DATA,
                                test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH,
                                G_PRIORITY_DEFAULT, NULL,
@@ -2195,6 +2198,59 @@ test_alpn_server_only (TestConnection *test,
   test_alpn (test, NULL, server_protocols, NULL);
 }
 
+static gboolean
+on_accept_certificate_with_sync_close (GTlsClientConnection *conn,
+                                       GTlsCertificate      *cert,
+                                       GTlsCertificateFlags  errors,
+                                       gpointer              user_data)
+{
+  GError *error = NULL;
+
+  /* Attempting to perform a sync operation that would block the
+   * handshake should fail, not deadlock.
+   */
+  g_io_stream_close (G_IO_STREAM (conn), NULL, &error);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+  g_error_free (error);
+
+  /* FIXME: When writing this test, I initially wanted to return FALSE
+   * here to reject the connection. However, this surfaces a bug that I
+   * have not fixed yet. The problem is the server is not seeing the end
+   * of its g_output_stream_write() when the client fails the handshake.
+   * No good. The server's implicit handshake failure should trigger a
+   * write failure as well, instead of stalling. This needs to be fixed.
+   */
+  return TRUE;
+}
+
+static void
+test_sync_op_during_handshake (TestConnection *test,
+                               gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  /* For this test, we need validation to fail to ensure that the
+   * accept-certificate signal gets emitted.
+   */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  g_signal_connect (test->client_connection, "accept-certificate",
+                    G_CALLBACK (on_accept_certificate_with_sync_close), test);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -2266,7 +2322,6 @@ main (int   argc,
               setup_connection, test_garbage_database, teardown_connection);
   g_test_add ("/tls/connection/readwrite-after-connection-destroyed", TestConnection, NULL,
               setup_connection, test_readwrite_after_connection_destroyed, teardown_connection);
-
   g_test_add ("/tls/connection/alpn/match", TestConnection, NULL,
               setup_connection, test_alpn_match, teardown_connection);
   g_test_add ("/tls/connection/alpn/no-match", TestConnection, NULL,
@@ -2275,6 +2330,8 @@ main (int   argc,
               setup_connection, test_alpn_client_only, teardown_connection);
   g_test_add ("/tls/connection/alpn/server-only", TestConnection, NULL,
               setup_connection, test_alpn_server_only, teardown_connection);
+  g_test_add ("/tls/connection/sync-op-during-handshake", TestConnection, NULL,
+              setup_connection, test_sync_op_during_handshake, teardown_connection);
 
   ret = g_test_run ();
 
