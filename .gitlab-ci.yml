@@ -1,21 +1,16 @@
-image: fedora:29
+image: registry.gitlab.gnome.org/gnome/glib-networking/master:v1
 
-variables:
-  ADDITIONAL_DEPENDENCIES: gsettings-desktop-schemas gcc libasan
-
-build_stable:
-  before_script:
-    - dnf update -y --nogpgcheck
-    - dnf install -y 'dnf-command(builddep)'
-    - dnf builddep -y --nogpgcheck glib-networking
-    - dnf install -y --nogpgcheck $ADDITIONAL_DEPENDENCIES
+fedora-x86_64:
   script:
-    - mkdir build
-    - cd build
-    - meson .. -Db_sanitize=address
-    - ninja
-    - ninja test
-    - ninja install
+    - meson --prefix=$HOME/glib-networking-installed
+            -Db_sanitize=address
+            -Dgnutls=enabled
+            -Dlibproxy=enabled
+            -Dgnome_proxy=enabled
+            build/
+    - ninja -C build/
+    - ninja -C build/ test
+    - ninja -C build/ install
   artifacts:
     paths:
       - build/test-results
