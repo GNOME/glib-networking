@@ -78,6 +78,7 @@ typedef struct {
   GError *server_error;
   gboolean server_should_close;
   gboolean server_running;
+  const gchar * const *server_protocols;
   GTlsCertificate *server_certificate;
 
   char buf[128];
@@ -301,6 +302,12 @@ on_incoming_connection (GSocketService     *service,
 
   if (test->database)
     g_tls_connection_set_database (G_TLS_CONNECTION (test->server_connection), test->database);
+
+	if (test->server_protocols)
+		{
+			g_tls_connection_set_advertised_protocols (G_TLS_CONNECTION (test->server_connection),
+				test->server_protocols);
+		}
 
   stream = g_io_stream_get_output_stream (test->server_connection);
 
@@ -2068,6 +2075,86 @@ test_readwrite_after_connection_destroyed (TestConnection *test,
   g_object_unref (ostream);
 }
 
+static void
+test_alpn (TestConnection *test,
+     const char * const *client_protocols,
+     const char * const *server_protocols,
+     const char *negotiated_protocol)
+{
+#if (GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 2) || (GNUTLS_VERSION_MAJOR > 3)
+  GIOStream *connection;
+  GError *error = NULL;
+
+  test->server_protocols = server_protocols;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (test->database);
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  if (client_protocols)
+    {
+      g_tls_connection_set_advertised_protocols (G_TLS_CONNECTION (test->client_connection),
+             client_protocols);
+    }
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_assert_cmpstr (g_tls_connection_get_negotiated_protocol (G_TLS_CONNECTION (test->server_connection)), ==, negotiated_protocol);
+  g_assert_cmpstr (g_tls_connection_get_negotiated_protocol (G_TLS_CONNECTION (test->client_connection)), ==, negotiated_protocol);
+#else
+  g_test_skip ("no support for ALPN in this gnutls version");
+#endif
+}
+
+static void
+test_alpn_match (TestConnection *test,
+     gconstpointer   data)
+{
+  const char * const client_protocols[] = { "one", "two", "three", NULL };
+  const char * const server_protocols[] = { "four", "seven", "nine", "two", NULL };
+
+  test_alpn (test, client_protocols, server_protocols, "two");
+}
+
+static void
+test_alpn_no_match (TestConnection *test,
+        gconstpointer   data)
+{
+  const char * const client_protocols[] = { "one", "two", "three", NULL };
+  const char * const server_protocols[] = { "four", "seven", "nine", NULL };
+
+  test_alpn (test, client_protocols, server_protocols, NULL);
+}
+
+static void
+test_alpn_client_only (TestConnection *test,
+           gconstpointer   data)
+{
+  const char * const client_protocols[] = { "one", "two", "three", NULL };
+
+  test_alpn (test, client_protocols, NULL, NULL);
+}
+
+static void
+test_alpn_server_only (TestConnection *test,
+           gconstpointer   data)
+{
+  const char * const server_protocols[] = { "four", "seven", "nine", "two", NULL };
+
+  test_alpn (test, NULL, server_protocols, NULL);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -2139,6 +2226,15 @@ main (int   argc,
               setup_connection, test_garbage_database, teardown_connection);
   g_test_add ("/tls/connection/readwrite-after-connection-destroyed", TestConnection, NULL,
               setup_connection, test_readwrite_after_connection_destroyed, teardown_connection);
+
+	g_test_add ("/tls/connection/alpn/match", TestConnection, NULL,
+							setup_connection, test_alpn_match, teardown_connection);
+	g_test_add ("/tls/connection/alpn/no-match", TestConnection, NULL,
+							setup_connection, test_alpn_no_match, teardown_connection);
+	g_test_add ("/tls/connection/alpn/client-only", TestConnection, NULL,
+							setup_connection, test_alpn_client_only, teardown_connection);
+	g_test_add ("/tls/connection/alpn/server-only", TestConnection, NULL,
+							setup_connection, test_alpn_server_only, teardown_connection);
 
   ret = g_test_run ();
 
