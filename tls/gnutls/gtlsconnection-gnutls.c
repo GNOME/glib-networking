@@ -2010,24 +2010,6 @@ handshake_thread (GTask        *task,
   if (!priv->ever_handshaked)
     g_tls_connection_gnutls_set_handshake_priority (gnutls);
 
-#if (GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 2) || (GNUTLS_VERSION_MAJOR > 3)
-  if (priv->advertised_protocols)
-    {
-      gnutls_datum_t *protocols;
-      int n_protos, i;
-
-      n_protos = g_strv_length (priv->advertised_protocols);
-      protocols = g_new (gnutls_datum_t, n_protos);
-      for (i = 0; priv->advertised_protocols[i]; i++)
-        {
-          protocols[i].size = strlen (priv->advertised_protocols[i]);
-          protocols[i].data = g_memdup (priv->advertised_protocols[i], protocols[i].size);
-        }
-      gnutls_alpn_set_protocols (priv->session, protocols, n_protos, 0);
-      g_free (protocols);
-    }
-#endif
-
   /* Adjust the timeout for the next operation in the sequence. */
   if (timeout > 0)
     {
@@ -2100,6 +2082,21 @@ begin_handshake (GTlsConnectionGnutls *gnutls)
       g_clear_pointer (&priv->negotiated_protocol, g_free);
       g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
     }
+  if (priv->advertised_protocols)
+    {
+      gnutls_datum_t *protocols;
+      int n_protos, i;
+
+      n_protos = g_strv_length (priv->advertised_protocols);
+      protocols = g_new (gnutls_datum_t, n_protos);
+      for (i = 0; priv->advertised_protocols[i]; i++)
+        {
+          protocols[i].size = strlen (priv->advertised_protocols[i]);
+          protocols[i].data = g_memdup (priv->advertised_protocols[i], protocols[i].size);
+        }
+      gnutls_alpn_set_protocols (priv->session, protocols, n_protos, 0);
+      g_free (protocols);
+    }
 
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
 }
@@ -2136,18 +2133,18 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
                            _("Unacceptable TLS certificate"));
     }
 
-#if (GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 2) || (GNUTLS_VERSION_MAJOR > 3)
   if (!*error && priv->advertised_protocols)
     {
       gnutls_datum_t protocol;
 
       if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
         {
-          priv->negotiated_protocol = g_strndup ((gchar *) protocol.data, protocol.size);
+          priv->negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
           g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
         }
     }
-#endif
+
+    g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
 
   if (*error && priv->started_handshake)
     priv->handshake_error = g_error_copy (*error);

@@ -303,11 +303,11 @@ on_incoming_connection (GSocketService     *service,
   if (test->database)
     g_tls_connection_set_database (G_TLS_CONNECTION (test->server_connection), test->database);
 
-	if (test->server_protocols)
-		{
-			g_tls_connection_set_advertised_protocols (G_TLS_CONNECTION (test->server_connection),
-				test->server_protocols);
-		}
+  if (test->server_protocols)
+    {
+      g_tls_connection_set_advertised_protocols (G_TLS_CONNECTION (test->server_connection),
+                                                 test->server_protocols);
+    }
 
   stream = g_io_stream_get_output_stream (test->server_connection);
 
@@ -2227,14 +2227,14 @@ main (int   argc,
   g_test_add ("/tls/connection/readwrite-after-connection-destroyed", TestConnection, NULL,
               setup_connection, test_readwrite_after_connection_destroyed, teardown_connection);
 
-	g_test_add ("/tls/connection/alpn/match", TestConnection, NULL,
-							setup_connection, test_alpn_match, teardown_connection);
-	g_test_add ("/tls/connection/alpn/no-match", TestConnection, NULL,
-							setup_connection, test_alpn_no_match, teardown_connection);
-	g_test_add ("/tls/connection/alpn/client-only", TestConnection, NULL,
-							setup_connection, test_alpn_client_only, teardown_connection);
-	g_test_add ("/tls/connection/alpn/server-only", TestConnection, NULL,
-							setup_connection, test_alpn_server_only, teardown_connection);
+  g_test_add ("/tls/connection/alpn/match", TestConnection, NULL,
+              setup_connection, test_alpn_match, teardown_connection);
+  g_test_add ("/tls/connection/alpn/no-match", TestConnection, NULL,
+              setup_connection, test_alpn_no_match, teardown_connection);
+  g_test_add ("/tls/connection/alpn/client-only", TestConnection, NULL,
+              setup_connection, test_alpn_client_only, teardown_connection);
+  g_test_add ("/tls/connection/alpn/server-only", TestConnection, NULL,
+              setup_connection, test_alpn_server_only, teardown_connection);
 
   ret = g_test_run ();
 
