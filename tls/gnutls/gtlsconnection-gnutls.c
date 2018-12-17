@@ -3075,6 +3075,22 @@ g_tls_connection_gnutls_dtls_shutdown_finish (GDtlsConnection  *conn,
 }
 
 static void
+g_tls_connection_gnutls_dtls_set_advertised_protocols (GDtlsConnection    *conn,
+                                                       const char * const *protocols)
+{
+  g_object_set(conn, "advertised-protocols", protocols, NULL);
+}
+
+const char *
+g_tls_connection_gnutls_dtls_get_negotiated_protocol (GDtlsConnection *conn)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (conn);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+
+  return priv->negotiated_protocol;
+}
+
+static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -3125,6 +3141,8 @@ g_tls_connection_gnutls_dtls_connection_iface_init (GDtlsConnectionInterface *if
   iface->shutdown = g_tls_connection_gnutls_dtls_shutdown;
   iface->shutdown_async = g_tls_connection_gnutls_dtls_shutdown_async;
   iface->shutdown_finish = g_tls_connection_gnutls_dtls_shutdown_finish;
+  iface->set_advertised_protocols = g_tls_connection_gnutls_dtls_set_advertised_protocols;
+  iface->get_negotiated_protocol = g_tls_connection_gnutls_dtls_get_negotiated_protocol;
 }
 
 static void
