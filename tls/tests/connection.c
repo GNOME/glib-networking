@@ -2077,11 +2077,11 @@ test_readwrite_after_connection_destroyed (TestConnection *test,
 
 static void
 test_alpn (TestConnection *test,
-     const char * const *client_protocols,
-     const char * const *server_protocols,
-     const char *negotiated_protocol)
+           const char * const *client_protocols,
+           const char * const *server_protocols,
+           const char *negotiated_protocol)
 {
-#if (GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 2) || (GNUTLS_VERSION_MAJOR > 3)
+#if GLIB_CHECK_VERSION(2, 59, 1)
   GIOStream *connection;
   GError *error = NULL;
 
@@ -2113,13 +2113,13 @@ test_alpn (TestConnection *test,
   g_assert_cmpstr (g_tls_connection_get_negotiated_protocol (G_TLS_CONNECTION (test->server_connection)), ==, negotiated_protocol);
   g_assert_cmpstr (g_tls_connection_get_negotiated_protocol (G_TLS_CONNECTION (test->client_connection)), ==, negotiated_protocol);
 #else
-  g_test_skip ("no support for ALPN in this gnutls version");
+  g_test_skip ("no support for ALPN in this GLib version");
 #endif
 }
 
 static void
 test_alpn_match (TestConnection *test,
-     gconstpointer   data)
+                 gconstpointer   data)
 {
   const char * const client_protocols[] = { "one", "two", "three", NULL };
   const char * const server_protocols[] = { "four", "seven", "nine", "two", NULL };
@@ -2129,7 +2129,7 @@ test_alpn_match (TestConnection *test,
 
 static void
 test_alpn_no_match (TestConnection *test,
-        gconstpointer   data)
+                    gconstpointer   data)
 {
   const char * const client_protocols[] = { "one", "two", "three", NULL };
   const char * const server_protocols[] = { "four", "seven", "nine", NULL };
@@ -2139,7 +2139,7 @@ test_alpn_no_match (TestConnection *test,
 
 static void
 test_alpn_client_only (TestConnection *test,
-           gconstpointer   data)
+                       gconstpointer   data)
 {
   const char * const client_protocols[] = { "one", "two", "three", NULL };
 
@@ -2148,7 +2148,7 @@ test_alpn_client_only (TestConnection *test,
 
 static void
 test_alpn_server_only (TestConnection *test,
-           gconstpointer   data)
+                       gconstpointer   data)
 {
   const char * const server_protocols[] = { "four", "seven", "nine", "two", NULL };
 

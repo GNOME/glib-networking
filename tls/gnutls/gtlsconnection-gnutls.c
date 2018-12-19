@@ -3077,13 +3077,13 @@ g_tls_connection_gnutls_dtls_shutdown_finish (GDtlsConnection  *conn,
 }
 
 static void
-g_tls_connection_gnutls_dtls_set_advertised_protocols (GDtlsConnection    *conn,
-                                                       const char * const *protocols)
+g_tls_connection_gnutls_dtls_set_advertised_protocols (GDtlsConnection     *conn,
+                                                       const gchar * const *protocols)
 {
-  g_object_set(conn, "advertised-protocols", protocols, NULL);
+  g_object_set (conn, "advertised-protocols", protocols, NULL);
 }
 
-const char *
+const gchar *
 g_tls_connection_gnutls_dtls_get_negotiated_protocol (GDtlsConnection *conn)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (conn);
