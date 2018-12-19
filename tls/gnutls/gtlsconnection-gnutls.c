@@ -2070,18 +2070,6 @@ begin_handshake (GTlsConnectionGnutls *gnutls)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
 
-  if (priv->peer_certificate)
-    {
-      g_clear_object (&priv->peer_certificate);
-      priv->peer_certificate_errors = 0;
-      g_object_notify (G_OBJECT (gnutls), "peer-certificate");
-      g_object_notify (G_OBJECT (gnutls), "peer-certificate-errors");
-    }
-  if (priv->negotiated_protocol)
-    {
-      g_clear_pointer (&priv->negotiated_protocol, g_free);
-      g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
-    }
   if (priv->advertised_protocols)
     {
       gnutls_datum_t *protocols;
@@ -2099,6 +2087,33 @@ begin_handshake (GTlsConnectionGnutls *gnutls)
     }
 
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
+}
+
+static void
+update_negotiated_protocol (GTlsConnectionGnutls *gnutls)
+{
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  gchar *orig_negotiated_protocol;
+  gnutls_datum_t protocol;
+
+  /*
+   * Preserve the prior negotiated protocol before clearing it
+   */
+  orig_negotiated_protocol = g_steal_pointer(&priv->negotiated_protocol);
+
+
+  if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
+    {
+      priv->negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
+    }
+
+  /*
+   * Notify only if the negotiated protocol changed
+   */
+  if (g_strcmp0 (orig_negotiated_protocol, priv->negotiated_protocol) != 0)
+    g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
+
+  g_clear_pointer(&orig_negotiated_protocol, g_free);
 }
 
 static gboolean
@@ -2134,17 +2149,7 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
     }
 
   if (!*error && priv->advertised_protocols)
-    {
-      gnutls_datum_t protocol;
-
-      if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
-        {
-          priv->negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
-          g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
-        }
-    }
-
-    g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
+    update_negotiated_protocol (gnutls);
 
   if (*error && priv->started_handshake)
     priv->handshake_error = g_error_copy (*error);
