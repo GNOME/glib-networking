@@ -401,7 +401,7 @@ on_incoming_connection (GSocket       *socket,
   if (test->server_protocols)
     {
       g_dtls_connection_set_advertised_protocols (G_DTLS_CONNECTION (test->server_connection),
-        test->server_protocols);
+                                                  test->server_protocols);
     }
 
   if (test->test_data->server_should_disappear)

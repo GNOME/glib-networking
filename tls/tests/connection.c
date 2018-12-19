@@ -2099,7 +2099,7 @@ test_alpn (TestConnection *test,
   if (client_protocols)
     {
       g_tls_connection_set_advertised_protocols (G_TLS_CONNECTION (test->client_connection),
-             client_protocols);
+                                                 client_protocols);
     }
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);

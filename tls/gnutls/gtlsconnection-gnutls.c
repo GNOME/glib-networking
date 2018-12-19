@@ -2099,7 +2099,7 @@ update_negotiated_protocol (GTlsConnectionGnutls *gnutls)
   /*
    * Preserve the prior negotiated protocol before clearing it
    */
-  orig_negotiated_protocol = g_steal_pointer(&priv->negotiated_protocol);
+  orig_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
 
 
   if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
@@ -2113,7 +2113,7 @@ update_negotiated_protocol (GTlsConnectionGnutls *gnutls)
   if (g_strcmp0 (orig_negotiated_protocol, priv->negotiated_protocol) != 0)
     g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
 
-  g_clear_pointer(&orig_negotiated_protocol, g_free);
+  g_free(orig_negotiated_protocol);
 }
 
 static gboolean
