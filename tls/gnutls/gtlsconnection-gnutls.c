@@ -2103,9 +2103,7 @@ update_negotiated_protocol (GTlsConnectionGnutls *gnutls)
 
 
   if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
-    {
-      priv->negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
-    }
+    priv->negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
 
   /*
    * Notify only if the negotiated protocol changed
@@ -2113,7 +2111,7 @@ update_negotiated_protocol (GTlsConnectionGnutls *gnutls)
   if (g_strcmp0 (orig_negotiated_protocol, priv->negotiated_protocol) != 0)
     g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
 
-  g_free(orig_negotiated_protocol);
+  g_free (orig_negotiated_protocol);
 }
 
 static gboolean
