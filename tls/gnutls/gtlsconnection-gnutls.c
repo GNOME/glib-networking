@@ -130,6 +130,8 @@ enum
   PROP_INTERACTION,
   PROP_PEER_CERTIFICATE,
   PROP_PEER_CERTIFICATE_ERRORS,
+  PROP_ADVERTISED_PROTOCOLS,
+  PROP_NEGOTIATED_PROTOCOL,
 };
 
 typedef struct
@@ -213,6 +215,9 @@ typedef struct
 
   GTlsInteraction *interaction;
   gchar *interaction_id;
+
+  gchar **advertised_protocols;
+  gchar *negotiated_protocol;
 
   GMutex        op_mutex;
   GCancellable *waiting_for_op;
@@ -456,6 +461,9 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_free (priv->interaction_id);
   g_clear_object (&priv->interaction);
 
+  g_clear_pointer (&priv->advertised_protocols, g_strfreev);
+  g_clear_pointer (&priv->negotiated_protocol, g_free);
+
   g_clear_error (&priv->handshake_error);
   g_clear_error (&priv->read_error);
   g_clear_error (&priv->write_error);
@@ -532,6 +540,14 @@ g_tls_connection_gnutls_get_property (GObject    *object,
 
     case PROP_PEER_CERTIFICATE_ERRORS:
       g_value_set_flags (value, priv->peer_certificate_errors);
+      break;
+
+    case PROP_ADVERTISED_PROTOCOLS:
+      g_value_set_boxed (value, priv->advertised_protocols);
+      break;
+
+    case PROP_NEGOTIATED_PROTOCOL:
+      g_value_set_string (value, priv->negotiated_protocol);
       break;
 
     default:
@@ -626,6 +642,11 @@ g_tls_connection_gnutls_set_property (GObject      *object,
     case PROP_INTERACTION:
       g_clear_object (&priv->interaction);
       priv->interaction = g_value_dup_object (value);
+      break;
+
+    case PROP_ADVERTISED_PROTOCOLS:
+      g_clear_pointer (&priv->advertised_protocols, g_strfreev);
+      priv->advertised_protocols = g_value_dup_boxed (value);
       break;
 
     default:
@@ -2047,7 +2068,50 @@ handshake_thread (GTask        *task,
 static void
 begin_handshake (GTlsConnectionGnutls *gnutls)
 {
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+
+  if (priv->advertised_protocols)
+    {
+      gnutls_datum_t *protocols;
+      int n_protos, i;
+
+      n_protos = g_strv_length (priv->advertised_protocols);
+      protocols = g_new (gnutls_datum_t, n_protos);
+      for (i = 0; priv->advertised_protocols[i]; i++)
+        {
+          protocols[i].size = strlen (priv->advertised_protocols[i]);
+          protocols[i].data = g_memdup (priv->advertised_protocols[i], protocols[i].size);
+        }
+      gnutls_alpn_set_protocols (priv->session, protocols, n_protos, 0);
+      g_free (protocols);
+    }
+
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
+}
+
+static void
+update_negotiated_protocol (GTlsConnectionGnutls *gnutls)
+{
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  gchar *orig_negotiated_protocol;
+  gnutls_datum_t protocol;
+
+  /*
+   * Preserve the prior negotiated protocol before clearing it
+   */
+  orig_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
+
+
+  if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
+    priv->negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
+
+  /*
+   * Notify only if the negotiated protocol changed
+   */
+  if (g_strcmp0 (orig_negotiated_protocol, priv->negotiated_protocol) != 0)
+    g_object_notify (G_OBJECT (gnutls), "negotiated-protocol");
+
+  g_free (orig_negotiated_protocol);
 }
 
 static gboolean
@@ -2081,6 +2145,9 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                            _("Unacceptable TLS certificate"));
     }
+
+  if (!*error && priv->advertised_protocols)
+    update_negotiated_protocol (gnutls);
 
   if (*error && priv->started_handshake)
     priv->handshake_error = g_error_copy (*error);
@@ -3008,6 +3075,22 @@ g_tls_connection_gnutls_dtls_shutdown_finish (GDtlsConnection  *conn,
 }
 
 static void
+g_tls_connection_gnutls_dtls_set_advertised_protocols (GDtlsConnection     *conn,
+                                                       const gchar * const *protocols)
+{
+  g_object_set (conn, "advertised-protocols", protocols, NULL);
+}
+
+const gchar *
+g_tls_connection_gnutls_dtls_get_negotiated_protocol (GDtlsConnection *conn)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (conn);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+
+  return priv->negotiated_protocol;
+}
+
+static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -3039,6 +3122,8 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
+  g_object_class_override_property (gobject_class, PROP_ADVERTISED_PROTOCOLS, "advertised-protocols");
+  g_object_class_override_property (gobject_class, PROP_NEGOTIATED_PROTOCOL, "negotiated-protocol");
 }
 
 static void
@@ -3056,6 +3141,8 @@ g_tls_connection_gnutls_dtls_connection_iface_init (GDtlsConnectionInterface *if
   iface->shutdown = g_tls_connection_gnutls_dtls_shutdown;
   iface->shutdown_async = g_tls_connection_gnutls_dtls_shutdown_async;
   iface->shutdown_finish = g_tls_connection_gnutls_dtls_shutdown_finish;
+  iface->set_advertised_protocols = g_tls_connection_gnutls_dtls_set_advertised_protocols;
+  iface->get_negotiated_protocol = g_tls_connection_gnutls_dtls_get_negotiated_protocol;
 }
 
 static void

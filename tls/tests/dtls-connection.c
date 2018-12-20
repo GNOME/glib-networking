@@ -89,6 +89,7 @@ typedef struct {
   gboolean expect_server_error;
   GError *server_error;
   gboolean server_running;
+  const gchar * const *server_protocols;
 
   char buf[128];
   gssize nread, nwrote;
@@ -396,6 +397,12 @@ on_incoming_connection (GSocket       *socket,
 
   if (test->database)
     g_dtls_connection_set_database (G_DTLS_CONNECTION (test->server_connection), test->database);
+
+  if (test->server_protocols)
+    {
+      g_dtls_connection_set_advertised_protocols (G_DTLS_CONNECTION (test->server_connection),
+                                                  test->server_protocols);
+    }
 
   if (test->test_data->server_should_disappear)
     {
@@ -726,6 +733,83 @@ test_connection_timeouts_read (TestConnection *test,
   g_assert_error (test->read_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
 }
 
+static void
+test_alpn (TestConnection *test,
+           const char * const *client_protocols,
+           const char * const *server_protocols,
+           const char *negotiated_protocol)
+{
+#if GLIB_CHECK_VERSION(2, 59, 1)
+  GDatagramBased *connection;
+  GError *error = NULL;
+
+  test->server_protocols = server_protocols;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert (test->database);
+
+  connection = start_server_and_connect_to_it (test, FALSE);
+  test->client_connection = g_dtls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  if (client_protocols)
+    {
+      g_dtls_connection_set_advertised_protocols (G_DTLS_CONNECTION (test->client_connection),
+             client_protocols);
+    }
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  read_test_data_async (test);
+  while (!test->loop_finished)
+    g_main_context_iteration (test->client_context, TRUE);
+
+  g_assert_no_error (test->server_error);
+  g_assert_no_error (test->read_error);
+
+  g_assert_cmpstr (g_dtls_connection_get_negotiated_protocol (G_DTLS_CONNECTION (test->server_connection)), ==, negotiated_protocol);
+  g_assert_cmpstr (g_dtls_connection_get_negotiated_protocol (G_DTLS_CONNECTION (test->client_connection)), ==, negotiated_protocol);
+#else
+  g_test_skip ("no support for ALPN in this GLib version");
+#endif
+}
+
+static void
+test_alpn_match (TestConnection *test, gconstpointer data)
+{
+  const char * const client_protocols[] = { "one", "two", "three", NULL };
+  const char * const server_protocols[] = { "four", "seven", "nine", "two", NULL };
+
+  test_alpn (test, client_protocols, server_protocols, "two");
+}
+
+static void
+test_alpn_no_match (TestConnection *test, gconstpointer data)
+{
+  const char * const client_protocols[] = { "one", "two", "three", NULL };
+  const char * const server_protocols[] = { "four", "seven", "nine", NULL };
+
+  test_alpn (test, client_protocols, server_protocols, NULL);
+}
+
+static void
+test_alpn_client_only (TestConnection *test, gconstpointer data)
+{
+  const char * const client_protocols[] = { "one", "two", "three", NULL };
+
+  test_alpn (test, client_protocols, NULL, NULL);
+}
+
+static void
+test_alpn_server_only (TestConnection *test, gconstpointer data)
+{
+  const char * const server_protocols[] = { "four", "seven", "nine", "two", NULL };
+
+  test_alpn (test, NULL, server_protocols, NULL);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -805,6 +889,19 @@ main (int   argc,
 
   g_test_add ("/dtls/connection/timeouts/read", TestConnection, &client_timeout,
               setup_connection, test_connection_timeouts_read,
+              teardown_connection);
+
+  g_test_add ("/dtls/connection/alpn/match", TestConnection, &blocking,
+              setup_connection, test_alpn_match,
+              teardown_connection);
+  g_test_add ("/dtls/connection/alpn/no-match", TestConnection, &blocking,
+              setup_connection, test_alpn_no_match,
+              teardown_connection);
+  g_test_add ("/dtls/connection/alpn/client-only", TestConnection, &blocking,
+              setup_connection, test_alpn_client_only,
+              teardown_connection);
+  g_test_add ("/dtls/connection/alpn/server-only", TestConnection, &blocking,
+              setup_connection, test_alpn_server_only,
               teardown_connection);
 
   ret = g_test_run ();
