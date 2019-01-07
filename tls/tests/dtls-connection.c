@@ -89,7 +89,7 @@ typedef struct {
   gboolean expect_server_error;
   GError *server_error;
   gboolean server_running;
-#if GLIB_CHECK_VERSION(2, 59, 1)
+#if GLIB_CHECK_VERSION(2, 59, 0)
   const gchar * const *server_protocols;
 #endif
 
@@ -400,7 +400,7 @@ on_incoming_connection (GSocket       *socket,
   if (test->database)
     g_dtls_connection_set_database (G_DTLS_CONNECTION (test->server_connection), test->database);
 
-#if GLIB_CHECK_VERSION(2, 59, 1)
+#if GLIB_CHECK_VERSION(2, 59, 0)
   if (test->server_protocols)
     {
       g_dtls_connection_set_advertised_protocols (G_DTLS_CONNECTION (test->server_connection),
@@ -743,7 +743,7 @@ test_alpn (TestConnection *test,
            const char * const *server_protocols,
            const char *negotiated_protocol)
 {
-#if GLIB_CHECK_VERSION(2, 59, 1)
+#if GLIB_CHECK_VERSION(2, 59, 0)
   GDatagramBased *connection;
   GError *error = NULL;
 
