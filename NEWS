@@ -1,3 +1,8 @@
+2.59.2 - January 7, 2019
+========================
+
+ - Add support for application layer protocol negotiation (#47, Scott Hutton)
+
 2.59.1 - November 11, 2018
 ==========================
 
