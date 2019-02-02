@@ -42,6 +42,12 @@ if host_system.contains('linux')
   module_ldflags += cc.get_supported_link_arguments(test_ldflag)
 endif
 
+extra_args= []
+# Detect and set symbol visibility
+if cc.get_id() == 'msvc'
+  extra_args += ['-D_GLIB_EXTERN=__declspec (dllexport) extern']
+endif
+
 # *** Check GLib GIO        ***
 glib_dep = dependency('glib-2.0', version: '>= 2.55.1',
   fallback: ['glib', 'libglib_dep'])
@@ -75,6 +81,72 @@ gnutls_dep = dependency('gnutls', version: '>= 3.4.6', required: get_option('gnu
 
 if gnutls_dep.found()
   backends += ['gnutls']
+endif
+
+# *** Checks for OpenSSL    ***
+openssl_dep = dependency('openssl', required: get_option('openssl'))
+if openssl_dep.found()
+  backends += ['openssl']
+elif cc.get_id() == 'msvc'
+  # MSVC builds of OpenSSL does not generate pkg-config files,
+  # so we check for it manually here in this case, if we can't find those files
+  # Based on the CMake check for OpenSSL in CURL's CMakeLists.txt,
+  # on which headers we should check for
+  cc.has_header('openssl/crypto.h')
+  cc.has_header('openssl/engine.h')
+  cc.has_header('openssl/err.h')
+  cc.has_header('openssl/pem.h')
+  cc.has_header('openssl/rsa.h')
+  cc.has_header('openssl/ssl.h')
+  cc.has_header('openssl/x509.h')
+  cc.has_header('openssl/rand.h')
+  cc.has_header('openssl/tls1.h')
+
+  # OpenSSL 1.1.x and 1.0.x (or earlier) have different .lib names,
+  # so we need to look for the correct pair
+
+  # Find either libcrypto.lib (1.1.x) or libeay32.lib (1.0.x or earlier) first
+  libcrypto_dep = cc.find_library('libcrypto', required: false)
+  if not libcrypto_dep.found()
+    libeay_dep = cc.find_library('libeay32')
+  endif
+
+  # Find the corresponding SSL library depending on which crypto .lib we found
+  if libcrypto_dep.found()
+    libssl_dep = cc.find_library('libssl')
+  elif libeay_dep.found()
+    ssleay_dep = cc.find_library('ssleay32')
+  endif
+
+  # Now set the openssl dependency to the corresponding pair of .lib files that we found
+  if libcrypto_dep.found()
+    openssl_dep = [libcrypto_dep, libssl_dep]
+  else
+    openssl_dep = [libeay_dep, ssleay_dep]
+  endif
+
+  backends += ['openssl']
+endif
+
+if backends.contains('openssl') and host_machine.system() != 'windows'
+  ca_certificates = get_option('ca_certificates')
+  if ca_certificates == 'no'
+    message('CA certificates disabled')
+  else
+    if ca_certificates == ''
+      detect_certificates = run_command(join_paths(meson.source_root(), 'detect_certificates.py'))
+
+      if detect_certificates.returncode() == 1
+        error('Could not find certificates. Use -Dca_certificates=path to set, or -Dca_certificates=no to disable it')
+      endif
+
+      ca_certificates = detect_certificates.stdout().strip()
+    endif
+
+    message('CA certificates: ' + ca_certificates)
+
+    config_h.set_quoted('GTLS_SYSTEM_CA_FILE', ca_certificates)
+  endif
 endif
 
 if backends.length() == 0
@@ -121,8 +193,14 @@ if libproxy_dep.found() or gsettings_desktop_schemas_dep.found()
   subdir('proxy/tests')
 endif
 
+subdir('tls/base')
+
 if gnutls_dep.found()
   subdir('tls/gnutls')
+endif
+
+if backends.contains('openssl')
+  subdir('tls/openssl')
 endif
 
 subdir('tls/tests')
@@ -134,7 +212,8 @@ if gio_querymodules.found()
 endif
 
 output = '\n\n'
-output += '  GnuTLS support:      ' + libproxy_dep.found().to_string() + '\n'
+output += '  gnutls support:      ' + backends.contains('gnutls').to_string() + '\n'
+output += '  openssl support:     ' + backends.contains('openssl').to_string() + '\n'
 output += '  libproxy support:    ' + libproxy_dep.found().to_string() + '\n'
 output += '  GNOME proxy support: ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
 message(output)

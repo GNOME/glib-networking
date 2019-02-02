@@ -1,5 +1,7 @@
 option('gnutls', type: 'feature', value: 'auto', description: 'support for GnuTLS networking configration')
+option('openssl', type: 'feature', value: 'disabled', description: 'support for OpenSSL networking configration')
 option('libproxy', type: 'feature', value: 'auto', description: 'support for libproxy proxy configration')
 option('gnome_proxy', type: 'feature', value: 'auto', description: 'support for GNOME desktop proxy configuration')
 option('installed_tests', type: 'boolean', value: false, description: 'enable installed tests')
 option('static_modules', type: 'boolean', value: false, description: 'build static modules')
+option('ca_certificates', type: 'string', value: '', description: 'path to system Certificate Authority list for OpenSSL')
