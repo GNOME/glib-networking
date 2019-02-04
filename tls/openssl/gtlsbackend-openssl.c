@@ -196,11 +196,6 @@ g_tls_backend_openssl_real_create_database (GTlsBackendOpenssl  *self,
     }
 #endif
 
-#ifdef GTLS_SYSTEM_CA_FILE
-  if (anchor_file == NULL)
-    anchor_file = g_strdup (GTLS_SYSTEM_CA_FILE);
-#endif
-
   if (anchor_file == NULL)
     {
       const gchar *openssl_cert_file;
