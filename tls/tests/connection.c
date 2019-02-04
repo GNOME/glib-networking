@@ -1047,6 +1047,7 @@ test_client_auth_rehandshake (TestConnection *test,
 static gboolean
 client_can_receive_certificate_required_errors (TestConnection *test)
 {
+#ifdef BACKEND_IS_GNUTLS
   gnutls_priority_t priority_cache;
   int ret;
   int i;
@@ -1076,6 +1077,9 @@ client_can_receive_certificate_required_errors (TestConnection *test)
     }
 
   return max_proto <= GNUTLS_TLS1_2;
+#else
+  return TRUE;
+#endif
 }
 
 static void

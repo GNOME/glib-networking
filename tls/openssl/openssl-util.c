@@ -65,6 +65,7 @@
 
 #include "openssl-util.h"
 #include <string.h>
+#include <strings.h>
 #include "openssl-include.h"
 
 #ifdef _MSC_VER

@@ -397,7 +397,7 @@ retrieve_certificate (SSL       *ssl,
 }
 
 static int
-generate_session_id (const SSL     *ssl,
+generate_session_id (SSL           *ssl,
                      unsigned char *id,
                      unsigned int  *id_len)
 {

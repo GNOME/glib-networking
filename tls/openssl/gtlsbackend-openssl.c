@@ -55,6 +55,11 @@ struct CRYPTO_dynlock_value {
   GMutex mutex;
 };
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 static unsigned long
 id_cb (void)
 {
@@ -105,6 +110,10 @@ dyn_destroy_cb (struct CRYPTO_dynlock_value *l,
   g_mutex_clear (&l->mutex);
   g_free (l);
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 static gpointer
 gtls_openssl_init (gpointer data)
