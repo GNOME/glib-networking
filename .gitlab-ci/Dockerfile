@@ -6,6 +6,7 @@ RUN dnf update -y \
     && dnf install -y gsettings-desktop-schemas \
                       gcc \
                       libasan \
+                      openssl-devel \
     && dnf clean all
 
 ARG HOST_USER_ID=5555

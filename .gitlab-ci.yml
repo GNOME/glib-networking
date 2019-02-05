@@ -1,10 +1,11 @@
-image: registry.gitlab.gnome.org/gnome/glib-networking/master:v1
+image: registry.gitlab.gnome.org/gnome/glib-networking/master:v2
 
 fedora-x86_64:
   script:
     - meson --prefix=$HOME/glib-networking-installed
             -Db_sanitize=address
             -Dgnutls=enabled
+            -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
             -Dwerror=true
