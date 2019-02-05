@@ -1,3 +1,28 @@
+2.59.90 - February 4, 2019
+==========================
+
+This release adds an OpenSSL backend, obsoleting the glib-openssl project.
+Credit to all the contributors to the glib-openssl project, especially
+Ignacio Casal Quinteiro. Also thanks to Xavier Claessens for helping with the
+transition.
+
+The OpenSSL backend seems to be mature, though it is less well-tested for
+desktop usage than the GnuTLS backend. It will remain disabled by default at
+build time due to the GPL-incompatible nature of the OpenSSL license -- and the
+GPLv2-incompatible nature of the Apache license that will be used by future
+versions of OpenSSL -- and because the GnuTLS backend is sufficient for Linux
+distros.
+
+Use the OpenSSL backend if you are building an embedded system where
+(GPLv2+ or LGPLv3+) dependencies are unacceptable (e.g. nettle or GMP, both
+dependencies of GnuTLS) and you are OK with the GPL-incompatible OpenSSL
+license. If the OpenSSL backend is enabled at build time, you should probably
+disable build of the GnuTLS backend, or it will take precedence over the OpenSSL
+backend at runtime. For example, you could configure with:
+
+$ mkdir build && cd build
+$ meson -Dgnutls=disabled -Dopenssl=enabled ..
+
 2.59.2 - January 7, 2019
 ========================
 
