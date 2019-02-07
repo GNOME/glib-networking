@@ -28,8 +28,6 @@
 
 #include <gio/gio.h>
 
-#include "gnutls/gtlscertificate-gnutls.h"
-
 #include <sys/types.h>
 #include <string.h>
 
