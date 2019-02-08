@@ -30,11 +30,7 @@
 #include "openssl-include.h"
 #include <glib/gi18n-lib.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-#  define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
-#else
-#  define DEFAULT_CIPHER_LIST "PROFILE=SYSTEM"
-#endif
+#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
 
 typedef struct _GTlsServerConnectionOpensslPrivate
 {
