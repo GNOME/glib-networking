@@ -222,8 +222,9 @@ ssl_info_callback (const SSL *ssl,
 }
 #endif
 
-static void
-set_cipher_list (GTlsServerConnectionOpenssl *server)
+static gboolean
+set_cipher_list (GTlsServerConnectionOpenssl  *server,
+                 GError                      **error)
 {
   GTlsServerConnectionOpensslPrivate *priv;
   const gchar *cipher_list;
@@ -234,7 +235,15 @@ set_cipher_list (GTlsServerConnectionOpenssl *server)
   if (cipher_list == NULL)
     cipher_list = DEFAULT_CIPHER_LIST;
 
-  SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list);
+  if (!SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list))
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Could not create TLS context: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  return TRUE;
 }
 
 #ifdef SSL_CTX_set1_sigalgs_list
@@ -293,6 +302,9 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
                    ERR_error_string (ERR_get_error (), NULL));
       return FALSE;
     }
+
+  if (!set_cipher_list (client, error))
+    return FALSE;
 
   /* Only TLS 1.2 or higher */
   options = SSL_OP_NO_TICKET |
@@ -364,8 +376,6 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
     }
 
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
-
-  set_cipher_list (server);
 
 #ifdef SSL_CTX_set1_sigalgs_list
   set_signature_algorithm_list (server);
