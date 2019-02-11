@@ -286,20 +286,17 @@ on_incoming_connection (GSocketService     *service,
   GTlsCertificate *cert;
   GError *error = NULL;
 
-  if (test->server_certificate)
-    {
-      cert = g_object_ref (test->server_certificate);
-    }
-  else
+  test->server_connection = g_tls_server_connection_new (G_IO_STREAM (connection),
+                                                         test->server_certificate, &error);
+  g_assert_no_error (error);
+
+  if (!test->server_certificate)
     {
       cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
       g_assert_no_error (error);
+      g_tls_connection_set_certificate ((GTlsConnection *)test->server_connection, cert);
+      g_object_unref (cert);
     }
-
-  test->server_connection = g_tls_server_connection_new (G_IO_STREAM (connection),
-                                                         cert, &error);
-  g_assert_no_error (error);
-  g_object_unref (cert);
 
   g_object_set (test->server_connection, "authentication-mode", test->auth_mode, NULL);
   g_signal_connect (test->server_connection, "accept-certificate",
