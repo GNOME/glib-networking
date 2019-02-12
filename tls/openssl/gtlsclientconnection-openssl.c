@@ -515,7 +515,8 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
     }
 #endif
 
-  SSL_CTX_set_generate_session_id (priv->ssl_ctx, generate_session_id);
+  SSL_CTX_set_generate_session_id (priv->ssl_ctx, (GEN_SESSION_CB)generate_session_id);
+
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
   SSL_CTX_set_client_cert_cb (priv->ssl_ctx, retrieve_certificate);
