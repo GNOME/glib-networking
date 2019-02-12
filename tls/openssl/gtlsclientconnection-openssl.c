@@ -515,7 +515,20 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
     }
 #endif
 
+/*
+ * Use pragma to silent compiler warning about the type of
+ * generate_session_id where the first argument (SSL *) is
+ * expected to be const in older OpenSSL versions.
+ */
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#endif
   SSL_CTX_set_generate_session_id (priv->ssl_ctx, generate_session_id);
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
   SSL_CTX_add_session (priv->ssl_ctx, priv->session);
 
   SSL_CTX_set_client_cert_cb (priv->ssl_ctx, retrieve_certificate);
