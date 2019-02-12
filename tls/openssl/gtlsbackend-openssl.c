@@ -36,16 +36,17 @@
 #include "gtlsclientconnection-openssl.h"
 #include "gtlsfiledatabase-openssl.h"
 
-typedef struct _GTlsBackendOpensslPrivate
+struct _GTlsBackendOpenssl
 {
+  GObject parent_instance;
+
   GMutex mutex;
   GTlsDatabase *default_database;
-} GTlsBackendOpensslPrivate;
+};
 
 static void g_tls_backend_openssl_interface_init (GTlsBackendInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendOpenssl, g_tls_backend_openssl, G_TYPE_OBJECT, 0,
-                                G_ADD_PRIVATE_DYNAMIC (GTlsBackendOpenssl)
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
                                                                g_tls_backend_openssl_interface_init))
 
@@ -144,12 +145,8 @@ gtls_openssl_init (gpointer data)
 static GOnce openssl_inited = G_ONCE_INIT;
 
 static void
-g_tls_backend_openssl_init (GTlsBackendOpenssl *backend)
+g_tls_backend_openssl_init (GTlsBackendOpenssl *self)
 {
-  GTlsBackendOpensslPrivate *priv;
-
-  priv = g_tls_backend_openssl_get_instance_private (backend);
-
   /* Once we call gtls_openssl_init(), we can't allow the module to be
    * unloaded (since if openssl gets unloaded but gcrypt doesn't, then
    * gcrypt will have dangling pointers to openssl's mutex functions).
@@ -159,21 +156,17 @@ g_tls_backend_openssl_init (GTlsBackendOpenssl *backend)
    */
   g_once (&openssl_inited, gtls_openssl_init, NULL);
 
-  g_mutex_init (&priv->mutex);
+  g_mutex_init (&self->mutex);
 }
 
 static void
 g_tls_backend_openssl_finalize (GObject *object)
 {
+  GTlsBackendOpenssl *self = G_TLS_BACKEND_OPENSSL (object);
   int i;
 
-  GTlsBackendOpenssl *backend = G_TLS_BACKEND_OPENSSL (object);
-  GTlsBackendOpensslPrivate *priv;
-
-  priv = g_tls_backend_openssl_get_instance_private (backend);
-
-  g_clear_object (&priv->default_database);
-  g_mutex_clear (&priv->mutex);
+  g_clear_object (&self->default_database);
+  g_mutex_clear (&self->mutex);
 
   CRYPTO_set_id_callback (NULL);
   CRYPTO_set_locking_callback (NULL);
@@ -187,49 +180,12 @@ g_tls_backend_openssl_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_backend_openssl_parent_class)->finalize (object);
 }
 
-static GTlsDatabase *
-g_tls_backend_openssl_real_create_database (GTlsBackendOpenssl  *self,
-                                            GError             **error)
-{
-  gchar *anchor_file = NULL;
-  GTlsDatabase *database;
-
-#ifdef G_OS_WIN32
-  if (g_getenv ("G_TLS_OPENSSL_HANDLE_CERT_RELOCATABLE") != NULL)
-    {
-      gchar *module_dir;
-
-      module_dir = g_win32_get_package_installation_directory_of_module (NULL);
-      anchor_file = g_build_filename (module_dir, "bin", "cert.pem", NULL);
-      g_free (module_dir);
-    }
-#endif
-
-  if (anchor_file == NULL)
-    {
-      const gchar *openssl_cert_file;
-
-      openssl_cert_file = g_getenv (X509_get_default_cert_file_env ());
-      if (openssl_cert_file == NULL)
-        openssl_cert_file = X509_get_default_cert_file ();
-
-      anchor_file = g_strdup (openssl_cert_file);
-    }
-
-  database = g_tls_file_database_new (anchor_file, error);
-  g_free (anchor_file);
-
-  return database;
-}
-
 static void
 g_tls_backend_openssl_class_init (GTlsBackendOpensslClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
   gobject_class->finalize = g_tls_backend_openssl_finalize;
-
-  klass->create_database = g_tls_backend_openssl_real_create_database;
 }
 
 static void
@@ -240,23 +196,19 @@ g_tls_backend_openssl_class_finalize (GTlsBackendOpensslClass *backend_class)
 static GTlsDatabase*
 g_tls_backend_openssl_get_default_database (GTlsBackend *backend)
 {
-  GTlsBackendOpenssl *openssl_backend = G_TLS_BACKEND_OPENSSL (backend);
-  GTlsBackendOpensslPrivate *priv;
+  GTlsBackendOpenssl *self = G_TLS_BACKEND_OPENSSL (backend);
   GTlsDatabase *result;
   GError *error = NULL;
 
-  priv = g_tls_backend_openssl_get_instance_private (openssl_backend);
+  g_mutex_lock (&self->mutex);
 
-  g_mutex_lock (&priv->mutex);
-
-  if (priv->default_database)
+  if (self->default_database)
     {
-      result = g_object_ref (priv->default_database);
+      result = g_object_ref (self->default_database);
     }
   else
     {
-      g_assert (G_TLS_BACKEND_OPENSSL_GET_CLASS (openssl_backend)->create_database);
-      result = G_TLS_BACKEND_OPENSSL_GET_CLASS (openssl_backend)->create_database (openssl_backend, &error);
+      result = G_TLS_DATABASE (g_tls_database_openssl_new (&error));
       if (error)
         {
           g_warning ("Couldn't load TLS file database: %s",
@@ -266,11 +218,11 @@ g_tls_backend_openssl_get_default_database (GTlsBackend *backend)
       else
         {
           g_assert (result);
-          priv->default_database = g_object_ref (result);
+          self->default_database = g_object_ref (result);
         }
     }
 
-  g_mutex_unlock (&priv->mutex);
+  g_mutex_unlock (&self->mutex);
 
   return result;
 }

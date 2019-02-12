@@ -31,32 +31,26 @@
 
 G_BEGIN_DECLS
 
-typedef enum {
-  G_TLS_DATABASE_OPENSSL_PINNED_CERTIFICATE = 1,
-  G_TLS_DATABASE_OPENSSL_ANCHORED_CERTIFICATE = 2,
-} GTlsDatabaseOpensslAssertion;
-
 #define G_TYPE_TLS_DATABASE_OPENSSL            (g_tls_database_openssl_get_type ())
-#define G_TLS_DATABASE_OPENSSL(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_DATABASE_OPENSSL, GTlsDatabaseOpenssl))
-#define G_TLS_DATABASE_OPENSSL_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_DATABASE_OPENSSL, GTlsDatabaseOpensslClass))
-#define G_IS_TLS_DATABASE_OPENSSL(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_DATABASE_OPENSSL))
-#define G_IS_TLS_DATABASE_OPENSSL_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_DATABASE_OPENSSL))
-#define G_TLS_DATABASE_OPENSSL_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_DATABASE_OPENSSL, GTlsDatabaseOpensslClass))
 
-typedef struct _GTlsDatabaseOpensslClass GTlsDatabaseOpensslClass;
-typedef struct _GTlsDatabaseOpenssl      GTlsDatabaseOpenssl;
+G_DECLARE_DERIVABLE_TYPE (GTlsDatabaseOpenssl, g_tls_database_openssl, G, TLS_DATABASE_OPENSSL, GTlsDatabase)
 
 struct _GTlsDatabaseOpensslClass
 {
   GTlsDatabaseClass parent_class;
+
+  gchar    *(*create_handle_for_certificate)  (GTlsDatabaseOpenssl       *self,
+                                               GBytes                    *der);
+  gboolean  (*populate_trust_list)            (GTlsDatabaseOpenssl       *self,
+                                               X509_STORE                *store,
+                                               GError                   **error);
 };
 
-struct _GTlsDatabaseOpenssl
-{
-  GTlsDatabase parent_instance;
-};
+GTlsDatabaseOpenssl      *g_tls_database_openssl_new                      (GError **error);
 
-GType          g_tls_database_openssl_get_type              (void) G_GNUC_CONST;
+GTlsCertificateFlags      g_tls_database_openssl_verify_ocsp_response     (GTlsDatabaseOpenssl *self,
+                                                                           GTlsCertificate     *chain,
+                                                                           OCSP_RESPONSE       *resp);
 
 G_END_DECLS
 
