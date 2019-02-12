@@ -620,14 +620,6 @@ g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *openssl)
   return G_TLS_CONNECTION_OPENSSL_GET_CLASS (openssl)->get_ssl (openssl);
 }
 
-SSL_CTX *
-g_tls_connection_openssl_get_ssl_ctx (GTlsConnectionOpenssl *openssl)
-{
-  g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), NULL);
-
-  return G_TLS_CONNECTION_OPENSSL_GET_CLASS (openssl)->get_ssl_ctx (openssl);
-}
-
 gboolean
 g_tls_connection_openssl_request_certificate (GTlsConnectionOpenssl  *openssl,
                                               GError                **error)

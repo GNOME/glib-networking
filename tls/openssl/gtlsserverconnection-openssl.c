@@ -168,17 +168,6 @@ g_tls_server_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection)
   return priv->ssl;
 }
 
-static SSL_CTX *
-g_tls_server_connection_openssl_get_ssl_ctx (GTlsConnectionOpenssl *connection)
-{
-  GTlsServerConnectionOpenssl *server = G_TLS_SERVER_CONNECTION_OPENSSL (connection);
-  GTlsServerConnectionOpensslPrivate *priv;
-
-  priv = g_tls_server_connection_openssl_get_instance_private (server);
-
-  return priv->ssl_ctx;
-}
-
 static void
 g_tls_server_connection_openssl_class_init (GTlsServerConnectionOpensslClass *klass)
 {
@@ -193,7 +182,6 @@ g_tls_server_connection_openssl_class_init (GTlsServerConnectionOpensslClass *kl
   base_class->handshake = g_tls_server_connection_openssl_handshake;
 
   connection_class->get_ssl = g_tls_server_connection_openssl_get_ssl;
-  connection_class->get_ssl_ctx = g_tls_server_connection_openssl_get_ssl_ctx;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }
