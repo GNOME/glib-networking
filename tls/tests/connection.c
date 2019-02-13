@@ -296,6 +296,7 @@ on_incoming_connection (GSocketService     *service,
       g_assert_no_error (error);
     }
 
+  g_assert_null (test->server_connection);
   test->server_connection = g_tls_server_connection_new (G_IO_STREAM (connection),
                                                          cert, &error);
   g_assert_no_error (error);
@@ -989,8 +990,8 @@ test_client_auth_connection (TestConnection *test,
   g_assert_true (cas_changed);
 
   g_object_unref (cert);
-  g_object_unref (test->database);
   g_object_unref (test->client_connection);
+  g_clear_object (&test->server_connection);
 
   /* Now start a new connection to the same server with a different client cert */
   client = g_socket_client_new ();
@@ -999,6 +1000,8 @@ test_client_auth_connection (TestConnection *test,
   g_assert_no_error (error);
   g_object_unref (client);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
@@ -1132,7 +1135,7 @@ test_client_auth_failure (TestConnection *test,
   g_assert_true (accepted_changed);
 
   g_object_unref (test->client_connection);
-  g_object_unref (test->database);
+  g_clear_object (&test->server_connection);
   g_clear_error (&test->expected_client_close_error);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
@@ -1146,6 +1149,8 @@ test_client_auth_failure (TestConnection *test,
   g_assert_no_error (error);
   g_object_unref (client);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
