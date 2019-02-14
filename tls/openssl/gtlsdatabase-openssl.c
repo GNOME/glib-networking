@@ -40,6 +40,7 @@ typedef struct _GTlsDatabaseOpensslPrivate
 
   /* read-only after construct */
   X509_STORE *store;
+  X509_STORE_CTX *store_ctx;
 
   /*
    * These are hash tables of gulong -> GPtrArray<GBytes>. The values of
@@ -173,6 +174,7 @@ initialize_tables (X509_STORE *store,
     goto out;
 
   chain = X509_STORE_CTX_get1_chain (store_ctx);
+  g_message("chain: %d", sk_X509_num (chain));
 
   for (i = 0; i < sk_X509_num (chain); i++)
     {
@@ -194,6 +196,7 @@ initialize_tables (X509_STORE *store,
                            g_bytes_ref (der));
 
       bytes_multi_table_insert (subjects, subject, der);
+      g_message ("issuer: %d", issuer);
       bytes_multi_table_insert (issuers, issuer, der);
 
       g_bytes_unref (der);
@@ -225,6 +228,9 @@ g_tls_database_openssl_finalize (GObject *object)
 
   if (priv->store != NULL)
     X509_STORE_free (priv->store);
+
+  if (priv->store_ctx != NULL)
+    X509_STORE_CTX_free (priv->store_ctx);
 
   g_mutex_clear (&priv->mutex);
 
@@ -328,9 +334,7 @@ g_tls_database_openssl_lookup_certificate_issuer (GTlsDatabase             *data
 {
   GTlsDatabaseOpenssl *self = G_TLS_DATABASE_OPENSSL (database);
   GTlsDatabaseOpensslPrivate *priv;
-  X509 *x;
-  unsigned long issuer_hash;
-  GBytes *der;
+  X509 *x, *issuer_x;
   GTlsCertificate *issuer = NULL;
 
   priv = g_tls_database_openssl_get_instance_private (self);
@@ -345,22 +349,13 @@ g_tls_database_openssl_lookup_certificate_issuer (GTlsDatabase             *data
 
   /* Dig out the issuer of this certificate */
   x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (certificate));
-  issuer_hash = X509_issuer_name_hash (x);
+  if (!X509_STORE_CTX_get1_issuer (&issuer_x, priv->store_ctx, x))
+    return NULL;
 
-  g_mutex_lock (&priv->mutex);
-  der = bytes_multi_table_lookup_ref_one (priv->subjects, issuer_hash);
-  g_mutex_unlock (&priv->mutex);
+  issuer = g_tls_certificate_openssl_new_from_x509 (issuer_x, NULL);
+  X509_free (issuer_x);
 
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    issuer = NULL;
-  else if (der != NULL)
-    issuer = g_tls_certificate_openssl_new (der, NULL);
-
-  if (der != NULL)
-    g_bytes_unref (der);
   return issuer;
-
-  return NULL;
 }
 
 static GList *
@@ -390,29 +385,20 @@ g_tls_database_openssl_lookup_certificates_issued_by (GTlsDatabase             *
   x_name = d2i_X509_NAME (NULL, &in, issuer_raw_dn->len);
   if (x_name != NULL)
     {
-      unsigned long issuer_hash;
-      GList *ders, *l;
+      STACK_OF(X509) *certs;
+      int i;
 
-      issuer_hash = X509_NAME_hash (x_name);
-
-      /* Find the full DER value of the certificate */
-      g_mutex_lock (&priv->mutex);
-      ders = bytes_multi_table_lookup_ref_all (priv->issuers, issuer_hash);
-      g_mutex_unlock (&priv->mutex);
-
-      for (l = ders; l != NULL; l = g_list_next (l))
+      certs = X509_STORE_get1_certs (priv->store_ctx, x_name);
+      g_message ("issued: %d", sk_X509_num (certs));
+      for (i = 0; i < sk_X509_num (certs); i++)
         {
-          if (g_cancellable_set_error_if_cancelled (cancellable, error))
-            {
-              g_list_free_full (issued, g_object_unref);
-              issued = NULL;
-              break;
-            }
+          X509 *x;
 
-          issued = g_list_prepend (issued, g_tls_certificate_openssl_new (l->data, NULL));
+          x = sk_X509_value (certs, i);
+          issued = g_list_prepend (issued, g_tls_certificate_openssl_new_from_x509 (x, NULL));
         }
 
-      g_list_free_full (ders, (GDestroyNotify)g_bytes_unref);
+      sk_X509_pop_free (certs, X509_free);
       X509_NAME_free (x_name);
     }
 
@@ -604,6 +590,7 @@ g_tls_database_openssl_initable_init (GInitable    *initable,
   GTlsDatabaseOpenssl *self = G_TLS_DATABASE_OPENSSL (initable);
   GTlsDatabaseOpensslPrivate *priv;
   X509_STORE *store;
+  X509_STORE_CTX *store_ctx;
   GHashTable *subjects, *issuers, *complete;
   gboolean result;
 
@@ -627,6 +614,13 @@ g_tls_database_openssl_initable_init (GInitable    *initable,
       result = FALSE;
       goto out;
     }
+
+  store_ctx = X509_STORE_CTX_new ();
+  if (store_ctx == NULL)
+    return FALSE;
+
+  if (!X509_STORE_CTX_init (store_ctx, store, NULL, NULL))
+    goto out;
 
   subjects = bytes_multi_table_new ();
   issuers = bytes_multi_table_new ();
@@ -655,6 +649,12 @@ g_tls_database_openssl_initable_init (GInitable    *initable,
           store = NULL;
         }
 
+      if (!priv->store_ctx)
+        {
+          priv->store_ctx = store_ctx;
+          store_ctx = NULL;
+        }
+
       if (!priv->subjects)
         {
           priv->subjects = subjects;
@@ -679,6 +679,8 @@ g_tls_database_openssl_initable_init (GInitable    *initable,
 out:
   if (store != NULL)
     X509_STORE_free (store);
+  if (store_ctx != NULL)
+    X509_STORE_CTX_free (store_ctx);
   if (subjects != NULL)
     g_hash_table_unref (subjects);
   if (issuers != NULL)
