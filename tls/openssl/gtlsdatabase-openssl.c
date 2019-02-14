@@ -534,7 +534,9 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
                                             X509_STORE           *store,
                                             GError              **error)
 {
-  return X509_STORE_set_default_paths (store);
+  X509_STORE_set_default_paths (store);
+
+  return TRUE;
 }
 
 static void
