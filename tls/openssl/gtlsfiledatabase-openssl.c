@@ -139,18 +139,14 @@ g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *database,
                                                  GError              **error)
 {
   GTlsFileDatabaseOpenssl *self = G_TLS_FILE_DATABASE_OPENSSL (database);
-  X509_LOOKUP *lookup;
 
-  lookup = X509_STORE_add_lookup (store, X509_LOOKUP_file ());
-  if (lookup == NULL)
+  if (!X509_STORE_load_locations (store, self->anchor_filename, NULL))
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Failed to load system trust store file: %s"),
                    ERR_error_string (ERR_get_error (), NULL));
       return FALSE;
     }
-
-  X509_LOOKUP_load_file (lookup, self->anchor_filename, X509_FILETYPE_PEM);
 
   return TRUE;
 }
