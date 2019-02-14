@@ -534,34 +534,7 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
                                             X509_STORE           *store,
                                             GError              **error)
 {
-  X509_LOOKUP *lookup;
-
-  lookup = X509_STORE_add_lookup (store, X509_LOOKUP_file ());
-  if (lookup == NULL)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Failed to load system trust store file: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-  X509_LOOKUP_load_file (lookup, NULL, X509_FILETYPE_DEFAULT);
-
-  lookup = X509_STORE_add_lookup (store, X509_LOOKUP_hash_dir ());
-  if (lookup == NULL)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Failed to load system trust store: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-  X509_LOOKUP_add_dir (lookup, NULL, X509_FILETYPE_DEFAULT);
-
-  /* clear any errors */
-  ERR_clear_error ();
-
-  return TRUE;
+  return X509_STORE_set_default_paths (store);
 }
 
 static void
