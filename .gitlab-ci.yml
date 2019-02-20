@@ -7,10 +7,11 @@ fedora-x86_64:
             -Dgnutls=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
+            -Dwerror=true
             build/
     - ninja -C build/
-    - ninja -C build/ test
-    - ninja -C build/ install
+    - meson test -v -C build/
+    - meson install -C build/
   artifacts:
     paths:
       - build/test-results
