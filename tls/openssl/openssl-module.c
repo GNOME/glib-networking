@@ -30,7 +30,7 @@
 #include "gtlsbackend-openssl.h"
 
 
-void
+G_MODULE_EXPORT void
 g_io_module_load (GIOModule *module)
 {
   gchar *locale_dir;
@@ -53,12 +53,12 @@ g_io_module_load (GIOModule *module)
   g_free (locale_dir);
 }
 
-void
+G_MODULE_EXPORT void
 g_io_module_unload (GIOModule *module)
 {
 }
 
-gchar **
+G_MODULE_EXPORT gchar **
 g_io_module_query (void)
 {
   return g_strsplit (G_TLS_BACKEND_EXTENSION_POINT_NAME, "!", -1);
