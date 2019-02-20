@@ -841,7 +841,7 @@ main (int   argc,
   };
   const TestData client_timeout = {
     0,  /* server_timeout */
-    0.5 * G_USEC_PER_SEC,  /* client_timeout */
+    (gint64) (0.5 * G_USEC_PER_SEC),  /* client_timeout */
     TRUE,  /* server_should_disappear */
     TRUE, /* server_should_close */
     G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
