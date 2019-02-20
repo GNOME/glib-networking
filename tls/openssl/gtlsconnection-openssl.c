@@ -296,7 +296,7 @@ verify_ocsp_response (GTlsConnectionOpenssl *openssl,
   if (p == NULL)
     return 0;
 
-  resp = d2i_OCSP_RESPONSE (NULL, &p, len);
+  resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **) &p, len);
   if (resp == NULL)
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
