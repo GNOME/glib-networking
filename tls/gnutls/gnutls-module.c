@@ -30,7 +30,7 @@
 #include "gtlsbackend-gnutls.h"
 
 
-void
+G_MODULE_EXPORT void
 g_io_gnutls_load (GIOModule *module)
 {
   gchar *locale_dir;
@@ -53,12 +53,12 @@ g_io_gnutls_load (GIOModule *module)
   g_free (locale_dir);
 }
 
-void
+G_MODULE_EXPORT void
 g_io_gnutls_unload (GIOModule *module)
 {
 }
 
-gchar **
+G_MODULE_EXPORT gchar **
 g_io_gnutls_query (void)
 {
   gchar *eps[] = {
