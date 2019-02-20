@@ -42,12 +42,6 @@ if host_system.contains('linux')
   module_ldflags += cc.get_supported_link_arguments(test_ldflag)
 endif
 
-extra_args= []
-# Detect and set symbol visibility
-if cc.get_id() == 'msvc'
-  extra_args += ['-D_GLIB_EXTERN=__declspec (dllexport) extern']
-endif
-
 # *** Check GLib GIO        ***
 glib_dep = dependency('glib-2.0', version: '>= 2.55.1',
   fallback: ['glib', 'libglib_dep'])

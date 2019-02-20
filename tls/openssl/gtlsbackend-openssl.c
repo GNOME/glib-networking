@@ -119,6 +119,7 @@ static gpointer
 gtls_openssl_init (gpointer data)
 {
   int i;
+  GTypePlugin *plugin;
 
   /* Initialize openssl threading */
   mutex_array = g_malloc_n (CRYPTO_num_locks(), sizeof (GMutex));
@@ -136,8 +137,9 @@ gtls_openssl_init (gpointer data)
   OpenSSL_add_all_algorithms ();
 
   /* Leak the module to keep it from being unloaded. */
-  g_type_plugin_use (g_type_get_plugin (G_TYPE_TLS_BACKEND_OPENSSL));
-
+  plugin = g_type_get_plugin (G_TYPE_TLS_BACKEND_OPENSSL);
+  if (plugin != NULL)
+    g_type_plugin_use (plugin);
   return NULL;
 }
 
@@ -289,6 +291,8 @@ void
 g_tls_backend_openssl_register (GIOModule *module)
 {
   g_tls_backend_openssl_register_type (G_TYPE_MODULE (module));
+  if (!module)
+    g_io_extension_point_register (G_TLS_BACKEND_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_TLS_BACKEND_EXTENSION_POINT_NAME,
                                   g_tls_backend_openssl_get_type(),
                                   "openssl",

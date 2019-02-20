@@ -30,8 +30,8 @@
 #include "gtlsbackend-openssl.h"
 
 
-void
-g_io_module_load (GIOModule *module)
+G_MODULE_EXPORT void
+g_io_openssl_load (GIOModule *module)
 {
   gchar *locale_dir;
 #ifdef G_OS_WIN32
@@ -53,13 +53,13 @@ g_io_module_load (GIOModule *module)
   g_free (locale_dir);
 }
 
-void
-g_io_module_unload (GIOModule *module)
+G_MODULE_EXPORT void
+g_io_openssl_unload (GIOModule *module)
 {
 }
 
-gchar **
-g_io_module_query (void)
+G_MODULE_EXPORT gchar **
+g_io_openssl_query (void)
 {
   return g_strsplit (G_TLS_BACKEND_EXTENSION_POINT_NAME, "!", -1);
 }
