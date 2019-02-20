@@ -288,7 +288,7 @@ verify_ocsp_response (GTlsConnectionOpenssl *openssl,
   SSL *ssl = NULL;
   OCSP_RESPONSE *resp = NULL;
   long len = 0;
-  const unsigned char *p = NULL;
+  unsigned char *p = NULL;
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
   len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
