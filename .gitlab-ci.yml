@@ -5,6 +5,7 @@ fedora-x86_64:
     - meson --prefix=$HOME/glib-networking-installed
             -Db_sanitize=address
             -Dgnutls=enabled
+            -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
             -Dwerror=true
