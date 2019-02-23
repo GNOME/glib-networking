@@ -10,7 +10,7 @@ fedora-x86_64:
             -Dwerror=true
             build/
     - ninja -C build/
-    - meson test -v -C build/
+    - meson test -v -C build/ --repeat=100
     - meson install -C build/
   artifacts:
     paths:
