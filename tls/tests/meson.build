@@ -25,7 +25,8 @@ test_programs = [
   ['certificate', [], deps, []],
   ['file-database', [], deps, []],
   ['connection', ['mock-interaction.c'], deps, []],
-  ['dtls-connection', ['mock-interaction.c'], deps, ['openssl']],
+# DTLS tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/49
+#  ['dtls-connection', ['mock-interaction.c'], deps, ['openssl']],
 ]
 
 foreach backend: backends
