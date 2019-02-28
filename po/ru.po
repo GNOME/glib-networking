@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2018-07-27 21:02+0000\n"
-"PO-Revision-Date: 2018-10-15 19:27+0300\n"
+"POT-Creation-Date: 2019-02-03 13:01+0000\n"
+"PO-Revision-Date: 2019-02-28 20:29+0300\n"
 "Last-Translator: Stas Solovey <whats_up@tut.by>\n"
 "Language-Team: Русский <gnome-cyr@gnome.org>\n"
 "Language: ru\n"
@@ -18,47 +18,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
-"X-Generator: Gtranslator 2.91.7\n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 2.2.1\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Внутренняя ошибка распознавателя прокси."
 
-#: tls/gnutls/gtlscertificate-gnutls.c:182
-#, c-format
-msgid "Could not parse DER certificate: %s"
-msgstr "Не удалось обработать сертификат DER: %s"
-
-#: tls/gnutls/gtlscertificate-gnutls.c:203
-#, c-format
-msgid "Could not parse PEM certificate: %s"
-msgstr "Не удалось обработать сертификат PER: %s"
-
-#: tls/gnutls/gtlscertificate-gnutls.c:234
-#, c-format
-msgid "Could not parse DER private key: %s"
-msgstr "Не удалось обработать личный ключ DER: %s"
-
-#: tls/gnutls/gtlscertificate-gnutls.c:265
-#, c-format
-msgid "Could not parse PEM private key: %s"
-msgstr "Не удалось обработать личный ключ PEM: %s"
-
-#: tls/gnutls/gtlscertificate-gnutls.c:304
-msgid "No certificate data provided"
-msgstr "Данные сертификата не предоставлены"
-
-#: tls/gnutls/gtlsclientconnection-gnutls.c:447
-msgid "Server required TLS certificate"
-msgstr "Сервер требует сертификат TLS"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:398
-#, c-format
-msgid "Could not create TLS connection: %s"
-msgstr "Не удалось создать соединение TLS: %s"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:711
+#: tls/base/gtlsconnection-base.c:282 tls/base/gtlsinputstream-base.c:74
+#: tls/base/gtlsoutputstream-base.c:74 tls/gnutls/gtlsconnection-gnutls.c:740
 #: tls/gnutls/gtlsinputstream-gnutls.c:78
 #: tls/gnutls/gtlsinputstream-gnutls.c:141
 #: tls/gnutls/gtlsoutputstream-gnutls.c:78
@@ -66,38 +34,93 @@ msgstr "Не удалось создать соединение TLS: %s"
 msgid "Connection is closed"
 msgstr "Соединение закрыто"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:828
-#: tls/gnutls/gtlsconnection-gnutls.c:1432
+#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
+msgid "Operation would block"
+msgstr "Действие будет заблокировано"
+
+#: tls/base/gtlsconnection-base.c:809
+#: tls/gnutls/gtlsclientconnection-gnutls.c:454
+msgid "Server required TLS certificate"
+msgstr "Сервер требует сертификат TLS"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:178
+#: tls/openssl/gtlscertificate-openssl.c:177
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "Не удалось обработать сертификат DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:199
+#: tls/openssl/gtlscertificate-openssl.c:197
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "Не удалось обработать сертификат PER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:230
+#: tls/openssl/gtlscertificate-openssl.c:216
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "Не удалось обработать личный ключ DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:261
+#: tls/openssl/gtlscertificate-openssl.c:235
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "Не удалось обработать личный ключ PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:273
+msgid "No certificate data provided"
+msgstr "Данные сертификата не предоставлены"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:405
+#: tls/openssl/gtlsclientconnection-openssl.c:537
+#: tls/openssl/gtlsserverconnection-openssl.c:401
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Не удалось создать соединение TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:858
+#: tls/gnutls/gtlsconnection-gnutls.c:1468
 msgid "Socket I/O timed out"
 msgstr "Превышено время ожидания ввода-вывода сокета"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:973
-#: tls/gnutls/gtlsconnection-gnutls.c:1006
+#: tls/gnutls/gtlsconnection-gnutls.c:1003
+#: tls/gnutls/gtlsconnection-gnutls.c:1036
+#: tls/openssl/gtlsconnection-openssl.c:150
 msgid "Peer failed to perform TLS handshake"
 msgstr "Узлу не удалось квитировать выполнение связи TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:991
+#: tls/gnutls/gtlsconnection-gnutls.c:1021
+#: tls/openssl/gtlsconnection-openssl.c:234
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Узел запросил недопустимое повторное квитирование связи TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1012
+#: tls/gnutls/gtlsconnection-gnutls.c:1042
 msgid "TLS connection closed unexpectedly"
 msgstr "Соединение TLS неожиданно закрылось"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1022
+#: tls/gnutls/gtlsconnection-gnutls.c:1052
+#: tls/openssl/gtlsconnection-openssl.c:171
 msgid "TLS connection peer did not send a certificate"
 msgstr "Узел, с которым производится TLS-соединение, не предоставил сертификат"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1028
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#: tls/gnutls/gtlsconnection-gnutls.c:2160
+#: tls/openssl/gtlsconnection-openssl.c:416
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Недопустимый сертификат TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1064
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Узел отправил фатальное предупреждение TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1040
+#: tls/gnutls/gtlsconnection-gnutls.c:1076
 msgid "Protocol version downgrade attack detected"
 msgstr "Обнаружена атака основанная на понижении версии протокола"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1047
+#: tls/gnutls/gtlsconnection-gnutls.c:1083
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -105,44 +128,36 @@ msgstr[0] "Слишком большое сообщение для соедин�
 msgstr[1] "Слишком большое сообщение для соединения DTLS; максимум %u байта"
 msgstr[2] "Слишком большое сообщение для соединения DTLS; максимум %u байт"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1054
+#: tls/gnutls/gtlsconnection-gnutls.c:1090
 msgid "The operation timed out"
 msgstr "Превышено время ожидания операции"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1820
+#: tls/gnutls/gtlsconnection-gnutls.c:1981
 msgid "Peer does not support safe renegotiation"
 msgstr "Пир не поддерживает безопасное песогласование"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1847
-#: tls/gnutls/gtlsconnection-gnutls.c:1899
+#: tls/gnutls/gtlsconnection-gnutls.c:2008
+#: tls/gnutls/gtlsconnection-gnutls.c:2058
 msgid "Error performing TLS handshake"
 msgstr "Ошибка выполнения квитирования связи TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1909
-msgid "Server did not return a valid TLS certificate"
-msgstr "Сертификат TLS, возвращённый сервером, не является подлинным"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1991
-msgid "Unacceptable TLS certificate"
-msgstr "Недопустимый сертификат TLS"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:2264
-#: tls/gnutls/gtlsconnection-gnutls.c:2356
+#: tls/gnutls/gtlsconnection-gnutls.c:2510
+#: tls/gnutls/gtlsconnection-gnutls.c:2602
 msgid "Error reading data from TLS socket"
 msgstr "Ошибка чтения данных из сокета TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2386
+#: tls/gnutls/gtlsconnection-gnutls.c:2632
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Флаги приема не поддерживаются"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2463
-#: tls/gnutls/gtlsconnection-gnutls.c:2535
+#: tls/gnutls/gtlsconnection-gnutls.c:2709
+#: tls/gnutls/gtlsconnection-gnutls.c:2781
 msgid "Error writing data to TLS socket"
 msgstr "Ошибка записи данных в сокет TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2505
+#: tls/gnutls/gtlsconnection-gnutls.c:2751
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -150,7 +165,7 @@ msgstr[0] "Сообщение размером %lu байт слишком ве�
 msgstr[1] "Сообщение размером %lu байта слишком велико для соединения DTLS"
 msgstr[2] "Сообщение размером %lu байт слишком велико для соединения DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2507
+#: tls/gnutls/gtlsconnection-gnutls.c:2753
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -158,12 +173,12 @@ msgstr[0] "(максимум %u байт)"
 msgstr[1] "(максимум %u байта)"
 msgstr[2] "(максимум %u байт)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2566
+#: tls/gnutls/gtlsconnection-gnutls.c:2812
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Флаги отправки не поддерживаются"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2669
+#: tls/gnutls/gtlsconnection-gnutls.c:2915
 msgid "Error performing TLS close"
 msgstr "Ошибка закрытия TLS"
 
@@ -181,47 +196,83 @@ msgid "Failed to load system trust store: %s"
 msgstr "Не удалось загрузить хранилище системного доверия: %s"
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:137
+#: tls/openssl/gtlsserverconnection-openssl.c:328
 msgid "Certificate has no private key"
 msgstr "У сертификата нет секретного ключа"
 
-#: tls/pkcs11/gpkcs11pin.c:111
-msgid ""
-"This is the last chance to enter the PIN correctly before the token is "
-"locked."
-msgstr ""
-"Это — последняя возможность ввести корректный PIN перед тем, как токен будет "
-"заблокирован."
+#: tls/openssl/gtlsclientconnection-openssl.c:486
+#: tls/openssl/gtlsserverconnection-openssl.c:292
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Не удалось создать контекст TLS: %s"
 
-#: tls/pkcs11/gpkcs11pin.c:113
-msgid ""
-"Several PIN attempts have been incorrect, and the token will be locked after "
-"further failures."
-msgstr ""
-"PIN был несколько раз введён неправильно, токен будет заблокирован после "
-"последующих неудачных попыток."
+#: tls/openssl/gtlsconnection-openssl.c:179
+msgid "Digest too big for RSA key"
+msgstr "Слишком большой дайджест для ключа RSA"
 
-#: tls/pkcs11/gpkcs11pin.c:115
-msgid "The PIN entered is incorrect."
-msgstr "Введён неверный PIN."
+#: tls/openssl/gtlsconnection-openssl.c:243
+#: tls/openssl/gtlsconnection-openssl.c:376
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Ошибка при выполнении квитирования TLS: %s"
 
-#: tls/pkcs11/gpkcs11slot.c:447
-msgid "Module"
-msgstr "Модуль"
+#: tls/openssl/gtlsconnection-openssl.c:386
+msgid "Server did not return a valid TLS certificate"
+msgstr "Сертификат TLS, возвращённый сервером, не является подлинным"
 
-#: tls/pkcs11/gpkcs11slot.c:448
-msgid "PKCS#11 Module Pointer"
-msgstr "Указатель модуля PKCS#11"
+#: tls/openssl/gtlsconnection-openssl.c:500
+#, c-format
+msgid "Error reading data from TLS socket: %s"
+msgstr "Ошибка чтения данных из сокета TLS: %s"
 
-#: tls/pkcs11/gpkcs11slot.c:455
-msgid "Slot ID"
-msgstr "ID слота"
+#: tls/openssl/gtlsconnection-openssl.c:526
+#, c-format
+msgid "Error writing data to TLS socket: %s"
+msgstr "Ошибка записи данных в сокет TLS: %s"
 
-#: tls/pkcs11/gpkcs11slot.c:456
-msgid "PKCS#11 Slot Identifier"
-msgstr "Идентификатор слота PKCS#11"
+#: tls/openssl/gtlsconnection-openssl.c:552
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Ошибка закрытия TLS: %s"
 
-#~ msgid "Operation would block"
-#~ msgstr "Действие будет заблокировано"
+#: tls/openssl/gtlsserverconnection-openssl.c:335
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Возникла проблема с приватным ключом сертификата: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:344
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Возникла проблема с сертификатом: %s"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "Это — последняя возможность ввести корректный PIN перед тем, как токен "
+#~ "будет заблокирован."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "PIN был несколько раз введён неправильно, токен будет заблокирован после "
+#~ "последующих неудачных попыток."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "Введён неверный PIN."
+
+#~ msgid "Module"
+#~ msgstr "Модуль"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "Указатель модуля PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "ID слота"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "Идентификатор слота PKCS#11"
 
 #~ msgid "Connection is already closed"
 #~ msgstr "Соединение было закрыто ранее"
