@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2019-02-03 13:01+0000\n"
-"PO-Revision-Date: 2019-02-10 21:38+0100\n"
+"POT-Creation-Date: 2019-03-02 02:19+0000\n"
+"PO-Revision-Date: 2019-03-02 17:14+0100\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -72,109 +72,120 @@ msgid "No certificate data provided"
 msgstr "Inga certifikatdata tillhandahölls"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:405
-#: tls/openssl/gtlsclientconnection-openssl.c:537
-#: tls/openssl/gtlsserverconnection-openssl.c:401
+#: tls/openssl/gtlsclientconnection-openssl.c:536
+#: tls/openssl/gtlsserverconnection-openssl.c:425
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kunde inte skapa TLS-anslutning: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:858
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/gnutls/gtlsconnection-gnutls.c:811
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "Kan inte utföra blockerande åtgärd under TLS-handskakning"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:874
+#: tls/gnutls/gtlsconnection-gnutls.c:1484
 msgid "Socket I/O timed out"
 msgstr "Tidsgräns för in/ut på uttaget överskreds"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
-#: tls/gnutls/gtlsconnection-gnutls.c:1036
+#: tls/gnutls/gtlsconnection-gnutls.c:1019
+#: tls/gnutls/gtlsconnection-gnutls.c:1052
 #: tls/openssl/gtlsconnection-openssl.c:150
 msgid "Peer failed to perform TLS handshake"
 msgstr "Motparten misslyckades med att genomföra TLS-handskakning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/openssl/gtlsconnection-openssl.c:234
+#: tls/gnutls/gtlsconnection-gnutls.c:1037
+#: tls/openssl/gtlsconnection-openssl.c:238
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Motparten begärde otillåten TLS-återhandskakning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1042
+#: tls/gnutls/gtlsconnection-gnutls.c:1058
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-anslutningen stängdes oväntat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1052
-#: tls/openssl/gtlsconnection-openssl.c:171
+#: tls/gnutls/gtlsconnection-gnutls.c:1068
+#: tls/openssl/gtlsconnection-openssl.c:175
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-anslutningens motpart sände inte ett certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1058
-#: tls/gnutls/gtlsconnection-gnutls.c:2160
-#: tls/openssl/gtlsconnection-openssl.c:416
+#: tls/gnutls/gtlsconnection-gnutls.c:1074
+#: tls/gnutls/gtlsconnection-gnutls.c:2176
+#: tls/openssl/gtlsconnection-openssl.c:420
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Ej acceptabelt TLS-certifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1064
+#: tls/gnutls/gtlsconnection-gnutls.c:1080
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Motparten sände ödesdiger TLS-varning: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1076
+#: tls/gnutls/gtlsconnection-gnutls.c:1092
 msgid "Protocol version downgrade attack detected"
 msgstr "Protokollversionsnedgraderingsattack upptäcktes"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1083
+#: tls/gnutls/gtlsconnection-gnutls.c:1099
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "Meddelandet är för stort för DTLS-anslutning, max är %u byte"
 msgstr[1] "Meddelandet är för stort för DTLS-anslutning, max är %u byte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1090
+#: tls/gnutls/gtlsconnection-gnutls.c:1106
 msgid "The operation timed out"
 msgstr "Åtgärdens tidsgräns överskreds"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1981
+#: tls/gnutls/gtlsconnection-gnutls.c:1997
 msgid "Peer does not support safe renegotiation"
 msgstr "Motparten stöder inte säker omförhandling"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2008
-#: tls/gnutls/gtlsconnection-gnutls.c:2058
+#: tls/gnutls/gtlsconnection-gnutls.c:2024
+#: tls/gnutls/gtlsconnection-gnutls.c:2074
 msgid "Error performing TLS handshake"
 msgstr "Fel vid genomförande av TLS-handskakning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2510
-#: tls/gnutls/gtlsconnection-gnutls.c:2602
+#: tls/gnutls/gtlsconnection-gnutls.c:2526
+#: tls/gnutls/gtlsconnection-gnutls.c:2618
 msgid "Error reading data from TLS socket"
 msgstr "Fel vid läsning av data från TLS-uttag"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2632
+#: tls/gnutls/gtlsconnection-gnutls.c:2648
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Mottagningsflaggor stöds inte"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2709
-#: tls/gnutls/gtlsconnection-gnutls.c:2781
+#: tls/gnutls/gtlsconnection-gnutls.c:2725
+#: tls/gnutls/gtlsconnection-gnutls.c:2797
 msgid "Error writing data to TLS socket"
 msgstr "Fel vid skrivning av data till TLS-uttag"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2751
+#: tls/gnutls/gtlsconnection-gnutls.c:2767
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
 msgstr[1] "Meddelande med storleken %lu byte är för stort för DTLS-anslutning"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2753
+#: tls/gnutls/gtlsconnection-gnutls.c:2769
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(maximum är %u byte)"
 msgstr[1] "(maximum är %u byte)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2812
+#: tls/gnutls/gtlsconnection-gnutls.c:2828
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Sändflaggor stöds inte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2915
+#: tls/gnutls/gtlsconnection-gnutls.c:2931
 msgid "Error performing TLS close"
 msgstr "Fel vid genomförande av TLS-stängning"
 
@@ -194,54 +205,56 @@ msgid "Failed to load system trust store: %s"
 msgstr "Misslyckades med att läsa in systemets trust store: %s"
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:328
+#: tls/openssl/gtlsserverconnection-openssl.c:91
 msgid "Certificate has no private key"
 msgstr "Certifikatet har ingen privat nyckel"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:486
-#: tls/openssl/gtlsserverconnection-openssl.c:292
+#: tls/openssl/gtlsclientconnection-openssl.c:417
+#: tls/openssl/gtlsclientconnection-openssl.c:483
+#: tls/openssl/gtlsserverconnection-openssl.c:305
+#: tls/openssl/gtlsserverconnection-openssl.c:365
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Kunde inte skapa TLS-kontext: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:179
+#: tls/openssl/gtlsconnection-openssl.c:183
 msgid "Digest too big for RSA key"
 msgstr "Sammandrag för stort för RSA-nyckel"
 
-#: tls/openssl/gtlsconnection-openssl.c:243
-#: tls/openssl/gtlsconnection-openssl.c:376
+#: tls/openssl/gtlsconnection-openssl.c:247
+#: tls/openssl/gtlsconnection-openssl.c:380
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fel vid genomförande av TLS-handskakning: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:386
+#: tls/openssl/gtlsconnection-openssl.c:390
 msgid "Server did not return a valid TLS certificate"
 msgstr "Servern returnerade inte ett giltigt TLS-certifikat"
 
-#: tls/openssl/gtlsconnection-openssl.c:500
+#: tls/openssl/gtlsconnection-openssl.c:504
 #, c-format
 msgid "Error reading data from TLS socket: %s"
 msgstr "Fel vid läsning av data från TLS-uttag: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:526
+#: tls/openssl/gtlsconnection-openssl.c:530
 #, c-format
 msgid "Error writing data to TLS socket: %s"
 msgstr "Fel vid skrivning av data till TLS-uttag: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:552
+#: tls/openssl/gtlsconnection-openssl.c:556
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fel vid genomförande av TLS-stängning: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:335
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Det har uppstått ett problem med certifikatets privata nyckel: %s"
-
-#: tls/openssl/gtlsserverconnection-openssl.c:344
+#: tls/openssl/gtlsserverconnection-openssl.c:102
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Det har uppstått ett problem med certifikatet: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:110
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Det har uppstått ett problem med certifikatets privata nyckel: %s"
 
 #~ msgid ""
 #~ "This is the last chance to enter the PIN correctly before the token is "
