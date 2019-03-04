@@ -29,9 +29,11 @@ test_programs = [
 #  ['dtls-connection', ['mock-interaction.c'], deps, ['openssl']],
 ]
 
-# OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
-#foreach backend: backends
-foreach backend: ['gnutls']
+foreach backend: backends
+  # OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
+  if backend == 'openssl'
+    continue
+  endif
   foreach program: test_programs
     if not program[3].contains(backend)
       program_name = program[0] + '-' + backend
