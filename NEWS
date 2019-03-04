@@ -1,3 +1,10 @@
+2.59.92 - March 4, 2019
+=======================
+
+- Many OpenSSL backend fixes for Windows (Nirbheek Chauhan)
+- GnuTLS: reject sync operations during handshake to avoid deadlocks (#46)
+- Temporarily disable DTLS and OpenSSL tests due to #49 and #54
+
 2.59.91 - February 18, 2019
 ===========================
 
