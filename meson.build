@@ -79,7 +79,7 @@ endif
 
 # *** Checks for OpenSSL    ***
 openssl_option = get_option('openssl')
-openssl_dep = dependency('openssl', required: openssl_option)
+openssl_dep = dependency('openssl', required: openssl_option.enabled() and cc.get_id() != 'msvc')
 if openssl_dep.found()
   backends += ['openssl']
 elif cc.get_id() == 'msvc' and not openssl_option.disabled()
