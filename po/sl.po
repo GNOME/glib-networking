@@ -42,7 +42,7 @@ msgstr "Opravilo bi zaustavilo delovanje"
 #: tls/base/gtlsconnection-base.c:809
 #: tls/gnutls/gtlsclientconnection-gnutls.c:454
 msgid "Server required TLS certificate"
-msgstr "Strežnik zahteva potrdilo TLS"
+msgstr "Strežnik zahteva potrdilo TLS."
 
 #: tls/gnutls/gtlscertificate-gnutls.c:178
 #: tls/openssl/gtlscertificate-openssl.c:177
