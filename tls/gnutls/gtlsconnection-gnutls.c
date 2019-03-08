@@ -130,7 +130,7 @@ enum
   PROP_INTERACTION,
   PROP_PEER_CERTIFICATE,
   PROP_PEER_CERTIFICATE_ERRORS,
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   PROP_ADVERTISED_PROTOCOLS,
   PROP_NEGOTIATED_PROTOCOL,
 #endif
@@ -218,7 +218,7 @@ typedef struct
   GTlsInteraction *interaction;
   gchar *interaction_id;
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   gchar **advertised_protocols;
   gchar *negotiated_protocol;
 #endif
@@ -465,7 +465,7 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_free (priv->interaction_id);
   g_clear_object (&priv->interaction);
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   g_clear_pointer (&priv->advertised_protocols, g_strfreev);
   g_clear_pointer (&priv->negotiated_protocol, g_free);
 #endif
@@ -548,7 +548,7 @@ g_tls_connection_gnutls_get_property (GObject    *object,
       g_value_set_flags (value, priv->peer_certificate_errors);
       break;
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
     case PROP_ADVERTISED_PROTOCOLS:
       g_value_set_boxed (value, priv->advertised_protocols);
       break;
@@ -652,7 +652,7 @@ g_tls_connection_gnutls_set_property (GObject      *object,
       priv->interaction = g_value_dup_object (value);
       break;
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
     case PROP_ADVERTISED_PROTOCOLS:
       g_clear_pointer (&priv->advertised_protocols, g_strfreev);
       priv->advertised_protocols = g_value_dup_boxed (value);
@@ -1084,7 +1084,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   else if (status == GNUTLS_E_INAPPROPRIATE_FALLBACK)
     {
       g_set_error_literal (error, G_TLS_ERROR,
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
                            G_TLS_ERROR_INAPPROPRIATE_FALLBACK,
 #else
                            G_TLS_ERROR_MISC,
@@ -2094,7 +2094,7 @@ handshake_thread (GTask        *task,
 static void
 begin_handshake (GTlsConnectionGnutls *gnutls)
 {
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
 
   if (priv->advertised_protocols)
@@ -2117,7 +2117,7 @@ begin_handshake (GTlsConnectionGnutls *gnutls)
   G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->begin_handshake (gnutls);
 }
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
 static void
 update_negotiated_protocol (GTlsConnectionGnutls *gnutls)
 {
@@ -2176,7 +2176,7 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
                            _("Unacceptable TLS certificate"));
     }
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   if (!*error && priv->advertised_protocols)
     update_negotiated_protocol (gnutls);
 #endif
@@ -3106,7 +3106,7 @@ g_tls_connection_gnutls_dtls_shutdown_finish (GDtlsConnection  *conn,
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
 static void
 g_tls_connection_gnutls_dtls_set_advertised_protocols (GDtlsConnection     *conn,
                                                        const gchar * const *protocols)
@@ -3156,7 +3156,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   g_object_class_override_property (gobject_class, PROP_ADVERTISED_PROTOCOLS, "advertised-protocols");
   g_object_class_override_property (gobject_class, PROP_NEGOTIATED_PROTOCOL, "negotiated-protocol");
 #endif
@@ -3177,7 +3177,7 @@ g_tls_connection_gnutls_dtls_connection_iface_init (GDtlsConnectionInterface *if
   iface->shutdown = g_tls_connection_gnutls_dtls_shutdown;
   iface->shutdown_async = g_tls_connection_gnutls_dtls_shutdown_async;
   iface->shutdown_finish = g_tls_connection_gnutls_dtls_shutdown_finish;
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   iface->set_advertised_protocols = g_tls_connection_gnutls_dtls_set_advertised_protocols;
   iface->get_negotiated_protocol = g_tls_connection_gnutls_dtls_get_negotiated_protocol;
 #endif

@@ -82,7 +82,7 @@ typedef struct {
   gboolean server_should_close;
   gboolean server_running;
   GTlsCertificate *server_certificate;
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   const gchar * const *server_protocols;
 #endif
 
@@ -306,7 +306,7 @@ on_incoming_connection (GSocketService     *service,
   if (test->database)
     g_tls_connection_set_database (G_TLS_CONNECTION (test->server_connection), test->database);
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   if (test->server_protocols)
     {
       g_tls_connection_set_advertised_protocols (G_TLS_CONNECTION (test->server_connection),
@@ -1952,7 +1952,7 @@ test_fallback (TestConnection *test,
 #pragma GCC diagnostic pop
 #endif
 
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_INAPPROPRIATE_FALLBACK, "");
 #else
   g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_MISC, "");
@@ -2121,7 +2121,7 @@ test_alpn (TestConnection *test,
            const char * const *server_protocols,
            const char *negotiated_protocol)
 {
-#if GLIB_CHECK_VERSION(2, 59, 0)
+#if GLIB_CHECK_VERSION(2, 60, 0)
   GIOStream *connection;
   GError *error = NULL;
 
