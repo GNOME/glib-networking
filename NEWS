@@ -1,3 +1,14 @@
+2.60.0 - March 11, 2019
+=======================
+
+This is the first stable release featuring the new OpenSSL backend. Please be
+advised that this new backend is still experimental and known to not work on
+some systems, including Debian. Linux distributions are encouraged to stick to
+the default build options, where OpenSSL is not yet enabled.
+
+- Fix build with GnuTLS disabled (Nirbheek Chauhan)
+- Fix build on Windows (Chun-Wei Fan)
+
 2.59.92 - March 4, 2019
 =======================
 
