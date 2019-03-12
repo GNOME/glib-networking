@@ -79,46 +79,51 @@ endif
 
 # *** Checks for OpenSSL    ***
 openssl_option = get_option('openssl')
-openssl_dep = dependency('openssl', required: openssl_option.enabled() and cc.get_id() != 'msvc')
-if openssl_dep.found()
-  backends += ['openssl']
-elif cc.get_id() == 'msvc' and not openssl_option.disabled()
-  # MSVC builds of OpenSSL does not generate pkg-config files,
-  # so we check for it manually here in this case, if we can't find those files
-  # Based on the CMake check for OpenSSL in CURL's CMakeLists.txt,
-  # on which headers we should check for
-  have_openssl = true
-  foreach h : ['crypto.h', 'engine.h', 'err.h', 'pem.h',
-               'rsa.h', 'ssl.h', 'x509.h', 'rand.h', 'tls1.h']
-    header = 'openssl/' + h
-    if not cc.has_header(header)
-      have_openssl = false
-      if openssl_option.enabled()
-        error('openssl module is enabled and @0@ not found'.format(header))
-      endif
-    endif
-  endforeach
-
-  # OpenSSL 1.1.x and 1.0.x (or earlier) have different .lib names,
-  # so we need to look for the correct pair
-
-  # Find either libcrypto.lib (1.1.x) or libeay32.lib (1.0.x or earlier) first
-  libcrypto_dep = cc.find_library('libcrypto', required: false)
-  if libcrypto_dep.found()
-    libssl = 'libssl'
-  else
-    libcrypto_dep = cc.find_library('libeay32', required: openssl_option)
-    libssl = 'ssleay32'
-  endif
-
-  if libcrypto_dep.found()
-    # Find the corresponding SSL library depending on which crypto .lib we found
-    libssl_dep = cc.find_library(libssl, required: openssl_option)
-  endif
-
-  if libcrypto_dep.found() and have_openssl
-    openssl_dep = [libcrypto_dep, libssl_dep]
+if openssl_option.disabled()
+  openssl_dep = []
+else
+  # XXX: https://github.com/mesonbuild/meson/issues/2945
+  openssl_dep = dependency('openssl', required: openssl_option.enabled() and cc.get_id() != 'msvc')
+  if openssl_dep.found()
     backends += ['openssl']
+  elif cc.get_id() == 'msvc' and not openssl_option.disabled()
+    # MSVC builds of OpenSSL does not generate pkg-config files,
+    # so we check for it manually here in this case, if we can't find those files
+    # Based on the CMake check for OpenSSL in CURL's CMakeLists.txt,
+    # on which headers we should check for
+    have_openssl = true
+    foreach h : ['crypto.h', 'engine.h', 'err.h', 'pem.h',
+                 'rsa.h', 'ssl.h', 'x509.h', 'rand.h', 'tls1.h']
+      header = 'openssl/' + h
+      if not cc.has_header(header)
+        have_openssl = false
+        if openssl_option.enabled()
+          error('openssl module is enabled and @0@ not found'.format(header))
+        endif
+      endif
+    endforeach
+
+    # OpenSSL 1.1.x and 1.0.x (or earlier) have different .lib names,
+    # so we need to look for the correct pair
+
+    # Find either libcrypto.lib (1.1.x) or libeay32.lib (1.0.x or earlier) first
+    libcrypto_dep = cc.find_library('libcrypto', required: false)
+    if libcrypto_dep.found()
+      libssl = 'libssl'
+    else
+      libcrypto_dep = cc.find_library('libeay32', required: openssl_option)
+      libssl = 'ssleay32'
+    endif
+
+    if libcrypto_dep.found()
+      # Find the corresponding SSL library depending on which crypto .lib we found
+      libssl_dep = cc.find_library(libssl, required: openssl_option)
+    endif
+
+    if libcrypto_dep.found() and have_openssl
+      openssl_dep = [libcrypto_dep, libssl_dep]
+      backends += ['openssl']
+    endif
   endif
 endif
 
