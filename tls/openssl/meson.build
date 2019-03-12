@@ -38,7 +38,8 @@ if get_option('static_modules')
   static_library('gioopenssl',
     objects: module.extract_all_objects(),
     install: true,
-    install_dir: gio_module_dir
+    install_dir: gio_module_dir,
+    link_whole: [tlsbase]
   )
   pkg.generate(module)
 endif
