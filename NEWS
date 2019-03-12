@@ -1,3 +1,8 @@
+2.60.0.1 - March 12, 2019
+=========================
+
+- Fix build with OpenSSL pkg-config unavailable (Nirbheek Chauhan)
+
 2.60.0 - March 11, 2019
 =======================
 
