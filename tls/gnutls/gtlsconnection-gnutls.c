@@ -1835,7 +1835,7 @@ verify_peer_certificate (GTlsConnectionGnutls *gnutls,
 }
 
 static void
-update_peer_certificate (GTlsConnectionGnutls *gnutls)
+update_peer_certificate_and_compute_errors (GTlsConnectionGnutls *gnutls)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
 
@@ -1863,14 +1863,17 @@ update_peer_certificate (GTlsConnectionGnutls *gnutls)
 }
 
 static gboolean
-accept_peer_certificate (GTlsConnectionGnutls *gnutls,
-                         GTlsCertificate      *peer_certificate,
-                         GTlsCertificateFlags  peer_certificate_errors)
+accept_or_reject_peer_certificate (gpointer user_data)
 {
+  GTlsConnectionGnutls *gnutls = user_data;
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   gboolean accepted = FALSE;
 
   g_assert (g_main_context_is_owner (priv->handshake_context));
+
+  g_mutex_lock (&priv->verify_certificate_mutex);
+
+  update_peer_certificate_and_compute_errors (gnutls);
 
   if (G_IS_TLS_CLIENT_CONNECTION (gnutls) && priv->peer_certificate != NULL)
     {
@@ -1883,7 +1886,7 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
         validation_flags =
           g_dtls_client_connection_get_validation_flags (G_DTLS_CLIENT_CONNECTION (gnutls));
 
-      if ((peer_certificate_errors & validation_flags) == 0)
+      if ((priv->peer_certificate_errors & validation_flags) == 0)
         accepted = TRUE;
     }
 
@@ -1891,28 +1894,12 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
     {
       g_main_context_pop_thread_default (priv->handshake_context);
       accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
-                                                           peer_certificate,
-                                                           peer_certificate_errors);
+                                                           priv->peer_certificate,
+                                                           priv->peer_certificate_errors);
       g_main_context_push_thread_default (priv->handshake_context);
     }
 
-  return accepted;
-}
-
-static gboolean
-accept_certificate_cb (gpointer user_data)
-{
-  GTlsConnectionGnutls *gnutls = user_data;
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-
-  g_assert (g_main_context_is_owner (priv->handshake_context));
-
-  g_mutex_lock (&priv->verify_certificate_mutex);
-
-  update_peer_certificate (gnutls);
-  priv->peer_certificate_accepted = accept_peer_certificate (gnutls,
-                                                             priv->peer_certificate,
-                                                             priv->peer_certificate_errors);
+  priv->peer_certificate_accepted = accepted;
 
   /* This has to be the very last statement before signaling the
    * condition variable because otherwise the code could spuriously
@@ -1946,7 +1933,7 @@ verify_certificate_cb (gnutls_session_t session)
    * is emitted on the original thread.
    */
   g_assert (priv->handshake_context);
-  g_main_context_invoke (priv->handshake_context, accept_certificate_cb, gnutls);
+  g_main_context_invoke (priv->handshake_context, accept_or_reject_peer_certificate, gnutls);
 
   /* We'll block the handshake thread until the original thread has
    * decided whether to accept the certificate.
@@ -2165,7 +2152,7 @@ finish_handshake (GTlsConnectionGnutls  *gnutls,
        * anything with the result here.
        */
       g_mutex_lock (&priv->verify_certificate_mutex);
-      update_peer_certificate (gnutls);
+      update_peer_certificate_and_compute_errors (gnutls);
       priv->peer_certificate_examined = TRUE;
       priv->peer_certificate_accepted = TRUE;
       g_mutex_unlock (&priv->verify_certificate_mutex);
