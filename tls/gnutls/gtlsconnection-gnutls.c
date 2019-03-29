@@ -1889,9 +1889,11 @@ accept_peer_certificate (GTlsConnectionGnutls *gnutls,
 
   if (!accepted)
     {
+      g_main_context_pop_thread_default (priv->handshake_context);
       accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (gnutls),
                                                            peer_certificate,
                                                            peer_certificate_errors);
+      g_main_context_push_thread_default (priv->handshake_context);
     }
 
   return accepted;
