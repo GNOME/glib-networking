@@ -203,7 +203,7 @@ typedef struct
    * future operations). ever_handshaked indicates that TLS has
    * been successfully negotiated at some point.
    */
-  gboolean need_handshake, need_finish_handshake;
+  gboolean need_handshake, need_finish_handshake, sync_handshake_completed;
   gboolean started_handshake, handshaking, ever_handshaked;
   GMainContext *handshake_context;
   GTask *implicit_handshake;
@@ -2187,7 +2187,7 @@ sync_handshake_thread_completed (GObject      *object,
   g_assert (g_main_context_is_owner (priv->handshake_context));
 
   g_mutex_lock (&priv->op_mutex);
-  priv->need_finish_handshake = TRUE;
+  priv->sync_handshake_completed = TRUE;
   g_mutex_unlock (&priv->op_mutex);
 
   g_main_context_wakeup (priv->handshake_context);
@@ -2204,8 +2204,8 @@ crank_sync_handshake_context (GTlsConnectionGnutls *gnutls,
    * here. So need_finish_handshake should only change on this thread.
    */
   g_mutex_lock (&priv->op_mutex);
-  priv->need_finish_handshake = FALSE;
-  while (!priv->need_finish_handshake && !g_cancellable_is_cancelled (cancellable))
+  priv->sync_handshake_completed = FALSE;
+  while (!priv->sync_handshake_completed && !g_cancellable_is_cancelled (cancellable))
     {
       g_mutex_unlock (&priv->op_mutex);
       g_main_context_iteration (priv->handshake_context, TRUE);
