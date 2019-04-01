@@ -17,3 +17,5 @@ fedora-x86_64:
     paths:
       - build/test-results
     when: on_failure
+  tags:
+    - gnome-build-meta
