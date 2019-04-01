@@ -458,7 +458,7 @@ on_client_connection_close_finish (GObject        *object,
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
 
-  if (test->expected_client_close_error)
+  if (test->expected_client_close_error) // ERROR can be null here during client-auth-failure test!
     g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
   else
     g_assert_no_error (error);
@@ -2266,6 +2266,7 @@ main (int   argc,
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
   g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
+#if 0
   g_test_add ("/tls/connection/basic", TestConnection, NULL,
               setup_connection, test_basic_connection, teardown_connection);
   g_test_add ("/tls/connection/verified", TestConnection, NULL,
@@ -2286,8 +2287,10 @@ main (int   argc,
               setup_connection, test_client_auth_connection, teardown_connection);
   g_test_add ("/tls/connection/client-auth-rehandshake", TestConnection, NULL,
               setup_connection, test_client_auth_rehandshake, teardown_connection);
+#endif
   g_test_add ("/tls/connection/client-auth-failure", TestConnection, NULL,
               setup_connection, test_client_auth_failure, teardown_connection);
+#if 0
   g_test_add ("/tls/connection/client-auth-fail-missing-client-private-key", TestConnection, NULL,
               setup_connection, test_client_auth_fail_missing_client_private_key, teardown_connection);
   g_test_add ("/tls/connection/client-auth-request-cert", TestConnection, NULL,
@@ -2334,6 +2337,7 @@ main (int   argc,
               setup_connection, test_alpn_server_only, teardown_connection);
   g_test_add ("/tls/connection/sync-op-during-handshake", TestConnection, NULL,
               setup_connection, test_sync_op_during_handshake, teardown_connection);
+#endif
 
   ret = g_test_run ();
 
