@@ -8,7 +8,7 @@ fedora-x86_64:
             -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
-            -Dwerror=true
+            -Dwerror=false
             build/
     - ninja -C build/
     - meson test -v -C build/ --repeat=20000
