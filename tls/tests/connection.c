@@ -459,16 +459,19 @@ on_client_connection_close_finish (GObject        *object,
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
 
   if (test->expected_client_close_error)
-{
-if (!error) // test has failed
-{
-g_assert_no_error (test->read_error);
-g_warning("The test has failed with no close error, and there is no read error here either...");
-}
-    g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
-}
+    {
+      /* Although very rare, it's OK for broken pipe errors to sometimes be
+       * missed since this is timing-dependent: the client might simply not have
+       * noticed that the server has disconnected yet. But it's not OK for other
+       * unexpected errors to occur.
+       */
+      if (error || !g_error_matches (test->expected_client_close_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
+        g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
+    }
   else
-    g_assert_no_error (error);
+    {
+      g_assert_no_error (error);
+    }
 
   g_main_loop_quit (test->loop);
 }
