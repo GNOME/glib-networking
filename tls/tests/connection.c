@@ -459,16 +459,18 @@ on_client_connection_close_finish (GObject        *object,
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
 
   if (test->expected_client_close_error)
-{
-if (!error) // test has failed
-{
-g_assert_no_error (test->read_error);
-g_warning("The test has failed with no close error, and there is no read error here either...");
-}
-    g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
-}
+    {
+      /* Although very rare, it's OK for broken pipe errors to not occur here if
+       * they have already occured earlier during a read. If so, there should be
+       * no error here at all.
+       */
+      if (error || !g_error_matches (test->expected_client_close_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
+        g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
+    }
   else
-    g_assert_no_error (error);
+    {
+      g_assert_no_error (error);
+    }
 
   g_main_loop_quit (test->loop);
 }
@@ -1130,9 +1132,12 @@ test_client_auth_failure (TestConnection *test,
   read_test_data_async (test);
   g_main_loop_run (test->loop);
 
+  /* In TLS 1.2 we'll notice that a server cert was requested. For TLS 1.3 we
+   * just get dropped, usually G_TLS_ERROR_MISC but possibly also broken pipe.
+   */
   if (client_can_receive_certificate_required_errors (test))
     g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
-  else
+  else if (!g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
     g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_MISC);
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
@@ -1326,7 +1331,7 @@ test_client_auth_request_fail (TestConnection *test,
   /* FIXME: G_FILE_ERROR_ACCES is not a very great error to get here. */
   if (client_can_receive_certificate_required_errors (test))
     g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
-  else
+  else if (!g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
     g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_MISC);
 
   g_io_stream_close (test->server_connection, NULL, NULL);
