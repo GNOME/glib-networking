@@ -1,3 +1,9 @@
+2.60.1 - April 1, 2019
+======================
+
+- Improve reliability of client auth failure tests (#66)
+- Fix excessive CPU usage after sync handshake (#69)
+
 2.60.0.1 - March 12, 2019
 =========================
 
