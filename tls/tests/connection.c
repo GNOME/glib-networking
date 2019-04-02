@@ -458,8 +458,15 @@ on_client_connection_close_finish (GObject        *object,
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
 
-  if (test->expected_client_close_error) // ERROR can be null here during client-auth-failure test!
+  if (test->expected_client_close_error)
+{
+if (!error) // test has failed
+{
+g_assert_no_error (test->read_error);
+g_warning("The test has failed with no close error, and there is no read error here either...");
+}
     g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
+}
   else
     g_assert_no_error (error);
 
