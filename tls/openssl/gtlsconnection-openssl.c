@@ -639,6 +639,6 @@ g_tls_connection_openssl_request_certificate (GTlsConnectionOpenssl  *openssl,
     return FALSE;
 
   res = g_tls_interaction_invoke_request_certificate (interaction, conn, 0,
-						      tls->read_cancellable, error);
+                                                      tls->read_cancellable, error);
   return res != G_TLS_INTERACTION_FAILED;
 }
