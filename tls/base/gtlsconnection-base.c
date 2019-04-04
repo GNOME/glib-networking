@@ -793,9 +793,7 @@ handshake_thread (GTask        *task,
   if (error)
     {
       if ((g_error_matches (error, G_IO_ERROR, G_IO_ERROR_FAILED) ||
-#if GLIB_CHECK_VERSION (2, 35, 3)
            g_error_matches (error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE) ||
-#endif
            g_error_matches (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS)) &&
           tls->certificate_requested)
         {
