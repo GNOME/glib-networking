@@ -45,13 +45,13 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionClass parent_class;
 
   GTlsConnectionBaseStatus (*request_rehandshake)  (GTlsConnectionBase  *tls,
-						    GCancellable        *cancellable,
-						    GError             **error);
+                                                    GCancellable        *cancellable,
+                                                    GError             **error);
   GTlsConnectionBaseStatus (*handshake)            (GTlsConnectionBase  *tls,
-						    GCancellable        *cancellable,
-						    GError             **error);
+                                                    GCancellable        *cancellable,
+                                                    GError             **error);
   GTlsConnectionBaseStatus (*complete_handshake)   (GTlsConnectionBase  *tls,
-						    GError             **error);
+                                                    GError             **error);
 
   void                     (*push_io)              (GTlsConnectionBase  *tls,
                                                     GIOCondition         direction,
@@ -63,23 +63,23 @@ struct _GTlsConnectionBaseClass
                                                     GError             **error);
 
   GTlsConnectionBaseStatus (*read_fn)              (GTlsConnectionBase  *tls,
-						    void                *buffer,
-						    gsize                count,
-						    gboolean             blocking,
-						    gssize              *nread,
-						    GCancellable        *cancellable,
-						    GError             **error);
+                                                    void                *buffer,
+                                                    gsize                count,
+                                                    gboolean             blocking,
+                                                    gssize              *nread,
+                                                    GCancellable        *cancellable,
+                                                    GError             **error);
   GTlsConnectionBaseStatus (*write_fn)             (GTlsConnectionBase  *tls,
-						    const void          *buffer,
-						    gsize                count,
-						    gboolean             blocking,
-						    gssize              *nwrote,
-						    GCancellable        *cancellable,
-						    GError             **error);
+                                                    const void          *buffer,
+                                                    gsize                count,
+                                                    gboolean             blocking,
+                                                    gssize              *nwrote,
+                                                    GCancellable        *cancellable,
+                                                    GError             **error);
 
   GTlsConnectionBaseStatus (*close_fn)             (GTlsConnectionBase  *tls,
-						    GCancellable        *cancellable,
-						    GError             **error);
+                                                    GCancellable        *cancellable,
+                                                    GError             **error);
 };
 
 struct _GTlsConnectionBase
@@ -165,42 +165,42 @@ gboolean g_tls_connection_base_accept_peer_certificate (GTlsConnectionBase   *tl
                                                         GTlsCertificateFlags  peer_certificate_errors);
 
 void g_tls_connection_base_set_peer_certificate (GTlsConnectionBase   *tls,
-						 GTlsCertificate      *peer_certificate,
-						 GTlsCertificateFlags  peer_certificate_errors);
+                                                 GTlsCertificate      *peer_certificate,
+                                                 GTlsCertificateFlags  peer_certificate_errors);
 
 void     g_tls_connection_base_push_io       (GTlsConnectionBase *tls,
-					      GIOCondition        direction,
-					      gboolean            blocking,
-					      GCancellable       *cancellable);
+                                              GIOCondition        direction,
+                                              gboolean            blocking,
+                                              GCancellable       *cancellable);
 GTlsConnectionBaseStatus
          g_tls_connection_base_pop_io        (GTlsConnectionBase  *tls,
-					      GIOCondition         direction,
-					      gboolean             success,
-					      GError             **error);
+                                              GIOCondition         direction,
+                                              gboolean             success,
+                                              GError             **error);
 
 gssize   g_tls_connection_base_read          (GTlsConnectionBase  *tls,
-					      void                *buffer,
-					      gsize                size,
-					      gboolean             blocking,
-					      GCancellable        *cancellable,
-					      GError             **error);
+                                              void                *buffer,
+                                              gsize                size,
+                                              gboolean             blocking,
+                                              GCancellable        *cancellable,
+                                              GError             **error);
 gssize   g_tls_connection_base_write         (GTlsConnectionBase  *tls,
-					      const void          *buffer,
-					      gsize                size,
-					      gboolean             blocking,
-					      GCancellable        *cancellable,
-					      GError             **error);
+                                              const void          *buffer,
+                                              gsize                size,
+                                              gboolean             blocking,
+                                              GCancellable        *cancellable,
+                                              GError             **error);
 
 gboolean g_tls_connection_base_check         (GTlsConnectionBase  *tls,
-					      GIOCondition         condition);
+                                              GIOCondition         condition);
 GSource *g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
-					      GIOCondition         condition,
-					      GCancellable        *cancellable);
+                                              GIOCondition         condition,
+                                              GCancellable        *cancellable);
 
 typedef enum {
-	G_TLS_DIRECTION_NONE = 0,
-	G_TLS_DIRECTION_READ = 1 << 0,
-	G_TLS_DIRECTION_WRITE = 1 << 1,
+        G_TLS_DIRECTION_NONE = 0,
+        G_TLS_DIRECTION_READ = 1 << 0,
+        G_TLS_DIRECTION_WRITE = 1 << 1,
 } GTlsDirection;
 
 #define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
