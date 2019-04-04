@@ -28,8 +28,8 @@
 static void g_tls_input_stream_base_pollable_iface_init (GPollableInputStreamInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsInputStreamBase, g_tls_input_stream_base, G_TYPE_INPUT_STREAM,
-			 G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_base_pollable_iface_init)
-			 )
+                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_base_pollable_iface_init)
+                         )
 
 struct _GTlsInputStreamBasePrivate
 {
@@ -58,10 +58,10 @@ g_tls_input_stream_base_finalize (GObject *object)
 
 static gssize
 g_tls_input_stream_base_read (GInputStream  *stream,
-			      void          *buffer,
-			      gsize          count,
-			      GCancellable  *cancellable,
-			      GError       **error)
+                              void          *buffer,
+                              gsize          count,
+                              GCancellable  *cancellable,
+                              GError       **error)
 {
   GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (stream);
   GTlsConnectionBase *conn;
@@ -100,7 +100,7 @@ g_tls_input_stream_base_pollable_is_readable (GPollableInputStream *pollable)
 
 static GSource *
 g_tls_input_stream_base_pollable_create_source (GPollableInputStream *pollable,
-						GCancellable         *cancellable)
+                                                GCancellable         *cancellable)
 {
   GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (pollable);
   GTlsConnectionBase *conn;
@@ -116,9 +116,9 @@ g_tls_input_stream_base_pollable_create_source (GPollableInputStream *pollable,
 
 static gssize
 g_tls_input_stream_base_pollable_read_nonblocking (GPollableInputStream  *pollable,
-						   void                  *buffer,
-						   gsize                  size,
-						   GError               **error)
+                                                   void                  *buffer,
+                                                   gsize                  size,
+                                                   GError               **error)
 {
   GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (pollable);
   GTlsConnectionBase *conn;
