@@ -28,8 +28,8 @@
 static void g_tls_output_stream_base_pollable_iface_init (GPollableOutputStreamInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsOutputStreamBase, g_tls_output_stream_base, G_TYPE_OUTPUT_STREAM,
-			 G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_OUTPUT_STREAM, g_tls_output_stream_base_pollable_iface_init)
-			 )
+                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_OUTPUT_STREAM, g_tls_output_stream_base_pollable_iface_init)
+                         )
 
 struct _GTlsOutputStreamBasePrivate
 {
@@ -58,10 +58,10 @@ g_tls_output_stream_base_finalize (GObject *object)
 
 static gssize
 g_tls_output_stream_base_write (GOutputStream  *stream,
-				const void     *buffer,
-				gsize           count,
-				GCancellable   *cancellable,
-				GError        **error)
+                                const void     *buffer,
+                                gsize           count,
+                                GCancellable   *cancellable,
+                                GError        **error)
 {
   GTlsOutputStreamBase *tls_stream = G_TLS_OUTPUT_STREAM_BASE (stream);
   GTlsConnectionBase *conn;
@@ -100,7 +100,7 @@ g_tls_output_stream_base_pollable_is_writable (GPollableOutputStream *pollable)
 
 static GSource *
 g_tls_output_stream_base_pollable_create_source (GPollableOutputStream *pollable,
-						 GCancellable         *cancellable)
+                                                 GCancellable         *cancellable)
 {
   GTlsOutputStreamBase *tls_stream = G_TLS_OUTPUT_STREAM_BASE (pollable);
   GTlsConnectionBase *conn;
@@ -118,9 +118,9 @@ g_tls_output_stream_base_pollable_create_source (GPollableOutputStream *pollable
 
 static gssize
 g_tls_output_stream_base_pollable_write_nonblocking (GPollableOutputStream  *pollable,
-						     const void             *buffer,
-						     gsize                   size,
-						     GError                **error)
+                                                     const void             *buffer,
+                                                     gsize                   size,
+                                                     GError                **error)
 {
   GTlsOutputStreamBase *tls_stream = G_TLS_OUTPUT_STREAM_BASE (pollable);
   GTlsConnectionBase *conn;
@@ -165,9 +165,9 @@ g_tls_output_stream_base_close (GOutputStream            *stream,
  */
 static void
 close_thread (GTask        *task,
-	      gpointer      object,
-	      gpointer      task_data,
-	      GCancellable *cancellable)
+              gpointer      object,
+              gpointer      task_data,
+              GCancellable *cancellable)
 {
   GTlsOutputStreamBase *tls_stream = object;
   GError *error = NULL;
