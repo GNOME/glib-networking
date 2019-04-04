@@ -1,5 +1,6 @@
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * gtlsbio.c
+ * openssl-module.c
  *
  * Copyright (C) 2015 NICE s.r.l.
  *
