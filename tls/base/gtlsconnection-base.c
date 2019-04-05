@@ -59,7 +59,7 @@ static void g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInt
 static void g_tls_connection_base_datagram_based_iface_init  (GDatagramBasedInterface  *iface);
 
 static gboolean do_implicit_handshake (GTlsConnectionBase  *tls,
-                                       gboolean             blocking,
+                                       gint64               timeout,
                                        GCancellable        *cancellable,
                                        GError             **error);
 static gboolean finish_handshake (GTlsConnectionBase  *tls,
@@ -319,7 +319,7 @@ typedef enum {
 static gboolean
 claim_op (GTlsConnectionBase    *tls,
           GTlsConnectionBaseOp   op,
-          gboolean               blocking,
+          gint64                 timeout,
           GCancellable          *cancellable,
           GError               **error)
 {
@@ -361,7 +361,7 @@ claim_op (GTlsConnectionBase    *tls,
           tls->need_handshake && !tls->handshaking)
         {
           tls->handshaking = TRUE;
-          if (!do_implicit_handshake (tls, blocking, cancellable, error))
+          if (!do_implicit_handshake (tls, timeout, cancellable, error))
             {
               g_cancellable_reset (tls->waiting_for_op);
               g_mutex_unlock (&tls->op_mutex);
@@ -402,12 +402,14 @@ claim_op (GTlsConnectionBase    *tls,
     {
       GPollFD fds[2];
       int nfds;
+      gint64 start_time;
+      gint result;
 
       g_cancellable_reset (tls->waiting_for_op);
 
       g_mutex_unlock (&tls->op_mutex);
 
-      if (!blocking)
+      if (timeout == 0)
         {
           g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK,
                                _("Operation would block"));
@@ -420,10 +422,40 @@ claim_op (GTlsConnectionBase    *tls,
       else
         nfds = 1;
 
-      g_poll (fds, nfds, -1);
+      /* Convert from microseconds to milliseconds. */
+      if (timeout != -1)
+        timeout /= 1000;
+
+      /* Poll until cancellation or the timeout is reached. */
+      start_time = g_get_monotonic_time ();
+
+      while (!g_cancellable_is_cancelled (tls->waiting_for_op) &&
+             !g_cancellable_is_cancelled (cancellable))
+        {
+          result = g_poll (fds, nfds, timeout);
+
+          if (result == 0)
+            break;
+          if (result != -1 || errno != EINTR)
+            continue;
+
+          if (timeout != -1)
+            {
+              timeout -= (g_get_monotonic_time () - start_time) / 1000;
+              if (timeout < 0)
+                timeout = 0;
+            }
+        }
 
       if (nfds > 1)
         g_cancellable_release_fd (cancellable);
+
+      if (result == 0)
+        {
+          g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
+                               _("Socket I/O timed out"));
+          return FALSE;
+        }
 
       goto try_again;
     }
@@ -477,19 +509,19 @@ yield_op (GTlsConnectionBase       *tls,
 static void
 g_tls_connection_base_real_push_io (GTlsConnectionBase *tls,
                                     GIOCondition        direction,
-                                    gboolean            blocking,
+                                    gint64              timeout,
                                     GCancellable       *cancellable)
 {
   if (direction & G_IO_IN)
     {
-      tls->read_blocking = blocking;
+      tls->read_timeout = timeout;;
       tls->read_cancellable = cancellable;
       g_clear_error (&tls->read_error);
     }
 
   if (direction & G_IO_OUT)
     {
-      tls->write_blocking = blocking;
+      tls->write_timeout = timeout;
       tls->write_cancellable = cancellable;
       g_clear_error (&tls->write_error);
     }
@@ -498,14 +530,14 @@ g_tls_connection_base_real_push_io (GTlsConnectionBase *tls,
 void
 g_tls_connection_base_push_io (GTlsConnectionBase *tls,
                                GIOCondition        direction,
-                               gboolean            blocking,
+                               gint64              timeout,
                                GCancellable       *cancellable)
 {
   g_assert (direction & (G_IO_IN | G_IO_OUT));
   g_return_if_fail (G_IS_TLS_CONNECTION_BASE (tls));
 
   G_TLS_CONNECTION_BASE_GET_CLASS (tls)->push_io (tls, direction,
-                                                  blocking, cancellable);
+                                                  timeout, cancellable);
 }
 
 static GTlsConnectionBaseStatus
@@ -982,11 +1014,13 @@ handshake_thread (GTask        *task,
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GError *error = NULL;
 
+  gint64 timeout = -1; /* FIXME: upcoming commit */
+
   tls->started_handshake = FALSE;
   tls->certificate_requested = FALSE;
 
   if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
-                 TRUE, cancellable, &error))
+                 timeout, cancellable, &error))
     {
       g_task_return_error (task, error);
       return;
@@ -998,7 +1032,7 @@ handshake_thread (GTask        *task,
     {
       GTlsConnectionBaseStatus status;
 
-      status = tls_class->request_rehandshake (tls, cancellable, &error);
+      status = tls_class->request_rehandshake (tls, timeout, cancellable, &error);
       if (status != G_TLS_CONNECTION_BASE_OK)
         {
           g_task_return_error (task, error);
@@ -1010,7 +1044,7 @@ handshake_thread (GTask        *task,
   tls->peer_certificate_errors = 0;
 
   tls->started_handshake = TRUE;
-  tls_class->handshake (tls, cancellable, &error);
+  tls_class->handshake (tls, timeout, cancellable, &error);
   tls->need_handshake = FALSE;
 
   if (error)
@@ -1227,7 +1261,7 @@ implicit_handshake_completed (GObject      *object,
 
 static gboolean
 do_implicit_handshake (GTlsConnectionBase  *tls,
-                       gboolean             blocking,
+                       gint64               timeout,
                        GCancellable        *cancellable,
                        GError             **error)
 {
@@ -1238,7 +1272,8 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
                                         NULL);
   g_task_set_source_tag (tls->implicit_handshake, do_implicit_handshake);
 
-  if (blocking)
+  /* FIXME: Support (timeout > 0). */
+  if (timeout != 0)
     {
       GError *my_error = NULL;
       gboolean success;
@@ -1273,7 +1308,7 @@ gssize
 g_tls_connection_base_read (GTlsConnectionBase  *tls,
                             void                *buffer,
                             gsize                count,
-                            gboolean             blocking,
+                            gint64               timeout,
                             GCancellable        *cancellable,
                             GError             **error)
 {
@@ -1283,7 +1318,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
   do
     {
       if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_READ,
-                     blocking, cancellable, error))
+                     timeout, cancellable, error))
         return -1;
 
       if (tls->app_data_buf && !tls->handshaking)
@@ -1299,7 +1334,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
       else
         {
           status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-            read_fn (tls, buffer, count, blocking, &nread, cancellable, error);
+            read_fn (tls, buffer, count, timeout, &nread, cancellable, error);
         }
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
@@ -1325,7 +1360,7 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
 
   do {
     if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_READ,
-                   timeout != 0, cancellable, error))
+                   timeout, cancellable, error))
       return -1;
 
     /* Copy data out of the app data buffer first. */
@@ -1444,7 +1479,7 @@ gssize
 g_tls_connection_base_write (GTlsConnectionBase  *tls,
                              const void          *buffer,
                              gsize                count,
-                             gboolean             blocking,
+                             gint64               timeout,
                              GCancellable        *cancellable,
                              GError             **error)
 {
@@ -1454,11 +1489,11 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
   do
     {
       if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE,
-                     blocking, cancellable, error))
+                     timeout, cancellable, error))
         return -1;
 
       status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-        write_fn (tls, buffer, count, blocking, &nwrote, cancellable, error);
+        write_fn (tls, buffer, count, timeout, &nwrote, cancellable, error);
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE, status);
     }
@@ -1483,7 +1518,7 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
 
   do {
     if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE,
-                   timeout != 0, cancellable, error))
+                   timeout, cancellable, error))
       return -1;
 
     status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
@@ -1597,8 +1632,6 @@ g_tls_connection_base_close_internal (GIOStream      *stream,
    * this class and how the underlying stream is closed.
    */
 
-  /* FIXME: This does not properly support the @timeout parameter. */
-
   g_return_val_if_fail (direction != G_TLS_DIRECTION_NONE, FALSE);
 
   if (direction == G_TLS_DIRECTION_BOTH)
@@ -1608,14 +1641,14 @@ g_tls_connection_base_close_internal (GIOStream      *stream,
   else
     op = G_TLS_CONNECTION_BASE_OP_CLOSE_WRITE;
 
-  if (!claim_op (tls, op, TRUE, cancellable, error))
+  if (!claim_op (tls, op, timeout, cancellable, error))
     return FALSE;
 
   if (tls->ever_handshaked && !tls->write_closed &&
       direction & G_TLS_DIRECTION_WRITE)
     {
       status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-        close_fn (tls, cancellable, &close_error);
+        close_fn (tls, timeout, cancellable, &close_error);
 
       tls->write_closed = TRUE;
     }
