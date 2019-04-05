@@ -31,8 +31,10 @@
 #include <glib/gi18n-lib.h>
 #include "openssl-include.h"
 
-typedef struct
+struct _GTlsFileDatabaseOpenssl
 {
+  GTlsDatabaseOpenssl parent_instance;
+
   /* read-only after construct */
   gchar *anchor_filename;
 
@@ -57,7 +59,7 @@ typedef struct
    * This is a table of gchar * -> GTlsCertificate.
    */
   GHashTable *certs_by_handle;
-} GTlsFileDatabaseOpensslPrivate;
+};
 
 enum {
   STATUS_FAILURE,
@@ -76,7 +78,6 @@ enum
 static void g_tls_file_database_openssl_file_database_interface_init (GTlsFileDatabaseInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsFileDatabaseOpenssl, g_tls_file_database_openssl, G_TYPE_TLS_DATABASE_OPENSSL,
-                         G_ADD_PRIVATE (GTlsFileDatabaseOpenssl)
                          G_IMPLEMENT_INTERFACE (G_TYPE_TLS_FILE_DATABASE,
                                                 g_tls_file_database_openssl_file_database_interface_init)
                          )
@@ -176,14 +177,11 @@ load_anchor_file (GTlsFileDatabaseOpenssl  *file_database,
                   GHashTable               *certs_by_handle,
                   GError                  **error)
 {
-  GTlsFileDatabaseOpensslPrivate *priv;
   GList *list;
   GList *l;
   GBytes *der;
   gchar *handle;
   GError *my_error = NULL;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   list = g_tls_certificate_list_new_from_file (filename, &my_error);
   if (my_error)
@@ -211,7 +209,7 @@ load_anchor_file (GTlsFileDatabaseOpenssl  *file_database,
       bytes_multi_table_insert (subjects, subject, der);
       bytes_multi_table_insert (issuers, issuer, der);
 
-      handle = create_handle_for_certificate (priv->anchor_filename, der);
+      handle = create_handle_for_certificate (file_database->anchor_filename, der);
       g_hash_table_insert (certs_by_handle, handle, g_object_ref (l->data));
 
       g_bytes_unref (der);
@@ -227,19 +225,16 @@ static void
 g_tls_file_database_openssl_finalize (GObject *object)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (object);
-  GTlsFileDatabaseOpensslPrivate *priv;
 
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
+  g_clear_pointer (&file_database->subjects, g_hash_table_destroy);
+  g_clear_pointer (&file_database->issuers, g_hash_table_destroy);
+  g_clear_pointer (&file_database->complete, g_hash_table_destroy);
+  g_clear_pointer (&file_database->certs_by_handle, g_hash_table_destroy);
 
-  g_clear_pointer (&priv->subjects, g_hash_table_destroy);
-  g_clear_pointer (&priv->issuers, g_hash_table_destroy);
-  g_clear_pointer (&priv->complete, g_hash_table_destroy);
-  g_clear_pointer (&priv->certs_by_handle, g_hash_table_destroy);
+  g_free (file_database->anchor_filename);
+  file_database->anchor_filename = NULL;
 
-  g_free (priv->anchor_filename);
-  priv->anchor_filename = NULL;
-
-  g_mutex_clear (&priv->mutex);
+  g_mutex_clear (&file_database->mutex);
 
   G_OBJECT_CLASS (g_tls_file_database_openssl_parent_class)->finalize (object);
 }
@@ -251,14 +246,11 @@ g_tls_file_database_openssl_get_property (GObject    *object,
                                           GParamSpec *pspec)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (object);
-  GTlsFileDatabaseOpensslPrivate *priv;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   switch (prop_id)
     {
     case PROP_ANCHORS:
-      g_value_set_string (value, priv->anchor_filename);
+      g_value_set_string (value, file_database->anchor_filename);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -272,10 +264,7 @@ g_tls_file_database_openssl_set_property (GObject      *object,
                                           GParamSpec   *pspec)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (object);
-  GTlsFileDatabaseOpensslPrivate *priv;
   const gchar *anchor_path;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   switch (prop_id)
     {
@@ -288,8 +277,8 @@ g_tls_file_database_openssl_set_property (GObject      *object,
           return;
         }
 
-      g_free (priv->anchor_filename);
-      priv->anchor_filename = g_strdup (anchor_path);
+      g_free (file_database->anchor_filename);
+      file_database->anchor_filename = g_strdup (anchor_path);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -299,11 +288,7 @@ g_tls_file_database_openssl_set_property (GObject      *object,
 static void
 g_tls_file_database_openssl_init (GTlsFileDatabaseOpenssl *file_database)
 {
-  GTlsFileDatabaseOpensslPrivate *priv;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
-
-  g_mutex_init (&priv->mutex);
+  g_mutex_init (&file_database->mutex);
 }
 
 static gchar *
@@ -311,26 +296,23 @@ g_tls_file_database_openssl_create_certificate_handle (GTlsDatabase    *database
                                                        GTlsCertificate *certificate)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
-  GTlsFileDatabaseOpensslPrivate *priv;
   GBytes *der;
   gboolean contains;
   gchar *handle = NULL;
 
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
-
   der = g_tls_certificate_openssl_get_bytes (G_TLS_CERTIFICATE_OPENSSL (certificate));
   g_return_val_if_fail (der != NULL, FALSE);
 
-  g_mutex_lock (&priv->mutex);
+  g_mutex_lock (&file_database->mutex);
 
   /* At the same time look up whether this certificate is in list */
-  contains = g_hash_table_lookup (priv->complete, der) ? TRUE : FALSE;
+  contains = g_hash_table_lookup (file_database->complete, der) ? TRUE : FALSE;
 
-  g_mutex_unlock (&priv->mutex);
+  g_mutex_unlock (&file_database->mutex);
 
   /* Certificate is in the database */
   if (contains)
-    handle = create_handle_for_certificate (priv->anchor_filename, der);
+    handle = create_handle_for_certificate (file_database->anchor_filename, der);
 
   g_bytes_unref (der);
   return handle;
@@ -345,10 +327,7 @@ g_tls_file_database_openssl_lookup_certificate_for_handle (GTlsDatabase         
                                                            GError                 **error)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
-  GTlsFileDatabaseOpensslPrivate *priv;
   GTlsCertificate *cert;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return NULL;
@@ -356,11 +335,11 @@ g_tls_file_database_openssl_lookup_certificate_for_handle (GTlsDatabase         
   if (!handle)
     return NULL;
 
-  g_mutex_lock (&priv->mutex);
+  g_mutex_lock (&file_database->mutex);
 
-  cert = g_hash_table_lookup (priv->certs_by_handle, handle);
+  cert = g_hash_table_lookup (file_database->certs_by_handle, handle);
 
-  g_mutex_unlock (&priv->mutex);
+  g_mutex_unlock (&file_database->mutex);
 
   return cert ? g_object_ref (cert) : NULL;
 }
@@ -374,13 +353,10 @@ g_tls_file_database_openssl_lookup_certificate_issuer (GTlsDatabase             
                                                        GError                  **error)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
-  GTlsFileDatabaseOpensslPrivate *priv;
   X509 *x;
   unsigned long issuer_hash;
   GBytes *der;
   GTlsCertificate *issuer = NULL;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (certificate), NULL);
 
@@ -394,9 +370,9 @@ g_tls_file_database_openssl_lookup_certificate_issuer (GTlsDatabase             
   x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (certificate));
   issuer_hash = X509_issuer_name_hash (x);
 
-  g_mutex_lock (&priv->mutex);
-  der = bytes_multi_table_lookup_ref_one (priv->subjects, issuer_hash);
-  g_mutex_unlock (&priv->mutex);
+  g_mutex_lock (&file_database->mutex);
+  der = bytes_multi_table_lookup_ref_one (file_database->subjects, issuer_hash);
+  g_mutex_unlock (&file_database->mutex);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     issuer = NULL;
@@ -419,12 +395,9 @@ g_tls_file_database_openssl_lookup_certificates_issued_by (GTlsDatabase         
                                                            GError                  **error)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
-  GTlsFileDatabaseOpensslPrivate *priv;
   X509_NAME *x_name;
   const unsigned char *in;
   GList *issued = NULL;
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return NULL;
@@ -443,9 +416,9 @@ g_tls_file_database_openssl_lookup_certificates_issued_by (GTlsDatabase         
       issuer_hash = X509_NAME_hash (x_name);
 
       /* Find the full DER value of the certificate */
-      g_mutex_lock (&priv->mutex);
-      ders = bytes_multi_table_lookup_ref_all (priv->issuers, issuer_hash);
-      g_mutex_unlock (&priv->mutex);
+      g_mutex_lock (&file_database->mutex);
+      ders = bytes_multi_table_lookup_ref_all (file_database->issuers, issuer_hash);
+      g_mutex_unlock (&file_database->mutex);
 
       for (l = ders; l != NULL; l = g_list_next (l))
         {
@@ -472,13 +445,10 @@ g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
                                                  GError              **error)
 {
   GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (self);
-  GTlsFileDatabaseOpensslPrivate *priv;
   GHashTable *subjects, *issuers, *complete, *certs_by_handle;
   gboolean result;
 
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
-
-  if (!X509_STORE_load_locations (store, priv->anchor_filename, NULL))
+  if (!X509_STORE_load_locations (store, file_database->anchor_filename, NULL))
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Failed to load file path: %s"),
@@ -497,9 +467,9 @@ g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
                                            (GDestroyNotify)g_free,
                                            (GDestroyNotify)g_object_unref);
 
-  if (priv->anchor_filename)
+  if (file_database->anchor_filename)
     result = load_anchor_file (file_database,
-                               priv->anchor_filename,
+                               file_database->anchor_filename,
                                subjects, issuers, complete,
                                certs_by_handle,
                                error);
@@ -508,28 +478,28 @@ g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
 
   if (result)
     {
-      g_mutex_lock (&priv->mutex);
-      if (!priv->subjects)
+      g_mutex_lock (&file_database->mutex);
+      if (!file_database->subjects)
         {
-          priv->subjects = subjects;
+          file_database->subjects = subjects;
           subjects = NULL;
         }
-      if (!priv->issuers)
+      if (!file_database->issuers)
         {
-          priv->issuers = issuers;
+          file_database->issuers = issuers;
           issuers = NULL;
         }
-      if (!priv->complete)
+      if (!file_database->complete)
         {
-          priv->complete = complete;
+          file_database->complete = complete;
           complete = NULL;
         }
-      if (!priv->certs_by_handle)
+      if (!file_database->certs_by_handle)
         {
-          priv->certs_by_handle = certs_by_handle;
+          file_database->certs_by_handle = certs_by_handle;
           certs_by_handle = NULL;
         }
-      g_mutex_unlock (&priv->mutex);
+      g_mutex_unlock (&file_database->mutex);
     }
 
   if (subjects != NULL)
