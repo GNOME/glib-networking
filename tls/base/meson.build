@@ -1,9 +1,3 @@
-tlsbase_headers = files(
-  'gtlsconnection-base.h',
-  'gtlsinputstream-base.h',
-  'gtlsoutputstream-base.h',
-)
-
 tlsbase_sources = files(
   'gtlsconnection-base.c',
   'gtlsinputstream-base.c',
@@ -11,7 +5,7 @@ tlsbase_sources = files(
 )
 
 tlsbase = static_library('tlsbase',
-                         tlsbase_sources + tlsbase_headers,
+                         tlsbase_sources,
                          dependencies: gio_dep,
                          include_directories: top_inc)
 
