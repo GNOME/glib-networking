@@ -33,26 +33,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_FILE_DATABASE_OPENSSL            (g_tls_file_database_openssl_get_type ())
-#define G_TLS_FILE_DATABASE_OPENSSL(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_FILE_DATABASE_OPENSSL, GTlsFileDatabaseOpenssl))
-#define G_TLS_FILE_DATABASE_OPENSSL_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_FILE_DATABASE_OPENSSL, GTlsFileDatabaseOpensslClass))
-#define G_IS_TLS_FILE_DATABASE_OPENSSL(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_FILE_DATABASE_OPENSSL))
-#define G_IS_TLS_FILE_DATABASE_OPENSSL_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_FILE_DATABASE_OPENSSL))
-#define G_TLS_FILE_DATABASE_OPENSSL_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_FILE_DATABASE_OPENSSL, GTlsFileDatabaseOpensslClass))
 
-typedef struct _GTlsFileDatabaseOpensslClass GTlsFileDatabaseOpensslClass;
-typedef struct _GTlsFileDatabaseOpenssl      GTlsFileDatabaseOpenssl;
-
-struct _GTlsFileDatabaseOpensslClass
-{
-  GTlsDatabaseOpensslClass parent_class;
-};
-
-struct _GTlsFileDatabaseOpenssl
-{
-  GTlsDatabaseOpenssl parent_instance;
-};
-
-GType                        g_tls_file_database_openssl_get_type              (void) G_GNUC_CONST;
+G_DECLARE_FINAL_TYPE (GTlsFileDatabaseOpenssl, g_tls_file_database_openssl, G, TLS_FILE_DATABASE_OPENSSL, GTlsDatabaseOpenssl)
 
 GTlsCertificateFlags         g_tls_file_database_openssl_verify_ocsp_response  (GTlsDatabase    *database,
                                                                                 GTlsCertificate *chain,
