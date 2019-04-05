@@ -78,7 +78,7 @@ g_tls_input_stream_base_read (GInputStream  *stream,
     }
 
   ret = g_tls_connection_base_read (conn,
-                                    buffer, count, TRUE,
+                                    buffer, count, -1 /* blocking */,
                                     cancellable, error);
   g_object_unref (conn);
   return ret;
@@ -129,7 +129,8 @@ g_tls_input_stream_base_pollable_read_nonblocking (GPollableInputStream  *pollab
   conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
   g_return_val_if_fail (conn != NULL, -1);
 
-  ret = g_tls_connection_base_read (conn, buffer, size, FALSE, NULL, error);
+  ret = g_tls_connection_base_read (conn, buffer, size,
+                                    0 /* non-blocking */, NULL, error);
 
   g_object_unref (conn);
   return ret;

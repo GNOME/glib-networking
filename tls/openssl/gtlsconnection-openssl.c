@@ -203,9 +203,9 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
-#define BEGIN_OPENSSL_IO(openssl, direction, blocking, cancellable)        \
-  g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),        \
-                                 direction, blocking, cancellable);        \
+#define BEGIN_OPENSSL_IO(openssl, direction, timeout, cancellable)        \
+  g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),         \
+                                 direction, timeout, cancellable);         \
   do {                                                                      \
     char error_str[256];
 
@@ -216,6 +216,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
+                                              gint64               timeout,
                                               GCancellable        *cancellable,
                                               GError             **error)
 {
@@ -242,7 +243,7 @@ g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
-  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = SSL_renegotiate (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
                   _("Error performing TLS handshake: %s"), error);
@@ -362,6 +363,7 @@ verify_peer_certificate (GTlsConnectionOpenssl *openssl,
 
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_handshake (GTlsConnectionBase  *tls,
+                                    gint64               timeout,
                                     GCancellable        *cancellable,
                                     GError             **error)
 {
@@ -375,7 +377,7 @@ g_tls_connection_openssl_handshake (GTlsConnectionBase  *tls,
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
-  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = SSL_do_handshake (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
                   _("Error performing TLS handshake: %s"), error);
@@ -434,7 +436,7 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
 static void
 g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
                                   GIOCondition        direction,
-                                  gboolean            blocking,
+                                  gint64              timeout,
                                   GCancellable       *cancellable)
 {
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
@@ -443,12 +445,15 @@ g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
   G_TLS_CONNECTION_BASE_CLASS (g_tls_connection_openssl_parent_class)->push_io (tls, direction,
-                                                                                blocking, cancellable);
+                                                                                timeout, cancellable);
+
+  /* FIXME: need to support timeout > 0
+   * This will require changes in GTlsBio */
 
   if (direction & G_IO_IN)
     {
       g_tls_bio_set_read_cancellable (priv->bio, cancellable);
-      g_tls_bio_set_read_blocking (priv->bio, blocking);
+      g_tls_bio_set_read_blocking (priv->bio, timeout == -1);
       g_clear_error (&tls->read_error);
       g_tls_bio_set_read_error (priv->bio, &tls->read_error);
     }
@@ -456,7 +461,7 @@ g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
   if (direction & G_IO_OUT)
     {
       g_tls_bio_set_write_cancellable (priv->bio, cancellable);
-      g_tls_bio_set_write_blocking (priv->bio, blocking);
+      g_tls_bio_set_write_blocking (priv->bio, timeout == -1);
       g_clear_error (&tls->write_error);
       g_tls_bio_set_write_error (priv->bio, &tls->write_error);
     }
@@ -487,7 +492,7 @@ static GTlsConnectionBaseStatus
 g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
                                void                  *buffer,
                                gsize                  count,
-                               gboolean               blocking,
+                               gint64                 timeout,
                                gssize                *nread,
                                GCancellable          *cancellable,
                                GError               **error)
@@ -499,7 +504,7 @@ g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
-  BEGIN_OPENSSL_IO (openssl, G_IO_IN, blocking, cancellable);
+  BEGIN_OPENSSL_IO (openssl, G_IO_IN, timeout, cancellable);
   ret = SSL_read (ssl, buffer, count);
   END_OPENSSL_IO (openssl, G_IO_IN, ret, status,
                   _("Error reading data from TLS socket: %s"), error);
@@ -513,7 +518,7 @@ static GTlsConnectionBaseStatus
 g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
                                 const void            *buffer,
                                 gsize                  count,
-                                gboolean               blocking,
+                                gint64                 timeout,
                                 gssize                *nwrote,
                                 GCancellable          *cancellable,
                                 GError               **error)
@@ -525,7 +530,7 @@ g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
-  BEGIN_OPENSSL_IO (openssl, G_IO_OUT, blocking, cancellable);
+  BEGIN_OPENSSL_IO (openssl, G_IO_OUT, timeout, cancellable);
   ret = SSL_write (ssl, buffer, count);
   END_OPENSSL_IO (openssl, G_IO_OUT, ret, status,
                   _("Error writing data to TLS socket: %s"), error);
@@ -537,6 +542,7 @@ g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
 
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
+                                gint64               timeout,
                                 GCancellable        *cancellable,
                                 GError             **error)
 {
@@ -551,7 +557,7 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
 
   priv->shutting_down = TRUE;
 
-  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, TRUE, cancellable);
+  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = SSL_shutdown (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
                   _("Error performing TLS close: %s"), error);
