@@ -30,15 +30,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CONNECTION_BASE            (g_tls_connection_base_get_type ())
-#define G_TLS_CONNECTION_BASE(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_CONNECTION_BASE, GTlsConnectionBase))
-#define G_TLS_CONNECTION_BASE_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_CONNECTION_BASE, GTlsConnectionBaseClass))
-#define G_IS_TLS_CONNECTION_BASE(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_CONNECTION_BASE))
-#define G_IS_TLS_CONNECTION_BASE_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_CONNECTION_BASE))
-#define G_TLS_CONNECTION_BASE_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_CONNECTION_BASE, GTlsConnectionBaseClass))
 
-typedef struct _GTlsConnectionBasePrivate                   GTlsConnectionBasePrivate;
-typedef struct _GTlsConnectionBaseClass                     GTlsConnectionBaseClass;
-typedef struct _GTlsConnectionBase                          GTlsConnectionBase;
+G_DECLARE_DERIVABLE_TYPE (GTlsConnectionBase, g_tls_connection_base, G, TLS_CONNECTION_BASE, GTlsConnection)
 
 typedef enum {
   G_TLS_CONNECTION_BASE_OK,
@@ -48,6 +41,14 @@ typedef enum {
   G_TLS_CONNECTION_BASE_TRY_AGAIN,
   G_TLS_CONNECTION_BASE_ERROR,
 } GTlsConnectionBaseStatus;
+
+typedef enum {
+        G_TLS_DIRECTION_NONE = 0,
+        G_TLS_DIRECTION_READ = 1 << 0,
+        G_TLS_DIRECTION_WRITE = 1 << 1,
+} GTlsDirection;
+
+#define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
 
 struct _GTlsConnectionBaseClass
 {
@@ -109,95 +110,6 @@ struct _GTlsConnectionBaseClass
                                                     GError             **error);
 };
 
-struct _GTlsConnectionBase
-{
-  GTlsConnection         parent_instance;
-
-  /* When operating in stream mode.
-   * Mutually exclusive with base_socket.
-   */
-  GIOStream             *base_io_stream;
-  GPollableInputStream  *base_istream;
-  GPollableOutputStream *base_ostream;
-
-  /* When operating in stream mode; when operating in datagram mode, the
-   * GTlsConnectionBase itself is the DTLS GDatagramBased (and uses
-   * base_socket for its underlying I/O):
-   */
-  GInputStream          *tls_istream;
-  GOutputStream         *tls_ostream;
-
-  /* When operating in datagram mode.
-   * Mutually exclusive with base_io_stream.
-   */
-  GDatagramBased        *base_socket;
-
-  GTlsDatabase          *database;
-  GTlsInteraction       *interaction;
-
-  GTlsCertificate       *certificate;
-  gboolean               certificate_requested;
-  GError                *certificate_error;
-  GTlsCertificate       *peer_certificate;
-  GTlsCertificateFlags   peer_certificate_errors;
-
-  gboolean               require_close_notify;
-  GTlsRehandshakeMode    rehandshake_mode;
-
-  /* need_handshake means the next claim_op() will get diverted into
-   * an implicit handshake (unless it's an OP_HANDSHAKE or OP_CLOSE*).
-   * need_finish_handshake means the next claim_op() will get diverted
-   * into finish_handshake() (unless it's an OP_CLOSE*).
-   *
-   * handshaking is TRUE as soon as a handshake thread is queued. For
-   * a sync handshake it becomes FALSE after finish_handshake()
-   * completes in the calling thread, but for an async implicit
-   * handshake, it becomes FALSE (and need_finish_handshake becomes
-   * TRUE) at the end of the handshaking thread (and then the next
-   * non-close op will call finish_handshake()). We can't just wait
-   * for handshake_thread_completed() to run, because it's possible
-   * that its main loop is being blocked by a synchronous op which is
-   * waiting for handshaking to become FALSE...
-   *
-   * started_handshake indicates that the current handshake attempt
-   * got at least as far as sending the first handshake packet (and so
-   * any error should be copied to handshake_error and returned on all
-   * future operations). ever_handshaked indicates that TLS has been
-   * successfully negotiated at some point.
-   */
-  gboolean       need_handshake;
-  gboolean       need_finish_handshake;
-  gboolean       started_handshake;
-  gboolean       handshaking;
-  gboolean       ever_handshaked;
-  GTask         *implicit_handshake;
-  GError        *handshake_error;
-  GByteArray    *app_data_buf;
-
-  /* read_closed means the read direction has closed; write_closed similarly.
-   * If (and only if) both are set, the entire GTlsConnection is closed. */
-  gboolean       read_closing, read_closed;
-  gboolean       write_closing, write_closed;
-
-  gboolean       reading;
-  gint64         read_timeout;
-  GError        *read_error;
-  GCancellable  *read_cancellable;
-
-  gboolean       writing;
-  gint64         write_timeout;
-  GError        *write_error;
-  GCancellable  *write_cancellable;
-
-  gboolean       is_system_certdb;
-  gboolean       database_is_unset;
-
-  GMutex         op_mutex;
-  GCancellable  *waiting_for_op;
-};
-
-GType g_tls_connection_base_get_type (void) G_GNUC_CONST;
-
 gboolean g_tls_connection_base_accept_peer_certificate (GTlsConnectionBase   *tls,
                                                         GTlsCertificate      *peer_certificate,
                                                         GTlsCertificateFlags  peer_certificate_errors);
@@ -235,19 +147,24 @@ GSource *g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
                                               GIOCondition         condition,
                                               GCancellable        *cancellable);
 
-typedef enum {
-        G_TLS_DIRECTION_NONE = 0,
-        G_TLS_DIRECTION_READ = 1 << 0,
-        G_TLS_DIRECTION_WRITE = 1 << 1,
-} GTlsDirection;
-
-#define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
-
 gboolean g_tls_connection_base_close_internal (GIOStream      *stream,
                                                GTlsDirection   direction,
                                                gint64          timeout,
                                                GCancellable   *cancellable,
                                                GError        **error);
+
+void     g_tls_connection_base_set_certificate_requested (GTlsConnectionBase *tls);
+
+GError **g_tls_connection_base_get_certificate_error     (GTlsConnectionBase *tls);
+GError **g_tls_connection_base_get_read_error            (GTlsConnectionBase *tls);
+GError **g_tls_connection_base_get_write_error           (GTlsConnectionBase *tls);
+
+gboolean g_tls_connection_base_is_handshaking            (GTlsConnectionBase *tls);
+
+gboolean g_tls_connection_base_ever_handshaked           (GTlsConnectionBase *tls);
+
+gboolean g_tls_connection_base_request_certificate (GTlsConnectionBase  *tls,
+                                                    GError             **error);
 
 G_END_DECLS
 
