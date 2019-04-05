@@ -27,23 +27,25 @@
 
 #include <glib/gi18n.h>
 
+struct _GTlsInputStream
+{
+  GInputStream parent_instance;
+
+  GWeakRef weak_conn;
+};
+
 static void g_tls_input_stream_pollable_iface_init (GPollableInputStreamInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsInputStream, g_tls_input_stream, G_TYPE_INPUT_STREAM,
                          G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_pollable_iface_init)
                          )
 
-struct _GTlsInputStreamPrivate
-{
-  GWeakRef weak_conn;
-};
-
 static void
 g_tls_input_stream_dispose (GObject *object)
 {
   GTlsInputStream *stream = G_TLS_INPUT_STREAM (object);
 
-  g_weak_ref_set (&stream->priv->weak_conn, NULL);
+  g_weak_ref_set (&stream->weak_conn, NULL);
 
   G_OBJECT_CLASS (g_tls_input_stream_parent_class)->dispose (object);
 }
@@ -53,7 +55,7 @@ g_tls_input_stream_finalize (GObject *object)
 {
   GTlsInputStream *stream = G_TLS_INPUT_STREAM (object);
 
-  g_weak_ref_clear (&stream->priv->weak_conn);
+  g_weak_ref_clear (&stream->weak_conn);
 
   G_OBJECT_CLASS (g_tls_input_stream_parent_class)->finalize (object);
 }
@@ -69,7 +71,7 @@ g_tls_input_stream_read (GInputStream  *stream,
   GTlsConnectionBase *conn;
   gssize ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   if (conn == NULL)
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
@@ -91,7 +93,7 @@ g_tls_input_stream_pollable_is_readable (GPollableInputStream *pollable)
   GTlsConnectionBase *conn;
   gboolean ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   g_return_val_if_fail (conn != NULL, FALSE);
 
   ret = g_tls_connection_base_check (conn, G_IO_IN);
@@ -108,7 +110,7 @@ g_tls_input_stream_pollable_create_source (GPollableInputStream *pollable,
   GTlsConnectionBase *conn;
   GSource *ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   g_return_val_if_fail (conn != NULL, NULL);
 
   ret = g_tls_connection_base_create_source (conn, G_IO_IN, cancellable);
@@ -126,7 +128,7 @@ g_tls_input_stream_pollable_read_nonblocking (GPollableInputStream  *pollable,
   GTlsConnectionBase *conn;
   gssize ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
   g_return_val_if_fail (conn != NULL, -1);
 
   ret = g_tls_connection_base_read (conn, buffer, size,
@@ -145,7 +147,7 @@ g_tls_input_stream_close (GInputStream            *stream,
   GIOStream *conn;
   gboolean ret;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
 
   /* Special case here because this is called by the finalize
    * of the main GTlsConnection object.
@@ -175,7 +177,7 @@ close_thread (GTask        *task,
   GError *error = NULL;
   GIOStream *conn;
 
-  conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
+  conn = g_weak_ref_get (&tls_stream->weak_conn);
 
   if (conn && !g_tls_connection_base_close_internal (conn,
                                                      G_TLS_DIRECTION_READ,
@@ -223,8 +225,6 @@ g_tls_input_stream_class_init (GTlsInputStreamClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GInputStreamClass *input_stream_class = G_INPUT_STREAM_CLASS (klass);
 
-  g_type_class_add_private (klass, sizeof (GTlsInputStreamPrivate));
-
   gobject_class->dispose = g_tls_input_stream_dispose;
   gobject_class->finalize = g_tls_input_stream_finalize;
 
@@ -245,7 +245,6 @@ g_tls_input_stream_pollable_iface_init (GPollableInputStreamInterface *iface)
 static void
 g_tls_input_stream_init (GTlsInputStream *stream)
 {
-  stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream, G_TYPE_TLS_INPUT_STREAM, GTlsInputStreamPrivate);
 }
 
 GInputStream *
@@ -254,7 +253,7 @@ g_tls_input_stream_new (GTlsConnectionBase *conn)
   GTlsInputStream *tls_stream;
 
   tls_stream = g_object_new (G_TYPE_TLS_INPUT_STREAM, NULL);
-  g_weak_ref_init (&tls_stream->priv->weak_conn, conn);
+  g_weak_ref_init (&tls_stream->weak_conn, conn);
 
   return G_INPUT_STREAM (tls_stream);
 }
