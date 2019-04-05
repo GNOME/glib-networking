@@ -333,17 +333,16 @@ retrieve_certificate (SSL       *ssl,
   GTlsClientConnectionOpenssl *client;
   GTlsClientConnectionOpensslPrivate *priv;
   GTlsConnectionBase *tls;
-  GTlsConnectionOpenssl *openssl;
   GTlsCertificate *cert;
   gboolean set_certificate = FALSE;
+  GError **certificate_error;
 
   client = SSL_get_ex_data (ssl, data_index);
   tls = G_TLS_CONNECTION_BASE (client);
-  openssl = G_TLS_CONNECTION_OPENSSL (client);
 
   priv = g_tls_client_connection_openssl_get_instance_private (client);
 
-  tls->certificate_requested = TRUE;
+  g_tls_connection_base_set_certificate_requested (tls);
 
   priv->ca_list = SSL_get_client_CA_list (priv->ssl);
   g_object_notify (G_OBJECT (client), "accepted-cas");
@@ -353,8 +352,9 @@ retrieve_certificate (SSL       *ssl,
     set_certificate = TRUE;
   else
     {
-      g_clear_error (&tls->certificate_error);
-      if (g_tls_connection_openssl_request_certificate (openssl, &tls->certificate_error))
+      certificate_error = g_tls_connection_base_get_certificate_error (tls);
+      g_clear_error (certificate_error);
+      if (g_tls_connection_base_request_certificate (tls, certificate_error))
         {
           cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
           set_certificate = (cert != NULL);
