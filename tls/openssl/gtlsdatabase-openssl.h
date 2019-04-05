@@ -38,26 +38,13 @@ typedef enum {
 } GTlsDatabaseOpensslAssertion;
 
 #define G_TYPE_TLS_DATABASE_OPENSSL            (g_tls_database_openssl_get_type ())
-#define G_TLS_DATABASE_OPENSSL(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_DATABASE_OPENSSL, GTlsDatabaseOpenssl))
-#define G_TLS_DATABASE_OPENSSL_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_DATABASE_OPENSSL, GTlsDatabaseOpensslClass))
-#define G_IS_TLS_DATABASE_OPENSSL(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_DATABASE_OPENSSL))
-#define G_IS_TLS_DATABASE_OPENSSL_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_DATABASE_OPENSSL))
-#define G_TLS_DATABASE_OPENSSL_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_DATABASE_OPENSSL, GTlsDatabaseOpensslClass))
 
-typedef struct _GTlsDatabaseOpensslClass GTlsDatabaseOpensslClass;
-typedef struct _GTlsDatabaseOpenssl      GTlsDatabaseOpenssl;
+G_DECLARE_DERIVABLE_TYPE (GTlsDatabaseOpenssl, g_tls_database_openssl, G, TLS_DATABASE_OPENSSL, GTlsDatabase)
 
 struct _GTlsDatabaseOpensslClass
 {
   GTlsDatabaseClass parent_class;
 };
-
-struct _GTlsDatabaseOpenssl
-{
-  GTlsDatabase parent_instance;
-};
-
-GType          g_tls_database_openssl_get_type              (void) G_GNUC_CONST;
 
 G_END_DECLS
 
