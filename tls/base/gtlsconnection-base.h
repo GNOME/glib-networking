@@ -54,9 +54,11 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionClass parent_class;
 
   GTlsConnectionBaseStatus (*request_rehandshake)  (GTlsConnectionBase  *tls,
+                                                    gint64               timeout,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
   GTlsConnectionBaseStatus (*handshake)            (GTlsConnectionBase  *tls,
+                                                    gint64               timeout,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
   GTlsConnectionBaseStatus (*complete_handshake)   (GTlsConnectionBase  *tls,
@@ -64,7 +66,7 @@ struct _GTlsConnectionBaseClass
 
   void                     (*push_io)              (GTlsConnectionBase  *tls,
                                                     GIOCondition         direction,
-                                                    gboolean             blocking,
+                                                    gint64               timeout,
                                                     GCancellable        *cancellable);
   GTlsConnectionBaseStatus (*pop_io)               (GTlsConnectionBase  *tls,
                                                     GIOCondition         direction,
@@ -74,7 +76,7 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionBaseStatus (*read_fn)              (GTlsConnectionBase  *tls,
                                                     void                *buffer,
                                                     gsize                count,
-                                                    gboolean             blocking,
+                                                    gint64               timeout,
                                                     gssize              *nread,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
@@ -89,7 +91,7 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionBaseStatus (*write_fn)             (GTlsConnectionBase  *tls,
                                                     const void          *buffer,
                                                     gsize                count,
-                                                    gboolean             blocking,
+                                                    gint64               timeout,
                                                     gssize              *nwrote,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
@@ -102,6 +104,7 @@ struct _GTlsConnectionBaseClass
                                                     GError             **error);
 
   GTlsConnectionBaseStatus (*close_fn)             (GTlsConnectionBase  *tls,
+                                                    gint64               timeout,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
 };
@@ -177,12 +180,12 @@ struct _GTlsConnectionBase
   gboolean       write_closing, write_closed;
 
   gboolean       reading;
-  gboolean       read_blocking;
+  gint64         read_timeout;
   GError        *read_error;
   GCancellable  *read_cancellable;
 
   gboolean       writing;
-  gboolean       write_blocking;
+  gint64         write_timeout;
   GError        *write_error;
   GCancellable  *write_cancellable;
 
@@ -205,7 +208,7 @@ void g_tls_connection_base_set_peer_certificate (GTlsConnectionBase   *tls,
 
 void     g_tls_connection_base_push_io       (GTlsConnectionBase *tls,
                                               GIOCondition        direction,
-                                              gboolean            blocking,
+                                              gint64              timeout,
                                               GCancellable       *cancellable);
 GTlsConnectionBaseStatus
          g_tls_connection_base_pop_io        (GTlsConnectionBase  *tls,
@@ -216,13 +219,13 @@ GTlsConnectionBaseStatus
 gssize   g_tls_connection_base_read          (GTlsConnectionBase  *tls,
                                               void                *buffer,
                                               gsize                size,
-                                              gboolean             blocking,
+                                              gint64               timeout,
                                               GCancellable        *cancellable,
                                               GError             **error);
 gssize   g_tls_connection_base_write         (GTlsConnectionBase  *tls,
                                               const void          *buffer,
                                               gsize                size,
-                                              gboolean             blocking,
+                                              gint64               timeout,
                                               GCancellable        *cancellable,
                                               GError             **error);
 
