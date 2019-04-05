@@ -251,11 +251,12 @@ g_tls_client_connection_openssl_constructed (GObject *object)
 
 static GTlsConnectionBaseStatus
 g_tls_client_connection_openssl_handshake (GTlsConnectionBase  *tls,
+                                           gint64               timeout,
                                            GCancellable        *cancellable,
                                            GError             **error)
 {
   return G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->
-    handshake (tls, cancellable, error);
+    handshake (tls, timeout, cancellable, error);
 }
 
 static GTlsConnectionBaseStatus

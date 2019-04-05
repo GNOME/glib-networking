@@ -189,6 +189,7 @@ verify_callback (int             preverify_ok,
 
 static GTlsConnectionBaseStatus
 g_tls_server_connection_openssl_handshake (GTlsConnectionBase  *tls,
+                                           gint64               timeout,
                                            GCancellable        *cancellable,
                                            GError             **error)
 {
@@ -216,7 +217,7 @@ g_tls_server_connection_openssl_handshake (GTlsConnectionBase  *tls,
   SSL_set_verify_depth (priv->ssl, 0);
 
   return G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_openssl_parent_class)->
-    handshake (tls, cancellable, error);
+    handshake (tls, timeout, cancellable, error);
 }
 
 static SSL *
