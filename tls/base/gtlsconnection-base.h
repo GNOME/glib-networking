@@ -78,10 +78,25 @@ struct _GTlsConnectionBaseClass
                                                     gssize              *nread,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
+  GTlsConnectionBaseStatus (*read_message_fn)      (GTlsConnectionBase  *tls,
+                                                    GInputVector        *vectors,
+                                                    guint                num_vectors,
+                                                    gint64               timeout,
+                                                    gssize              *nread,
+                                                    GCancellable        *cancellable,
+                                                    GError             **error);
+
   GTlsConnectionBaseStatus (*write_fn)             (GTlsConnectionBase  *tls,
                                                     const void          *buffer,
                                                     gsize                count,
                                                     gboolean             blocking,
+                                                    gssize              *nwrote,
+                                                    GCancellable        *cancellable,
+                                                    GError             **error);
+  GTlsConnectionBaseStatus (*write_message_fn)     (GTlsConnectionBase  *tls,
+                                                    GOutputVector       *vectors,
+                                                    guint                num_vectors,
+                                                    gint64               timeout,
                                                     gssize              *nwrote,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
