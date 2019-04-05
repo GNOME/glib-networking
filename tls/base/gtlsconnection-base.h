@@ -95,9 +95,24 @@ struct _GTlsConnectionBase
 {
   GTlsConnection         parent_instance;
 
+  /* When operating in stream mode.
+   * Mutually exclusive with base_socket.
+   */
   GIOStream             *base_io_stream;
   GPollableInputStream  *base_istream;
   GPollableOutputStream *base_ostream;
+
+  /* When operating in stream mode; when operating in datagram mode, the
+   * GTlsConnectionBase itself is the DTLS GDatagramBased (and uses
+   * base_socket for its underlying I/O):
+   */
+  GInputStream          *tls_istream;
+  GOutputStream         *tls_ostream;
+
+  /* When operating in datagram mode.
+   * Mutually exclusive with base_io_stream.
+   */
+  GDatagramBased        *base_socket;
 
   GTlsDatabase          *database;
   GTlsInteraction       *interaction;
@@ -156,12 +171,8 @@ struct _GTlsConnectionBase
   GError        *write_error;
   GCancellable  *write_cancellable;
 
-  /*< private >*/
   gboolean       is_system_certdb;
   gboolean       database_is_unset;
-
-  GInputStream  *tls_istream;
-  GOutputStream *tls_ostream;
 
   GMutex         op_mutex;
   GCancellable  *waiting_for_op;
@@ -214,10 +225,11 @@ typedef enum {
 
 #define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
 
-gboolean g_tls_connection_base_close_internal (GIOStream     *stream,
-                                               GTlsDirection  direction,
-                                               GCancellable  *cancellable,
-                                               GError       **error);
+gboolean g_tls_connection_base_close_internal (GIOStream      *stream,
+                                               GTlsDirection   direction,
+                                               gint64          timeout,
+                                               GCancellable   *cancellable,
+                                               GError        **error);
 
 G_END_DECLS
 

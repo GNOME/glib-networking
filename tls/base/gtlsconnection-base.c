@@ -33,6 +33,31 @@
 
 #include <glib/gi18n-lib.h>
 
+/*
+ * GTlsConnectionBase is the base abstract implementation of TLS and DTLS
+ * support, for both the client and server side of a connection. The choice
+ * between TLS and DTLS is made by setting the base-io-stream or
+ * base-socket properties — exactly one of them must be set at
+ * construction time.
+ *
+ * Client- and server-specific code is in the client and server concrete
+ * subclasses, although the line about where code is put is a little blurry,
+ * and there are various places in GTlsConnectionBase which check
+ * G_IS_TLS_CLIENT_CONNECTION(self) to switch to a client-only code path.
+ *
+ * This abstract class implements a lot of interfaces:
+ *  • Derived from GTlsConnection (itself from GIOStream), for TLS and streaming
+ *    communications.
+ *  • Implements GDtlsConnection and GDatagramBased, for DTLS and datagram
+ *    communications.
+ *  • Implements GInitable for failable initialisation.
+ */
+
+
+static void g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInterface *iface);
+
+static void g_tls_connection_base_datagram_based_iface_init  (GDatagramBasedInterface  *iface);
+
 static gboolean do_implicit_handshake (GTlsConnectionBase  *tls,
                                        gboolean             blocking,
                                        GCancellable        *cancellable,
@@ -41,12 +66,21 @@ static gboolean finish_handshake (GTlsConnectionBase  *tls,
                                   GTask               *task,
                                   GError             **error);
 
-G_DEFINE_ABSTRACT_TYPE (GTlsConnectionBase, g_tls_connection_base, G_TYPE_TLS_CONNECTION);
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionBase, g_tls_connection_base, G_TYPE_TLS_CONNECTION,
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_DATAGRAM_BASED,
+                                                         g_tls_connection_base_datagram_based_iface_init);
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CONNECTION,
+                                                         g_tls_connection_base_dtls_connection_iface_init);
+                                  );
+
 
 enum
 {
   PROP_0,
+  /* For this class: */
   PROP_BASE_IO_STREAM,
+  PROP_BASE_SOCKET,
+  /* For GTlsConnection and GDtlsConnection: */
   PROP_REQUIRE_CLOSE_NOTIFY,
   PROP_REHANDSHAKE_MODE,
   PROP_USE_SYSTEM_CERTDB,
@@ -56,6 +90,12 @@ enum
   PROP_PEER_CERTIFICATE,
   PROP_PEER_CERTIFICATE_ERRORS
 };
+
+static gboolean
+g_tls_connection_base_is_dtls (GTlsConnectionBase *tls)
+{
+  return tls->base_socket != NULL;
+}
 
 static void
 g_tls_connection_base_init (GTlsConnectionBase *tls)
@@ -75,6 +115,7 @@ g_tls_connection_base_finalize (GObject *object)
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
 
   g_clear_object (&tls->base_io_stream);
+  g_clear_object (&tls->base_socket);
 
   g_clear_object (&tls->tls_istream);
   g_clear_object (&tls->tls_ostream);
@@ -86,7 +127,7 @@ g_tls_connection_base_finalize (GObject *object)
 
   g_clear_object (&tls->interaction);
 
-  /* This must always be NULL at this, as it holds a referehce to @gnutls as
+  /* This must always be NULL at this point, as it holds a reference to @tls as
    * its source object. However, we clear it anyway just in case this changes
    * in future. */
   g_clear_object (&tls->implicit_handshake);
@@ -118,6 +159,10 @@ g_tls_connection_base_get_property (GObject    *object,
     {
     case PROP_BASE_IO_STREAM:
       g_value_set_object (value, tls->base_io_stream);
+      break;
+
+    case PROP_BASE_SOCKET:
+      g_value_set_object (value, tls->base_socket);
       break;
 
     case PROP_REQUIRE_CLOSE_NOTIFY:
@@ -178,6 +223,9 @@ g_tls_connection_base_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_BASE_IO_STREAM:
+      g_assert (g_value_get_object (value) == NULL ||
+                tls->base_socket == NULL);
+
       if (tls->base_io_stream)
         {
           g_object_unref (tls->base_io_stream);
@@ -203,6 +251,14 @@ g_tls_connection_base_set_property (GObject      *object,
           tls->base_ostream = G_POLLABLE_OUTPUT_STREAM (ostream);
           tls->tls_ostream = g_tls_output_stream_base_new (tls);
         }
+      break;
+
+    case PROP_BASE_SOCKET:
+      g_assert (g_value_get_object (value) == NULL ||
+                tls->base_io_stream == NULL);
+
+      g_clear_object (&tls->base_socket);
+      tls->base_socket = g_value_dup_object (value);
       break;
 
     case PROP_REQUIRE_CLOSE_NOTIFY:
@@ -516,6 +572,26 @@ g_tls_connection_base_pop_io (GTlsConnectionBase  *tls,
                                                         success, error);
 }
 
+/* Checks whether the underlying base stream or GDatagramBased meets
+ * @condition. */
+static gboolean
+g_tls_connection_base_base_check (GTlsConnectionBase *tls,
+                                  GIOCondition        condition)
+{
+  if (g_tls_connection_base_is_dtls (tls))
+    return g_datagram_based_condition_check (tls->base_socket, condition);
+
+  if (condition & G_IO_IN)
+    return g_pollable_input_stream_is_readable (tls->base_istream);
+
+  if (condition & G_IO_OUT)
+    return g_pollable_output_stream_is_writable (tls->base_ostream);
+
+  g_assert_not_reached ();
+}
+
+/* Checks whether the (D)TLS stream meets @condition; not the underlying base
+ * stream or GDatagramBased. */
 gboolean
 g_tls_connection_base_check (GTlsConnectionBase  *tls,
                              GIOCondition         condition)
@@ -534,17 +610,19 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
       ((condition & G_IO_OUT) && tls->write_closing))
     return FALSE;
 
-  if (condition & G_IO_IN)
-    return g_pollable_input_stream_is_readable (tls->base_istream);
-  else
-    return g_pollable_output_stream_is_writable (tls->base_ostream);
+  /* Defer to the base stream or GDatagramBased. */
+  return g_tls_connection_base_base_check (tls, condition);
 }
 
 typedef struct {
   GSource             source;
 
   GTlsConnectionBase *tls;
-  GObject            *stream;
+
+  /* Either a GDatagramBased (datagram mode), or a GPollableInputStream or
+   * a GPollableOutputStream (streaming mode):
+   */
+  GObject            *base;
 
   GSource            *child_source;
   GIOCondition        condition;
@@ -555,7 +633,7 @@ typedef struct {
 
 static gboolean
 tls_source_prepare (GSource *source,
-                     gint    *timeout)
+                    gint    *timeout)
 {
   *timeout = -1;
   return FALSE;
@@ -607,9 +685,11 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
 
   if (op_waiting)
     tls_source->child_source = g_cancellable_source_new (tls->waiting_for_op);
-  else if (io_waiting && G_IS_POLLABLE_INPUT_STREAM (tls_source->stream))
+  else if (io_waiting && G_IS_DATAGRAM_BASED (tls_source->base))
+    tls_source->child_source = g_datagram_based_create_source (tls->base_socket, tls_source->condition, NULL);
+  else if (io_waiting && G_IS_POLLABLE_INPUT_STREAM (tls_source->base))
     tls_source->child_source = g_pollable_input_stream_create_source (tls->base_istream, NULL);
-  else if (io_waiting && G_IS_POLLABLE_OUTPUT_STREAM (tls_source->stream))
+  else if (io_waiting && G_IS_POLLABLE_OUTPUT_STREAM (tls_source->base))
     tls_source->child_source = g_pollable_output_stream_create_source (tls->base_ostream, NULL);
   else
     tls_source->child_source = g_timeout_source_new (0);
@@ -623,11 +703,17 @@ tls_source_dispatch (GSource     *source,
                       GSourceFunc  callback,
                       gpointer     user_data)
 {
-  GPollableSourceFunc func = (GPollableSourceFunc)callback;
+  GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc)callback;
+  GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
   GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
   gboolean ret;
 
-  ret = (*func) (tls_source->stream, user_data);
+  if (G_IS_DATAGRAM_BASED (tls_source->base))
+    ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
+                                  tls_source->condition, user_data);
+  else
+    ret = (*pollable_func) (tls_source->base, user_data);
+
   if (ret)
     tls_source_sync (tls_source);
 
@@ -645,7 +731,7 @@ tls_source_finalize (GSource *source)
 
 static gboolean
 g_tls_connection_tls_source_closure_callback (GObject  *stream,
-                                               gpointer  data)
+                                              gpointer  data)
 {
   GClosure *closure = data;
 
@@ -667,6 +753,35 @@ g_tls_connection_tls_source_closure_callback (GObject  *stream,
   return result;
 }
 
+static gboolean
+g_tls_connection_tls_source_dtls_closure_callback (GObject      *stream,
+                                                   GIOCondition  condition,
+                                                   gpointer      data)
+{
+  GClosure *closure = data;
+
+  GValue param[2] = { G_VALUE_INIT, G_VALUE_INIT };
+  GValue result_value = G_VALUE_INIT;
+  gboolean result;
+
+  g_value_init (&result_value, G_TYPE_BOOLEAN);
+
+  g_value_init (&param[0], G_TYPE_DATAGRAM_BASED);
+  g_value_set_object (&param[0], stream);
+  g_value_init (&param[1], G_TYPE_IO_CONDITION);
+  g_value_set_flags (&param[1], condition);
+
+  g_closure_invoke (closure, &result_value, 2, param, NULL);
+
+  result = g_value_get_boolean (&result_value);
+  g_value_unset (&result_value);
+  g_value_unset (&param[0]);
+  g_value_unset (&param[1]);
+
+  return result;
+
+}
+
 static GSourceFuncs tls_source_funcs =
 {
   tls_source_prepare,
@@ -674,6 +789,16 @@ static GSourceFuncs tls_source_funcs =
   tls_source_dispatch,
   tls_source_finalize,
   (GSourceFunc)g_tls_connection_tls_source_closure_callback,
+  (GSourceDummyMarshal)g_cclosure_marshal_generic
+};
+
+static GSourceFuncs dtls_source_funcs =
+{
+  tls_source_prepare,
+  tls_source_check,
+  tls_source_dispatch,
+  tls_source_finalize,
+  (GSourceFunc)g_tls_connection_tls_source_dtls_closure_callback,
   (GSourceDummyMarshal)g_cclosure_marshal_generic
 };
 
@@ -686,14 +811,29 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   GTlsConnectionBaseSource *tls_source;
 
   source = g_source_new (&tls_source_funcs, sizeof (GTlsConnectionBaseSource));
+
+  if (g_tls_connection_base_is_dtls (tls))
+    {
+      source = g_source_new (&dtls_source_funcs,
+                             sizeof (GTlsConnectionBaseSource));
+    }
+  else
+    {
+      source = g_source_new (&tls_source_funcs,
+                             sizeof (GTlsConnectionBaseSource));
+    }
   g_source_set_name (source, "GTlsConnectionBaseSource");
   tls_source = (GTlsConnectionBaseSource *)source;
   tls_source->tls = g_object_ref (tls);
   tls_source->condition = condition;
-  if (condition & G_IO_IN)
-    tls_source->stream = G_OBJECT (tls->tls_istream);
-  else if (condition & G_IO_OUT)
-    tls_source->stream = G_OBJECT (tls->tls_ostream);
+  if (g_tls_connection_base_is_dtls (tls))
+    tls_source->base = G_OBJECT (tls);
+  else if (tls->tls_istream != NULL && condition & G_IO_IN)
+    tls_source->base = G_OBJECT (tls->tls_istream);
+  else if (tls->tls_ostream != NULL && condition & G_IO_OUT)
+    tls_source->base = G_OBJECT (tls->tls_ostream);
+  else
+    g_assert_not_reached ();
 
   tls_source->op_waiting = (gboolean) -1;
   tls_source->io_waiting = (gboolean) -1;
@@ -710,6 +850,83 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   return source;
 }
 
+static GSource *
+g_tls_connection_base_dtls_create_source (GDatagramBased  *datagram_based,
+                                          GIOCondition     condition,
+                                          GCancellable    *cancellable)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
+
+  return g_tls_connection_base_create_source (tls, condition, cancellable);
+}
+
+static GIOCondition
+g_tls_connection_base_condition_check (GDatagramBased  *datagram_based,
+                                         GIOCondition     condition)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
+
+  return g_tls_connection_base_check (tls, condition) ? condition : 0;
+}
+
+static gboolean
+g_tls_connection_base_condition_wait (GDatagramBased  *datagram_based,
+                                      GIOCondition     condition,
+                                      gint64           timeout,
+                                      GCancellable    *cancellable,
+                                      GError         **error)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
+  GPollFD fds[2];
+  guint n_fds;
+  gint result;
+  gint64 start_time;
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
+
+  /* Convert from microseconds to milliseconds. */
+  if (timeout != -1)
+    timeout = timeout / 1000;
+
+  start_time = g_get_monotonic_time ();
+
+  g_cancellable_make_pollfd (tls->waiting_for_op, &fds[0]);
+  n_fds = 1;
+
+  if (g_cancellable_make_pollfd (cancellable, &fds[1]))
+    n_fds++;
+
+  while (!g_tls_connection_base_condition_check (datagram_based, condition) &&
+         !g_cancellable_is_cancelled (cancellable))
+    {
+      result = g_poll (fds, n_fds, timeout);
+      if (result == 0)
+        break;
+      if (result != -1 || errno != EINTR)
+        continue;
+
+      if (timeout != -1)
+        {
+          timeout -= (g_get_monotonic_time () - start_time) / 1000;
+          if (timeout < 0)
+            timeout = 0;
+        }
+    }
+
+  if (n_fds > 1)
+    g_cancellable_release_fd (cancellable);
+
+  if (result == 0)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
+                           _("Socket I/O timed out"));
+      return FALSE;
+    }
+
+  return !g_cancellable_set_error_if_cancelled (cancellable, error);
+}
+
 gboolean
 g_tls_connection_base_accept_peer_certificate (GTlsConnectionBase   *tls,
                                                GTlsCertificate      *peer_certificate,
@@ -719,8 +936,14 @@ g_tls_connection_base_accept_peer_certificate (GTlsConnectionBase   *tls,
 
   if (G_IS_TLS_CLIENT_CONNECTION (tls))
     {
-      GTlsCertificateFlags validation_flags =
-        g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (tls));
+      GTlsCertificateFlags validation_flags;
+
+      if (!g_tls_connection_base_is_dtls (tls))
+        validation_flags =
+          g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (tls));
+      else
+        validation_flags =
+          g_dtls_client_connection_get_validation_flags (G_DTLS_CLIENT_CONNECTION (tls));
 
       if ((peer_certificate_errors & validation_flags) == 0)
         accepted = TRUE;
@@ -863,6 +1086,15 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
   return success;
 }
 
+static gboolean
+g_tls_connection_base_dtls_handshake (GDtlsConnection  *conn,
+                                      GCancellable     *cancellable,
+                                      GError          **error)
+{
+  return g_tls_connection_base_handshake (G_TLS_CONNECTION (conn),
+                                          cancellable, error);
+}
+
 /* In the async version we use two GTasks; one to run
  * handshake_thread() and then call handshake_thread_completed(), and
  * a second to call the caller's original callback after we call
@@ -956,6 +1188,26 @@ g_tls_connection_base_handshake_finish (GTlsConnection       *conn,
   g_return_val_if_fail (g_task_is_valid (result, conn), FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+static void
+g_tls_connection_base_dtls_handshake_async (GDtlsConnection     *conn,
+                                            int                  io_priority,
+                                            GCancellable        *cancellable,
+                                            GAsyncReadyCallback  callback,
+                                            gpointer             user_data)
+{
+  g_tls_connection_base_handshake_async (G_TLS_CONNECTION (conn), io_priority,
+                                         cancellable, callback, user_data);
+}
+
+static gboolean
+g_tls_connection_base_dtls_handshake_finish (GDtlsConnection  *conn,
+                                             GAsyncResult     *result,
+                                             GError          **error)
+{
+  return g_tls_connection_base_handshake_finish (G_TLS_CONNECTION (conn),
+                                                 result, error);
 }
 
 static void
@@ -1060,6 +1312,87 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
     return -1;
 }
 
+static gint
+g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
+                                        GInputMessage   *messages,
+                                        guint            num_messages,
+                                        gint             flags,
+                                        gint64           timeout,
+                                        GCancellable    *cancellable,
+                                        GError         **error)
+{
+  GTlsConnectionBase *tls;
+  guint i;
+  GError *child_error = NULL;
+
+  tls = G_TLS_CONNECTION_BASE (datagram_based);
+
+  if (flags != G_SOCKET_MSG_NONE)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                   _("Receive flags are not supported"));
+      return -1;
+    }
+
+  for (i = 0; i < num_messages && child_error == NULL; i++)
+    {
+      GInputMessage *message = &messages[i];
+      gssize n_bytes_read;
+
+      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored read function.
+       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
+      g_assert (message->num_vectors == 1);
+
+      n_bytes_read = g_tls_connection_base_read (tls,
+                                                 message->vectors[0].buffer,
+                                                 message->vectors[0].size,
+                                                 timeout != 0,
+                                                 cancellable,
+                                                 &child_error);
+
+      if (message->address != NULL)
+        *message->address = NULL;
+      message->flags = G_SOCKET_MSG_NONE;
+      if (message->control_messages != NULL)
+        *message->control_messages = NULL;
+      message->num_control_messages = 0;
+
+      if (n_bytes_read > 0)
+        {
+          message->bytes_received = n_bytes_read;
+        }
+      else if (n_bytes_read == 0)
+        {
+          /* EOS. */
+          break;
+        }
+      else if (i > 0 &&
+               (g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK) ||
+                g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_TIMED_OUT)))
+        {
+          /* Blocked or timed out after receiving some messages successfully. */
+          g_clear_error (&child_error);
+          break;
+        }
+      else
+        {
+          /* Error, including G_IO_ERROR_WOULD_BLOCK or G_IO_ERROR_TIMED_OUT on
+           * the first message; or G_IO_ERROR_CANCELLED at any time. */
+          break;
+        }
+    }
+
+  if (child_error != NULL)
+    {
+      g_propagate_error (error, child_error);
+      return -1;
+    }
+
+  return i;
+}
+
 gssize
 g_tls_connection_base_write (GTlsConnectionBase  *tls,
                              const void          *buffer,
@@ -1090,6 +1423,76 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
     return -1;
 }
 
+static gint
+g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
+                                     GOutputMessage  *messages,
+                                     guint            num_messages,
+                                     gint             flags,
+                                     gint64           timeout,
+                                     GCancellable    *cancellable,
+                                     GError         **error)
+{
+  GTlsConnectionBase *tls;
+  guint i;
+  GError *child_error = NULL;
+
+  tls = G_TLS_CONNECTION_BASE (datagram_based);
+
+  if (flags != G_SOCKET_MSG_NONE)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                   _("Send flags are not supported"));
+      return -1;
+    }
+
+  for (i = 0; i < num_messages && child_error == NULL; i++)
+    {
+      GOutputMessage *message = &messages[i];
+      gssize n_bytes_sent;
+
+      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored write function.
+       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
+      /* TODO: gnutls_record_cork(), gnutls_record_uncork(), 3.3.0 */
+      g_assert (message->num_vectors == 1);
+
+      n_bytes_sent = g_tls_connection_base_write (tls,
+                                                  message->vectors[0].buffer,
+                                                  message->vectors[0].size,
+                                                  timeout != 0,
+                                                  cancellable,
+                                                  &child_error);
+
+      if (n_bytes_sent >= 0)
+        {
+          message->bytes_sent = n_bytes_sent;
+        }
+      else if (i > 0 &&
+               (g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK) ||
+                g_error_matches (child_error,
+                                 G_IO_ERROR, G_IO_ERROR_TIMED_OUT)))
+        {
+          /* Blocked or timed out after sending some messages successfully. */
+          g_clear_error (&child_error);
+          break;
+        }
+      else
+        {
+          /* Error, including G_IO_ERROR_WOULD_BLOCK or G_IO_ERROR_TIMED_OUT
+           * on the first message; or G_IO_ERROR_CANCELLED at any time. */
+          break;
+        }
+    }
+
+  if (child_error != NULL)
+    {
+      g_propagate_error (error, child_error);
+      return -1;
+    }
+
+  return i;
+}
+
 static GInputStream *
 g_tls_connection_base_get_input_stream (GIOStream *stream)
 {
@@ -1107,10 +1510,11 @@ g_tls_connection_base_get_output_stream (GIOStream *stream)
 }
 
 gboolean
-g_tls_connection_base_close_internal (GIOStream     *stream,
-                                      GTlsDirection  direction,
-                                      GCancellable  *cancellable,
-                                      GError       **error)
+g_tls_connection_base_close_internal (GIOStream      *stream,
+                                      GTlsDirection   direction,
+                                      gint64          timeout,
+                                      GCancellable   *cancellable,
+                                      GError        **error)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (stream);
   GTlsConnectionBaseOp op;
@@ -1118,11 +1522,13 @@ g_tls_connection_base_close_internal (GIOStream     *stream,
   gboolean success = TRUE;
   GError *close_error = NULL, *stream_error = NULL;
 
-  /* This can be called from g_io_stream_close(), g_input_stream_close() or
-   * g_output_stream_close(). In all cases, we only do the close_fn() for
-   * writing. The difference is how we set the flags on this class and how
-   * the underlying stream is closed.
+  /* This can be called from g_io_stream_close(), g_input_stream_close(),
+   * g_output_stream_close(), or g_tls_connection_close(). In all cases, we only
+   * do the close_fn() for writing. The difference is how we set the flags on
+   * this class and how the underlying stream is closed.
    */
+
+  /* FIXME: This does not properly support the @timeout parameter. */
 
   g_return_val_if_fail (direction != G_TLS_DIRECTION_NONE, FALSE);
 
@@ -1153,15 +1559,29 @@ g_tls_connection_base_close_internal (GIOStream     *stream,
   /* Close the underlying streams. Do this even if the close_fn() call failed,
    * as the parent GIOStream will have set its internal closed flag and hence
    * this implementation will never be called again. */
-  if (direction == G_TLS_DIRECTION_BOTH)
-    success = g_io_stream_close (tls->base_io_stream,
-                                 cancellable, &stream_error);
-  else if (direction & G_TLS_DIRECTION_READ)
-    success = g_input_stream_close (g_io_stream_get_input_stream (tls->base_io_stream),
-                                    cancellable, &stream_error);
-  else if (direction & G_TLS_DIRECTION_WRITE)
-    success = g_output_stream_close (g_io_stream_get_output_stream (tls->base_io_stream),
+  if (tls->base_io_stream != NULL)
+    {
+      if (direction == G_TLS_DIRECTION_BOTH)
+        success = g_io_stream_close (tls->base_io_stream,
                                      cancellable, &stream_error);
+      else if (direction & G_TLS_DIRECTION_READ)
+        success = g_input_stream_close (g_io_stream_get_input_stream (tls->base_io_stream),
+                                        cancellable, &stream_error);
+      else if (direction & G_TLS_DIRECTION_WRITE)
+        success = g_output_stream_close (g_io_stream_get_output_stream (tls->base_io_stream),
+                                         cancellable, &stream_error);
+    }
+  else if (g_tls_connection_base_is_dtls (tls))
+    {
+      /* We do not close underlying #GDatagramBaseds. There is no
+       * g_datagram_based_close() method since different datagram-based
+       * protocols vary wildly in how they close. */
+      success = TRUE;
+    }
+  else
+    {
+      g_assert_not_reached ();
+    }
 
   yield_op (tls, op, status);
 
@@ -1187,6 +1607,27 @@ g_tls_connection_base_close (GIOStream     *stream,
 {
   return g_tls_connection_base_close_internal (stream,
                                                G_TLS_DIRECTION_BOTH,
+                                               -1,  /* blocking */
+                                               cancellable, error);
+}
+
+static gboolean
+g_tls_connection_base_dtls_shutdown (GDtlsConnection  *conn,
+                                     gboolean          shutdown_read,
+                                     gboolean          shutdown_write,
+                                     GCancellable     *cancellable,
+                                     GError          **error)
+{
+  GTlsDirection direction = G_TLS_DIRECTION_NONE;
+
+  if (shutdown_read)
+    direction |= G_TLS_DIRECTION_READ;
+  if (shutdown_write)
+    direction |= G_TLS_DIRECTION_WRITE;
+
+  return g_tls_connection_base_close_internal (G_IO_STREAM (conn),
+                                               direction,
+                                               -1, /* blocking */
                                                cancellable, error);
 }
 
@@ -1201,12 +1642,35 @@ close_thread (GTask        *task,
               GCancellable *cancellable)
 {
   GIOStream *stream = object;
+  GTlsDirection direction;
   GError *error = NULL;
 
-  if (!g_tls_connection_base_close (stream, cancellable, &error))
+  direction = GPOINTER_TO_INT (g_task_get_task_data (task));
+
+  if (!g_tls_connection_base_close_internal (stream, direction,
+                                             -1, /* blocking */
+                                             cancellable, &error))
     g_task_return_error (task, error);
   else
     g_task_return_boolean (task, TRUE);
+}
+
+static void
+g_tls_connection_base_close_internal_async (GIOStream           *stream,
+                                            GTlsDirection        direction,
+                                            int                  io_priority,
+                                            GCancellable        *cancellable,
+                                            GAsyncReadyCallback  callback,
+                                            gpointer             user_data)
+{
+  GTask *task;
+
+  task = g_task_new (stream, cancellable, callback, user_data);
+  g_task_set_source_tag (task, g_tls_connection_base_close_internal_async);
+  g_task_set_priority (task, io_priority);
+  g_task_set_task_data (task, GINT_TO_POINTER (direction), NULL);
+  g_task_run_in_thread (task, close_thread);
+  g_object_unref (task);
 }
 
 static void
@@ -1216,13 +1680,9 @@ g_tls_connection_base_close_async (GIOStream           *stream,
                                    GAsyncReadyCallback  callback,
                                    gpointer             user_data)
 {
-  GTask *task;
-
-  task = g_task_new (stream, cancellable, callback, user_data);
-  g_task_set_source_tag (task, g_tls_connection_base_close_async);
-  g_task_set_priority (task, io_priority);
-  g_task_run_in_thread (task, close_thread);
-  g_object_unref (task);
+  g_tls_connection_base_close_internal_async (stream, G_TLS_DIRECTION_BOTH,
+                                              io_priority, cancellable,
+                                              callback, user_data);
 }
 
 static gboolean
@@ -1234,6 +1694,38 @@ g_tls_connection_base_close_finish (GIOStream           *stream,
 
   return g_task_propagate_boolean (G_TASK (result), error);
 }
+
+static void
+g_tls_connection_base_dtls_shutdown_async (GDtlsConnection     *conn,
+                                           gboolean             shutdown_read,
+                                           gboolean             shutdown_write,
+                                           int                  io_priority,
+                                           GCancellable        *cancellable,
+                                           GAsyncReadyCallback  callback,
+                                           gpointer             user_data)
+{
+  GTlsDirection direction = G_TLS_DIRECTION_NONE;
+
+  if (shutdown_read)
+    direction |= G_TLS_DIRECTION_READ;
+  if (shutdown_write)
+    direction |= G_TLS_DIRECTION_WRITE;
+
+  g_tls_connection_base_close_internal_async (G_IO_STREAM (conn), direction,
+                                              io_priority, cancellable,
+                                              callback, user_data);
+}
+
+static gboolean
+g_tls_connection_base_dtls_shutdown_finish (GDtlsConnection  *conn,
+                                            GAsyncResult     *result,
+                                            GError          **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, conn), FALSE);
+
+  return g_task_propagate_boolean (G_TASK (result), error);
+}
+
 
 static void
 g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
@@ -1259,7 +1751,9 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   klass->push_io = g_tls_connection_base_real_push_io;
   klass->pop_io = g_tls_connection_base_real_pop_io;
 
+  /* For GTlsConnection and GDtlsConnection: */
   g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");
+  g_object_class_override_property (gobject_class, PROP_BASE_SOCKET, "base-socket");
   g_object_class_override_property (gobject_class, PROP_REQUIRE_CLOSE_NOTIFY, "require-close-notify");
   g_object_class_override_property (gobject_class, PROP_REHANDSHAKE_MODE, "rehandshake-mode");
   g_object_class_override_property (gobject_class, PROP_USE_SYSTEM_CERTDB, "use-system-certdb");
@@ -1268,4 +1762,25 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
+}
+
+static void
+g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInterface *iface)
+{
+  iface->handshake = g_tls_connection_base_dtls_handshake;
+  iface->handshake_async = g_tls_connection_base_dtls_handshake_async;
+  iface->handshake_finish = g_tls_connection_base_dtls_handshake_finish;
+  iface->shutdown = g_tls_connection_base_dtls_shutdown;
+  iface->shutdown_async = g_tls_connection_base_dtls_shutdown_async;
+  iface->shutdown_finish = g_tls_connection_base_dtls_shutdown_finish;
+}
+
+static void
+g_tls_connection_base_datagram_based_iface_init (GDatagramBasedInterface *iface)
+{
+  iface->receive_messages = g_tls_connection_base_receive_messages;
+  iface->send_messages = g_tls_connection_base_send_messages;
+  iface->create_source = g_tls_connection_base_dtls_create_source;
+  iface->condition_check = g_tls_connection_base_condition_check;
+  iface->condition_wait = g_tls_connection_base_condition_wait;
 }
