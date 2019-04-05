@@ -32,8 +32,10 @@
 #include "openssl-util.h"
 #include <glib/gi18n-lib.h>
 
-typedef struct _GTlsCertificateOpensslPrivate
+struct _GTlsCertificateOpenssl
 {
+  GTlsCertificate parent_instance;
+
   X509 *cert;
   EVP_PKEY *key;
 
@@ -43,7 +45,7 @@ typedef struct _GTlsCertificateOpensslPrivate
 
   guint have_cert : 1;
   guint have_key  : 1;
-} GTlsCertificateOpensslPrivate;
+};
 
 enum
 {
@@ -59,7 +61,6 @@ enum
 static void     g_tls_certificate_openssl_initable_iface_init (GInitableIface  *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsCertificateOpenssl, g_tls_certificate_openssl, G_TYPE_TLS_CERTIFICATE,
-                         G_ADD_PRIVATE (GTlsCertificateOpenssl)
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_tls_certificate_openssl_initable_iface_init))
 
@@ -67,18 +68,15 @@ static void
 g_tls_certificate_openssl_finalize (GObject *object)
 {
   GTlsCertificateOpenssl *openssl = G_TLS_CERTIFICATE_OPENSSL (object);
-  GTlsCertificateOpensslPrivate *priv;
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
+  if (openssl->cert)
+    X509_free (openssl->cert);
+  if (openssl->key)
+    EVP_PKEY_free (openssl->key);
 
-  if (priv->cert)
-    X509_free (priv->cert);
-  if (priv->key)
-    EVP_PKEY_free (priv->key);
+  g_clear_object (&openssl->issuer);
 
-  g_clear_object (&priv->issuer);
-
-  g_clear_error (&priv->construct_error);
+  g_clear_error (&openssl->construct_error);
 
   G_OBJECT_CLASS (g_tls_certificate_openssl_parent_class)->finalize (object);
 }
@@ -90,20 +88,17 @@ g_tls_certificate_openssl_get_property (GObject    *object,
                                         GParamSpec *pspec)
 {
   GTlsCertificateOpenssl *openssl = G_TLS_CERTIFICATE_OPENSSL (object);
-  GTlsCertificateOpensslPrivate *priv;
   GByteArray *certificate;
   guint8 *data;
   BIO *bio;
   char *certificate_pem;
   int size;
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
-
   switch (prop_id)
     {
     case PROP_CERTIFICATE:
       /* NOTE: we do the two calls to avoid openssl allocating the buffer for us */
-      size = i2d_X509 (priv->cert, NULL);
+      size = i2d_X509 (openssl->cert, NULL);
       if (size < 0)
         certificate = NULL;
       else
@@ -111,7 +106,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
           certificate = g_byte_array_sized_new (size);
           certificate->len = size;
           data = certificate->data;
-          size = i2d_X509 (priv->cert, &data);
+          size = i2d_X509 (openssl->cert, &data);
           if (size < 0)
             {
               g_byte_array_free (certificate, TRUE);
@@ -124,7 +119,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
     case PROP_CERTIFICATE_PEM:
       bio = BIO_new (BIO_s_mem ());
 
-      if (!PEM_write_bio_X509 (bio, priv->cert) || !BIO_write (bio, "\0", 1))
+      if (!PEM_write_bio_X509 (bio, openssl->cert) || !BIO_write (bio, "\0", 1))
         certificate_pem = NULL;
       else
         {
@@ -136,7 +131,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
       break;
 
     case PROP_ISSUER:
-      g_value_set_object (value, priv->issuer);
+      g_value_set_object (value, openssl->issuer);
       break;
 
     default:
@@ -151,13 +146,10 @@ g_tls_certificate_openssl_set_property (GObject      *object,
                                        GParamSpec   *pspec)
 {
   GTlsCertificateOpenssl *openssl = G_TLS_CERTIFICATE_OPENSSL (object);
-  GTlsCertificateOpensslPrivate *priv;
   GByteArray *bytes;
   guint8 *data;
   BIO *bio;
   const char *string;
-
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
 
   switch (prop_id)
     {
@@ -165,15 +157,15 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       bytes = g_value_get_boxed (value);
       if (!bytes)
         break;
-      g_return_if_fail (priv->have_cert == FALSE);
+      g_return_if_fail (openssl->have_cert == FALSE);
       /* see that we cannot use bytes->data directly since it will move the pointer */
       data = bytes->data;
-      priv->cert = d2i_X509 (NULL, (const unsigned char **)&data, bytes->len);
-      if (priv->cert != NULL)
-        priv->have_cert = TRUE;
-      else if (!priv->construct_error)
+      openssl->cert = d2i_X509 (NULL, (const unsigned char **)&data, bytes->len);
+      if (openssl->cert != NULL)
+        openssl->have_cert = TRUE;
+      else if (!openssl->construct_error)
         {
-          priv->construct_error =
+          openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse DER certificate: %s"),
                          ERR_error_string (ERR_get_error (), NULL));
@@ -185,15 +177,15 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (priv->have_cert == FALSE);
+      g_return_if_fail (openssl->have_cert == FALSE);
       bio = BIO_new_mem_buf ((gpointer)string, -1);
-      priv->cert = PEM_read_bio_X509 (bio, NULL, NULL, NULL);
+      openssl->cert = PEM_read_bio_X509 (bio, NULL, NULL, NULL);
       BIO_free (bio);
-      if (priv->cert != NULL)
-        priv->have_cert = TRUE;
-      else if (!priv->construct_error)
+      if (openssl->cert != NULL)
+        openssl->have_cert = TRUE;
+      else if (!openssl->construct_error)
         {
-          priv->construct_error =
+          openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse PEM certificate: %s"),
                          ERR_error_string (ERR_get_error (), NULL));
@@ -204,15 +196,15 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       bytes = g_value_get_boxed (value);
       if (!bytes)
         break;
-      g_return_if_fail (priv->have_key == FALSE);
+      g_return_if_fail (openssl->have_key == FALSE);
       bio = BIO_new_mem_buf (bytes->data, bytes->len);
-      priv->key = d2i_PrivateKey_bio (bio, NULL);
+      openssl->key = d2i_PrivateKey_bio (bio, NULL);
       BIO_free (bio);
-      if (priv->key != NULL)
-        priv->have_key = TRUE;
-      else if (!priv->construct_error)
+      if (openssl->key != NULL)
+        openssl->have_key = TRUE;
+      else if (!openssl->construct_error)
         {
-          priv->construct_error =
+          openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse DER private key: %s"),
                          ERR_error_string (ERR_get_error (), NULL));
@@ -223,15 +215,15 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (priv->have_key == FALSE);
+      g_return_if_fail (openssl->have_key == FALSE);
       bio = BIO_new_mem_buf ((gpointer)string, -1);
-      priv->key = PEM_read_bio_PrivateKey (bio, NULL, NULL, NULL);
+      openssl->key = PEM_read_bio_PrivateKey (bio, NULL, NULL, NULL);
       BIO_free (bio);
-      if (priv->key != NULL)
-        priv->have_key = TRUE;
-      else if (!priv->construct_error)
+      if (openssl->key != NULL)
+        openssl->have_key = TRUE;
+      else if (!openssl->construct_error)
         {
-          priv->construct_error =
+          openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse PEM private key: %s"),
                          ERR_error_string (ERR_get_error (), NULL));
@@ -239,7 +231,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       break;
 
     case PROP_ISSUER:
-      priv->issuer = g_value_dup_object (value);
+      openssl->issuer = g_value_dup_object (value);
       break;
 
     default:
@@ -258,17 +250,14 @@ g_tls_certificate_openssl_initable_init (GInitable       *initable,
                                          GError         **error)
 {
   GTlsCertificateOpenssl *openssl = G_TLS_CERTIFICATE_OPENSSL (initable);
-  GTlsCertificateOpensslPrivate *priv;
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
-
-  if (priv->construct_error)
+  if (openssl->construct_error)
     {
-      g_propagate_error (error, priv->construct_error);
-      priv->construct_error = NULL;
+      g_propagate_error (error, openssl->construct_error);
+      openssl->construct_error = NULL;
       return FALSE;
     }
-  else if (!priv->have_cert)
+  else if (!openssl->have_cert)
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                            _("No certificate data provided"));
@@ -284,22 +273,17 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
                                   GTlsCertificate     *trusted_ca)
 {
   GTlsCertificateOpenssl *cert_openssl;
-  GTlsCertificateOpensslPrivate *priv;
   GTlsCertificateFlags gtls_flags;
   X509 *x;
   STACK_OF(X509) *untrusted;
   gint i;
 
   cert_openssl = G_TLS_CERTIFICATE_OPENSSL (cert);
-  priv = g_tls_certificate_openssl_get_instance_private (cert_openssl);
-  x = priv->cert;
+  x = cert_openssl->cert;
 
   untrusted = sk_X509_new_null ();
-  for (; cert_openssl; cert_openssl = priv->issuer)
-    {
-      priv = g_tls_certificate_openssl_get_instance_private (cert_openssl);
-      sk_X509_push (untrusted, priv->cert);
-    }
+  for (; cert_openssl; cert_openssl = cert_openssl->issuer)
+    sk_X509_push (untrusted, cert_openssl->cert);
 
   gtls_flags = 0;
 
@@ -322,11 +306,8 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
 
       trusted = sk_X509_new_null ();
       cert_openssl = G_TLS_CERTIFICATE_OPENSSL (trusted_ca);
-      for (; cert_openssl; cert_openssl = priv->issuer)
-        {
-          priv = g_tls_certificate_openssl_get_instance_private (cert_openssl);
-          sk_X509_push (trusted, priv->cert);
-        }
+      for (; cert_openssl; cert_openssl = cert_openssl->issuer)
+        sk_X509_push (trusted, cert_openssl->cert);
 
       X509_STORE_CTX_trusted_stack (csc, trusted);
       if (X509_verify_cert (csc) <= 0)
@@ -405,16 +386,13 @@ g_tls_certificate_openssl_new_from_x509 (X509            *x,
                                          GTlsCertificate *issuer)
 {
   GTlsCertificateOpenssl *openssl;
-  GTlsCertificateOpensslPrivate *priv;
 
   openssl = g_object_new (G_TYPE_TLS_CERTIFICATE_OPENSSL,
                           "issuer", issuer,
                           NULL);
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
-
-  priv->cert = X509_dup (x);
-  priv->have_cert = TRUE;
+  openssl->cert = X509_dup (x);
+  openssl->have_cert = TRUE;
 
   return G_TLS_CERTIFICATE (openssl);
 }
@@ -423,20 +401,17 @@ void
 g_tls_certificate_openssl_set_data (GTlsCertificateOpenssl *openssl,
                                     GBytes                 *bytes)
 {
-  GTlsCertificateOpensslPrivate *priv;
   const unsigned char *data;
 
   g_return_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (openssl));
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
-
-  g_return_if_fail (!priv->have_cert);
+  g_return_if_fail (!openssl->have_cert);
 
   data = (const unsigned char *)g_bytes_get_data (bytes, NULL);
-  priv->cert = d2i_X509 (NULL, &data, g_bytes_get_size (bytes));
+  openssl->cert = d2i_X509 (NULL, &data, g_bytes_get_size (bytes));
 
-  if (priv->cert != NULL)
-    priv->have_cert = TRUE;
+  if (openssl->cert != NULL)
+    openssl->have_cert = TRUE;
 }
 
 GBytes *
@@ -453,39 +428,27 @@ g_tls_certificate_openssl_get_bytes (GTlsCertificateOpenssl *openssl)
 X509 *
 g_tls_certificate_openssl_get_cert (GTlsCertificateOpenssl *openssl)
 {
-  GTlsCertificateOpensslPrivate *priv;
-
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (openssl), FALSE);
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
-
-  return priv->cert;
+  return openssl->cert;
 }
 
 EVP_PKEY *
 g_tls_certificate_openssl_get_key (GTlsCertificateOpenssl *openssl)
 {
-  GTlsCertificateOpensslPrivate *priv;
-
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (openssl), FALSE);
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
-
-  return priv->key;
+  return openssl->key;
 }
 
 void
 g_tls_certificate_openssl_set_issuer (GTlsCertificateOpenssl *openssl,
                                       GTlsCertificateOpenssl *issuer)
 {
-  GTlsCertificateOpensslPrivate *priv;
-
   g_return_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (openssl));
   g_return_if_fail (!issuer || G_IS_TLS_CERTIFICATE_OPENSSL (issuer));
 
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
-
-  if (g_set_object (&priv->issuer, issuer))
+  if (g_set_object (&openssl->issuer, issuer))
     g_object_notify (G_OBJECT (openssl), "issuer");
 }
 
@@ -493,10 +456,7 @@ static gboolean
 verify_identity_hostname (GTlsCertificateOpenssl *openssl,
                           GSocketConnectable     *identity)
 {
-  GTlsCertificateOpensslPrivate *priv;
   const char *hostname;
-
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
 
   if (G_IS_NETWORK_ADDRESS (identity))
     hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (identity));
@@ -505,20 +465,17 @@ verify_identity_hostname (GTlsCertificateOpenssl *openssl,
   else
     return FALSE;
 
-  return g_tls_X509_check_host (priv->cert, hostname, strlen (hostname), 0, NULL) == 1;
+  return g_tls_X509_check_host (openssl->cert, hostname, strlen (hostname), 0, NULL) == 1;
 }
 
 static gboolean
 verify_identity_ip (GTlsCertificateOpenssl *openssl,
                     GSocketConnectable     *identity)
 {
-  GTlsCertificateOpensslPrivate *priv;
   GInetAddress *addr;
   gsize addr_size;
   const guint8 *addr_bytes;
   gboolean ret;
-
-  priv = g_tls_certificate_openssl_get_instance_private (openssl);
 
   if (G_IS_INET_SOCKET_ADDRESS (identity))
     addr = g_object_ref (g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity)));
@@ -540,7 +497,7 @@ verify_identity_ip (GTlsCertificateOpenssl *openssl,
   addr_bytes = g_inet_address_to_bytes (addr);
   addr_size = g_inet_address_get_native_size (addr);
 
-  ret = g_tls_X509_check_ip (priv->cert, addr_bytes, addr_size, 0) == 1;
+  ret = g_tls_X509_check_ip (openssl->cert, addr_bytes, addr_size, 0) == 1;
 
   g_object_unref (addr);
   return ret;

@@ -32,13 +32,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CERTIFICATE_OPENSSL (g_tls_certificate_openssl_get_type ())
-G_DECLARE_DERIVABLE_TYPE (GTlsCertificateOpenssl, g_tls_certificate_openssl,
-                          G, TLS_CERTIFICATE_OPENSSL, GTlsCertificate)
-
-struct _GTlsCertificateOpensslClass
-{
-  GTlsCertificateClass parent_class;
-};
+G_DECLARE_FINAL_TYPE (GTlsCertificateOpenssl, g_tls_certificate_openssl,
+                      G, TLS_CERTIFICATE_OPENSSL, GTlsCertificate)
 
 GTlsCertificate             *g_tls_certificate_openssl_new             (GBytes                 *bytes,
                                                                         GTlsCertificate        *issuer);
