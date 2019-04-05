@@ -77,7 +77,7 @@ g_tls_output_stream_base_write (GOutputStream  *stream,
       return -1;
     }
 
-  ret = g_tls_connection_base_write (conn, buffer, count, TRUE,
+  ret = g_tls_connection_base_write (conn, buffer, count, -1 /* blocking */,
                                      cancellable, error);
   g_object_unref (conn);
   return ret;
@@ -131,7 +131,8 @@ g_tls_output_stream_base_pollable_write_nonblocking (GPollableOutputStream  *pol
   conn = g_weak_ref_get (&tls_stream->priv->weak_conn);
   g_return_val_if_fail (conn != NULL, -1);
 
-  ret = g_tls_connection_base_write (conn, buffer, size, FALSE, NULL, error);
+  ret = g_tls_connection_base_write (conn, buffer, size,
+                                     0 /* non-blocking */, NULL, error);
 
   g_object_unref (conn);
   return ret;
@@ -139,8 +140,8 @@ g_tls_output_stream_base_pollable_write_nonblocking (GPollableOutputStream  *pol
 
 static gboolean
 g_tls_output_stream_base_close (GOutputStream            *stream,
-                                  GCancellable             *cancellable,
-                                  GError                  **error)
+                                GCancellable             *cancellable,
+                                GError                  **error)
 {
   GTlsOutputStreamBase *tls_stream = G_TLS_OUTPUT_STREAM_BASE (stream);
   GIOStream *conn;
@@ -209,8 +210,8 @@ g_tls_output_stream_base_close_async (GOutputStream            *stream,
 
 static gboolean
 g_tls_output_stream_base_close_finish (GOutputStream            *stream,
-                                         GAsyncResult             *result,
-                                         GError                  **error)
+                                       GAsyncResult             *result,
+                                       GError                  **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, stream), FALSE);
   g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) ==
