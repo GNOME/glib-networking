@@ -28,8 +28,8 @@
 #include <errno.h>
 
 #include "gtlsconnection-base.h"
-#include "gtlsinputstream-base.h"
-#include "gtlsoutputstream-base.h"
+#include "gtlsinputstream.h"
+#include "gtlsoutputstream.h"
 
 #include <glib/gi18n-lib.h>
 
@@ -243,13 +243,13 @@ g_tls_connection_base_set_property (GObject      *object,
           g_pollable_input_stream_can_poll (G_POLLABLE_INPUT_STREAM (istream)))
         {
           tls->base_istream = G_POLLABLE_INPUT_STREAM (istream);
-          tls->tls_istream = g_tls_input_stream_base_new (tls);
+          tls->tls_istream = g_tls_input_stream_new (tls);
         }
       if (G_IS_POLLABLE_OUTPUT_STREAM (ostream) &&
           g_pollable_output_stream_can_poll (G_POLLABLE_OUTPUT_STREAM (ostream)))
         {
           tls->base_ostream = G_POLLABLE_OUTPUT_STREAM (ostream);
-          tls->tls_ostream = g_tls_output_stream_base_new (tls);
+          tls->tls_ostream = g_tls_output_stream_new (tls);
         }
       break;
 
