@@ -136,7 +136,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   err_lib = ERR_GET_LIB (err);
   reason = ERR_GET_REASON (err);
 
-  if (tls->handshaking && !tls->ever_handshaked)
+  if (g_tls_connection_base_is_handshaking (tls) && !g_tls_connection_base_ever_handshaked (tls))
     {
       if (reason == SSL_R_BAD_PACKET_LENGTH ||
           reason == SSL_R_UNKNOWN_ALERT_TYPE ||
@@ -222,6 +222,7 @@ g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
 {
   GTlsConnectionOpenssl *openssl;
   GTlsConnectionBaseStatus status;
+  GTlsRehandshakeMode rehandshake_mode;
   SSL *ssl;
   int ret;
 
@@ -234,7 +235,12 @@ g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
 
   openssl = G_TLS_CONNECTION_OPENSSL (tls);
 
-  if (tls->rehandshake_mode == G_TLS_REHANDSHAKE_NEVER)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  rehandshake_mode = g_tls_connection_get_rehandshake_mode (G_TLS_CONNECTION (tls));
+#pragma GCC diagnostic pop
+
+  if (rehandshake_mode == G_TLS_REHANDSHAKE_NEVER)
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                            _("Peer requested illegal TLS rehandshake"));
@@ -441,6 +447,7 @@ g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
 {
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
   GTlsConnectionOpensslPrivate *priv;
+  GError **error;
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
@@ -452,18 +459,20 @@ g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
 
   if (direction & G_IO_IN)
     {
+      error = g_tls_connection_base_get_read_error (tls);
       g_tls_bio_set_read_cancellable (priv->bio, cancellable);
       g_tls_bio_set_read_blocking (priv->bio, timeout == -1);
-      g_clear_error (&tls->read_error);
-      g_tls_bio_set_read_error (priv->bio, &tls->read_error);
+      g_clear_error (error);
+      g_tls_bio_set_read_error (priv->bio, error);
     }
 
   if (direction & G_IO_OUT)
     {
+      error = g_tls_connection_base_get_write_error (tls);
       g_tls_bio_set_write_cancellable (priv->bio, cancellable);
       g_tls_bio_set_write_blocking (priv->bio, timeout == -1);
-      g_clear_error (&tls->write_error);
-      g_tls_bio_set_write_error (priv->bio, &tls->write_error);
+      g_clear_error (error);
+      g_tls_bio_set_write_error (priv->bio, error);
     }
 }
 
@@ -591,17 +600,20 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (initable);
   GTlsConnectionOpensslPrivate *priv;
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (initable);
+  GIOStream *base_io_stream;
   SSL *ssl;
 
-  g_return_val_if_fail (tls->base_istream != NULL &&
-                        tls->base_ostream != NULL, FALSE);
+  g_object_get (tls,
+                "base-io-stream", &base_io_stream,
+                NULL);
+  g_return_val_if_fail (base_io_stream != NULL, FALSE);
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
   g_assert (ssl != NULL);
 
-  priv->bio = g_tls_bio_new (tls->base_io_stream);
+  priv->bio = g_tls_bio_new (base_io_stream);
 
   SSL_set_bio (ssl, priv->bio, priv->bio);
 
@@ -625,27 +637,4 @@ g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *openssl)
   g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), NULL);
 
   return G_TLS_CONNECTION_OPENSSL_GET_CLASS (openssl)->get_ssl (openssl);
-}
-
-gboolean
-g_tls_connection_openssl_request_certificate (GTlsConnectionOpenssl  *openssl,
-                                              GError                **error)
-{
-  GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;
-  GTlsInteraction *interaction;
-  GTlsConnection *conn;
-  GTlsConnectionBase *tls;
-
-  g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), FALSE);
-
-  conn = G_TLS_CONNECTION (openssl);
-  tls = G_TLS_CONNECTION_BASE (openssl);
-
-  interaction = g_tls_connection_get_interaction (conn);
-  if (!interaction)
-    return FALSE;
-
-  res = g_tls_interaction_invoke_request_certificate (interaction, conn, 0,
-                                                      tls->read_cancellable, error);
-  return res != G_TLS_INTERACTION_FAILED;
 }
