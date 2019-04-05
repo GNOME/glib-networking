@@ -59,9 +59,6 @@ GType g_tls_connection_openssl_get_type (void) G_GNUC_CONST;
 
 SSL *g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection);
 
-gboolean g_tls_connection_openssl_request_certificate (GTlsConnectionOpenssl  *openssl,
-                                                       GError                **error);
-
 G_END_DECLS
 
 #endif /* __G_TLS_CONNECTION_OPENSSL_H___ */
