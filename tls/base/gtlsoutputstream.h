@@ -31,28 +31,9 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_OUTPUT_STREAM            (g_tls_output_stream_get_type ())
-#define G_TLS_OUTPUT_STREAM(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_OUTPUT_STREAM, GTlsOutputStream))
-#define G_TLS_OUTPUT_STREAM_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_OUTPUT_STREAM, GTlsOutputStreamClass))
-#define G_IS_TLS_OUTPUT_STREAM(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_OUTPUT_STREAM))
-#define G_IS_TLS_OUTPUT_STREAM_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_OUTPUT_STREAM))
-#define G_TLS_OUTPUT_STREAM_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_OUTPUT_STREAM, GTlsOutputStreamClass))
 
-typedef struct _GTlsOutputStreamPrivate GTlsOutputStreamPrivate;
-typedef struct _GTlsOutputStreamClass   GTlsOutputStreamClass;
-typedef struct _GTlsOutputStream        GTlsOutputStream;
+G_DECLARE_FINAL_TYPE (GTlsOutputStream, g_tls_output_stream, G, TLS_OUTPUT_STREAM, GOutputStream)
 
-struct _GTlsOutputStreamClass
-{
-  GOutputStreamClass parent_class;
-};
-
-struct _GTlsOutputStream
-{
-  GOutputStream parent_instance;
-  GTlsOutputStreamPrivate *priv;
-};
-
-GType          g_tls_output_stream_get_type (void) G_GNUC_CONST;
 GOutputStream *g_tls_output_stream_new      (GTlsConnectionBase *conn);
 
 G_END_DECLS
