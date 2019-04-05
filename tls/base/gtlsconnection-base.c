@@ -1312,6 +1312,57 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
     return -1;
 }
 
+static gssize
+g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
+                                    GInputVector        *vectors,
+                                    guint                num_vectors,
+                                    gint64               timeout,
+                                    GCancellable        *cancellable,
+                                    GError             **error)
+{
+  GTlsConnectionBaseStatus status;
+  gssize nread;
+
+  do {
+    if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_READ,
+                   timeout != 0, cancellable, error))
+      return -1;
+
+    /* Copy data out of the app data buffer first. */
+    if (tls->app_data_buf && !tls->handshaking)
+      {
+        nread = 0;
+
+        for (guint i = 0; i < num_vectors; i++)
+          {
+            gsize count;
+            GInputVector *vec = &vectors[i];
+
+            count = MIN (vec->size, tls->app_data_buf->len);
+            nread += count;
+
+            memcpy (vec->buffer, tls->app_data_buf->data, count);
+            if (count == tls->app_data_buf->len)
+              g_clear_pointer (&tls->app_data_buf, g_byte_array_unref);
+            else
+              g_byte_array_remove_range (tls->app_data_buf, 0, count);
+            status = G_TLS_CONNECTION_BASE_OK;
+          }
+      }
+    else
+      {
+        status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
+          read_message_fn (tls, vectors, num_vectors, timeout, &nread, cancellable, error);
+      }
+
+    yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
+  } while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);
+
+  if (status == G_TLS_CONNECTION_BASE_OK)
+    return nread;
+  return -1;
+}
+
 static gint
 g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
                                         GInputMessage   *messages,
@@ -1339,16 +1390,12 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
       GInputMessage *message = &messages[i];
       gssize n_bytes_read;
 
-      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored read function.
-       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
-      g_assert (message->num_vectors == 1);
-
-      n_bytes_read = g_tls_connection_base_read (tls,
-                                                 message->vectors[0].buffer,
-                                                 message->vectors[0].size,
-                                                 timeout != 0,
-                                                 cancellable,
-                                                 &child_error);
+      n_bytes_read = g_tls_connection_base_read_message (tls,
+                                                         message->vectors,
+                                                         message->num_vectors,
+                                                         timeout,
+                                                         cancellable,
+                                                         &child_error);
 
       if (message->address != NULL)
         *message->address = NULL;
@@ -1423,6 +1470,33 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
     return -1;
 }
 
+static gssize
+g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
+                                     GOutputVector       *vectors,
+                                     guint                num_vectors,
+                                     gint64               timeout,
+                                     GCancellable        *cancellable,
+                                     GError             **error)
+{
+  GTlsConnectionBaseStatus status;
+  gssize nwrote;
+
+  do {
+    if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE,
+                   timeout != 0, cancellable, error))
+      return -1;
+
+    status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
+      write_message_fn (tls, vectors, num_vectors, timeout, &nwrote, cancellable, error);
+
+    yield_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE, status);
+  } while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);
+
+  if (status == G_TLS_CONNECTION_BASE_OK)
+    return nwrote;
+  return -1;
+}
+
 static gint
 g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
                                      GOutputMessage  *messages,
@@ -1450,17 +1524,12 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
       GOutputMessage *message = &messages[i];
       gssize n_bytes_sent;
 
-      /* FIXME: Unfortunately GnuTLS doesn’t have a vectored write function.
-       * See: https://gitlab.com/gnutls/gnutls/issues/16 */
-      /* TODO: gnutls_record_cork(), gnutls_record_uncork(), 3.3.0 */
-      g_assert (message->num_vectors == 1);
-
-      n_bytes_sent = g_tls_connection_base_write (tls,
-                                                  message->vectors[0].buffer,
-                                                  message->vectors[0].size,
-                                                  timeout != 0,
-                                                  cancellable,
-                                                  &child_error);
+      n_bytes_sent = g_tls_connection_base_write_message (tls,
+                                                          message->vectors,
+                                                          message->num_vectors,
+                                                          timeout,
+                                                          cancellable,
+                                                          &child_error);
 
       if (n_bytes_sent >= 0)
         {
