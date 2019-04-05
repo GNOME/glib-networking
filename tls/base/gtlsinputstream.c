@@ -23,49 +23,49 @@
  */
 
 #include "config.h"
-#include "gtlsinputstream-base.h"
+#include "gtlsinputstream.h"
 
 #include <glib/gi18n.h>
 
-static void g_tls_input_stream_base_pollable_iface_init (GPollableInputStreamInterface *iface);
+static void g_tls_input_stream_pollable_iface_init (GPollableInputStreamInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GTlsInputStreamBase, g_tls_input_stream_base, G_TYPE_INPUT_STREAM,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_base_pollable_iface_init)
+G_DEFINE_TYPE_WITH_CODE (GTlsInputStream, g_tls_input_stream, G_TYPE_INPUT_STREAM,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_pollable_iface_init)
                          )
 
-struct _GTlsInputStreamBasePrivate
+struct _GTlsInputStreamPrivate
 {
   GWeakRef weak_conn;
 };
 
 static void
-g_tls_input_stream_base_dispose (GObject *object)
+g_tls_input_stream_dispose (GObject *object)
 {
-  GTlsInputStreamBase *stream = G_TLS_INPUT_STREAM_BASE (object);
+  GTlsInputStream *stream = G_TLS_INPUT_STREAM (object);
 
   g_weak_ref_set (&stream->priv->weak_conn, NULL);
 
-  G_OBJECT_CLASS (g_tls_input_stream_base_parent_class)->dispose (object);
+  G_OBJECT_CLASS (g_tls_input_stream_parent_class)->dispose (object);
 }
 
 static void
-g_tls_input_stream_base_finalize (GObject *object)
+g_tls_input_stream_finalize (GObject *object)
 {
-  GTlsInputStreamBase *stream = G_TLS_INPUT_STREAM_BASE (object);
+  GTlsInputStream *stream = G_TLS_INPUT_STREAM (object);
 
   g_weak_ref_clear (&stream->priv->weak_conn);
 
-  G_OBJECT_CLASS (g_tls_input_stream_base_parent_class)->finalize (object);
+  G_OBJECT_CLASS (g_tls_input_stream_parent_class)->finalize (object);
 }
 
 static gssize
-g_tls_input_stream_base_read (GInputStream  *stream,
-                              void          *buffer,
-                              gsize          count,
-                              GCancellable  *cancellable,
-                              GError       **error)
+g_tls_input_stream_read (GInputStream  *stream,
+                         void          *buffer,
+                         gsize          count,
+                         GCancellable  *cancellable,
+                         GError       **error)
 {
-  GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (stream);
+  GTlsInputStream *tls_stream = G_TLS_INPUT_STREAM (stream);
   GTlsConnectionBase *conn;
   gssize ret;
 
@@ -85,9 +85,9 @@ g_tls_input_stream_base_read (GInputStream  *stream,
 }
 
 static gboolean
-g_tls_input_stream_base_pollable_is_readable (GPollableInputStream *pollable)
+g_tls_input_stream_pollable_is_readable (GPollableInputStream *pollable)
 {
-  GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (pollable);
+  GTlsInputStream *tls_stream = G_TLS_INPUT_STREAM (pollable);
   GTlsConnectionBase *conn;
   gboolean ret;
 
@@ -101,10 +101,10 @@ g_tls_input_stream_base_pollable_is_readable (GPollableInputStream *pollable)
 }
 
 static GSource *
-g_tls_input_stream_base_pollable_create_source (GPollableInputStream *pollable,
-                                                GCancellable         *cancellable)
+g_tls_input_stream_pollable_create_source (GPollableInputStream *pollable,
+                                           GCancellable         *cancellable)
 {
-  GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (pollable);
+  GTlsInputStream *tls_stream = G_TLS_INPUT_STREAM (pollable);
   GTlsConnectionBase *conn;
   GSource *ret;
 
@@ -117,12 +117,12 @@ g_tls_input_stream_base_pollable_create_source (GPollableInputStream *pollable,
 }
 
 static gssize
-g_tls_input_stream_base_pollable_read_nonblocking (GPollableInputStream  *pollable,
-                                                   void                  *buffer,
-                                                   gsize                  size,
-                                                   GError               **error)
+g_tls_input_stream_pollable_read_nonblocking (GPollableInputStream  *pollable,
+                                              void                  *buffer,
+                                              gsize                  size,
+                                              GError               **error)
 {
-  GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (pollable);
+  GTlsInputStream *tls_stream = G_TLS_INPUT_STREAM (pollable);
   GTlsConnectionBase *conn;
   gssize ret;
 
@@ -137,11 +137,11 @@ g_tls_input_stream_base_pollable_read_nonblocking (GPollableInputStream  *pollab
 }
 
 static gboolean
-g_tls_input_stream_base_close (GInputStream            *stream,
-                               GCancellable             *cancellable,
-                               GError                  **error)
+g_tls_input_stream_close (GInputStream            *stream,
+                          GCancellable             *cancellable,
+                          GError                  **error)
 {
-  GTlsInputStreamBase *tls_stream = G_TLS_INPUT_STREAM_BASE (stream);
+  GTlsInputStream *tls_stream = G_TLS_INPUT_STREAM (stream);
   GIOStream *conn;
   gboolean ret;
 
@@ -171,7 +171,7 @@ close_thread (GTask        *task,
               gpointer      task_data,
               GCancellable *cancellable)
 {
-  GTlsInputStreamBase *tls_stream = object;
+  GTlsInputStream *tls_stream = object;
   GError *error = NULL;
   GIOStream *conn;
 
@@ -191,70 +191,69 @@ close_thread (GTask        *task,
 
 
 static void
-g_tls_input_stream_base_close_async (GInputStream            *stream,
-                                     int                       io_priority,
-                                     GCancellable             *cancellable,
-                                     GAsyncReadyCallback       callback,
-                                     gpointer                  user_data)
+g_tls_input_stream_close_async (GInputStream            *stream,
+                                int                       io_priority,
+                                GCancellable             *cancellable,
+                                GAsyncReadyCallback       callback,
+                                gpointer                  user_data)
 {
   GTask *task;
 
   task = g_task_new (stream, cancellable, callback, user_data);
-  g_task_set_source_tag (task, g_tls_input_stream_base_close_async);
+  g_task_set_source_tag (task, g_tls_input_stream_close_async);
   g_task_set_priority (task, io_priority);
   g_task_run_in_thread (task, close_thread);
   g_object_unref (task);
 }
 
 static gboolean
-g_tls_input_stream_base_close_finish (GInputStream            *stream,
-                                      GAsyncResult             *result,
-                                      GError                  **error)
+g_tls_input_stream_close_finish (GInputStream            *stream,
+                                 GAsyncResult             *result,
+                                 GError                  **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, stream), FALSE);
-  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) ==
-                        g_tls_input_stream_base_close_async, FALSE);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == g_tls_input_stream_close_async, FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 static void
-g_tls_input_stream_base_class_init (GTlsInputStreamBaseClass *klass)
+g_tls_input_stream_class_init (GTlsInputStreamClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GInputStreamClass *input_stream_class = G_INPUT_STREAM_CLASS (klass);
 
-  g_type_class_add_private (klass, sizeof (GTlsInputStreamBasePrivate));
+  g_type_class_add_private (klass, sizeof (GTlsInputStreamPrivate));
 
-  gobject_class->dispose = g_tls_input_stream_base_dispose;
-  gobject_class->finalize = g_tls_input_stream_base_finalize;
+  gobject_class->dispose = g_tls_input_stream_dispose;
+  gobject_class->finalize = g_tls_input_stream_finalize;
 
-  input_stream_class->read_fn = g_tls_input_stream_base_read;
-  input_stream_class->close_fn = g_tls_input_stream_base_close;
-  input_stream_class->close_async = g_tls_input_stream_base_close_async;
-  input_stream_class->close_finish = g_tls_input_stream_base_close_finish;
+  input_stream_class->read_fn = g_tls_input_stream_read;
+  input_stream_class->close_fn = g_tls_input_stream_close;
+  input_stream_class->close_async = g_tls_input_stream_close_async;
+  input_stream_class->close_finish = g_tls_input_stream_close_finish;
 }
 
 static void
-g_tls_input_stream_base_pollable_iface_init (GPollableInputStreamInterface *iface)
+g_tls_input_stream_pollable_iface_init (GPollableInputStreamInterface *iface)
 {
-  iface->is_readable = g_tls_input_stream_base_pollable_is_readable;
-  iface->create_source = g_tls_input_stream_base_pollable_create_source;
-  iface->read_nonblocking = g_tls_input_stream_base_pollable_read_nonblocking;
+  iface->is_readable = g_tls_input_stream_pollable_is_readable;
+  iface->create_source = g_tls_input_stream_pollable_create_source;
+  iface->read_nonblocking = g_tls_input_stream_pollable_read_nonblocking;
 }
 
 static void
-g_tls_input_stream_base_init (GTlsInputStreamBase *stream)
+g_tls_input_stream_init (GTlsInputStream *stream)
 {
-  stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream, G_TYPE_TLS_INPUT_STREAM_BASE, GTlsInputStreamBasePrivate);
+  stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream, G_TYPE_TLS_INPUT_STREAM, GTlsInputStreamPrivate);
 }
 
 GInputStream *
-g_tls_input_stream_base_new (GTlsConnectionBase *conn)
+g_tls_input_stream_new (GTlsConnectionBase *conn)
 {
-  GTlsInputStreamBase *tls_stream;
+  GTlsInputStream *tls_stream;
 
-  tls_stream = g_object_new (G_TYPE_TLS_INPUT_STREAM_BASE, NULL);
+  tls_stream = g_object_new (G_TYPE_TLS_INPUT_STREAM, NULL);
   g_weak_ref_init (&tls_stream->priv->weak_conn, conn);
 
   return G_INPUT_STREAM (tls_stream);
