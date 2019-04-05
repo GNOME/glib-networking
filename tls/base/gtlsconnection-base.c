@@ -1013,8 +1013,11 @@ handshake_thread (GTask        *task,
   GTlsConnectionBase *tls = object;
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GError *error = NULL;
+  gint64 timeout;
 
-  gint64 timeout = -1; /* FIXME: upcoming commit */
+  /* A timeout, in microseconds, must be provided as a gint64* task_data. */
+  g_assert (task_data != NULL);
+  timeout = *((gint64 *)task_data);
 
   tls->started_handshake = FALSE;
   tls->certificate_requested = FALSE;
@@ -1104,10 +1107,16 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
   GTask *task;
   gboolean success;
+  gint64 *timeout = NULL;
   GError *my_error = NULL;
 
   task = g_task_new (conn, cancellable, NULL, NULL);
   g_task_set_source_tag (task, g_tls_connection_base_handshake);
+
+  timeout = g_new0 (gint64, 1);
+  *timeout = -1; /* blocking */
+  g_task_set_task_data (task, timeout, g_free);
+
   g_task_run_in_thread_sync (task, handshake_thread);
   success = finish_handshake (tls, task, &my_error);
   g_object_unref (task);
@@ -1202,6 +1211,7 @@ g_tls_connection_base_handshake_async (GTlsConnection       *conn,
                                        gpointer              user_data)
 {
   GTask *thread_task, *caller_task;
+  gint64 *timeout = NULL;
 
   caller_task = g_task_new (conn, cancellable, callback, user_data);
   g_task_set_source_tag (caller_task, g_tls_connection_base_handshake_async);
@@ -1209,6 +1219,10 @@ g_tls_connection_base_handshake_async (GTlsConnection       *conn,
   thread_task = g_task_new (conn, cancellable, handshake_thread_completed, caller_task);
   g_task_set_source_tag (thread_task, g_tls_connection_base_handshake_async);
   g_task_set_priority (thread_task, io_priority);
+
+  timeout = g_new0 (gint64, 1);
+  *timeout = -1; /* blocking */
+  g_task_set_task_data (thread_task, timeout, g_free);
 
   g_task_run_in_thread (thread_task, async_handshake_thread);
   g_object_unref (thread_task);
@@ -1265,18 +1279,31 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
                        GCancellable        *cancellable,
                        GError             **error)
 {
+  gint64 *thread_timeout = NULL;
+
   /* We have op_mutex */
 
+  g_assert (tls->implicit_handshake == NULL);
   tls->implicit_handshake = g_task_new (tls, cancellable,
                                         implicit_handshake_completed,
                                         NULL);
   g_task_set_source_tag (tls->implicit_handshake, do_implicit_handshake);
 
-  /* FIXME: Support (timeout > 0). */
+  thread_timeout = g_new0 (gint64, 1);
+  g_task_set_task_data (tls->implicit_handshake,
+                        thread_timeout, g_free);
+
   if (timeout != 0)
     {
       GError *my_error = NULL;
       gboolean success;
+
+      /* In the blocking case, run the handshake operation synchronously in
+       * another thread, and delegate handling the timeout to that thread; it
+       * should return G_IO_ERROR_TIMED_OUT iff (timeout > 0) and the operation
+       * times out. If (timeout < 0) it should block indefinitely until the
+       * operation is complete or errors. */
+      *thread_timeout = timeout;
 
       g_mutex_unlock (&tls->op_mutex);
       g_task_run_in_thread_sync (tls->implicit_handshake,
@@ -1295,6 +1322,12 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
     }
   else
     {
+      /* In the non-blocking case, start the asynchronous handshake operation
+       * and return EWOULDBLOCK to the caller, who will handle polling for
+       * completion of the handshake and whatever operation they actually cared
+       * about. Run the actual operation as blocking in its thread. */
+      *thread_timeout = -1; /* blocking */
+
       g_task_run_in_thread (tls->implicit_handshake,
                             handshake_thread);
 
