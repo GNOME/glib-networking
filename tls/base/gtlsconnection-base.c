@@ -32,6 +32,7 @@
 #include "gtlsoutputstream.h"
 
 #include <glib/gi18n-lib.h>
+#include <glib/gprintf.h>
 
 /*
  * GTlsConnectionBase is the base abstract implementation of TLS and DTLS
@@ -2128,4 +2129,35 @@ g_tls_connection_base_datagram_based_iface_init (GDatagramBasedInterface *iface)
   iface->create_source = g_tls_connection_base_dtls_create_source;
   iface->condition_check = g_tls_connection_base_condition_check;
   iface->condition_wait = g_tls_connection_base_condition_wait;
+}
+
+void
+GTLS_DEBUG (gpointer    gnutls,
+            const char *message,
+            ...)
+{
+  char *result = NULL;
+  int ret;
+
+  g_assert (G_IS_TLS_CONNECTION (gnutls));
+
+  va_list args;
+  va_start (args, message);
+
+  ret = g_vasprintf (&result, message, args);
+  g_assert (ret > 0);
+
+  if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+    g_printf ("CLIENT %p: ", gnutls);
+  else if (G_IS_TLS_SERVER_CONNECTION (gnutls))
+    g_printf ("SERVER %p: ", gnutls);
+  else
+    g_assert_not_reached ();
+
+  g_printf ("%s\n", result);
+
+  fflush (stdout);
+
+  g_free (result);
+  va_end (args);
 }
