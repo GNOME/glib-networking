@@ -37,16 +37,17 @@
 #include "gtlsclientconnection-openssl.h"
 #include "gtlsfiledatabase-openssl.h"
 
-typedef struct _GTlsBackendOpensslPrivate
+struct _GTlsBackendOpenssl
 {
+  GObject parent_instance;
+
   GMutex mutex;
   GTlsDatabase *default_database;
-} GTlsBackendOpensslPrivate;
+};
 
 static void g_tls_backend_openssl_interface_init (GTlsBackendInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendOpenssl, g_tls_backend_openssl, G_TYPE_OBJECT, 0,
-                                G_ADD_PRIVATE_DYNAMIC (GTlsBackendOpenssl)
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
                                                                g_tls_backend_openssl_interface_init))
 
@@ -149,10 +150,6 @@ static GOnce openssl_inited = G_ONCE_INIT;
 static void
 g_tls_backend_openssl_init (GTlsBackendOpenssl *backend)
 {
-  GTlsBackendOpensslPrivate *priv;
-
-  priv = g_tls_backend_openssl_get_instance_private (backend);
-
   /* Once we call gtls_openssl_init(), we can't allow the module to be
    * unloaded (since if openssl gets unloaded but gcrypt doesn't, then
    * gcrypt will have dangling pointers to openssl's mutex functions).
@@ -162,7 +159,7 @@ g_tls_backend_openssl_init (GTlsBackendOpenssl *backend)
    */
   g_once (&openssl_inited, gtls_openssl_init, NULL);
 
-  g_mutex_init (&priv->mutex);
+  g_mutex_init (&backend->mutex);
 }
 
 static void
@@ -171,12 +168,9 @@ g_tls_backend_openssl_finalize (GObject *object)
   int i;
 
   GTlsBackendOpenssl *backend = G_TLS_BACKEND_OPENSSL (object);
-  GTlsBackendOpensslPrivate *priv;
 
-  priv = g_tls_backend_openssl_get_instance_private (backend);
-
-  g_clear_object (&priv->default_database);
-  g_mutex_clear (&priv->mutex);
+  g_clear_object (&backend->default_database);
+  g_mutex_clear (&backend->mutex);
 
   CRYPTO_set_id_callback (NULL);
   CRYPTO_set_locking_callback (NULL);
@@ -191,8 +185,8 @@ g_tls_backend_openssl_finalize (GObject *object)
 }
 
 static GTlsDatabase *
-g_tls_backend_openssl_real_create_database (GTlsBackendOpenssl  *self,
-                                            GError             **error)
+g_tls_backend_openssl_create_database (GTlsBackendOpenssl  *self,
+                                       GError             **error)
 {
   gchar *anchor_file = NULL;
   GTlsDatabase *database;
@@ -231,8 +225,6 @@ g_tls_backend_openssl_class_init (GTlsBackendOpensslClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
   gobject_class->finalize = g_tls_backend_openssl_finalize;
-
-  klass->create_database = g_tls_backend_openssl_real_create_database;
 }
 
 static void
@@ -240,26 +232,22 @@ g_tls_backend_openssl_class_finalize (GTlsBackendOpensslClass *backend_class)
 {
 }
 
-static GTlsDatabase*
+static GTlsDatabase *
 g_tls_backend_openssl_get_default_database (GTlsBackend *backend)
 {
   GTlsBackendOpenssl *openssl_backend = G_TLS_BACKEND_OPENSSL (backend);
-  GTlsBackendOpensslPrivate *priv;
   GTlsDatabase *result;
   GError *error = NULL;
 
-  priv = g_tls_backend_openssl_get_instance_private (openssl_backend);
+  g_mutex_lock (&openssl_backend->mutex);
 
-  g_mutex_lock (&priv->mutex);
-
-  if (priv->default_database)
+  if (openssl_backend->default_database)
     {
-      result = g_object_ref (priv->default_database);
+      result = g_object_ref (openssl_backend->default_database);
     }
   else
     {
-      g_assert (G_TLS_BACKEND_OPENSSL_GET_CLASS (openssl_backend)->create_database);
-      result = G_TLS_BACKEND_OPENSSL_GET_CLASS (openssl_backend)->create_database (openssl_backend, &error);
+      result = g_tls_backend_openssl_create_database (openssl_backend, &error);
       if (error)
         {
           g_warning ("Couldn't load TLS file database: %s",
@@ -269,11 +257,11 @@ g_tls_backend_openssl_get_default_database (GTlsBackend *backend)
       else
         {
           g_assert (result);
-          priv->default_database = g_object_ref (result);
+          openssl_backend->default_database = g_object_ref (result);
         }
     }
 
-  g_mutex_unlock (&priv->mutex);
+  g_mutex_unlock (&openssl_backend->mutex);
 
   return result;
 }
