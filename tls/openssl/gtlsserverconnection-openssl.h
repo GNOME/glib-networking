@@ -32,26 +32,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_SERVER_CONNECTION_OPENSSL            (g_tls_server_connection_openssl_get_type ())
-#define G_TLS_SERVER_CONNECTION_OPENSSL(inst)           (G_TYPE_CHECK_INSTANCE_CAST ((inst), G_TYPE_TLS_SERVER_CONNECTION_OPENSSL, GTlsServerConnectionOpenssl))
-#define G_TLS_SERVER_CONNECTION_OPENSSL_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), G_TYPE_TLS_SERVER_CONNECTION_OPENSSL, GTlsServerConnectionOpensslClass))
-#define G_IS_TLS_SERVER_CONNECTION_OPENSSL(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_TLS_SERVER_CONNECTION_OPENSSL))
-#define G_IS_TLS_SERVER_CONNECTION_OPENSSL_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), G_TYPE_TLS_SERVER_CONNECTION_OPENSSL))
-#define G_TLS_SERVER_CONNECTION_OPENSSL_GET_CLASS(inst) (G_TYPE_INSTANCE_GET_CLASS ((inst), G_TYPE_TLS_SERVER_CONNECTION_OPENSSL, GTlsServerConnectionOpensslClass))
 
-typedef struct _GTlsServerConnectionOpensslClass GTlsServerConnectionOpensslClass;
-typedef struct _GTlsServerConnectionOpenssl      GTlsServerConnectionOpenssl;
-
-struct _GTlsServerConnectionOpensslClass
-{
-  GTlsConnectionOpensslClass parent_class;
-};
-
-struct _GTlsServerConnectionOpenssl
-{
-  GTlsConnectionOpenssl parent_instance;
-};
-
-GType g_tls_server_connection_openssl_get_type (void) G_GNUC_CONST;
+G_DECLARE_FINAL_TYPE (GTlsServerConnectionOpenssl, g_tls_server_connection_openssl, G, TLS_SERVER_CONNECTION_OPENSSL, GTlsConnectionOpenssl)
 
 G_END_DECLS
 
