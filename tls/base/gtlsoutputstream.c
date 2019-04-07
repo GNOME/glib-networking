@@ -93,7 +93,8 @@ g_tls_output_stream_pollable_is_writable (GPollableOutputStream *pollable)
   gboolean ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, FALSE);
+  if (conn == NULL)
+    return FALSE;
 
   ret = g_tls_connection_base_check (conn, G_IO_OUT);
 
@@ -111,7 +112,12 @@ g_tls_output_stream_pollable_create_source (GPollableOutputStream *pollable,
   GSource *ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, NULL);
+  if (conn == NULL)
+    {
+      ret = g_idle_source_new ();
+      g_source_set_name (ret, "[glib-networking] g_tls_output_stream_pollable_create_source dummy source");
+      return ret;
+    }
 
   ret = g_tls_connection_base_create_source (conn,
                                              G_IO_OUT,
@@ -131,7 +137,12 @@ g_tls_output_stream_pollable_write_nonblocking (GPollableOutputStream  *pollable
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  g_return_val_if_fail (conn != NULL, -1);
+  if (conn == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
+                           _("Connection is closed"));
+      return -1;
+    }
 
   ret = g_tls_connection_base_write (conn, buffer, size,
                                      0 /* non-blocking */, NULL, error);
@@ -151,9 +162,6 @@ g_tls_output_stream_close (GOutputStream            *stream,
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
 
-  /* Special case here because this is called by the finalize
-   * of the main GTlsConnection object.
-   */
   if (conn == NULL)
     return TRUE;
 
