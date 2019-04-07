@@ -139,7 +139,7 @@ g_tls_input_stream_pollable_read_nonblocking (GPollableInputStream  *pollable,
 }
 
 static gboolean
-g_tls_input_stream_close (GInputStream            *stream,
+g_tls_input_stream_close (GInputStream             *stream,
                           GCancellable             *cancellable,
                           GError                  **error)
 {
@@ -193,7 +193,7 @@ close_thread (GTask        *task,
 
 
 static void
-g_tls_input_stream_close_async (GInputStream            *stream,
+g_tls_input_stream_close_async (GInputStream             *stream,
                                 int                       io_priority,
                                 GCancellable             *cancellable,
                                 GAsyncReadyCallback       callback,
@@ -209,7 +209,7 @@ g_tls_input_stream_close_async (GInputStream            *stream,
 }
 
 static gboolean
-g_tls_input_stream_close_finish (GInputStream            *stream,
+g_tls_input_stream_close_finish (GInputStream             *stream,
                                  GAsyncResult             *result,
                                  GError                  **error)
 {
