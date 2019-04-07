@@ -31,13 +31,8 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_BACKEND_OPENSSL (g_tls_backend_openssl_get_type ())
-G_DECLARE_DERIVABLE_TYPE (GTlsBackendOpenssl, g_tls_backend_openssl,
-                          G, TLS_BACKEND_OPENSSL, GObject)
 
-struct _GTlsBackendOpensslClass
-{
-  GObjectClass parent_class;
-};
+G_DECLARE_FINAL_TYPE (GTlsBackendOpenssl, g_tls_backend_openssl, G, TLS_BACKEND_OPENSSL, GObject)
 
 void    g_tls_backend_openssl_register       (GIOModule *module);
 
