@@ -805,7 +805,7 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
   gboolean io_waiting, op_waiting;
 
   /* Was the source destroyed earlier in this main context iteration? */
-  if (g_source_is_destroyed ((GSource *) tls_source))
+  if (g_source_is_destroyed ((GSource *)tls_source))
     return;
 
   g_mutex_lock (&priv->op_mutex);
