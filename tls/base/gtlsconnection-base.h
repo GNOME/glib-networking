@@ -166,6 +166,10 @@ gboolean g_tls_connection_base_ever_handshaked           (GTlsConnectionBase *tl
 gboolean g_tls_connection_base_request_certificate (GTlsConnectionBase  *tls,
                                                     GError             **error);
 
+void GTLS_DEBUG (gpointer    gnutls,
+                 const char *message,
+                 ...);
+
 G_END_DECLS
 
 #endif /* __G_TLS_CONNECTION_BASE_H___ */
