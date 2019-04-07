@@ -1089,9 +1089,10 @@ g_tls_connection_base_accept_peer_certificate (GTlsConnectionBase   *tls,
                                                GTlsCertificate      *peer_certificate,
                                                GTlsCertificateFlags  peer_certificate_errors)
 {
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   gboolean accepted = FALSE;
 
-  if (G_IS_TLS_CLIENT_CONNECTION (tls))
+  if (G_IS_TLS_CLIENT_CONNECTION (tls) && priv->peer_certificate)
     {
       GTlsCertificateFlags validation_flags;
 
