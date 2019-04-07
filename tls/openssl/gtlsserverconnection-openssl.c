@@ -33,13 +33,15 @@
 
 #define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
 
-typedef struct _GTlsServerConnectionOpensslPrivate
+struct _GTlsServerConnectionOpenssl
 {
+  GTlsConnectionOpenssl parent_instance;
+
   GTlsAuthenticationMode authentication_mode;
   SSL_SESSION *session;
   SSL *ssl;
   SSL_CTX *ssl_ctx;
-} GTlsServerConnectionOpensslPrivate;
+};
 
 enum
 {
@@ -54,7 +56,6 @@ static void g_tls_server_connection_openssl_server_connection_interface_init (GT
 static GInitableIface *g_tls_server_connection_openssl_parent_initable_iface;
 
 G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionOpenssl, g_tls_server_connection_openssl, G_TYPE_TLS_CONNECTION_OPENSSL,
-                         G_ADD_PRIVATE (GTlsServerConnectionOpenssl)
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_tls_server_connection_openssl_initable_interface_init)
                          G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
@@ -64,13 +65,10 @@ static void
 g_tls_server_connection_openssl_finalize (GObject *object)
 {
   GTlsServerConnectionOpenssl *openssl = G_TLS_SERVER_CONNECTION_OPENSSL (object);
-  GTlsServerConnectionOpensslPrivate *priv;
 
-  priv = g_tls_server_connection_openssl_get_instance_private (openssl);
-
-  SSL_free (priv->ssl);
-  SSL_CTX_free (priv->ssl_ctx);
-  SSL_SESSION_free (priv->session);
+  SSL_free (openssl->ssl);
+  SSL_CTX_free (openssl->ssl_ctx);
+  SSL_SESSION_free (openssl->session);
 
   G_OBJECT_CLASS (g_tls_server_connection_openssl_parent_class)->finalize (object);
 }
@@ -143,14 +141,11 @@ g_tls_server_connection_openssl_get_property (GObject    *object,
                                               GParamSpec *pspec)
 {
   GTlsServerConnectionOpenssl *openssl = G_TLS_SERVER_CONNECTION_OPENSSL (object);
-  GTlsServerConnectionOpensslPrivate *priv;
-
-  priv = g_tls_server_connection_openssl_get_instance_private (openssl);
 
   switch (prop_id)
     {
     case PROP_AUTHENTICATION_MODE:
-      g_value_set_enum (value, priv->authentication_mode);
+      g_value_set_enum (value, openssl->authentication_mode);
       break;
 
     default:
@@ -165,14 +160,11 @@ g_tls_server_connection_openssl_set_property (GObject      *object,
                                               GParamSpec   *pspec)
 {
   GTlsServerConnectionOpenssl *openssl = G_TLS_SERVER_CONNECTION_OPENSSL (object);
-  GTlsServerConnectionOpensslPrivate *priv;
-
-  priv = g_tls_server_connection_openssl_get_instance_private (openssl);
 
   switch (prop_id)
     {
     case PROP_AUTHENTICATION_MODE:
-      priv->authentication_mode = g_value_get_enum (value);
+      openssl->authentication_mode = g_value_get_enum (value);
       break;
 
     default:
@@ -194,12 +186,9 @@ g_tls_server_connection_openssl_handshake (GTlsConnectionBase  *tls,
                                            GError             **error)
 {
   GTlsServerConnectionOpenssl *openssl = G_TLS_SERVER_CONNECTION_OPENSSL (tls);
-  GTlsServerConnectionOpensslPrivate *priv;
   int req_mode = 0;
 
-  priv = g_tls_server_connection_openssl_get_instance_private (openssl);
-
-  switch (priv->authentication_mode)
+  switch (openssl->authentication_mode)
     {
     case G_TLS_AUTHENTICATION_REQUIRED:
       req_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
@@ -212,9 +201,9 @@ g_tls_server_connection_openssl_handshake (GTlsConnectionBase  *tls,
       break;
     }
 
-  SSL_set_verify (priv->ssl, req_mode, verify_callback);
+  SSL_set_verify (openssl->ssl, req_mode, verify_callback);
   /* FIXME: is this ok? */
-  SSL_set_verify_depth (priv->ssl, 0);
+  SSL_set_verify_depth (openssl->ssl, 0);
 
   return G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_openssl_parent_class)->
     handshake (tls, timeout, cancellable, error);
@@ -223,12 +212,7 @@ g_tls_server_connection_openssl_handshake (GTlsConnectionBase  *tls,
 static SSL *
 g_tls_server_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection)
 {
-  GTlsServerConnectionOpenssl *server = G_TLS_SERVER_CONNECTION_OPENSSL (connection);
-  GTlsServerConnectionOpensslPrivate *priv;
-
-  priv = g_tls_server_connection_openssl_get_instance_private (server);
-
-  return priv->ssl;
+  return G_TLS_SERVER_CONNECTION_OPENSSL (connection)->ssl;
 }
 
 static void
@@ -292,16 +276,13 @@ static gboolean
 set_cipher_list (GTlsServerConnectionOpenssl  *server,
                  GError                      **error)
 {
-  GTlsServerConnectionOpensslPrivate *priv;
   const gchar *cipher_list;
-
-  priv = g_tls_server_connection_openssl_get_instance_private (server);
 
   cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
   if (cipher_list == NULL)
     cipher_list = DEFAULT_CIPHER_LIST;
 
-  if (!SSL_CTX_set_cipher_list (priv->ssl_ctx, cipher_list))
+  if (!SSL_CTX_set_cipher_list (server->ssl_ctx, cipher_list))
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS context: %s"),
@@ -316,16 +297,13 @@ set_cipher_list (GTlsServerConnectionOpenssl  *server,
 static void
 set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
 {
-  GTlsServerConnectionOpensslPrivate *priv;
   const gchar *signature_algorithm_list;
-
-  priv = g_tls_server_connection_openssl_get_instance_private (server);
 
   signature_algorithm_list = g_getenv ("G_TLS_OPENSSL_SIGNATURE_ALGORITHM_LIST");
   if (signature_algorithm_list == NULL)
     return;
 
-  SSL_CTX_set1_sigalgs_list (priv->ssl_ctx, signature_algorithm_list);
+  SSL_CTX_set1_sigalgs_list (server->ssl_ctx, signature_algorithm_list);
 }
 #endif
 
@@ -333,16 +311,13 @@ set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
 static void
 set_curve_list (GTlsServerConnectionOpenssl *server)
 {
-  GTlsServerConnectionOpensslPrivate *priv;
   const gchar *curve_list;
-
-  priv = g_tls_server_connection_openssl_get_instance_private (server);
 
   curve_list = g_getenv ("G_TLS_OPENSSL_CURVE_LIST");
   if (curve_list == NULL)
     return;
 
-  SSL_CTX_set1_curves_list (priv->ssl_ctx, curve_list);
+  SSL_CTX_set1_curves_list (server->ssl_ctx, curve_list);
 }
 #endif
 
@@ -352,16 +327,13 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
                                                GError         **error)
 {
   GTlsServerConnectionOpenssl *server = G_TLS_SERVER_CONNECTION_OPENSSL (initable);
-  GTlsServerConnectionOpensslPrivate *priv;
   GTlsCertificate *cert;
   long options;
 
-  priv = g_tls_server_connection_openssl_get_instance_private (server);
+  server->session = SSL_SESSION_new ();
 
-  priv->session = SSL_SESSION_new ();
-
-  priv->ssl_ctx = SSL_CTX_new (SSLv23_server_method ());
-  if (priv->ssl_ctx == NULL)
+  server->ssl_ctx = SSL_CTX_new (SSLv23_server_method ());
+  if (server->ssl_ctx == NULL)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS context: %s"),
@@ -389,9 +361,9 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   options |= SSL_OP_NO_RENEGOTIATION;
 #endif
 
-  SSL_CTX_set_options (priv->ssl_ctx, options);
+  SSL_CTX_set_options (server->ssl_ctx, options);
 
-  SSL_CTX_add_session (priv->ssl_ctx, priv->session);
+  SSL_CTX_add_session (server->ssl_ctx, server->session);
 
 #ifdef SSL_CTX_set1_sigalgs_list
   set_signature_algorithm_list (server);
@@ -403,7 +375,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
 # ifdef SSL_CTX_set_ecdh_auto
-  SSL_CTX_set_ecdh_auto (priv->ssl_ctx, 1);
+  SSL_CTX_set_ecdh_auto (server->ssl_ctx, 1);
 # else
   {
     EC_KEY *ecdh;
@@ -411,17 +383,17 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
     ecdh = EC_KEY_new_by_curve_name (NID_X9_62_prime256v1);
     if (ecdh != NULL)
       {
-        SSL_CTX_set_tmp_ecdh (priv->ssl_ctx, ecdh);
+        SSL_CTX_set_tmp_ecdh (server->ssl_ctx, ecdh);
         EC_KEY_free (ecdh);
       }
   }
 # endif
 
-  SSL_CTX_set_info_callback (priv->ssl_ctx, ssl_info_callback);
+  SSL_CTX_set_info_callback (server->ssl_ctx, ssl_info_callback);
 #endif
 
-  priv->ssl = SSL_new (priv->ssl_ctx);
-  if (priv->ssl == NULL)
+  server->ssl = SSL_new (server->ssl_ctx);
+  if (server->ssl == NULL)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS connection: %s"),
@@ -430,10 +402,10 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
     }
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
-  if (cert != NULL && !ssl_set_certificate (priv->ssl, cert, error))
+  if (cert != NULL && !ssl_set_certificate (server->ssl, cert, error))
     return FALSE;
 
-  SSL_set_accept_state (priv->ssl);
+  SSL_set_accept_state (server->ssl);
 
   if (!g_tls_server_connection_openssl_parent_initable_iface->
       init (initable, cancellable, error))
