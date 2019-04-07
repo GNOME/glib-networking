@@ -55,22 +55,30 @@
 
 typedef struct
 {
-  /* When operating in stream mode.
-   * Mutually exclusive with base_socket.
+  /* When operating in stream mode, as a GTlsConnection. These are
+   * mutually-exclusive with base_socket. There are two different
+   * GIOStreams here: (a) base_io_stream and (b) the GTlsConnection
+   * itself. base_io_stream is the GIOStream used to create the GTlsConnection,
+   * and corresponds to the GTlsConnection::base-io-stream property.
+   * base_istream and base_ostream are the GInputStream and GOutputStream,
+   * respectively, of base_io_stream. These are for the underlying sockets that
+   * don't know about TLS.
+   *
+   * Then the GTlsConnection also has tls_istream and tls_ostream, which
+   * wrap the aforementioned base streams with a TLS session.
+   *
+   * When operating in datagram mode, none of these are used.
    */
   GIOStream             *base_io_stream;
   GPollableInputStream  *base_istream;
   GPollableOutputStream *base_ostream;
-
-  /* When operating in stream mode; when operating in datagram mode, the
-   * GTlsConnectionBase itself is the DTLS GDatagramBased (and uses
-   * base_socket for its underlying I/O):
-   */
   GInputStream          *tls_istream;
   GOutputStream         *tls_ostream;
 
-  /* When operating in datagram mode.
-   * Mutually exclusive with base_io_stream.
+  /* When operating in datagram mode, as a GDtlsConnection, the
+   * GTlsConnection is itself the DTLS GDatagramBased. It uses base_socket
+   * for the underlying I/O. It is mutually-exclusive with base_io_stream and
+   * the other streams.
    */
   GDatagramBased        *base_socket;
 
