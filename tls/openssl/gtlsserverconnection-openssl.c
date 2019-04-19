@@ -172,20 +172,12 @@ g_tls_server_connection_openssl_set_property (GObject      *object,
     }
 }
 
-static int
-verify_callback (int             preverify_ok,
-                 X509_STORE_CTX *ctx)
-{
-  return 1;
-}
-
-static GTlsConnectionBaseStatus
-g_tls_server_connection_openssl_handshake (GTlsConnectionBase  *tls,
-                                           gint64               timeout,
-                                           GCancellable        *cancellable,
-                                           GError             **error)
+static void
+g_tls_server_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
+                                                   gchar              **advertised_protocols)
 {
   GTlsServerConnectionOpenssl *openssl = G_TLS_SERVER_CONNECTION_OPENSSL (tls);
+  GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_openssl_parent_class);
   int req_mode = 0;
 
   switch (openssl->authentication_mode)
@@ -201,12 +193,12 @@ g_tls_server_connection_openssl_handshake (GTlsConnectionBase  *tls,
       break;
     }
 
-  SSL_set_verify (openssl->ssl, req_mode, verify_callback);
+  SSL_set_verify (openssl->ssl, req_mode, NULL);
   /* FIXME: is this ok? */
   SSL_set_verify_depth (openssl->ssl, 0);
 
-  return G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_openssl_parent_class)->
-    handshake (tls, timeout, cancellable, error);
+  if (base_class->prepare_handshake)
+    base_class->prepare_handshake (tls, advertised_protocols);
 }
 
 static SSL *
@@ -241,7 +233,7 @@ g_tls_server_connection_openssl_class_init (GTlsServerConnectionOpensslClass *kl
   gobject_class->get_property = g_tls_server_connection_openssl_get_property;
   gobject_class->set_property = g_tls_server_connection_openssl_set_property;
 
-  base_class->handshake = g_tls_server_connection_openssl_handshake;
+  base_class->prepare_handshake = g_tls_server_connection_openssl_prepare_handshake;
 
   connection_class->get_ssl = g_tls_server_connection_openssl_get_ssl;
 

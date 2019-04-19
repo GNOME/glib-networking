@@ -262,8 +262,9 @@ g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
 }
 
 static GTlsCertificate *
-get_peer_certificate (GTlsConnectionOpenssl *openssl)
+g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
 {
+  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
   X509 *peer;
   STACK_OF (X509) *certs;
   GTlsCertificateOpenssl *chain;
@@ -290,100 +291,30 @@ get_peer_certificate (GTlsConnectionOpenssl *openssl)
   return G_TLS_CERTIFICATE (chain);
 }
 
-static GTlsCertificateFlags
-verify_ocsp_response (GTlsConnectionOpenssl *openssl,
-                      GTlsDatabase          *database,
-                      GTlsCertificate       *peer_certificate)
+static int
+handshake_thread_verify_certificate_cb (int             preverify_ok,
+                                        X509_STORE_CTX *x509_ctx)
 {
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
-  !defined(OPENSSL_NO_OCSP)
-  SSL *ssl = NULL;
-  OCSP_RESPONSE *resp = NULL;
-  long len = 0;
-  unsigned char *p = NULL;
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-  len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
-  /* Soft fail in case of no response is the best we can do */
-  if (p == NULL)
-    return 0;
-
-  resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
-  if (resp == NULL)
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  return g_tls_database_openssl_verify_ocsp_response (G_TLS_DATABASE_OPENSSL (database),
-                                                      peer_certificate,
-                                                      resp);
-#else
+  // FIXME: Get the GTlsConnectionOpenssl out of the X509_STORE_CTX using
+  //        x509_STORE_CTX_get_ex_data... somehow. We probably have to pass
+  //        the GTlsConnectionOpenssl to the GTlsFileDatabaseOpenssl...
+  //        somehow.
+  // return !g_tls_connection_base_handshake_thread_verify_certificate (
+  /* Return 1 for the handshake to continue, 0 to terminate.
+   * Complete opposite of what GnuTLS does. */
   return 0;
-#endif
-}
-
-static GTlsCertificateFlags
-verify_peer_certificate (GTlsConnectionOpenssl *openssl,
-                         GTlsCertificate       *peer_certificate)
-{
-  GTlsConnection *conn = G_TLS_CONNECTION (openssl);
-  GSocketConnectable *peer_identity;
-  GTlsDatabase *database;
-  GTlsCertificateFlags errors;
-  gboolean is_client;
-
-  is_client = G_IS_TLS_CLIENT_CONNECTION (openssl);
-  if (is_client)
-    peer_identity = g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (openssl));
-  else
-    peer_identity = NULL;
-
-  errors = 0;
-
-  database = g_tls_connection_get_database (conn);
-  if (database == NULL)
-    {
-      errors |= G_TLS_CERTIFICATE_UNKNOWN_CA;
-      errors |= g_tls_certificate_verify (peer_certificate, peer_identity, NULL);
-    }
-  else
-    {
-      GError *error = NULL;
-
-      errors |= g_tls_database_verify_chain (database, peer_certificate,
-                                             is_client ?
-                                             G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER :
-                                             G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
-                                             peer_identity,
-                                             g_tls_connection_get_interaction (conn),
-                                             G_TLS_DATABASE_VERIFY_NONE,
-                                             NULL, &error);
-      if (error)
-        {
-          g_warning ("failure verifying certificate chain: %s",
-                     error->message);
-          g_assert (errors != 0);
-          g_clear_error (&error);
-        }
-    }
-
-  if (is_client && (errors == 0))
-    errors = verify_ocsp_response (openssl, database, peer_certificate);
-
-  return errors;
 }
 
 static GTlsConnectionBaseStatus
-g_tls_connection_openssl_handshake (GTlsConnectionBase  *tls,
-                                    gint64               timeout,
-                                    GCancellable        *cancellable,
-                                    GError             **error)
+g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
+                                                     gint64               timeout,
+                                                     GCancellable        *cancellable,
+                                                     GError             **error)
 {
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
   GTlsConnectionBaseStatus status;
   SSL *ssl;
   int ret;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
@@ -391,54 +322,6 @@ g_tls_connection_openssl_handshake (GTlsConnectionBase  *tls,
   ret = SSL_do_handshake (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
                   _("Error performing TLS handshake: %s"), error);
-
-  if (ret > 0)
-    {
-      priv->peer_certificate_tmp = get_peer_certificate (openssl);
-      if (priv->peer_certificate_tmp)
-        priv->peer_certificate_errors_tmp = verify_peer_certificate (openssl, priv->peer_certificate_tmp);
-      else if (G_IS_TLS_CLIENT_CONNECTION (openssl))
-        {
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                               _("Server did not return a valid TLS certificate"));
-        }
-    }
-
-  return status;
-}
-
-static GTlsConnectionBaseStatus
-g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
-                                             GError             **error)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
-  GTlsCertificate *peer_certificate;
-  GTlsCertificateFlags peer_certificate_errors = 0;
-  GTlsConnectionBaseStatus status = G_TLS_CONNECTION_BASE_OK;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  peer_certificate = priv->peer_certificate_tmp;
-  priv->peer_certificate_tmp = NULL;
-  peer_certificate_errors = priv->peer_certificate_errors_tmp;
-  priv->peer_certificate_errors_tmp = 0;
-
-  if (peer_certificate)
-    {
-      if (!g_tls_connection_base_accept_peer_certificate (tls, peer_certificate,
-                                                          peer_certificate_errors))
-        {
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                               _("Unacceptable TLS certificate"));
-          status = G_TLS_CONNECTION_BASE_ERROR;
-        }
-
-      g_tls_connection_base_set_peer_certificate (G_TLS_CONNECTION_BASE (openssl),
-                                                  peer_certificate,
-                                                  peer_certificate_errors);
-      g_clear_object (&peer_certificate);
-    }
 
   return status;
 }
@@ -584,16 +467,16 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  gobject_class->finalize     = g_tls_connection_openssl_finalize;
+  gobject_class->finalize                = g_tls_connection_openssl_finalize;
 
-  base_class->request_rehandshake = g_tls_connection_openssl_request_rehandshake;
-  base_class->handshake           = g_tls_connection_openssl_handshake;
-  base_class->complete_handshake  = g_tls_connection_openssl_complete_handshake;
-  base_class->push_io             = g_tls_connection_openssl_push_io;
-  base_class->pop_io              = g_tls_connection_openssl_pop_io;
-  base_class->read_fn             = g_tls_connection_openssl_read;
-  base_class->write_fn            = g_tls_connection_openssl_write;
-  base_class->close_fn            = g_tls_connection_openssl_close;
+  base_class->request_rehandshake        = g_tls_connection_openssl_request_rehandshake;
+  base_class->handshake_thread_handshake = g_tls_connection_openssl_handshake_thread_handshake;
+  base_class->retrieve_peer_certificate  = g_tls_connection_openssl_retrieve_peer_certificate;
+  base_class->push_io                    = g_tls_connection_openssl_push_io;
+  base_class->pop_io                     = g_tls_connection_openssl_pop_io;
+  base_class->read_fn                    = g_tls_connection_openssl_read;
+  base_class->write_fn                   = g_tls_connection_openssl_write;
+  base_class->close_fn                   = g_tls_connection_openssl_close;
 }
 
 static gboolean
@@ -616,6 +499,8 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
   g_assert (ssl != NULL);
+
+  SSL_set_verify (ssl, SSL_VERIFY_PEER, handshake_thread_verify_certificate_cb);
 
   priv->bio = g_tls_bio_new (base_io_stream);
 
