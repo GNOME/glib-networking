@@ -320,6 +320,7 @@ verify_ocsp_response (GTlsConnectionOpenssl *openssl,
 #endif
 }
 
+/* FIXME: Share with GnuTLS */
 static GTlsCertificateFlags
 verify_peer_certificate (GTlsConnectionOpenssl *openssl,
                          GTlsCertificate       *peer_certificate)
@@ -371,11 +372,45 @@ verify_peer_certificate (GTlsConnectionOpenssl *openssl,
   return errors;
 }
 
+/* FIXME: Share with GnuTLS */
+static gboolean
+accept_peer_certificate (GTlsConnectionBase   *tls,
+                         GTlsCertificate      *peer_certificate,
+                         GTlsCertificateFlags  peer_certificate_errors)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  gboolean accepted = FALSE;
+
+  if (G_IS_TLS_CLIENT_CONNECTION (tls) && priv->peer_certificate)
+    {
+      GTlsCertificateFlags validation_flags;
+
+      if (!g_tls_connection_base_is_dtls (tls))
+        validation_flags =
+          g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (tls));
+      else
+        validation_flags =
+          g_dtls_client_connection_get_validation_flags (G_DTLS_CLIENT_CONNECTION (tls));
+
+      if ((peer_certificate_errors & validation_flags) == 0)
+        accepted = TRUE;
+    }
+
+  if (!accepted)
+    {
+      accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (tls),
+                                                           peer_certificate,
+                                                           peer_certificate_errors);
+    }
+
+  return accepted;
+}
+
 static GTlsConnectionBaseStatus
-g_tls_connection_openssl_handshake (GTlsConnectionBase  *tls,
-                                    gint64               timeout,
-                                    GCancellable        *cancellable,
-                                    GError             **error)
+g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
+                                                     gint64               timeout,
+                                                     GCancellable        *cancellable,
+                                                     GError             **error)
 {
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
   GTlsConnectionOpensslPrivate *priv;
@@ -407,18 +442,20 @@ g_tls_connection_openssl_handshake (GTlsConnectionBase  *tls,
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static void
 g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
+                                             gchar              **negotiated_protocol,
                                              GError             **error)
 {
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
   GTlsConnectionOpensslPrivate *priv;
   GTlsCertificate *peer_certificate;
   GTlsCertificateFlags peer_certificate_errors = 0;
-  GTlsConnectionBaseStatus status = G_TLS_CONNECTION_BASE_OK;
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
+// FIXME
+#if 0
   peer_certificate = priv->peer_certificate_tmp;
   priv->peer_certificate_tmp = NULL;
   peer_certificate_errors = priv->peer_certificate_errors_tmp;
@@ -426,8 +463,8 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
 
   if (peer_certificate)
     {
-      if (!g_tls_connection_base_accept_peer_certificate (tls, peer_certificate,
-                                                          peer_certificate_errors))
+      /* FIXME: This is too late. Verification should occur during the handshake. */
+      if (!accept_peer_certificate (tls, peer_certificate, peer_certificate_errors))
         {
           g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                                _("Unacceptable TLS certificate"));
@@ -439,8 +476,7 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
                                                   peer_certificate_errors);
       g_clear_object (&peer_certificate);
     }
-
-  return status;
+#endif
 }
 
 static void
@@ -584,16 +620,16 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  gobject_class->finalize     = g_tls_connection_openssl_finalize;
+  gobject_class->finalize = g_tls_connection_openssl_finalize;
 
-  base_class->request_rehandshake = g_tls_connection_openssl_request_rehandshake;
-  base_class->handshake           = g_tls_connection_openssl_handshake;
-  base_class->complete_handshake  = g_tls_connection_openssl_complete_handshake;
-  base_class->push_io             = g_tls_connection_openssl_push_io;
-  base_class->pop_io              = g_tls_connection_openssl_pop_io;
-  base_class->read_fn             = g_tls_connection_openssl_read;
-  base_class->write_fn            = g_tls_connection_openssl_write;
-  base_class->close_fn            = g_tls_connection_openssl_close;
+  base_class->request_rehandshake        = g_tls_connection_openssl_request_rehandshake;
+  base_class->handshake_thread_handshake = g_tls_connection_openssl_handshake_thread_handshake;
+  base_class->complete_handshake         = g_tls_connection_openssl_complete_handshake;
+  base_class->push_io                    = g_tls_connection_openssl_push_io;
+  base_class->pop_io                     = g_tls_connection_openssl_pop_io;
+  base_class->read_fn                    = g_tls_connection_openssl_read;
+  base_class->write_fn                   = g_tls_connection_openssl_write;
+  base_class->close_fn                   = g_tls_connection_openssl_close;
 }
 
 static gboolean

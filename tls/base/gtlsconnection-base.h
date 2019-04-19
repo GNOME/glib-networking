@@ -52,17 +52,21 @@ typedef enum {
 
 struct _GTlsConnectionBaseClass
 {
-  GTlsConnectionClass parent_class;
+  GTlsConnectionClass parent_class;                                      
 
   GTlsConnectionBaseStatus (*request_rehandshake)  (GTlsConnectionBase  *tls,
                                                     gint64               timeout,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
-  GTlsConnectionBaseStatus (*handshake)            (GTlsConnectionBase  *tls,
+  void                     (*prepare_handshake)    (GTlsConnectionBase  *tls,
+                                                    gchar              **advertised_protocols);            
+  GTlsConnectionBaseStatus (*handshake_thread_handshake)
+                                                   (GTlsConnectionBase  *tls,
                                                     gint64               timeout,
                                                     GCancellable        *cancellable,
                                                     GError             **error);
-  GTlsConnectionBaseStatus (*complete_handshake)   (GTlsConnectionBase  *tls,
+  void                     (*complete_handshake)   (GTlsConnectionBase  *tls,
+                                                    gchar              **negotiated_protocol,
                                                     GError             **error);
 
   void                     (*push_io)              (GTlsConnectionBase  *tls,
@@ -110,10 +114,6 @@ struct _GTlsConnectionBaseClass
                                                     GError             **error);
 };
 
-gboolean g_tls_connection_base_accept_peer_certificate (GTlsConnectionBase   *tls,
-                                                        GTlsCertificate      *peer_certificate,
-                                                        GTlsCertificateFlags  peer_certificate_errors);
-
 void g_tls_connection_base_set_peer_certificate (GTlsConnectionBase   *tls,
                                                  GTlsCertificate      *peer_certificate,
                                                  GTlsCertificateFlags  peer_certificate_errors);
@@ -143,6 +143,8 @@ gssize   g_tls_connection_base_write         (GTlsConnectionBase  *tls,
 
 gboolean g_tls_connection_base_check         (GTlsConnectionBase  *tls,
                                               GIOCondition         condition);
+gboolean g_tls_connection_base_base_check    (GTlsConnectionBase  *tls,
+                                              GIOCondition         condition);
 GSource *g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
                                               GIOCondition         condition,
                                               GCancellable        *cancellable);
@@ -153,18 +155,36 @@ gboolean g_tls_connection_base_close_internal (GIOStream      *stream,
                                                GCancellable   *cancellable,
                                                GError        **error);
 
-void     g_tls_connection_base_set_certificate_requested (GTlsConnectionBase *tls);
+gboolean        g_tls_connection_base_is_dtls            (GTlsConnectionBase *tls);
 
-GError **g_tls_connection_base_get_certificate_error     (GTlsConnectionBase *tls);
-GError **g_tls_connection_base_get_read_error            (GTlsConnectionBase *tls);
-GError **g_tls_connection_base_get_write_error           (GTlsConnectionBase *tls);
+GDatagramBased *g_tls_connection_base_get_base_socket    (GTlsConnectionBase *tls);
 
-gboolean g_tls_connection_base_is_handshaking            (GTlsConnectionBase *tls);
+GIOStream              *g_tls_connection_base_get_base_iostream  (GTlsConnectionBase *tls);
+GPollableInputStream   *g_tls_connection_base_get_base_istream   (GTlsConnectionBase *tls);
+GPollableOutputStream  *g_tls_connection_base_get_base_ostream   (GTlsConnectionBase *tls);
 
-gboolean g_tls_connection_base_ever_handshaked           (GTlsConnectionBase *tls);
+void            g_tls_connection_base_set_missing_requested_client_certificate
+                                                                 (GTlsConnectionBase *tls);
 
-gboolean g_tls_connection_base_request_certificate (GTlsConnectionBase  *tls,
-                                                    GError             **error);
+GError        **g_tls_connection_base_get_certificate_error      (GTlsConnectionBase *tls);
+GError        **g_tls_connection_base_get_read_error             (GTlsConnectionBase *tls);
+GError        **g_tls_connection_base_get_write_error            (GTlsConnectionBase *tls);
+
+gint64          g_tls_connection_base_get_read_timeout           (GTlsConnectionBase *tls);
+gint64          g_tls_connection_base_get_write_timeout          (GTlsConnectionBase *tls);
+
+gboolean        g_tls_connection_base_is_handshaking             (GTlsConnectionBase *tls);
+
+gboolean        g_tls_connection_base_ever_handshaked            (GTlsConnectionBase *tls);
+
+gboolean        g_tls_connection_base_request_certificate (GTlsConnectionBase  *tls,
+                                                           GError             **error);
+
+void            g_tls_connection_base_buffer_application_data (GTlsConnectionBase *tls,
+                                                               guint8             *data,
+                                                               gsize               length);
+
+void            g_tls_connection_base_set_advertised_protocols
 
 void GTLS_DEBUG (gpointer    gnutls,
                  const char *message,
