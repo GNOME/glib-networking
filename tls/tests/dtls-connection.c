@@ -89,9 +89,7 @@ typedef struct {
   gboolean expect_server_error;
   GError *server_error;
   gboolean server_running;
-#if GLIB_CHECK_VERSION(2, 60, 0)
   const gchar * const *server_protocols;
-#endif
 
   char buf[128];
   gssize nread, nwrote;
@@ -400,13 +398,11 @@ on_incoming_connection (GSocket       *socket,
   if (test->database)
     g_dtls_connection_set_database (G_DTLS_CONNECTION (test->server_connection), test->database);
 
-#if GLIB_CHECK_VERSION(2, 60, 0)
   if (test->server_protocols)
     {
       g_dtls_connection_set_advertised_protocols (G_DTLS_CONNECTION (test->server_connection),
                                                   test->server_protocols);
     }
-#endif
 
   if (test->test_data->server_should_disappear)
     {
@@ -743,7 +739,6 @@ test_alpn (TestConnection *test,
            const char * const *server_protocols,
            const char *negotiated_protocol)
 {
-#if GLIB_CHECK_VERSION(2, 60, 0)
   GDatagramBased *connection;
   GError *error = NULL;
 
@@ -775,9 +770,6 @@ test_alpn (TestConnection *test,
 
   g_assert_cmpstr (g_dtls_connection_get_negotiated_protocol (G_DTLS_CONNECTION (test->server_connection)), ==, negotiated_protocol);
   g_assert_cmpstr (g_dtls_connection_get_negotiated_protocol (G_DTLS_CONNECTION (test->client_connection)), ==, negotiated_protocol);
-#else
-  g_test_skip ("no support for ALPN in this GLib version");
-#endif
 }
 
 static void

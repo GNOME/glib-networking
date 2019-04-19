@@ -20,8 +20,8 @@ deps = [
   glib_dep,
   gmodule_dep,
   gobject_dep,
-  tlsbase_dep,
   openssl_dep,
+  tlsbase_dep,
 ]
 
 module = shared_module(

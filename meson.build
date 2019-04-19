@@ -43,7 +43,7 @@ if host_system.contains('linux')
 endif
 
 # *** Check GLib GIO        ***
-glib_dep = dependency('glib-2.0', version: '>= 2.55.1',
+glib_dep = dependency('glib-2.0', version: '>= 2.60.0',
   fallback: ['glib', 'libglib_dep'])
 gio_dep = dependency('gio-2.0',
   fallback: ['glib', 'libgio_dep'])

@@ -184,41 +184,6 @@ g_tls_backend_openssl_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_backend_openssl_parent_class)->finalize (object);
 }
 
-static GTlsDatabase *
-g_tls_backend_openssl_create_database (GTlsBackendOpenssl  *self,
-                                       GError             **error)
-{
-  gchar *anchor_file = NULL;
-  GTlsDatabase *database;
-
-#ifdef G_OS_WIN32
-  if (g_getenv ("G_TLS_OPENSSL_HANDLE_CERT_RELOCATABLE") != NULL)
-    {
-      gchar *module_dir;
-
-      module_dir = g_win32_get_package_installation_directory_of_module (NULL);
-      anchor_file = g_build_filename (module_dir, "bin", "cert.pem", NULL);
-      g_free (module_dir);
-    }
-#endif
-
-  if (anchor_file == NULL)
-    {
-      const gchar *openssl_cert_file;
-
-      openssl_cert_file = g_getenv (X509_get_default_cert_file_env ());
-      if (openssl_cert_file == NULL)
-        openssl_cert_file = X509_get_default_cert_file ();
-
-      anchor_file = g_strdup (openssl_cert_file);
-    }
-
-  database = g_tls_file_database_new (anchor_file, error);
-  g_free (anchor_file);
-
-  return database;
-}
-
 static void
 g_tls_backend_openssl_class_init (GTlsBackendOpensslClass *klass)
 {
