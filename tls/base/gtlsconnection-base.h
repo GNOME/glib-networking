@@ -43,9 +43,9 @@ typedef enum {
 } GTlsConnectionBaseStatus;
 
 typedef enum {
-        G_TLS_DIRECTION_NONE = 0,
-        G_TLS_DIRECTION_READ = 1 << 0,
-        G_TLS_DIRECTION_WRITE = 1 << 1,
+  G_TLS_DIRECTION_NONE = 0,
+  G_TLS_DIRECTION_READ = 1 << 0,
+  G_TLS_DIRECTION_WRITE = 1 << 1,
 } GTlsDirection;
 
 #define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
@@ -54,121 +54,148 @@ struct _GTlsConnectionBaseClass
 {
   GTlsConnectionClass parent_class;
 
-  GTlsConnectionBaseStatus (*request_rehandshake)  (GTlsConnectionBase  *tls,
-                                                    gint64               timeout,
-                                                    GCancellable        *cancellable,
-                                                    GError             **error);
-  GTlsConnectionBaseStatus (*handshake)            (GTlsConnectionBase  *tls,
-                                                    gint64               timeout,
-                                                    GCancellable        *cancellable,
-                                                    GError             **error);
-  GTlsConnectionBaseStatus (*complete_handshake)   (GTlsConnectionBase  *tls,
-                                                    GError             **error);
+  GTlsConnectionBaseStatus (*request_rehandshake)        (GTlsConnectionBase   *tls,
+                                                          gint64                timeout,
+                                                          GCancellable         *cancellable,
+                                                          GError              **error);
 
-  void                     (*push_io)              (GTlsConnectionBase  *tls,
-                                                    GIOCondition         direction,
-                                                    gint64               timeout,
-                                                    GCancellable        *cancellable);
-  GTlsConnectionBaseStatus (*pop_io)               (GTlsConnectionBase  *tls,
-                                                    GIOCondition         direction,
-                                                    gboolean             success,
-                                                    GError             **error);
+  void                     (*prepare_handshake)          (GTlsConnectionBase   *tls,
+                                                          gchar               **advertised_protocols);
+  GTlsConnectionBaseStatus (*handshake_thread_handshake) (GTlsConnectionBase   *tls,
+                                                          gint64                timeout,
+                                                          GCancellable         *cancellable,
+                                                          GError              **error);
+  GTlsCertificate         *(*retrieve_peer_certificate)  (GTlsConnectionBase   *tls);
+  GTlsCertificateFlags     (*verify_peer_certificate)    (GTlsConnectionBase   *tls,
+                                                          GTlsCertificate      *certificate,
+                                                          GTlsCertificateFlags  flags);
+  void                     (*complete_handshake)         (GTlsConnectionBase   *tls,
+                                                          gchar               **negotiated_protocol,
+                                                          GError              **error);
 
-  GTlsConnectionBaseStatus (*read_fn)              (GTlsConnectionBase  *tls,
-                                                    void                *buffer,
-                                                    gsize                count,
-                                                    gint64               timeout,
-                                                    gssize              *nread,
-                                                    GCancellable        *cancellable,
-                                                    GError             **error);
-  GTlsConnectionBaseStatus (*read_message_fn)      (GTlsConnectionBase  *tls,
-                                                    GInputVector        *vectors,
-                                                    guint                num_vectors,
-                                                    gint64               timeout,
-                                                    gssize              *nread,
-                                                    GCancellable        *cancellable,
-                                                    GError             **error);
+  gboolean                 (*is_session_resumed)         (GTlsConnectionBase   *tls);
 
-  GTlsConnectionBaseStatus (*write_fn)             (GTlsConnectionBase  *tls,
-                                                    const void          *buffer,
-                                                    gsize                count,
-                                                    gint64               timeout,
-                                                    gssize              *nwrote,
-                                                    GCancellable        *cancellable,
-                                                    GError             **error);
-  GTlsConnectionBaseStatus (*write_message_fn)     (GTlsConnectionBase  *tls,
-                                                    GOutputVector       *vectors,
-                                                    guint                num_vectors,
-                                                    gint64               timeout,
-                                                    gssize              *nwrote,
-                                                    GCancellable        *cancellable,
-                                                    GError             **error);
+  void                     (*push_io)                    (GTlsConnectionBase   *tls,
+                                                          GIOCondition          direction,
+                                                          gint64                timeout,
+                                                          GCancellable         *cancellable);
+  GTlsConnectionBaseStatus (*pop_io)                     (GTlsConnectionBase   *tls,
+                                                          GIOCondition          direction,
+                                                          gboolean              success,
+                                                          GError              **error);
 
-  GTlsConnectionBaseStatus (*close_fn)             (GTlsConnectionBase  *tls,
-                                                    gint64               timeout,
-                                                    GCancellable        *cancellable,
-                                                    GError             **error);
+  void                     (*failed)                     (GTlsConnectionBase   *tls);
+
+  GTlsConnectionBaseStatus (*read_fn)                    (GTlsConnectionBase   *tls,
+                                                          void                 *buffer,
+                                                          gsize                 count,
+                                                          gint64                timeout,
+                                                          gssize               *nread,
+                                                          GCancellable         *cancellable,
+                                                          GError              **error);
+  GTlsConnectionBaseStatus (*read_message_fn)            (GTlsConnectionBase   *tls,
+                                                          GInputVector         *vectors,
+                                                          guint                 num_vectors,
+                                                          gint64                timeout,
+                                                          gssize               *nread,
+                                                          GCancellable         *cancellable,
+                                                          GError              **error);
+
+  GTlsConnectionBaseStatus (*write_fn)                   (GTlsConnectionBase   *tls,
+                                                          const void           *buffer,
+                                                          gsize                 count,
+                                                          gint64                timeout,
+                                                          gssize               *nwrote,
+                                                          GCancellable         *cancellable,
+                                                          GError              **error);
+  GTlsConnectionBaseStatus (*write_message_fn)           (GTlsConnectionBase   *tls,
+                                                          GOutputVector        *vectors,
+                                                          guint                 num_vectors,
+                                                          gint64                timeout,
+                                                          gssize               *nwrote,
+                                                          GCancellable         *cancellable,
+                                                          GError              **error);
+
+  GTlsConnectionBaseStatus (*close_fn)                   (GTlsConnectionBase   *tls,
+                                                          gint64                timeout,
+                                                          GCancellable         *cancellable,
+                                                          GError              **error);
 };
 
-gboolean g_tls_connection_base_accept_peer_certificate (GTlsConnectionBase   *tls,
-                                                        GTlsCertificate      *peer_certificate,
-                                                        GTlsCertificateFlags  peer_certificate_errors);
+gboolean                  g_tls_connection_base_handshake_thread_verify_certificate
+                                                                        (GTlsConnectionBase *tls);
 
-void g_tls_connection_base_set_peer_certificate (GTlsConnectionBase   *tls,
-                                                 GTlsCertificate      *peer_certificate,
-                                                 GTlsCertificateFlags  peer_certificate_errors);
+void                      g_tls_connection_base_push_io                 (GTlsConnectionBase *tls,
+                                                                         GIOCondition        direction,
+                                                                         gint64              timeout,
+                                                                         GCancellable       *cancellable);
+GTlsConnectionBaseStatus  g_tls_connection_base_pop_io                  (GTlsConnectionBase  *tls,
+                                                                         GIOCondition         direction,
+                                                                         gboolean             success,
+                                                                         GError             **error);
 
-void     g_tls_connection_base_push_io       (GTlsConnectionBase *tls,
-                                              GIOCondition        direction,
-                                              gint64              timeout,
-                                              GCancellable       *cancellable);
-GTlsConnectionBaseStatus
-         g_tls_connection_base_pop_io        (GTlsConnectionBase  *tls,
-                                              GIOCondition         direction,
-                                              gboolean             success,
-                                              GError             **error);
+gssize                    g_tls_connection_base_read                    (GTlsConnectionBase  *tls,
+                                                                         void                *buffer,
+                                                                         gsize                size,
+                                                                         gint64               timeout,
+                                                                         GCancellable        *cancellable,
+                                                                         GError             **error);
+gssize                    g_tls_connection_base_write                   (GTlsConnectionBase  *tls,
+                                                                         const void          *buffer,
+                                                                         gsize                size,
+                                                                         gint64               timeout,
+                                                                         GCancellable        *cancellable,
+                                                                         GError             **error);
 
-gssize   g_tls_connection_base_read          (GTlsConnectionBase  *tls,
-                                              void                *buffer,
-                                              gsize                size,
-                                              gint64               timeout,
-                                              GCancellable        *cancellable,
-                                              GError             **error);
-gssize   g_tls_connection_base_write         (GTlsConnectionBase  *tls,
-                                              const void          *buffer,
-                                              gsize                size,
-                                              gint64               timeout,
-                                              GCancellable        *cancellable,
-                                              GError             **error);
+gboolean                  g_tls_connection_base_check                   (GTlsConnectionBase  *tls,
+                                                                         GIOCondition         condition);
+gboolean                  g_tls_connection_base_base_check              (GTlsConnectionBase  *tls,
+                                                                         GIOCondition         condition);
+GSource                  *g_tls_connection_base_create_source           (GTlsConnectionBase  *tls,
+                                                                         GIOCondition         condition,
+                                                                         GCancellable        *cancellable);
 
-gboolean g_tls_connection_base_check         (GTlsConnectionBase  *tls,
-                                              GIOCondition         condition);
-GSource *g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
-                                              GIOCondition         condition,
-                                              GCancellable        *cancellable);
+gboolean                  g_tls_connection_base_close_internal          (GIOStream      *stream,
+                                                                         GTlsDirection   direction,
+                                                                         gint64          timeout,
+                                                                         GCancellable   *cancellable,
+                                                                         GError        **error);
 
-gboolean g_tls_connection_base_close_internal (GIOStream      *stream,
-                                               GTlsDirection   direction,
-                                               gint64          timeout,
-                                               GCancellable   *cancellable,
-                                               GError        **error);
+gboolean                  g_tls_connection_base_is_dtls                 (GTlsConnectionBase *tls);
 
-void     g_tls_connection_base_set_certificate_requested (GTlsConnectionBase *tls);
+GDatagramBased           *g_tls_connection_base_get_base_socket         (GTlsConnectionBase *tls);
 
-GError **g_tls_connection_base_get_certificate_error     (GTlsConnectionBase *tls);
-GError **g_tls_connection_base_get_read_error            (GTlsConnectionBase *tls);
-GError **g_tls_connection_base_get_write_error           (GTlsConnectionBase *tls);
+GIOStream                *g_tls_connection_base_get_base_iostream       (GTlsConnectionBase *tls);
+GPollableInputStream     *g_tls_connection_base_get_base_istream        (GTlsConnectionBase *tls);
+GPollableOutputStream    *g_tls_connection_base_get_base_ostream        (GTlsConnectionBase *tls);
 
-gboolean g_tls_connection_base_is_handshaking            (GTlsConnectionBase *tls);
+void                      g_tls_connection_base_set_missing_requested_client_certificate
+                                                                        (GTlsConnectionBase *tls);
 
-gboolean g_tls_connection_base_ever_handshaked           (GTlsConnectionBase *tls);
+GError                  **g_tls_connection_base_get_certificate_error   (GTlsConnectionBase *tls);
+GError                  **g_tls_connection_base_get_read_error          (GTlsConnectionBase *tls);
+GError                  **g_tls_connection_base_get_write_error         (GTlsConnectionBase *tls);
 
-gboolean g_tls_connection_base_request_certificate (GTlsConnectionBase  *tls,
-                                                    GError             **error);
+gint64                    g_tls_connection_base_get_read_timeout        (GTlsConnectionBase *tls);
+gint64                    g_tls_connection_base_get_write_timeout       (GTlsConnectionBase *tls);
 
-void GTLS_DEBUG (gpointer    gnutls,
-                 const char *message,
-                 ...);
+GCancellable             *g_tls_connection_base_get_read_cancellable    (GTlsConnectionBase *tls);
+GCancellable             *g_tls_connection_base_get_write_cancellable   (GTlsConnectionBase *tls);
+
+gboolean                  g_tls_connection_base_is_handshaking          (GTlsConnectionBase *tls);
+
+gboolean                  g_tls_connection_base_ever_handshaked         (GTlsConnectionBase *tls);
+
+gboolean                  g_tls_connection_base_request_certificate     (GTlsConnectionBase  *tls,
+                                                                         GError             **error);
+
+void                      g_tls_connection_base_buffer_application_data (GTlsConnectionBase *tls,
+                                                                         guint8             *data,
+                                                                         gsize               length);
+
+void                      GTLS_DEBUG                                    (gpointer    connection,
+                                                                         const char *message,
+                                                                         ...);
 
 G_END_DECLS
 
