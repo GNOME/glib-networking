@@ -209,10 +209,9 @@ g_tls_server_connection_gnutls_failed (GTlsConnectionGnutls *conn)
   gnutls_db_remove_session (g_tls_connection_gnutls_get_session (conn));
 }
 
-static GTlsConnectionBaseStatus
-g_tls_server_connection_gnutls_handshake (GTlsConnectionBase  *tls,
-                                          GCancellable        *cancellable,
-                                          GError             **error)
+static void
+g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
+                                                  gchar              **advertised_protocols)
 {
   GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (tls);
   gnutls_session_t session;
@@ -235,7 +234,7 @@ g_tls_server_connection_gnutls_handshake (GTlsConnectionBase  *tls,
   session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls));
   gnutls_certificate_server_set_request (session, req_mode);
 
-  return G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_gnutls_parent_class)->handshake (tls, cancellable, error);
+  G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_gnutls_parent_class)->prepare_handshake (tls, advertised_protocols);
 }
 
 /* Session cache management */
@@ -307,7 +306,7 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 
-  base_class->handshake  = g_tls_server_connection_gnutls_handshake;
+  base_class->prepare_handshake  = g_tls_server_connection_gnutls_prepare_handshake;
 
   gnutls_class->failed           = g_tls_server_connection_gnutls_failed;
 

@@ -92,6 +92,11 @@ typedef struct
   GTlsCertificate       *peer_certificate;
   GTlsCertificateFlags   peer_certificate_errors;
 
+  GMutex                 verify_certificate_mutex;
+  GCond                  verify_certificate_condition;
+  gboolean               peer_certificate_accepted;
+  gboolean               peer_certificate_examined;
+
   gboolean               require_close_notify;
   GTlsRehandshakeMode    rehandshake_mode;
 
@@ -121,6 +126,7 @@ typedef struct
   gboolean       started_handshake;
   gboolean       handshaking;
   gboolean       ever_handshaked;
+  GMainContext  *handshake_context;
   GTask         *implicit_handshake;
   GError        *handshake_error;
   GByteArray    *app_data_buf;
@@ -209,7 +215,11 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
   priv->database_is_unset = TRUE;
   priv->is_system_certdb = TRUE;
 
+  g_mutex_init (&priv->verify_certificate_mutex);
+  g_cond_init (&priv->verify_certificate_condition);
+
   g_mutex_init (&priv->op_mutex);
+
   priv->waiting_for_op = g_cancellable_new ();
   g_cancellable_cancel (priv->waiting_for_op);
 }
@@ -231,7 +241,12 @@ g_tls_connection_base_finalize (GObject *object)
   g_clear_error (&priv->certificate_error);
   g_clear_object (&priv->peer_certificate);
 
+  g_mutex_clear (&priv->verify_certificate_mutex);	
+  g_cond_clear (&priv->verify_certificate_condition);
+
   g_clear_object (&priv->interaction);
+
+  g_clear_pointer (&priv->handshake_context, g_main_context_unref);
 
   /* This must always be NULL at this point, as it holds a reference to @tls as
    * its source object. However, we clear it anyway just in case this changes
@@ -249,11 +264,9 @@ g_tls_connection_base_finalize (GObject *object)
 
   g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
 
-#if GLIB_CHECK_VERSION(2, 60, 0)
   g_clear_pointer (&priv->advertised_protocols, g_strfreev);
   g_clear_pointer (&priv->negotiated_protocol, g_free);
-#endif
-
+c
   G_OBJECT_CLASS (g_tls_connection_base_parent_class)->finalize (object);
 }
 
@@ -508,6 +521,7 @@ claim_op (GTlsConnectionBase    *tls,
           g_mutex_unlock (&priv->op_mutex);
           success = finish_handshake (tls, priv->implicit_handshake, &my_error);
           g_clear_object (&priv->implicit_handshake);
+          g_clear_pointer (&priv->handshake_context, g_main_context_unref);
           g_mutex_lock (&priv->op_mutex);
 
           if (op != G_TLS_CONNECTION_BASE_OP_CLOSE_BOTH &&
@@ -1247,11 +1261,21 @@ finish_handshake (GTlsConnectionBase  *tls,
   orig_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
 
   if (g_task_propagate_boolean (task, &my_error))
-    tls_class->complete_handshake (tls, &priv->negotiated_protocol, &my_error);
+    {
+      if (tls_class->complete_handshake)
+        tls_class->complete_handshake (tls, &priv->negotiated_protocol, &my_error);
 
-  if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
-    g_object_notify (G_OBJECT (tls), "negotiated-protocol");
-  g_free (original_negotiated_protocol);
+      if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
+        g_object_notify (G_OBJECT (tls), "negotiated-protocol");
+      g_free (original_negotiated_protocol);
+
+      /* FIXME: Return an error from the handshake thread instead. */
+      if (priv->peer_certificate && !priv->peer_certificate_accepted)
+        {
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                               _("Unacceptable TLS certificate"));
+        }
+    }
 
   if (my_error && priv->started_handshake)
     priv->handshake_error = g_error_copy (my_error);
@@ -1333,8 +1357,6 @@ handshake_thread_completed (GObject      *object,
   GError *error = NULL;
   gboolean need_finish_handshake, success;
 
-  g_clear_pointer (&priv->handshake_context, g_main_context_unref);
-
   g_mutex_lock (&priv->op_mutex);
   if (priv->need_finish_handshake)
     {
@@ -1358,6 +1380,7 @@ handshake_thread_completed (GObject      *object,
   else
     g_task_return_boolean (caller_task, TRUE);
 
+  g_clear_pointer (&priv->handshake_context, g_main_context_unref);
   g_object_unref (caller_task);
 }
 
@@ -1400,9 +1423,13 @@ g_tls_connection_base_handshake_async (GTlsConnection      *conn,
   g_assert (!priv->handshake_context);
   priv->handshake_context = g_main_context_ref_thread_default ();
 
+  if (tls_class->prepare_handshake)
+    tls_class->prepare_handshake (tls, priv->advertised_protocols);
+
   caller_task = g_task_new (conn, cancellable, callback, user_data);
   g_task_set_source_tag (caller_task, g_tls_connection_base_handshake_async);
   g_task_set_priority (caller_task, io_priority);
+
   thread_task = g_task_new (conn, cancellable, handshake_thread_completed, caller_task);
   g_task_set_source_tag (thread_task, g_tls_connection_base_handshake_async);
   g_task_set_priority (thread_task, io_priority);
@@ -1445,22 +1472,6 @@ g_tls_connection_base_dtls_handshake_finish (GDtlsConnection  *conn,
                                                  result, error);
 }
 
-static void
-implicit_handshake_completed (GObject      *object,
-                              GAsyncResult *result,
-                              gpointer      user_data)
-{
-  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  g_mutex_lock (&priv->op_mutex);
-  priv->need_finish_handshake = TRUE;
-  g_mutex_unlock (&priv->op_mutex);
-
-  yield_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
-            G_TLS_CONNECTION_BASE_OK);
-}
-
 static gboolean
 do_implicit_handshake (GTlsConnectionBase  *tls,
                        gint64               timeout,
@@ -1493,6 +1504,9 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
   g_task_set_task_data (priv->implicit_handshake,
                         thread_timeout, g_free);
 
+  if (tls_class->prepare_handshake)
+    tls_class->prepare_handshake (tls, priv->advertised_protocols);
+
   if (timeout != 0)
     {
       GError *my_error = NULL;
@@ -1509,18 +1523,20 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
 
       g_task_set_return_on_cancel (priv->implicit_handshake, TRUE);
       g_task_run_in_thread (priv->implicit_handshake, handshake_thread);
+
       crank_sync_handshake_context (tls, cancellable);
-
-      g_main_context_pop_thread_default (priv->handshake_context);
-
-      g_clear_pointer (&priv->handshake_context, g_main_context_unref);
 
       success = finish_handshake (tls,
                                   priv->implicit_handshake,
                                   &my_error);
+
+      g_main_context_pop_thread_default (priv->handshake_context);
+      g_clear_pointer (&priv->handshake_context, g_main_context_unref);
       g_clear_object (&priv->implicit_handshake);
+
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
                 G_TLS_CONNECTION_BASE_OK);
+
       g_mutex_lock (&priv->op_mutex);
 
       if (my_error)
@@ -2076,7 +2092,6 @@ g_tls_connection_base_dtls_shutdown_finish (GDtlsConnection  *conn,
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
-#if GLIB_CHECK_VERSION(2, 60, 0)
 static void
 g_tls_connection_base_dtls_set_advertised_protocols (GDtlsConnection     *conn,
                                                      const gchar * const *protocols)
@@ -2092,7 +2107,6 @@ g_tls_connection_base_dtls_get_negotiated_protocol (GDtlsConnection *conn)
 
   return priv->negotiated_protocol;
 }
-#endif
 
 gboolean
 g_tls_connection_base_is_dtls (GTlsConnectionBase *tls)
@@ -2285,10 +2299,8 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   g_object_class_override_property (gobject_class, PROP_INTERACTION, "interaction");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE, "peer-certificate");
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
-#if GLIB_CHECK_VERSION(2, 60, 0)
   g_object_class_override_property (gobject_class, PROP_ADVERTISED_PROTOCOLS, "advertised-protocols");
   g_object_class_override_property (gobject_class, PROP_NEGOTIATED_PROTOCOL, "negotiated-protocol");
-#endif
 }
 
 static void
@@ -2300,10 +2312,8 @@ g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInterface *ifac
   iface->shutdown = g_tls_connection_base_dtls_shutdown;
   iface->shutdown_async = g_tls_connection_base_dtls_shutdown_async;
   iface->shutdown_finish = g_tls_connection_base_dtls_shutdown_finish;
-#if GLIB_CHECK_VERSION(2, 60, 0)
   iface->set_advertised_protocols = g_tls_connection_base_dtls_set_advertised_protocols;
   iface->get_negotiated_protocol = g_tls_connection_gnutls_dtls_get_negotiated_protocol;
-#endif
 }
 
 static void

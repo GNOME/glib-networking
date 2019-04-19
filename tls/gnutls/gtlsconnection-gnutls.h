@@ -41,11 +41,10 @@ struct _GTlsConnectionGnutlsClass
 {
   GTlsConnectionBaseClass parent_class;
 
+// FIXME: investigate this
+#if 0
   void     (*failed)           (GTlsConnectionGnutls  *gnutls);
-
-  void     (*begin_handshake)  (GTlsConnectionGnutls  *gnutls);
-  void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
-                                GError               **inout_error);
+#endif
 };
 
 gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);

@@ -442,6 +442,8 @@ g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
   return status;
 }
 
+// FIXME all this needs to move up to base class
+#if 0
 static void
 g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
                                              gchar              **negotiated_protocol,
@@ -454,8 +456,6 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
-// FIXME
-#if 0
   peer_certificate = priv->peer_certificate_tmp;
   priv->peer_certificate_tmp = NULL;
   peer_certificate_errors = priv->peer_certificate_errors_tmp;
@@ -476,8 +476,8 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
                                                   peer_certificate_errors);
       g_clear_object (&peer_certificate);
     }
-#endif
 }
+#endif
 
 static void
 g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
@@ -620,11 +620,10 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  gobject_class->finalize = g_tls_connection_openssl_finalize;
+  gobject_class->finalize                = g_tls_connection_openssl_finalize;
 
   base_class->request_rehandshake        = g_tls_connection_openssl_request_rehandshake;
   base_class->handshake_thread_handshake = g_tls_connection_openssl_handshake_thread_handshake;
-  base_class->complete_handshake         = g_tls_connection_openssl_complete_handshake;
   base_class->push_io                    = g_tls_connection_openssl_push_io;
   base_class->pop_io                     = g_tls_connection_openssl_pop_io;
   base_class->read_fn                    = g_tls_connection_openssl_read;

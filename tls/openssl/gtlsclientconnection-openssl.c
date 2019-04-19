@@ -234,28 +234,6 @@ g_tls_client_connection_openssl_constructed (GObject *object)
   G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->constructed (object);
 }
 
-static GTlsConnectionBaseStatus
-g_tls_client_connection_openssl_handshake (GTlsConnectionBase  *tls,
-                                           gint64               timeout,
-                                           GCancellable        *cancellable,
-                                           GError             **error)
-{
-  return G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->
-    handshake (tls, timeout, cancellable, error);
-}
-
-static GTlsConnectionBaseStatus
-g_tls_client_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
-                                                    GError             **error)
-{
-  GTlsConnectionBaseStatus status;
-
-  status = G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->
-    complete_handshake (tls, error);
-
-  return status;
-}
-
 static SSL *
 g_tls_client_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection)
 {
@@ -273,9 +251,6 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
   gobject_class->get_property = g_tls_client_connection_openssl_get_property;
   gobject_class->set_property = g_tls_client_connection_openssl_set_property;
   gobject_class->constructed  = g_tls_client_connection_openssl_constructed;
-
-  base_class->handshake          = g_tls_client_connection_openssl_handshake;
-  base_class->complete_handshake = g_tls_client_connection_openssl_complete_handshake;
 
   connection_class->get_ssl = g_tls_client_connection_openssl_get_ssl;
 
