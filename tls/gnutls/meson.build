@@ -6,8 +6,6 @@ sources = files(
   'gtlsconnection-gnutls.c',
   'gtlsdatabase-gnutls.c',
   'gtlsfiledatabase-gnutls.c',
-  'gtlsinputstream-gnutls.c',
-  'gtlsoutputstream-gnutls.c',
   'gtlsserverconnection-gnutls.c'
 )
 
@@ -18,7 +16,8 @@ deps = [
   glib_dep,
   gmodule_dep,
   gobject_dep,
-  gnutls_dep
+  gnutls_dep,
+  tlsbase_dep
 ]
 
 module = shared_module(
@@ -34,10 +33,13 @@ module = shared_module(
 )
 
 if get_option('static_modules')
+  # link_whole is a workaround for a meson bug
+  # https://github.com/mesonbuild/meson/pull/3939
   static_library('giognutls',
     objects: module.extract_all_objects(),
     install: true,
-    install_dir: gio_module_dir
+    install_dir: gio_module_dir,
+    link_whole: [tlsbase]
   )
   pkg.generate(module)
 endif

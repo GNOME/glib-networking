@@ -39,6 +39,10 @@ G_DECLARE_DERIVABLE_TYPE (GTlsDatabaseOpenssl, g_tls_database_openssl, G, TLS_DA
 struct _GTlsDatabaseOpensslClass
 {
   GTlsDatabaseClass parent_class;
+
+  gboolean  (*populate_trust_list)            (GTlsDatabaseOpenssl       *self,
+                                               X509_STORE                *store,
+                                               GError                   **error);
 };
 
 GTlsDatabaseOpenssl      *g_tls_database_openssl_new                      (GError **error);

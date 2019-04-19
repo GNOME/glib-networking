@@ -29,70 +29,27 @@
 #include <gnutls/abstract.h>
 #include <gnutls/gnutls.h>
 
+#include "gtlsconnection-base.h"
+
 G_BEGIN_DECLS
 
 #define G_TYPE_TLS_CONNECTION_GNUTLS            (g_tls_connection_gnutls_get_type ())
 
-G_DECLARE_DERIVABLE_TYPE (GTlsConnectionGnutls, g_tls_connection_gnutls, G, TLS_CONNECTION_GNUTLS, GTlsConnection)
+G_DECLARE_DERIVABLE_TYPE (GTlsConnectionGnutls, g_tls_connection_gnutls, G, TLS_CONNECTION_GNUTLS, GTlsConnectionBase)
 
 struct _GTlsConnectionGnutlsClass
 {
-  GTlsConnectionClass parent_class;
-
-  void     (*failed)           (GTlsConnectionGnutls  *gnutls);
-
-  void     (*begin_handshake)  (GTlsConnectionGnutls  *gnutls);
-  void     (*finish_handshake) (GTlsConnectionGnutls  *gnutls,
-                                GError               **inout_error);
+  GTlsConnectionBaseClass parent_class;
 };
 
 gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);
+
 gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
 
 void     g_tls_connection_gnutls_get_certificate     (GTlsConnectionGnutls  *gnutls,
                                                       gnutls_pcert_st      **pcert,
                                                       unsigned int          *pcert_length,
                                                       gnutls_privkey_t      *pkey);
-
-gboolean g_tls_connection_gnutls_request_certificate (GTlsConnectionGnutls  *gnutls,
-                                                      GError               **error);
-
-gssize   g_tls_connection_gnutls_read          (GTlsConnectionGnutls  *gnutls,
-                                                void                  *buffer,
-                                                gsize                  size,
-                                                gint64                 timeout,
-                                                GCancellable          *cancellable,
-                                                GError               **error);
-gssize   g_tls_connection_gnutls_write         (GTlsConnectionGnutls  *gnutls,
-                                                const void            *buffer,
-                                                gsize                  size,
-                                                gint64                 timeout,
-                                                GCancellable          *cancellable,
-                                                GError               **error);
-
-gboolean g_tls_connection_gnutls_check         (GTlsConnectionGnutls  *gnutls,
-                                                GIOCondition           condition);
-GSource *g_tls_connection_gnutls_create_source (GTlsConnectionGnutls  *gnutls,
-                                                GIOCondition           condition,
-                                                GCancellable          *cancellable);
-
-typedef enum {
-        G_TLS_DIRECTION_NONE = 0,
-        G_TLS_DIRECTION_READ = 1 << 0,
-        G_TLS_DIRECTION_WRITE = 1 << 1,
-} GTlsDirection;
-
-#define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
-
-gboolean g_tls_connection_gnutls_close_internal (GIOStream            *stream,
-                                                 GTlsDirection         direction,
-                                                 gint64                timeout,
-                                                 GCancellable         *cancellable,
-                                                 GError              **error);
-
-void GTLS_DEBUG (gpointer    gnutls,
-                 const char *message,
-                 ...);
 
 G_END_DECLS
 

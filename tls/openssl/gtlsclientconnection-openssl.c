@@ -34,6 +34,7 @@
 #include "gtlsclientconnection-openssl.h"
 #include "gtlsbackend-openssl.h"
 #include "gtlscertificate-openssl.h"
+#include "gtlsdatabase-openssl.h"
 #include <glib/gi18n-lib.h>
 
 #define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
@@ -234,26 +235,54 @@ g_tls_client_connection_openssl_constructed (GObject *object)
   G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->constructed (object);
 }
 
-static GTlsConnectionBaseStatus
-g_tls_client_connection_openssl_handshake (GTlsConnectionBase  *tls,
-                                           gint64               timeout,
-                                           GCancellable        *cancellable,
-                                           GError             **error)
+static GTlsCertificateFlags
+verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
+                      GTlsCertificate             *peer_certificate)
 {
-  return G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->
-    handshake (tls, timeout, cancellable, error);
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
+  SSL *ssl = NULL;
+  OCSP_RESPONSE *resp = NULL;
+  GTlsDatabase *database;
+  long len = 0;
+  unsigned char *p = NULL;
+
+  ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
+  len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
+  /* Soft fail in case of no response is the best we can do
+   * FIXME: this makes it security theater, why bother with OCSP at all? */
+  if (p == NULL)
+    return 0;
+
+  resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
+  if (resp == NULL)
+    return G_TLS_CERTIFICATE_GENERIC_ERROR;
+
+  database = g_tls_connection_get_database (G_TLS_CONNECTION (openssl));
+
+  /* If there's no database, then G_TLS_CERTIFICATE_UNKNOWN_CA must be flagged,
+   * and this function is only called if there are no flags.
+   */
+  g_assert (database);
+
+  return g_tls_database_openssl_verify_ocsp_response (G_TLS_DATABASE_OPENSSL (database),
+                                                      peer_certificate,
+                                                      resp);
+#else
+  return 0;
+#endif
 }
 
-static GTlsConnectionBaseStatus
-g_tls_client_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
-                                                    GError             **error)
+static GTlsCertificateFlags
+g_tls_client_connection_openssl_verify_peer_certificate (GTlsConnectionBase   *tls,
+                                                         GTlsCertificate      *certificate,
+                                                         GTlsCertificateFlags  flags)
 {
-  GTlsConnectionBaseStatus status;
+  GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
 
-  status = G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->
-    complete_handshake (tls, error);
+  if (flags == 0)
+    flags = verify_ocsp_response (openssl, certificate);
 
-  return status;
+  return flags;
 }
 
 static SSL *
@@ -267,17 +296,16 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
-  GTlsConnectionOpensslClass *connection_class = G_TLS_CONNECTION_OPENSSL_CLASS (klass);
+  GTlsConnectionOpensslClass *openssl_class = G_TLS_CONNECTION_OPENSSL_CLASS (klass);
 
-  gobject_class->finalize     = g_tls_client_connection_openssl_finalize;
-  gobject_class->get_property = g_tls_client_connection_openssl_get_property;
-  gobject_class->set_property = g_tls_client_connection_openssl_set_property;
-  gobject_class->constructed  = g_tls_client_connection_openssl_constructed;
+  gobject_class->finalize             = g_tls_client_connection_openssl_finalize;
+  gobject_class->get_property         = g_tls_client_connection_openssl_get_property;
+  gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
+  gobject_class->constructed          = g_tls_client_connection_openssl_constructed;
 
-  base_class->handshake          = g_tls_client_connection_openssl_handshake;
-  base_class->complete_handshake = g_tls_client_connection_openssl_complete_handshake;
+  base_class->verify_peer_certificate = g_tls_client_connection_openssl_verify_peer_certificate;
 
-  connection_class->get_ssl = g_tls_client_connection_openssl_get_ssl;
+  openssl_class->get_ssl              = g_tls_client_connection_openssl_get_ssl;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
@@ -318,8 +346,9 @@ retrieve_certificate (SSL       *ssl,
 
   client = SSL_get_ex_data (ssl, data_index);
   tls = G_TLS_CONNECTION_BASE (client);
+  certificate_error = g_tls_connection_base_get_certificate_error (tls);
 
-  g_tls_connection_base_set_certificate_requested (tls);
+  g_tls_connection_base_request_certificate (tls, certificate_error);
 
   client->ca_list = SSL_get_client_CA_list (client->ssl);
   g_object_notify (G_OBJECT (client), "accepted-cas");
@@ -329,7 +358,6 @@ retrieve_certificate (SSL       *ssl,
     set_certificate = TRUE;
   else
     {
-      certificate_error = g_tls_connection_base_get_certificate_error (tls);
       g_clear_error (certificate_error);
       if (g_tls_connection_base_request_certificate (tls, certificate_error))
         {
