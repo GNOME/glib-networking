@@ -930,12 +930,11 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_EXPIRED);
 
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
-
   read_test_data_async (test);
   g_main_loop_run (test->loop);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_no_error (test->server_error);
 }
 
 static void
@@ -1401,8 +1400,6 @@ test_failed_connection (TestConnection *test,
   g_assert_no_error (error);
   g_object_unref (connection);
 
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
-
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
                                     G_PRIORITY_DEFAULT, NULL,
                                     handshake_failed_cb, test);
@@ -1415,6 +1412,7 @@ test_failed_connection (TestConnection *test,
   g_main_loop_run (test->loop);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_no_error (test->server_error);
 }
 
 static void
@@ -1496,8 +1494,6 @@ test_connection_socket_client_failed (TestConnection *test,
   client = g_socket_client_new ();
   g_socket_client_set_tls (client, TRUE);
   /* this time we don't adjust the validation flags */
-
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
 
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
                                  NULL, socket_client_failed, test);
