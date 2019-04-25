@@ -1336,7 +1336,11 @@ test_client_auth_request_fail (TestConnection *test,
 
   /* FIXME: G_FILE_ERROR_ACCES is not a very great error to get here. */
   if (client_can_receive_certificate_required_errors (test))
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
     g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
+#else
+    g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+#endif
   else if (!g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
     g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_MISC);
 
