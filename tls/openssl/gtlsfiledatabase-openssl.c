@@ -30,11 +30,10 @@
 #include <glib/gi18n-lib.h>
 #include "openssl-include.h"
 
-typedef struct _GTlsFileDatabaseOpensslPrivate
+typedef struct
 {
   /* read-only after construct */
   gchar *anchor_filename;
-  STACK_OF(X509) *trusted;
 
   /* protected by mutex */
   GMutex mutex;
@@ -75,14 +74,11 @@ enum
 
 static void g_tls_file_database_openssl_file_database_interface_init (GTlsFileDatabaseInterface *iface);
 
-static void g_tls_file_database_openssl_initable_interface_init (GInitableIface *iface);
-
 G_DEFINE_TYPE_WITH_CODE (GTlsFileDatabaseOpenssl, g_tls_file_database_openssl, G_TYPE_TLS_DATABASE_OPENSSL,
                          G_ADD_PRIVATE (GTlsFileDatabaseOpenssl)
                          G_IMPLEMENT_INTERFACE (G_TYPE_TLS_FILE_DATABASE,
                                                 g_tls_file_database_openssl_file_database_interface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_file_database_openssl_initable_interface_init))
+                         )
 
 static GHashTable *
 bytes_multi_table_new (void)
@@ -242,9 +238,6 @@ g_tls_file_database_openssl_finalize (GObject *object)
   g_free (priv->anchor_filename);
   priv->anchor_filename = NULL;
 
-  if (priv->trusted != NULL)
-    sk_X509_pop_free (priv->trusted, X509_free);
-
   g_mutex_clear (&priv->mutex);
 
   G_OBJECT_CLASS (g_tls_file_database_openssl_parent_class)->finalize (object);
@@ -271,54 +264,6 @@ g_tls_file_database_openssl_get_property (GObject    *object,
     }
 }
 
-static STACK_OF(X509) *
-load_certs (const gchar *file_name)
-{
-  BIO *bio;
-  STACK_OF(X509) *certs;
-  STACK_OF(X509_INFO) *xis = NULL;
-  gint i;
-
-  if (file_name == NULL)
-    return NULL;
-
-  bio = BIO_new_file (file_name, "rb");
-  if (bio == NULL)
-    return NULL;
-
-  xis = PEM_X509_INFO_read_bio (bio, NULL, NULL, NULL);
-
-  BIO_free (bio);
-
-  certs = sk_X509_new_null ();
-  if (certs == NULL)
-    goto end;
-
-  for (i = 0; i < sk_X509_INFO_num (xis); i++)
-    {
-      X509_INFO *xi;
-
-      xi = sk_X509_INFO_value (xis, i);
-      if (xi->x509 != NULL)
-        {
-          if (!sk_X509_push (certs, xi->x509))
-            goto end;
-          xi->x509 = NULL;
-        }
-    }
-
-end:
-  sk_X509_INFO_pop_free (xis, X509_INFO_free);
-
-  if (sk_X509_num (certs) == 0)
-    {
-      sk_X509_pop_free (certs, X509_free);
-      certs = NULL;
-    }
-
-  return certs;
-}
-
 static void
 g_tls_file_database_openssl_set_property (GObject      *object,
                                           guint         prop_id,
@@ -342,15 +287,8 @@ g_tls_file_database_openssl_set_property (GObject      *object,
           return;
         }
 
-      if (priv->anchor_filename)
-        {
-          g_free (priv->anchor_filename);
-          if (priv->trusted != NULL)
-            sk_X509_pop_free (priv->trusted, X509_free);
-        }
-
+      g_free (priv->anchor_filename);
       priv->anchor_filename = g_strdup (anchor_path);
-      priv->trusted = load_certs (anchor_path);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -527,155 +465,25 @@ g_tls_file_database_openssl_lookup_certificates_issued_by (GTlsDatabase         
   return issued;
 }
 
-static GTlsCertificateFlags
-double_check_before_after_dates (GTlsCertificateOpenssl *chain)
-{
-  GTlsCertificateFlags gtls_flags = 0;
-  X509 *cert;
-
-  while (chain)
-    {
-      ASN1_TIME *not_before;
-      ASN1_TIME *not_after;
-
-      cert = g_tls_certificate_openssl_get_cert (chain);
-      not_before = X509_get_notBefore (cert);
-      not_after = X509_get_notAfter (cert);
-
-      if (X509_cmp_current_time (not_before) > 0)
-        gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
-
-      if (X509_cmp_current_time (not_after) < 0)
-        gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
-
-      chain = G_TLS_CERTIFICATE_OPENSSL (g_tls_certificate_get_issuer
-                                         (G_TLS_CERTIFICATE (chain)));
-    }
-
-  return gtls_flags;
-}
-
-static STACK_OF(X509) *
-convert_certificate_chain_to_openssl (GTlsCertificateOpenssl *chain)
-{
-  GTlsCertificate *cert;
-  STACK_OF(X509) *openssl_chain;
-
-  openssl_chain = sk_X509_new_null ();
-
-  for (cert = G_TLS_CERTIFICATE (chain); cert; cert = g_tls_certificate_get_issuer (cert))
-    sk_X509_push (openssl_chain, g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
-
-  return openssl_chain;
-}
-
-static GTlsCertificateFlags
-g_tls_file_database_openssl_verify_chain (GTlsDatabase             *database,
-                                          GTlsCertificate          *chain,
-                                          const gchar              *purpose,
-                                          GSocketConnectable       *identity,
-                                          GTlsInteraction          *interaction,
-                                          GTlsDatabaseVerifyFlags   flags,
-                                          GCancellable             *cancellable,
-                                          GError                  **error)
-{
-  GTlsFileDatabaseOpenssl *file_database;
-  GTlsFileDatabaseOpensslPrivate *priv;
-  STACK_OF(X509) *certs;
-  X509_STORE *store;
-  X509_STORE_CTX *csc;
-  X509 *x;
-  GTlsCertificateFlags result = 0;
-
-  g_return_val_if_fail (G_IS_TLS_CERTIFICATE_OPENSSL (chain),
-                        G_TLS_CERTIFICATE_GENERIC_ERROR);
-
-  file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
-
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  certs = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
-
-  store = X509_STORE_new ();
-  csc = X509_STORE_CTX_new ();
-
-  x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (chain));
-  if (!X509_STORE_CTX_init (csc, store, x, certs))
-    {
-      X509_STORE_CTX_free (csc);
-      X509_STORE_free (store);
-      sk_X509_free (certs);
-      return G_TLS_CERTIFICATE_GENERIC_ERROR;
-    }
-
-  if (priv->trusted)
-    {
-      X509_STORE_CTX_trusted_stack (csc, priv->trusted);
-    }
-
-  if (X509_verify_cert (csc) <= 0)
-    result = g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (csc));
-
-  X509_STORE_CTX_free (csc);
-  X509_STORE_free (store);
-  sk_X509_free (certs);
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  /* We have to check these ourselves since openssl
-   * does not give us flags and UNKNOWN_CA will take priority.
-   */
-  result |= double_check_before_after_dates (G_TLS_CERTIFICATE_OPENSSL (chain));
-
-  if (identity)
-    result |= g_tls_certificate_openssl_verify_identity (G_TLS_CERTIFICATE_OPENSSL (chain),
-                                                         identity);
-
-  return result;
-}
-
-static void
-g_tls_file_database_openssl_class_init (GTlsFileDatabaseOpensslClass *klass)
-{
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsDatabaseClass *database_class = G_TLS_DATABASE_CLASS (klass);
-
-  gobject_class->get_property = g_tls_file_database_openssl_get_property;
-  gobject_class->set_property = g_tls_file_database_openssl_set_property;
-  gobject_class->finalize     = g_tls_file_database_openssl_finalize;
-
-  database_class->create_certificate_handle = g_tls_file_database_openssl_create_certificate_handle;
-  database_class->lookup_certificate_for_handle = g_tls_file_database_openssl_lookup_certificate_for_handle;
-  database_class->lookup_certificate_issuer = g_tls_file_database_openssl_lookup_certificate_issuer;
-  database_class->lookup_certificates_issued_by = g_tls_file_database_openssl_lookup_certificates_issued_by;
-  database_class->verify_chain = g_tls_file_database_openssl_verify_chain;
-
-  g_object_class_override_property (gobject_class, PROP_ANCHORS, "anchors");
-}
-
-static void
-g_tls_file_database_openssl_file_database_interface_init (GTlsFileDatabaseInterface *iface)
-{
-}
-
 static gboolean
-g_tls_file_database_openssl_initable_init (GInitable    *initable,
-                                           GCancellable *cancellable,
-                                           GError      **error)
+g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
+                                                 X509_STORE           *store,
+                                                 GError              **error)
 {
-  GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (initable);
+  GTlsFileDatabaseOpenssl *file_database = G_TLS_FILE_DATABASE_OPENSSL (self);
   GTlsFileDatabaseOpensslPrivate *priv;
   GHashTable *subjects, *issuers, *complete, *certs_by_handle;
   gboolean result;
 
   priv = g_tls_file_database_openssl_get_instance_private (file_database);
 
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return FALSE;
+  if (!X509_STORE_load_locations (store, priv->anchor_filename, NULL))
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Failed to load file path: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
 
   subjects = bytes_multi_table_new ();
   issuers = bytes_multi_table_new ();
@@ -696,9 +504,6 @@ g_tls_file_database_openssl_initable_init (GInitable    *initable,
                                error);
   else
     result = TRUE;
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    result = FALSE;
 
   if (result)
     {
@@ -738,115 +543,27 @@ g_tls_file_database_openssl_initable_init (GInitable    *initable,
 }
 
 static void
-g_tls_file_database_openssl_initable_interface_init (GInitableIface *iface)
+g_tls_file_database_openssl_class_init (GTlsFileDatabaseOpensslClass *klass)
 {
-  iface->init = g_tls_file_database_openssl_initable_init;
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  GTlsDatabaseClass *database_class = G_TLS_DATABASE_CLASS (klass);
+  GTlsDatabaseOpensslClass *openssl_database_class = G_TLS_DATABASE_OPENSSL_CLASS (klass);
+
+  gobject_class->get_property = g_tls_file_database_openssl_get_property;
+  gobject_class->set_property = g_tls_file_database_openssl_set_property;
+  gobject_class->finalize     = g_tls_file_database_openssl_finalize;
+
+  database_class->create_certificate_handle = g_tls_file_database_openssl_create_certificate_handle;
+  database_class->lookup_certificate_for_handle = g_tls_file_database_openssl_lookup_certificate_for_handle;
+  database_class->lookup_certificate_issuer = g_tls_file_database_openssl_lookup_certificate_issuer;
+  database_class->lookup_certificates_issued_by = g_tls_file_database_openssl_lookup_certificates_issued_by;
+
+  openssl_database_class->populate_trust_list = g_tls_file_database_openssl_populate_trust_list;
+
+  g_object_class_override_property (gobject_class, PROP_ANCHORS, "anchors");
 }
 
-GTlsCertificateFlags
-g_tls_file_database_openssl_verify_ocsp_response (GTlsDatabase    *database,
-                                                  GTlsCertificate *chain,
-                                                  OCSP_RESPONSE   *resp)
+static void
+g_tls_file_database_openssl_file_database_interface_init (GTlsFileDatabaseInterface *iface)
 {
-  GTlsCertificateFlags errors = 0;
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
-  !defined(OPENSSL_NO_OCSP)
-  GTlsFileDatabaseOpenssl *file_database;
-  GTlsFileDatabaseOpensslPrivate *priv;
-  STACK_OF(X509) *chain_openssl = NULL;
-  X509_STORE *store = NULL;
-  OCSP_BASICRESP *basic_resp = NULL;
-  int ocsp_status = 0;
-  int i;
-
-  ocsp_status = OCSP_response_status (resp);
-  if (ocsp_status != OCSP_RESPONSE_STATUS_SUCCESSFUL)
-    {
-      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-      goto end;
-    }
-
-  basic_resp = OCSP_response_get1_basic (resp);
-  if (basic_resp == NULL)
-    {
-      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-      goto end;
-    }
-
-  chain_openssl = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
-  file_database = G_TLS_FILE_DATABASE_OPENSSL (database);
-  priv = g_tls_file_database_openssl_get_instance_private (file_database);
-  store = X509_STORE_new ();
-  if ((chain_openssl == NULL) ||
-      (file_database == NULL) ||
-      (priv == NULL) ||
-      (priv->trusted == NULL) ||
-      (store == NULL))
-    {
-      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-      goto end;
-    }
-
-  for (i = 0; i < sk_X509_num (priv->trusted); i++)
-    {
-      X509_STORE_add_cert (store, sk_X509_value (priv->trusted, i));
-    }
-
-  if (OCSP_basic_verify (basic_resp, chain_openssl, store, 0) <= 0)
-    {
-      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-      goto end;
-    }
-
-  for (i = 0; i < OCSP_resp_count (basic_resp); i++)
-    {
-      OCSP_SINGLERESP *single_resp = OCSP_resp_get0 (basic_resp, i);
-      ASN1_GENERALIZEDTIME *revocation_time = NULL;
-      ASN1_GENERALIZEDTIME *this_update_time = NULL;
-      ASN1_GENERALIZEDTIME *next_update_time = NULL;
-      int crl_reason = 0;
-      int cert_status = 0;
-
-      if (single_resp == NULL)
-        continue;
-
-      cert_status = OCSP_single_get0_status (single_resp,
-                                             &crl_reason,
-                                             &revocation_time,
-                                             &this_update_time,
-                                             &next_update_time);
-      if (!OCSP_check_validity (this_update_time,
-                                next_update_time,
-                                300L,
-                                -1L))
-        {
-          errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-          goto end;
-        }
-
-      switch (cert_status)
-        {
-        case V_OCSP_CERTSTATUS_GOOD:
-          break;
-        case V_OCSP_CERTSTATUS_REVOKED:
-          errors = G_TLS_CERTIFICATE_REVOKED;
-          goto end;
-        case V_OCSP_CERTSTATUS_UNKNOWN:
-          errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-          goto end;
-        }
-    }
-
-end:
-  if (store != NULL)
-    X509_STORE_free (store);
-
-  if (basic_resp != NULL)
-    OCSP_BASICRESP_free (basic_resp);
-
-  if (resp != NULL)
-    OCSP_RESPONSE_free (resp);
-
-#endif
-  return errors;
 }
