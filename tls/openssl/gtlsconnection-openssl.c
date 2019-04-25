@@ -32,7 +32,7 @@
 #include "gtlsconnection-openssl.h"
 #include "gtlsbackend-openssl.h"
 #include "gtlscertificate-openssl.h"
-#include "gtlsfiledatabase-openssl.h"
+#include "gtlsdatabase-openssl.h"
 #include "gtlsbio.h"
 
 #include <glib/gi18n-lib.h>
@@ -300,9 +300,9 @@ verify_ocsp_response (GTlsConnectionOpenssl *openssl,
   if (resp == NULL)
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
-  return g_tls_file_database_openssl_verify_ocsp_response (database,
-                                                           peer_certificate,
-                                                           resp);
+  return g_tls_database_openssl_verify_ocsp_response (G_TLS_DATABASE_OPENSSL (database),
+                                                      peer_certificate,
+                                                      resp);
 #else
   return 0;
 #endif

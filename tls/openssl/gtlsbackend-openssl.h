@@ -36,9 +36,6 @@ G_DECLARE_DERIVABLE_TYPE (GTlsBackendOpenssl, g_tls_backend_openssl,
 struct _GTlsBackendOpensslClass
 {
   GObjectClass parent_class;
-
-  GTlsDatabase*   (*create_database)      (GTlsBackendOpenssl         *backend,
-                                           GError                    **error);
 };
 
 void    g_tls_backend_openssl_register       (GIOModule *module);
