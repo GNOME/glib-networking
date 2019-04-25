@@ -13,6 +13,8 @@ sources = files(
 
 incs = [top_inc]
 
+openssl_inc = include_directories('.')
+
 deps = [
   gio_dep,
   glib_dep,

@@ -52,6 +52,10 @@ foreach backend: backends
         '-DBACKEND_IS_' + backend.to_upper(),
       ]
 
+      if backend == 'openssl'
+        incs += openssl_inc
+      endif
+
       exe = executable(
         program_name,
         [program[0] + '.c'] + program[1],
