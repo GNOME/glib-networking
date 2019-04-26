@@ -29,6 +29,20 @@ test_programs = [
 #  ['dtls-connection', ['mock-interaction.c'], deps, ['openssl']],
 ]
 
+if pkcs11_dep.found()
+  pkcs11_deps = deps + [
+    libgiopkcs11_dep,
+    pkcs11_dep
+  ]
+
+  test_programs += [
+    ['pkcs11-util', [], pkcs11_deps, []],
+    ['pkcs11-array', [], pkcs11_deps, []],
+    ['pkcs11-pin', [], pkcs11_deps, []],
+    ['pkcs11-slot', ['mock-interaction.c', 'mock-pkcs11.c'], pkcs11_deps, []]
+  ]
+endif
+
 foreach backend: backends
   foreach program: test_programs
     if not program[3].contains(backend)

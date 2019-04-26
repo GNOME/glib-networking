@@ -35,6 +35,7 @@
 #include "gtlsclientconnection-gnutls.h"
 #include "gtlsfiledatabase-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
+#include "gtlsdatabase-gnutls-pkcs11.h"
 
 struct _GTlsBackendGnutls
 {
@@ -42,6 +43,7 @@ struct _GTlsBackendGnutls
 
   GMutex mutex;
   GTlsDatabase *default_database;
+  GTlsDatabase *pkcs11_database;
 };
 
 static void g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface);
@@ -153,6 +155,39 @@ g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
   return result;
 }
 
+static GTlsDatabase*
+g_tls_backend_gnutls_get_pkcs11_database (GTlsBackend *backend)
+{
+  GTlsBackendGnutls *self = G_TLS_BACKEND_GNUTLS (backend);
+  GTlsDatabase *result;
+  GError *error = NULL;
+
+  g_mutex_lock (&self->mutex);
+
+  if (self->pkcs11_database)
+    {
+      result = g_object_ref (self->pkcs11_database);
+    }
+  else
+    {
+      result = G_TLS_DATABASE (g_tls_database_gnutls_pkcs11_new (&error));
+      if (error)
+        {
+          g_warning ("Failed to load PKCS11 TLS database: %s", error->message);
+          g_clear_error (&error);
+        }
+      else
+        {
+          g_assert (result);
+          self->pkcs11_database = g_object_ref (result);
+        }
+    }
+
+  g_mutex_unlock (&self->mutex);
+
+  return result;
+}
+
 static void
 g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface)
 {
@@ -161,6 +196,7 @@ g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface)
   iface->get_server_connection_type = g_tls_server_connection_gnutls_get_type;
   iface->get_file_database_type =     g_tls_file_database_gnutls_get_type;
   iface->get_default_database =       g_tls_backend_gnutls_get_default_database;
+  iface->get_pkcs11_database =        g_tls_backend_gnutls_get_pkcs11_database;
   iface->get_dtls_client_connection_type = g_tls_client_connection_gnutls_get_type;
   iface->get_dtls_server_connection_type = g_tls_server_connection_gnutls_get_type;
 }

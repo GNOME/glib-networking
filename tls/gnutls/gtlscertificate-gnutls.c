@@ -39,7 +39,9 @@ enum
   PROP_CERTIFICATE_PEM,
   PROP_PRIVATE_KEY,
   PROP_PRIVATE_KEY_PEM,
-  PROP_ISSUER
+  PROP_ISSUER,
+  PROP_CERTIFICATE_URI,
+  PROP_PRIVATE_KEY_URI,
 };
 
 struct _GTlsCertificateGnutls
@@ -52,6 +54,9 @@ struct _GTlsCertificateGnutls
   GTlsCertificateGnutls *issuer;
 
   GError *construct_error;
+
+  gchar *certificate_uri;
+  gchar *private_key_uri;
 
   guint have_cert : 1;
   guint have_key  : 1;
@@ -139,6 +144,14 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 
     case PROP_ISSUER:
       g_value_set_object (value, gnutls->issuer);
+      break;
+
+    case PROP_CERTIFICATE_URI:
+      g_value_set_string (value, gnutls->certificate_uri);
+      break;
+
+    case PROP_PRIVATE_KEY_URI:
+      g_value_set_string (value, gnutls->private_key_uri);
       break;
 
     default:
@@ -267,6 +280,16 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       gnutls->issuer = g_value_dup_object (value);
       break;
 
+    case PROP_CERTIFICATE_URI:
+      g_free (gnutls->certificate_uri);
+      gnutls->certificate_uri = g_value_dup_string (value);
+      break;
+
+    case PROP_PRIVATE_KEY_URI:
+      g_free (gnutls->private_key_uri);
+      gnutls->private_key_uri = g_value_dup_string (value);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -376,6 +399,17 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
+
+  g_object_class_install_property (gobject_class, PROP_CERTIFICATE_URI,
+                  g_param_spec_string ("certificate-uri", "Certificate URI",
+                                       "PKCS#11 URI of Certificate", NULL,
+                                       G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_PRIVATE_KEY_URI,
+                  g_param_spec_string ("private-key-uri", "Private Key URI",
+                                       "PKCS#11 URI of Private Key", NULL,
+                                       G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
 }
 
 static void
@@ -396,6 +430,33 @@ g_tls_certificate_gnutls_new (const gnutls_datum_t *datum,
   g_tls_certificate_gnutls_set_data (gnutls, datum);
 
   return G_TLS_CERTIFICATE (gnutls);
+}
+
+GTlsCertificate *
+g_tls_certificate_gnutls_pkcs11_new (gpointer certificate_data,
+                                     gsize certificate_data_length,
+                                     const gchar *certificate_uri,
+                                     const gchar *private_key_uri,
+                                     GTlsCertificate    *issuer)
+{
+  GTlsCertificate *certificate;
+  gnutls_datum_t datum;
+
+  g_return_val_if_fail (certificate_data, NULL);
+  g_return_val_if_fail (certificate_uri, NULL);
+
+  datum.data = certificate_data;
+  datum.size = certificate_data_length;
+
+  certificate = g_object_new (G_TYPE_TLS_CERTIFICATE_GNUTLS,
+                              "issuer", issuer,
+                              "certificate-uri", certificate_uri,
+                              "private-key-uri", private_key_uri,
+                              NULL);
+
+  g_tls_certificate_gnutls_set_data (G_TLS_CERTIFICATE_GNUTLS (certificate), &datum);
+
+  return certificate;
 }
 
 void
@@ -489,6 +550,26 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
       {
         *pkey = NULL;
       }
+
+  // if (*pkey == NULL)
+  //   {
+  //     gchar *uri = g_tls_certificate_gnutls_pkcs11_build_private_key_uri (chain, interaction_id);
+  //     g_message("%s", uri);
+  //     if (uri != NULL)
+  //       {
+  //         gnutls_pkcs11_privkey_t pkcs11_privkey;
+  //         gnutls_privkey_t privkey;
+
+  //         gnutls_pkcs11_privkey_init (&pkcs11_privkey);
+  //         gnutls_pkcs11_privkey_import_url (pkcs11_privkey, uri, GNUTLS_PKCS11_URL_GENERIC);
+  //         g_free (uri);
+
+  //         gnutls_privkey_init (&privkey);
+  //         gnutls_privkey_import_pkcs11 (privkey, pkcs11_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
+  //         *pkey = privkey;
+  //         gnutls_pkcs11_privkey_deinit (pkcs11_privkey);
+  //       }
+  //   }
 }
 
 void
@@ -760,4 +841,28 @@ g_tls_certificate_gnutls_build_chain (const gnutls_datum_t  *certs,
   g_free (gnutls_certs);
 
   return result;
+}
+
+gchar *
+g_tls_certificate_gnutls_pkcs11_build_certificate_uri (GTlsCertificateGnutls *self,
+                                                       const gchar *interaction_id)
+{
+  if (self->certificate_uri == NULL)
+    return NULL;
+  else if (interaction_id)
+    return g_strdup_printf ("%s;pinfile=%s", self->certificate_uri, interaction_id);
+  else
+    return g_strdup (self->certificate_uri);
+}
+
+gchar *
+g_tls_certificate_gnutls_pkcs11_build_private_key_uri (GTlsCertificateGnutls *self,
+                                                       const gchar *interaction_id)
+{
+  if (self->private_key_uri == NULL)
+    return NULL;
+  else if (interaction_id)
+    return g_strdup_printf ("%s;pinfile=%s", self->private_key_uri, interaction_id);
+  else
+    return g_strdup (self->private_key_uri);
 }

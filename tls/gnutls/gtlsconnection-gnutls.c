@@ -40,6 +40,11 @@
 #include "gtlsoutputstream-gnutls.h"
 #include "gtlsserverconnection-gnutls.h"
 
+#ifdef HAVE_PKCS11
+#include <p11-kit/pin.h>
+#include "pkcs11/gpkcs11pin.h"
+#endif
+
 #ifdef G_OS_WIN32
 #include <winsock2.h>
 #include <winerror.h>
@@ -102,6 +107,14 @@ static gboolean g_tls_connection_gnutls_initable_init       (GInitable       *in
                                                              GError         **error);
 static void     g_tls_connection_gnutls_dtls_connection_iface_init (GDtlsConnectionInterface *iface);
 static void     g_tls_connection_gnutls_datagram_based_iface_init  (GDatagramBasedInterface  *iface);
+
+#ifdef HAVE_PKCS11
+static P11KitPin*    on_pin_prompt_callback  (const char     *pinfile,
+                                              P11KitUri      *pin_uri,
+                                              const char     *pin_description,
+                                              P11KitPinFlags  pin_flags,
+                                              void           *callback_data);
+#endif
 
 static void g_tls_connection_gnutls_init_priorities (void);
 
@@ -268,6 +281,11 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 
   unique_id = g_atomic_int_add (&unique_interaction_id, 1);
   priv->interaction_id = g_strdup_printf ("gtls:%d", unique_id);
+
+#ifdef HAVE_PKCS11
+  p11_kit_pin_register_callback (priv->interaction_id,
+                                 on_pin_prompt_callback, gnutls, NULL);
+#endif
 
   priv->waiting_for_op = g_cancellable_new ();
   g_cancellable_cancel (priv->waiting_for_op);
@@ -462,6 +480,10 @@ g_tls_connection_gnutls_finalize (GObject *object)
 
   g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
 
+#ifdef HAVE_PKCS11
+  p11_kit_pin_unregister_callback (priv->interaction_id,
+                                   on_pin_prompt_callback, gnutls);
+#endif
   g_free (priv->interaction_id);
   g_clear_object (&priv->interaction);
 
@@ -3116,6 +3138,60 @@ g_tls_connection_gnutls_dtls_get_negotiated_protocol (GDtlsConnection *conn)
   return priv->negotiated_protocol;
 }
 #endif
+
+#ifdef HAVE_PKCS11
+
+static P11KitPin*
+on_pin_prompt_callback (const char     *pinfile,
+                        P11KitUri      *pin_uri,
+                        const char     *pin_description,
+                        P11KitPinFlags  pin_flags,
+                        void           *callback_data)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (callback_data);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  GTlsInteractionResult result;
+  GTlsPasswordFlags flags = 0;
+  GTlsPassword *password;
+  P11KitPin *pin = NULL;
+  GError *error = NULL;
+
+  if (!priv->interaction)
+    return NULL;
+
+  if (pin_flags & P11_KIT_PIN_FLAGS_RETRY)
+    flags |= G_TLS_PASSWORD_RETRY;
+  if (pin_flags & P11_KIT_PIN_FLAGS_MANY_TRIES)
+    flags |= G_TLS_PASSWORD_MANY_TRIES;
+  if (pin_flags & P11_KIT_PIN_FLAGS_FINAL_TRY)
+    flags |= G_TLS_PASSWORD_FINAL_TRY;
+
+  password = g_pkcs11_pin_new (flags, pin_description);
+
+  result = g_tls_interaction_ask_password (priv->interaction, password,
+                                           g_cancellable_get_current (), &error);
+
+  switch (result)
+    {
+    case G_TLS_INTERACTION_FAILED:
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("couldn't ask for password: %s", error->message);
+      pin = NULL;
+      break;
+    case G_TLS_INTERACTION_UNHANDLED:
+    default:
+      pin = NULL;
+      break;
+    case G_TLS_INTERACTION_HANDLED:
+      pin = g_pkcs11_pin_steal_internal (G_PKCS11_PIN (password));
+      break;
+    }
+
+  g_object_unref (password);
+  return pin;
+}
+
+#endif /* HAVE_PKCS11 */
 
 static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)

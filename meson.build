@@ -75,6 +75,14 @@ gnutls_dep = dependency('gnutls', version: '>= 3.4.6', required: get_option('gnu
 
 if gnutls_dep.found()
   backends += ['gnutls']
+
+  # *** Checks for p11-kit  ***
+  pkcs11_dep = dependency('p11-kit-1', version: '>= 0.20', required: get_option('pkcs11'))
+
+  if pkcs11_dep.found()
+    config_h.set('HAVE_PKCS11', 1,
+                 description: 'Building with PKCS#11 support')
+  endif
 endif
 
 # *** Checks for OpenSSL    ***
@@ -172,6 +180,9 @@ if libproxy_dep.found() or gsettings_desktop_schemas_dep.found()
 endif
 
 subdir('tls/base')
+if pkcs11_dep.found()
+  subdir('tls/pkcs11')
+endif
 
 if gnutls_dep.found()
   subdir('tls/gnutls')
@@ -194,4 +205,5 @@ output += '  gnutls support:      ' + backends.contains('gnutls').to_string() + 
 output += '  openssl support:     ' + backends.contains('openssl').to_string() + '\n'
 output += '  libproxy support:    ' + libproxy_dep.found().to_string() + '\n'
 output += '  GNOME proxy support: ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
+output += '  PKCS#11 support:     ' + pkcs11_dep.found().to_string() + '\n'
 message(output)

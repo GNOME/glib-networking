@@ -13,3 +13,5 @@ tls/openssl/gtlscertificate-openssl.c
 tls/openssl/gtlsclientconnection-openssl.c
 tls/openssl/gtlsconnection-openssl.c
 tls/openssl/gtlsserverconnection-openssl.c
+tls/pkcs11/gpkcs11pin.c
+tls/pkcs11/gpkcs11slot.c

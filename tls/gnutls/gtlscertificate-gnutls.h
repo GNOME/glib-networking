@@ -70,6 +70,18 @@ GTlsCertificateGnutls*       g_tls_certificate_gnutls_build_chain     (const gnu
                                                                        guint                  num_certs,
                                                                        gnutls_x509_crt_fmt_t  format);
 
+GTlsCertificate *  g_tls_certificate_gnutls_pkcs11_new                   (gpointer        certificate_der,
+                                                                          gsize           certificate_der_length,
+                                                                          const gchar     *certificate_uri,
+                                                                          const gchar     *private_key_uri,
+                                                                          GTlsCertificate *issuer);
+
+gchar *            g_tls_certificate_gnutls_pkcs11_build_certificate_uri (GTlsCertificateGnutls *self,
+                                                                          const gchar *interaction_id);
+
+gchar *            g_tls_certificate_gnutls_pkcs11_build_private_key_uri (GTlsCertificateGnutls *self,
+                                                                          const gchar *interaction_id);
+
 G_END_DECLS
 
 #endif /* __G_TLS_CERTIFICATE_GNUTLS_H___ */
