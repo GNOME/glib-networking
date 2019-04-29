@@ -12,4 +12,6 @@ tls/gnutls/gtlsserverconnection-gnutls.c
 tls/openssl/gtlscertificate-openssl.c
 tls/openssl/gtlsclientconnection-openssl.c
 tls/openssl/gtlsconnection-openssl.c
+tls/openssl/gtlsdatabase-openssl.c
+tls/openssl/gtlsfiledatabase-openssl.c
 tls/openssl/gtlsserverconnection-openssl.c
