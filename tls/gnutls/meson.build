@@ -6,8 +6,6 @@ sources = files(
   'gtlsconnection-gnutls.c',
   'gtlsdatabase-gnutls.c',
   'gtlsfiledatabase-gnutls.c',
-  'gtlsinputstream-gnutls.c',
-  'gtlsoutputstream-gnutls.c',
   'gtlsserverconnection-gnutls.c'
 )
 

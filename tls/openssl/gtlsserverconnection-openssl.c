@@ -172,13 +172,6 @@ g_tls_server_connection_openssl_set_property (GObject      *object,
     }
 }
 
-static int
-verify_callback (int             preverify_ok,
-                 X509_STORE_CTX *ctx)
-{
-  return 1;
-}
-
 static void
 g_tls_server_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
                                                    gchar              **advertised_protocols)
@@ -200,7 +193,7 @@ g_tls_server_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
       break;
     }
 
-  SSL_set_verify (openssl->ssl, req_mode, verify_callback);
+  SSL_set_verify (openssl->ssl, req_mode, NULL);
   /* FIXME: is this ok? */
   SSL_set_verify_depth (openssl->ssl, 0);
 
