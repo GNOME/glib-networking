@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-03-02 02:19+0000\n"
-"PO-Revision-Date: 2019-03-02 10:12+0100\n"
+"POT-Creation-Date: 2019-04-29 12:17+0000\n"
+"PO-Revision-Date: 2019-05-01 12:52+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -89,7 +89,7 @@ msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Nie można wykonać blokującego działania podczas powitania TLS"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:874
-#: tls/gnutls/gtlsconnection-gnutls.c:1484
+#: tls/gnutls/gtlsconnection-gnutls.c:1488
 msgid "Socket I/O timed out"
 msgstr "Wejście/wyjście gniazda przekroczyło czas oczekiwania"
 
@@ -108,28 +108,28 @@ msgstr "Partner zażądał niedozwolonego ponownego powitania TLS"
 msgid "TLS connection closed unexpectedly"
 msgstr "Połączenie TLS zostało nieoczekiwanie zamknięte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1068
+#: tls/gnutls/gtlsconnection-gnutls.c:1072
 #: tls/openssl/gtlsconnection-openssl.c:175
 msgid "TLS connection peer did not send a certificate"
 msgstr "Partner połączenia TLS nie wysłał certyfikatu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1074
-#: tls/gnutls/gtlsconnection-gnutls.c:2176
+#: tls/gnutls/gtlsconnection-gnutls.c:1078
+#: tls/gnutls/gtlsconnection-gnutls.c:2169
 #: tls/openssl/gtlsconnection-openssl.c:420
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nieakceptowalny certyfikat TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1080
+#: tls/gnutls/gtlsconnection-gnutls.c:1084
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Partner wysłał krytyczny alarm TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1092
+#: tls/gnutls/gtlsconnection-gnutls.c:1096
 msgid "Protocol version downgrade attack detected"
 msgstr "Wykryto atak typu zmniejszenie wersji protokołu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1099
+#: tls/gnutls/gtlsconnection-gnutls.c:1103
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -137,36 +137,36 @@ msgstr[0] "Komunikat jest za duży dla połączenia DTLS, maksimum to %u bajt"
 msgstr[1] "Komunikat jest za duży dla połączenia DTLS, maksimum to %u bajty"
 msgstr[2] "Komunikat jest za duży dla połączenia DTLS, maksimum to %u bajtów"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1106
+#: tls/gnutls/gtlsconnection-gnutls.c:1110
 msgid "The operation timed out"
 msgstr "Działanie przekroczyło czas oczekiwania"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1997
+#: tls/gnutls/gtlsconnection-gnutls.c:1990
 msgid "Peer does not support safe renegotiation"
 msgstr "Partner nie obsługuje zabezpieczonej ponownej negocjacji"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2024
-#: tls/gnutls/gtlsconnection-gnutls.c:2074
+#: tls/gnutls/gtlsconnection-gnutls.c:2017
+#: tls/gnutls/gtlsconnection-gnutls.c:2067
 msgid "Error performing TLS handshake"
 msgstr "Błąd podczas wykonywania powitania TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2526
-#: tls/gnutls/gtlsconnection-gnutls.c:2618
+#: tls/gnutls/gtlsconnection-gnutls.c:2519
+#: tls/gnutls/gtlsconnection-gnutls.c:2611
 msgid "Error reading data from TLS socket"
 msgstr "Błąd podczas odczytywania danych z gniazda TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2648
+#: tls/gnutls/gtlsconnection-gnutls.c:2641
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Flagi odbioru są nieobsługiwane"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2725
-#: tls/gnutls/gtlsconnection-gnutls.c:2797
+#: tls/gnutls/gtlsconnection-gnutls.c:2718
+#: tls/gnutls/gtlsconnection-gnutls.c:2790
 msgid "Error writing data to TLS socket"
 msgstr "Błąd podczas zapisywania danych do gniazda TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2767
+#: tls/gnutls/gtlsconnection-gnutls.c:2760
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -174,7 +174,7 @@ msgstr[0] "Komunikat o %lu bajcie jest za duży dla połączenia DTLS"
 msgstr[1] "Komunikat o %lu bajtach jest za duży dla połączenia DTLS"
 msgstr[2] "Komunikat o %lu bajtach jest za duży dla połączenia DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2769
+#: tls/gnutls/gtlsconnection-gnutls.c:2762
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -182,12 +182,12 @@ msgstr[0] "(maksimum to %u bajt)"
 msgstr[1] "(maksimum to %u bajty)"
 msgstr[2] "(maksimum to %u bajtów)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2828
+#: tls/gnutls/gtlsconnection-gnutls.c:2821
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Flagi wysyłki są nieobsługiwane"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2931
+#: tls/gnutls/gtlsconnection-gnutls.c:2924
 msgid "Error performing TLS close"
 msgstr "Błąd podczas wykonywania zamknięcia TLS"
 
@@ -199,7 +199,7 @@ msgstr ""
 "Wczytanie przechowalni zaufania systemu się nie powiodło: biblioteka GnuTLS "
 "nie została skonfigurowana z zaufaniem systemu"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:186
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Wczytanie przechowalni zaufania systemu się nie powiodło: %s"
@@ -245,6 +245,15 @@ msgstr "Błąd podczas zapisywania danych do gniazda TLS: %s"
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Błąd podczas wykonywania zamknięcia TLS: %s"
+
+#: tls/openssl/gtlsdatabase-openssl.c:226
+msgid "Could not create CA store"
+msgstr "Nie można utworzyć przechowalni CA"
+
+#: tls/openssl/gtlsfiledatabase-openssl.c:483
+#, c-format
+msgid "Failed to load file path: %s"
+msgstr "Wczytanie ścieżki do pliku się nie powiodło: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:102
 #, c-format
