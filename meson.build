@@ -154,6 +154,7 @@ top_inc = include_directories('.')
 tls_inc = include_directories('tls')
 
 subdir('po')
+subdir('tools')
 
 enable_installed_tests = get_option('installed_tests')
 test_template = files('template.test.in')

@@ -66,6 +66,7 @@ gtls_gnutls_init (gpointer data)
   GTypePlugin *plugin;
 
   gnutls_global_init ();
+  g_assert (gnutls_pkcs11_init (GNUTLS_PKCS11_FLAG_AUTO, NULL) == GNUTLS_E_SUCCESS);
 
 #ifdef GTLS_GNUTLS_DEBUG
   gnutls_global_set_log_function (gtls_log_func);
