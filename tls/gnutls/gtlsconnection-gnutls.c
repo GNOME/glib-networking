@@ -1033,6 +1033,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     {
       if (priv->rehandshake_mode == G_TLS_REHANDSHAKE_NEVER)
         {
+          G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
           g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                                _("Peer requested illegal TLS rehandshake"));
           return GNUTLS_E_PULL_ERROR;
@@ -1083,6 +1084,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Peer sent fatal TLS alert: %s"),
                    gnutls_alert_get_name (gnutls_alert_get (priv->session)));
+      G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
       return status;
     }
   else if (status == GNUTLS_E_INAPPROPRIATE_FALLBACK)
@@ -1102,6 +1104,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
                    ngettext ("Message is too large for DTLS connection; maximum is %u byte",
                              "Message is too large for DTLS connection; maximum is %u bytes", mtu), mtu);
+      G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
       return status;
     }
   else if (status == GNUTLS_E_TIMEDOUT)
