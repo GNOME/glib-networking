@@ -1,3 +1,9 @@
+2.60.2 - May 2, 2019
+====================
+
+- OpenSSL backend now defaults to system trust store (#62)
+- Fix client auth failure error with GnuTLS 3.6.7 (#70)
+
 2.60.1 - April 1, 2019
 ======================
 
