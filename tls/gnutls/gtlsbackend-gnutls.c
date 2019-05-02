@@ -120,7 +120,7 @@ g_tls_backend_gnutls_class_finalize (GTlsBackendGnutlsClass *backend_class)
 {
 }
 
-static GTlsDatabase*
+static GTlsDatabase *
 g_tls_backend_gnutls_get_default_database (GTlsBackend *backend)
 {
   GTlsBackendGnutls *self = G_TLS_BACKEND_GNUTLS (backend);
@@ -211,8 +211,8 @@ cache_data_free (gpointer data)
 }
 
 static GHashTable *
-get_session_cache (unsigned int            type,
-                   gboolean                create)
+get_session_cache (unsigned int type,
+                   gboolean     create)
 {
   GHashTable **cache_p;
 
@@ -226,9 +226,9 @@ get_session_cache (unsigned int            type,
 }
 
 void
-g_tls_backend_gnutls_store_session (unsigned int             type,
-                                    GBytes                  *session_id,
-                                    GBytes                  *session_data)
+g_tls_backend_gnutls_store_session (unsigned int  type,
+                                    GBytes       *session_id,
+                                    GBytes       *session_data)
 {
   GTlsBackendGnutlsCacheData *cache_data;
   GHashTable *cache;
@@ -262,8 +262,8 @@ g_tls_backend_gnutls_store_session (unsigned int             type,
 }
 
 void
-g_tls_backend_gnutls_remove_session (unsigned int             type,
-                                     GBytes                  *session_id)
+g_tls_backend_gnutls_remove_session (unsigned int  type,
+                                     GBytes       *session_id)
 {
   GHashTable *cache;
 
@@ -277,8 +277,8 @@ g_tls_backend_gnutls_remove_session (unsigned int             type,
 }
 
 GBytes *
-g_tls_backend_gnutls_lookup_session (unsigned int             type,
-                                     GBytes                  *session_id)
+g_tls_backend_gnutls_lookup_session (unsigned int  type,
+                                     GBytes       *session_id)
 {
   GTlsBackendGnutlsCacheData *cache_data;
   GBytes *session_data = NULL;
