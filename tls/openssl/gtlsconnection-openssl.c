@@ -70,19 +70,11 @@ g_tls_connection_openssl_finalize (GObject *object)
 
 static GTlsConnectionBaseStatus
 end_openssl_io (GTlsConnectionOpenssl  *openssl,
-                GIOCondition           direction,
-                int                    ret,
-                GError               **error,
-                const char            *err_fmt,
-                ...) G_GNUC_PRINTF(5, 6);
-
-static GTlsConnectionBaseStatus
-end_openssl_io (GTlsConnectionOpenssl  *openssl,
                 GIOCondition            direction,
                 int                     ret,
                 GError                **error,
-                const char             *err_fmt,
-                ...)
+                const char             *err_prefix,
+                const char             *err_str)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (openssl);
   GTlsConnectionOpensslPrivate *priv;
@@ -192,13 +184,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     g_message ("end_openssl_io %s: %d, %d, %d", G_IS_TLS_CLIENT_CONNECTION (openssl) ? "client" : "server", err_code, err_lib, reason);
 
   if (error && !*error)
-    {
-      va_list ap;
-
-      va_start (ap, err_fmt);
-      *error = g_error_new_valist (G_TLS_ERROR, G_TLS_ERROR_MISC, err_fmt, ap);
-      va_end (ap);
-    }
+    *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
 
   return G_TLS_CONNECTION_BASE_ERROR;
 }
@@ -256,7 +242,7 @@ g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = SSL_renegotiate (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
-                  _("Error performing TLS handshake: %s"), error);
+                  _("Error performing TLS handshake"), error);
 
   return status;
 }
@@ -321,7 +307,7 @@ g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = SSL_do_handshake (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
-                  _("Error performing TLS handshake: %s"), error);
+                  _("Error performing TLS handshake"), error);
 
   return status;
 }
@@ -403,7 +389,7 @@ g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
   BEGIN_OPENSSL_IO (openssl, G_IO_IN, timeout, cancellable);
   ret = SSL_read (ssl, buffer, count);
   END_OPENSSL_IO (openssl, G_IO_IN, ret, status,
-                  _("Error reading data from TLS socket: %s"), error);
+                  _("Error reading data from TLS socket"), error);
 
   if (ret >= 0)
     *nread = ret;
@@ -429,7 +415,7 @@ g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
   BEGIN_OPENSSL_IO (openssl, G_IO_OUT, timeout, cancellable);
   ret = SSL_write (ssl, buffer, count);
   END_OPENSSL_IO (openssl, G_IO_OUT, ret, status,
-                  _("Error writing data to TLS socket: %s"), error);
+                  _("Error writing data to TLS socket"), error);
 
   if (ret >= 0)
     *nwrote = ret;
@@ -456,7 +442,7 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = SSL_shutdown (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
-                  _("Error performing TLS close: %s"), error);
+                  _("Error performing TLS close"), error);
 
   return status;
 }
