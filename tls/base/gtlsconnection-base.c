@@ -539,6 +539,22 @@ claim_op (GTlsConnectionBase    *tls,
         }
     }
 
+  if (priv->handshaking &&
+      timeout != 0 &&
+      g_main_context_is_owner (priv->handshake_context))
+    {
+      /* Cannot perform a blocking operation during a handshake on the
+       * same thread that triggered the handshake. The only way this can
+       * occur is if the application is doing something weird in its
+       * accept-certificate callback. Allowing a blocking op would stall
+       * the handshake (forever, if there's no timeout). Even a close
+       * op would deadlock here.
+       */
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, _("Cannot perform blocking operation during TLS handshake"));
+      g_mutex_unlock (&priv->op_mutex);
+      return FALSE;
+    }
+
   if ((op != G_TLS_CONNECTION_BASE_OP_WRITE && priv->reading) ||
       (op != G_TLS_CONNECTION_BASE_OP_READ && priv->writing) ||
       (op != G_TLS_CONNECTION_BASE_OP_HANDSHAKE && priv->handshaking))
@@ -1343,9 +1359,6 @@ handshake_thread (GTask        *task,
           return;
         }
     }
-
-  g_clear_object (&priv->peer_certificate);
-  priv->peer_certificate_errors = 0;
 
   /* Adjust the timeout for the next operation in the sequence. */
   if (timeout > 0)
