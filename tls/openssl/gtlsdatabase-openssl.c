@@ -212,7 +212,7 @@ g_tls_database_openssl_initable_init (GInitable    *initable,
   GTlsDatabaseOpenssl *self = G_TLS_DATABASE_OPENSSL (initable);
   GTlsDatabaseOpensslPrivate *priv;
   X509_STORE *store;
-  gboolean result;
+  gboolean result = TRUE;
 
   priv = g_tls_database_openssl_get_instance_private (self);
 
