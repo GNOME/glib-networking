@@ -505,7 +505,6 @@ claim_op (GTlsConnectionBase    *tls,
           priv->handshaking = TRUE;
           if (!do_implicit_handshake (tls, timeout, cancellable, error))
             {
-              g_cancellable_reset (priv->waiting_for_op);
               g_mutex_unlock (&priv->op_mutex);
               return FALSE;
             }
@@ -714,6 +713,7 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GError *my_error = NULL;
 
+  /* This function MAY or MAY NOT set error when it fails! */
   if (direction & G_IO_IN)
     {
       priv->read_cancellable = NULL;
@@ -915,8 +915,8 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
 
 static gboolean
 tls_source_dispatch (GSource     *source,
-                      GSourceFunc  callback,
-                      gpointer     user_data)
+                     GSourceFunc  callback,
+                     gpointer     user_data)
 {
   GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc)callback;
   GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
@@ -1372,7 +1372,7 @@ handshake_thread (GTask        *task,
   tls_class->handshake_thread_handshake (tls, timeout, cancellable, &error);
   priv->need_handshake = FALSE;
 
-  if (error != NULL && priv->missing_requested_client_certificate)
+  if (priv->missing_requested_client_certificate)
     {
       g_clear_error (&error);
       if (priv->certificate_error)
@@ -1385,6 +1385,10 @@ handshake_thread (GTask        *task,
           g_set_error_literal (&error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
                                _("Server required TLS certificate"));
         }
+    }
+
+  if (error)
+    {
       g_task_return_error (task, error);
     }
   else
@@ -1473,7 +1477,7 @@ finish_handshake (GTlsConnectionBase  *tls,
       /* FIXME: Return an error from the handshake thread instead. */
       if (priv->peer_certificate && !priv->peer_certificate_accepted)
         {
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+          g_set_error_literal (&my_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                                _("Unacceptable TLS certificate"));
         }
     }
@@ -1756,7 +1760,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
       *thread_timeout = -1; /* blocking */
 
       g_task_run_in_thread (priv->implicit_handshake,
-                            handshake_thread);
+                            async_handshake_thread);
 
       /* Intentionally not translated because this is not a fatal error to be
        * presented to the user, and to avoid this showing up in profiling. */

@@ -347,7 +347,9 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 
   if (handshaking && !ever_handshaked)
     {
-      if (status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
+      if (g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_FAILED) ||
+          g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE) ||
+          status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
           status == GNUTLS_E_DECRYPTION_FAILED ||
           status == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
         {
@@ -448,11 +450,13 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
-  g_propagate_error (error, my_error);
+  if (error && my_error)
+    g_propagate_error (error, my_error);
+
   if (error && !*error)
     {
       *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s",
-                            err_prefix, gnutls_strerror (status));
+                            err_prefix, gnutls_strerror (ret));
     }
 
   return G_TLS_CONNECTION_BASE_ERROR;
