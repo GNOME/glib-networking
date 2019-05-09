@@ -281,6 +281,13 @@ static int
 handshake_thread_verify_certificate_cb (int             preverify_ok,
                                         X509_STORE_CTX *x509_ctx)
 {
+  GTlsConnectionOpenssl *openssl;
+  SSL *ssl;
+
+  ssl = X509_STORE_CTX_get_ex_data (x509_ctx, SSL_get_ex_data_X509_STORE_CTX_idx ());
+  openssl = g_tls_connection_openssl_get_connection_from_ssl (ssl);
+  g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), 0);
+
   // FIXME: Get the GTlsConnectionOpenssl out of the X509_STORE_CTX using
   //        x509_STORE_CTX_get_ex_data... somehow. We probably have to pass
   //        the GTlsConnectionOpenssl to the GTlsFileDatabaseOpenssl...
@@ -288,7 +295,7 @@ handshake_thread_verify_certificate_cb (int             preverify_ok,
   // return !g_tls_connection_base_handshake_thread_verify_certificate (
   /* Return 1 for the handshake to continue, 0 to terminate.
    * Complete opposite of what GnuTLS does. */
-  return 0;
+  return g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl));
 }
 
 static GTlsConnectionBaseStatus
@@ -465,6 +472,8 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->close_fn                   = g_tls_connection_openssl_close;
 }
 
+static int data_index = -1;
+
 static gboolean
 g_tls_connection_openssl_initable_init (GInitable     *initable,
                                         GCancellable  *cancellable,
@@ -485,6 +494,11 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
   g_assert (ssl != NULL);
+
+  if (data_index == -1) {
+      data_index = SSL_get_ex_new_index (0, (void *)"gtlsconnection", NULL, NULL, NULL);
+  }
+  SSL_set_ex_data (ssl, data_index, openssl);
 
   SSL_set_verify (ssl, SSL_VERIFY_PEER, handshake_thread_verify_certificate_cb);
 
@@ -512,4 +526,12 @@ g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *openssl)
   g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), NULL);
 
   return G_TLS_CONNECTION_OPENSSL_GET_CLASS (openssl)->get_ssl (openssl);
+}
+
+GTlsConnectionOpenssl *
+g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl)
+{
+  g_return_val_if_fail (ssl != NULL, NULL);
+
+  return SSL_get_ex_data (ssl, data_index);
 }
