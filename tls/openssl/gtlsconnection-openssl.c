@@ -254,7 +254,7 @@ g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
-  return priv->peer_certificate;
+  return g_object_ref (priv->peer_certificate);
 }
 
 static int
