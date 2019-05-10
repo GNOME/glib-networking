@@ -384,6 +384,8 @@ retrieve_certificate (SSL       *ssl,
       return 1;
     }
 
+  g_tls_connection_base_set_missing_requested_client_certificate (tls);
+
   return 0;
 }
 
