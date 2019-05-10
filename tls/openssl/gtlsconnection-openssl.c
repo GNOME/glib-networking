@@ -42,8 +42,7 @@ typedef struct _GTlsConnectionOpensslPrivate
 {
   BIO *bio;
 
-  GTlsCertificate *peer_certificate_tmp;
-  GTlsCertificateFlags peer_certificate_errors_tmp;
+  GTlsCertificate *peer_certificate;
 
   gboolean shutting_down;
 } GTlsConnectionOpensslPrivate;
@@ -63,7 +62,7 @@ g_tls_connection_openssl_finalize (GObject *object)
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
-  g_clear_object (&priv->peer_certificate_tmp);
+  g_clear_object (&priv->peer_certificate);
 
   G_OBJECT_CLASS (g_tls_connection_openssl_parent_class)->finalize (object);
 }
@@ -251,30 +250,11 @@ static GTlsCertificate *
 g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
 {
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  X509 *peer;
-  STACK_OF (X509) *certs;
-  GTlsCertificateOpenssl *chain;
-  SSL *ssl;
+  GTlsConnectionOpensslPrivate *priv;
 
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
+  priv = g_tls_connection_openssl_get_instance_private (openssl);
 
-  peer = SSL_get_peer_certificate (ssl);
-  if (peer == NULL)
-    return NULL;
-
-  certs = SSL_get_peer_cert_chain (ssl);
-  if (certs == NULL)
-    {
-      X509_free (peer);
-      return NULL;
-    }
-
-  chain = g_tls_certificate_openssl_build_chain (peer, certs);
-  X509_free (peer);
-  if (!chain)
-    return NULL;
-
-  return G_TLS_CERTIFICATE (chain);
+  return priv->peer_certificate;
 }
 
 static int
@@ -282,19 +262,27 @@ handshake_thread_verify_certificate_cb (int             preverify_ok,
                                         X509_STORE_CTX *x509_ctx)
 {
   GTlsConnectionOpenssl *openssl;
+  GTlsConnectionOpensslPrivate *priv;
   SSL *ssl;
+  X509 *peer;
+  STACK_OF (X509) *certs;
 
   ssl = X509_STORE_CTX_get_ex_data (x509_ctx, SSL_get_ex_data_X509_STORE_CTX_idx ());
   openssl = g_tls_connection_openssl_get_connection_from_ssl (ssl);
   g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), 0);
 
-  // FIXME: Get the GTlsConnectionOpenssl out of the X509_STORE_CTX using
-  //        x509_STORE_CTX_get_ex_data... somehow. We probably have to pass
-  //        the GTlsConnectionOpenssl to the GTlsFileDatabaseOpenssl...
-  //        somehow.
-  // return !g_tls_connection_base_handshake_thread_verify_certificate (
-  /* Return 1 for the handshake to continue, 0 to terminate.
-   * Complete opposite of what GnuTLS does. */
+  priv = g_tls_connection_openssl_get_instance_private (openssl);
+
+  peer = X509_STORE_CTX_get_current_cert (x509_ctx);
+  if (peer == NULL)
+    return 0;
+
+  certs = X509_STORE_CTX_get_chain (x509_ctx);
+  if (certs == NULL)
+    return 0;
+
+  priv->peer_certificate = G_TLS_CERTIFICATE (g_tls_certificate_openssl_build_chain (peer, certs));
+
   return g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl));
 }
 
