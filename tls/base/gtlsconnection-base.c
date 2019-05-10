@@ -1221,7 +1221,6 @@ update_peer_certificate_and_compute_errors (GTlsConnectionBase *tls)
   g_set_object (&priv->peer_certificate, peer_certificate);
 
   priv->peer_certificate_errors = peer_certificate_errors;
-  g_object_unref (peer_certifiate);
 
   g_object_notify (G_OBJECT (tls), "peer-certificate");
   g_object_notify (G_OBJECT (tls), "peer-certificate-errors");
