@@ -42,8 +42,6 @@ typedef struct _GTlsConnectionOpensslPrivate
 {
   BIO *bio;
 
-  GTlsCertificate *peer_certificate;
-
   gboolean shutting_down;
 } GTlsConnectionOpensslPrivate;
 
@@ -53,19 +51,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionOpenssl, g_tls_connection_openss
                                   G_ADD_PRIVATE (GTlsConnectionOpenssl)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                          g_tls_connection_openssl_initable_iface_init))
-
-static void
-g_tls_connection_openssl_finalize (GObject *object)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (object);
-  GTlsConnectionOpensslPrivate *priv;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  g_clear_object (&priv->peer_certificate);
-
-  G_OBJECT_CLASS (g_tls_connection_openssl_parent_class)->finalize (object);
-}
 
 static GTlsConnectionBaseStatus
 end_openssl_io (GTlsConnectionOpenssl  *openssl,
@@ -249,41 +234,30 @@ g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
 static GTlsCertificate *
 g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
 {
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  return g_object_ref (priv->peer_certificate);
-}
-
-static int
-handshake_thread_verify_certificate_cb (int             preverify_ok,
-                                        X509_STORE_CTX *x509_ctx)
-{
-  GTlsConnectionOpenssl *openssl;
-  GTlsConnectionOpensslPrivate *priv;
-  SSL *ssl;
   X509 *peer;
   STACK_OF (X509) *certs;
+  GTlsCertificateOpenssl *chain;
+  SSL *ssl;
 
-  ssl = X509_STORE_CTX_get_ex_data (x509_ctx, SSL_get_ex_data_X509_STORE_CTX_idx ());
-  openssl = g_tls_connection_openssl_get_connection_from_ssl (ssl);
-  g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), 0);
+  ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (tls));
 
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  peer = X509_STORE_CTX_get_current_cert (x509_ctx);
+  peer = SSL_get_peer_certificate (ssl);
   if (peer == NULL)
-    return 0;
+    return NULL;
 
-  certs = X509_STORE_CTX_get_chain (x509_ctx);
+  certs = SSL_get_peer_cert_chain (ssl);
   if (certs == NULL)
-    return 0;
+    {
+      X509_free (peer);
+      return NULL;
+    }
 
-  priv->peer_certificate = G_TLS_CERTIFICATE (g_tls_certificate_openssl_build_chain (peer, certs));
+  chain = g_tls_certificate_openssl_build_chain (peer, certs);
+  X509_free (peer);
+  if (!chain)
+    return NULL;
 
-  return g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl));
+  return G_TLS_CERTIFICATE (chain);
 }
 
 static GTlsConnectionBaseStatus
@@ -303,6 +277,12 @@ g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
   ret = SSL_do_handshake (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, status,
                   _("Error performing TLS handshake"), error);
+
+  if (ret > 0)
+    {
+      if (!g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl)))
+        return G_TLS_CONNECTION_BASE_ERROR;
+    }
 
   return status;
 }
@@ -445,10 +425,7 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
-
-  gobject_class->finalize                = g_tls_connection_openssl_finalize;
 
   base_class->request_rehandshake        = g_tls_connection_openssl_request_rehandshake;
   base_class->handshake_thread_handshake = g_tls_connection_openssl_handshake_thread_handshake;
@@ -487,8 +464,6 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
       data_index = SSL_get_ex_new_index (0, (void *)"gtlsconnection", NULL, NULL, NULL);
   }
   SSL_set_ex_data (ssl, data_index, openssl);
-
-  SSL_set_verify (ssl, SSL_VERIFY_PEER, handshake_thread_verify_certificate_cb);
 
   priv->bio = g_tls_bio_new (base_io_stream);
 
