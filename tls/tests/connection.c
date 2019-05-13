@@ -1370,6 +1370,7 @@ test_failed_connection (TestConnection *test,
 #endif
 }
 
+#if 0
 static void
 socket_client_connected (GObject      *source,
                          GAsyncResult *result,
@@ -1386,6 +1387,7 @@ socket_client_connected (GObject      *source,
 
   g_main_loop_quit (test->loop);
 }
+#endif
 
 static void
 test_connection_socket_client (TestConnection *test,
@@ -1465,6 +1467,7 @@ test_connection_socket_client_failed (TestConnection *test,
   g_object_unref (client);
 }
 
+#if 0
 static void
 socket_client_timed_out_write (GObject      *source,
                                GAsyncResult *result,
@@ -1507,19 +1510,20 @@ socket_client_timed_out_write (GObject      *source,
 
   g_main_loop_quit (test->loop);
 }
+#endif
 
 static void
 test_connection_read_time_out_write (TestConnection *test,
                                      gconstpointer   data)
 {
+#if 0
+  // FIXME: This test is broken.
+
   GSocketClient *client;
   GTlsCertificateFlags flags;
   GSocketConnection *connection;
   GIOStream *base;
   GError *error = NULL;
-
-#if 0
-  // FIXME: This test is broken.
 
   /* Don't close the server connection after writing TEST_DATA. */
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, FALSE);
