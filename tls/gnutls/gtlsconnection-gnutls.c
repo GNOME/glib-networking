@@ -2100,7 +2100,7 @@ begin_handshake (GTlsConnectionGnutls *gnutls)
       for (i = 0; priv->advertised_protocols[i]; i++)
         {
           protocols[i].size = strlen (priv->advertised_protocols[i]);
-          protocols[i].data = g_memdup (priv->advertised_protocols[i], protocols[i].size);
+          protocols[i].data = (guchar *)priv->advertised_protocols[i];
         }
       gnutls_alpn_set_protocols (priv->session, protocols, n_protos, 0);
       g_free (protocols);
