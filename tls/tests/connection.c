@@ -1512,14 +1512,14 @@ static void
 test_connection_read_time_out_write (TestConnection *test,
                                      gconstpointer   data)
 {
+#if 0
+  // FIXME: This test is broken.
+
   GSocketClient *client;
   GTlsCertificateFlags flags;
   GSocketConnection *connection;
   GIOStream *base;
   GError *error = NULL;
-
-#if 0
-  // FIXME: This test is broken.
 
   /* Don't close the server connection after writing TEST_DATA. */
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, FALSE);
