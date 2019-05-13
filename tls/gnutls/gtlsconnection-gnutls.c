@@ -822,7 +822,7 @@ g_tls_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
       for (i = 0; advertised_protocols[i]; i++)
         {
           protocols[i].size = strlen (advertised_protocols[i]);
-          protocols[i].data = g_memdup (advertised_protocols[i], protocols[i].size);
+          protocols[i].data = (guchar *)advertised_protocols[i];
         }
       gnutls_alpn_set_protocols (priv->session, protocols, n_protos, 0);
       g_free (protocols);
