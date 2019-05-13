@@ -1026,8 +1026,6 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   GSource *source, *cancellable_source;
   GTlsConnectionBaseSource *tls_source;
 
-  source = g_source_new (&tls_source_funcs, sizeof (GTlsConnectionBaseSource));
-
   if (g_tls_connection_base_is_dtls (tls))
     {
       source = g_source_new (&dtls_source_funcs,
