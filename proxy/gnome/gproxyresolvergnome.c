@@ -328,18 +328,6 @@ g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
   return strstr (desktops, "GNOME") != NULL;
 }
 
-static inline gchar **
-make_proxies (const gchar *proxy)
-{
-  gchar **proxies;
-
-  proxies = g_new (gchar *, 2);
-  proxies[0] = g_strdup (proxy);
-  proxies[1] = NULL;
-
-  return proxies;
-}
-
 /* Threadsafely determines what to do with @uri; returns %FALSE if an
  * error occurs, %TRUE and an array of proxies if the mode is NONE or
  * MANUAL, or if @uri is covered by ignore-hosts, or %TRUE and a
