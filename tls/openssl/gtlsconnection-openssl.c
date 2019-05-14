@@ -158,6 +158,14 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       return status;
     }
 
+  if (reason == SSL_R_CERTIFICATE_VERIFY_FAILED)
+    {
+      g_clear_error (&my_error);
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("Unacceptable TLS certificate"));
+      return G_TLS_CONNECTION_BASE_ERROR;
+    }
+
   if (err_lib == ERR_LIB_RSA && reason == RSA_R_DIGEST_TOO_BIG_FOR_RSA_KEY)
     {
       g_clear_error (&my_error);
