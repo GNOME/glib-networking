@@ -1852,6 +1852,7 @@ test_async_implicit_handshake (TestConnection *test, gconstpointer   data)
                          test, NULL);
 
   g_source_attach (input_source, NULL);
+  g_source_unref (input_source);
 
   g_main_loop_run (test->loop);
 
