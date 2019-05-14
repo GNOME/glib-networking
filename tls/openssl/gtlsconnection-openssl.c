@@ -105,7 +105,8 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     }
 
   /* This case is documented that it may happen and that is perfectly fine */
-  if (err_code == SSL_ERROR_SYSCALL && priv->shutting_down && !my_error)
+  if (err_code == SSL_ERROR_SYSCALL && priv->shutting_down &&
+     (!my_error || g_error_matches(my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)))
     return G_TLS_CONNECTION_BASE_OK;
 
   err = ERR_get_error ();
