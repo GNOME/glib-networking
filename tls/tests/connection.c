@@ -1358,7 +1358,6 @@ test_failed_connection (TestConnection *test,
 #endif
 }
 
-#if 0
 static void
 socket_client_connected (GObject      *source,
                          GAsyncResult *result,
@@ -1375,15 +1374,11 @@ socket_client_connected (GObject      *source,
 
   g_main_loop_quit (test->loop);
 }
-#endif
 
 static void
 test_connection_socket_client (TestConnection *test,
                                gconstpointer   data)
 {
-#if 0
-  // FIXME: This test is broken.
-
   GSocketClient *client;
   GTlsCertificateFlags flags;
   GSocketConnection *connection;
@@ -1415,7 +1410,6 @@ test_connection_socket_client (TestConnection *test,
   g_object_unref (connection);
 
   g_object_unref (client);
-#endif
 }
 
 static void
