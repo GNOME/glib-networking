@@ -77,7 +77,6 @@ typedef struct {
   GTlsAuthenticationMode auth_mode;
   gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
-  GError *expected_client_close_error;
   GError *read_error;
   GError *expected_server_error;
   GError *server_error;
@@ -159,7 +158,6 @@ teardown_connection (TestConnection *test, gconstpointer data)
 
   g_main_loop_unref (test->loop);
 
-  g_clear_error (&test->expected_client_close_error);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
   g_clear_error (&test->expected_server_error);
@@ -455,15 +453,7 @@ on_client_connection_close_finish (GObject        *object,
   GError *error = NULL;
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
-
-  if (test->expected_client_close_error)
-    {
-      g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
-    }
-  else
-    {
-      g_assert_no_error (error);
-    }
+  g_assert_no_error (error);
 
   g_main_loop_quit (test->loop);
 }
@@ -1087,7 +1077,6 @@ test_client_auth_failure (TestConnection *test,
 
   g_object_unref (test->client_connection);
   g_clear_object (&test->server_connection);
-  g_clear_error (&test->expected_client_close_error);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
   g_clear_error (&test->expected_server_error);
