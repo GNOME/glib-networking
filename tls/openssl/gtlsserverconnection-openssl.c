@@ -183,9 +183,10 @@ g_tls_server_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
   switch (openssl->authentication_mode)
     {
     case G_TLS_AUTHENTICATION_REQUIRED:
-      req_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+      req_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+      break;
     case G_TLS_AUTHENTICATION_REQUESTED:
-      req_mode |= SSL_VERIFY_PEER;
+      req_mode = SSL_VERIFY_PEER;
       break;
     case G_TLS_AUTHENTICATION_NONE:
     default:
