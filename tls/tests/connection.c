@@ -235,17 +235,12 @@ on_server_close_finish (GObject        *object,
   GError *error = NULL;
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
+  g_assert_no_error (error);
 
   if (expected_error)
-    {
-      g_assert_error (test->server_error, expected_error->domain, expected_error->code);
-      g_assert_no_error (error);
-    }
+    g_assert_error (test->server_error, expected_error->domain, expected_error->code);
   else
-    {
-      g_assert_no_error (test->server_error);
-      g_assert_no_error (error);
-    }
+    g_assert_no_error (test->server_error);
 
   test->server_running = FALSE;
 }
