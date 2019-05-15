@@ -78,7 +78,6 @@ typedef struct {
   gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
   GError *read_error;
-  GError *expected_server_error;
   GError *server_error;
   gboolean server_should_close;
   gboolean server_running;
@@ -111,6 +110,12 @@ setup_connection (TestConnection *test, gconstpointer data)
                                                              \
       g_assert (!(var));                                     \
     }
+
+static void
+wait_until_server_finished (TestConnection *test)
+{
+    WAIT_UNTIL_UNSET (test->server_running);
+}
 
 static void
 teardown_connection (TestConnection *test, gconstpointer data)
@@ -160,7 +165,6 @@ teardown_connection (TestConnection *test, gconstpointer data)
 
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
-  g_clear_error (&test->expected_server_error);
 }
 
 static void
@@ -229,16 +233,10 @@ on_server_close_finish (GObject        *object,
                         gpointer        user_data)
 {
   TestConnection *test = user_data;
-  GError *expected_error = test->expected_server_error;
   GError *error = NULL;
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
   g_assert_no_error (error);
-
-  if (expected_error)
-    g_assert_error (test->server_error, expected_error->domain, expected_error->code);
-  else
-    g_assert_no_error (test->server_error);
 
   test->server_running = FALSE;
 }
@@ -514,6 +512,7 @@ test_basic_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -544,6 +543,7 @@ test_verified_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -913,16 +913,16 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_EXPIRED);
 
-#ifdef BACKEND_IS_GNUTLS
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
-#endif
-
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
 
-#ifdef BACKEND_IS_OPENSSL
+#ifdef BACKEND_IS_GNUTLS
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#elif BACKEND_IS_OPENSSL
+  /* FIXME: This is not OK. There should be an error here. */
   g_assert_no_error (test->server_error);
 #endif
 }
@@ -975,6 +975,7 @@ test_client_auth_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -1009,6 +1010,7 @@ test_client_auth_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -1066,12 +1068,12 @@ test_client_auth_failure (TestConnection *test,
   g_signal_connect (test->client_connection, "notify::accepted-cas",
                     G_CALLBACK (on_notify_accepted_cas), &accepted_changed);
 
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED, "");
-
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
   g_assert_true (accepted_changed);
 
@@ -1079,7 +1081,6 @@ test_client_auth_failure (TestConnection *test,
   g_clear_object (&test->server_connection);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
-  g_clear_error (&test->expected_server_error);
 
   /* Now start a new connection to the same server with a valid client cert;
    * this should succeed, and not use the cached failed session from above */
@@ -1112,6 +1113,7 @@ test_client_auth_failure (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -1133,7 +1135,7 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   GError *error = NULL;
 
 #ifdef BACKEND_IS_OPENSSL
-  g_test_skip("this new test does not work with openssl, more research needed");
+  g_test_skip ("this new test does not work with openssl, more research needed");
   return;
 #endif
 
@@ -1163,12 +1165,12 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
 
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
-
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
 }
 
 static void
@@ -1211,6 +1213,7 @@ test_client_auth_request_cert (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -1252,10 +1255,9 @@ test_client_auth_request_fail (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
 
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED, "");
-
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
 #if OPENSSL_VERSION_NUMBER < 0x10101000L || defined (LIBRESSL_VERSION_NUMBER)
   /* FIXME: G_FILE_ERROR_ACCES is not a very great error to get here. */
@@ -1263,6 +1265,8 @@ test_client_auth_request_fail (TestConnection *test,
 #else
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 #endif
+
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
   g_io_stream_close (test->server_connection, NULL, NULL);
   g_io_stream_close (test->client_connection, NULL, NULL);
@@ -1294,6 +1298,7 @@ test_connection_no_database (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -1331,10 +1336,6 @@ test_failed_connection (TestConnection *test,
   g_assert_no_error (error);
   g_object_unref (connection);
 
-#ifdef BACKEND_IS_GNUTLS
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
-#endif
-
   g_tls_connection_handshake_async (G_TLS_CONNECTION (test->client_connection),
                                     G_PRIORITY_DEFAULT, NULL,
                                     handshake_failed_cb, test);
@@ -1345,10 +1346,14 @@ test_failed_connection (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
 
-#ifdef BACKEND_IS_OPENSSL
+#if BACKEND_IS_GNUTLS
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#elif BACKEND_IS_OPENSSL
+  /* FIXME: This is not OK. There should be an error here. */
   g_assert_no_error (test->server_error);
 #endif
 }
@@ -1396,6 +1401,7 @@ test_connection_socket_client (TestConnection *test,
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
                                  NULL, socket_client_connected, test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   connection = (GSocketConnection *)test->client_connection;
   test->client_connection = NULL;
@@ -1439,13 +1445,16 @@ test_connection_socket_client_failed (TestConnection *test,
   g_socket_client_set_tls (client, TRUE);
   /* this time we don't adjust the validation flags */
 
-#ifdef BACKEND_IS_GNUTLS
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
-#endif
-
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
                                  NULL, socket_client_failed, test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+#ifdef BACKEND_IS_GNUTLS
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#else
+  /* FIXME: This is not OK. There should be an error here. */
+#endif
 
   g_object_unref (client);
 }
@@ -1629,6 +1638,7 @@ test_simultaneous_async (TestConnection *test,
                                simul_async_write_complete, test);
 
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_cmpint (test->nread, ==, TEST_DATA_LENGTH);
   g_assert_cmpint (test->nwrote, ==, TEST_DATA_LENGTH);
@@ -1838,6 +1848,7 @@ test_async_implicit_handshake (TestConnection *test, gconstpointer   data)
   g_source_unref (input_source);
 
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_io_stream_close (G_IO_STREAM (test->client_connection), NULL, &error);
   g_assert_no_error (error);
@@ -1892,14 +1903,14 @@ test_fallback (TestConnection *test,
 #pragma GCC diagnostic pop
 #endif
 
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_INAPPROPRIATE_FALLBACK, "");
-
   g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
                                     quit_on_handshake_complete, test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   /* The server should detect a protocol downgrade attack and terminate the connection.
    */
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_INAPPROPRIATE_FALLBACK);
 
   g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
@@ -1964,6 +1975,7 @@ test_output_stream_close (TestConnection *test,
    */
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -2001,15 +2013,15 @@ test_garbage_database (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
 
-  g_set_error_literal (&test->expected_server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS, "");
-
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   /* Should reject the server's certificate, because our TLS database contains
    * no valid certificates.
    */
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
 }
 
 static void
@@ -2091,6 +2103,7 @@ test_alpn (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
@@ -2195,6 +2208,7 @@ test_sync_op_during_handshake (TestConnection *test,
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
 
   g_assert_no_error (test->read_error);
   g_assert_no_error (test->server_error);
