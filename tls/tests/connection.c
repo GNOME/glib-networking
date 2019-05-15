@@ -1082,7 +1082,6 @@ test_client_auth_failure (TestConnection *test,
   g_main_loop_run (test->loop);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
-  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
   g_assert_true (accepted_changed);
 
