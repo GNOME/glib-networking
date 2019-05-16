@@ -222,7 +222,6 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
   g_mutex_init (&priv->op_mutex);
 
   priv->waiting_for_op = g_cancellable_new ();
-  g_cancellable_cancel (priv->waiting_for_op);
 }
 
 static void
