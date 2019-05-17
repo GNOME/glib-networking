@@ -546,32 +546,32 @@ main (int   argc,
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
   g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
-  g_test_add_func ("/tls/backend/default-database-is-singleton",
+  g_test_add_func ("/tls/" BACKEND "/backend/default-database-is-singleton",
                    test_default_database_is_singleton);
 
-  g_test_add ("/tls/database/verify-good", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/database/verify-good", TestVerify, NULL,
               setup_verify, test_verify_database_good, teardown_verify);
-  g_test_add ("/tls/database/verify-bad-identity", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/database/verify-bad-identity", TestVerify, NULL,
               setup_verify, test_verify_database_bad_identity, teardown_verify);
-  g_test_add ("/tls/database/verify-bad-ca", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/database/verify-bad-ca", TestVerify, NULL,
               setup_verify, test_verify_database_bad_ca, teardown_verify);
-  g_test_add ("/tls/database/verify-bad-before", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/database/verify-bad-before", TestVerify, NULL,
               setup_verify, test_verify_database_bad_before, teardown_verify);
-  g_test_add ("/tls/database/verify-bad-expired", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/database/verify-bad-expired", TestVerify, NULL,
               setup_verify, test_verify_database_bad_expired, teardown_verify);
-  g_test_add ("/tls/database/verify-bad-combo", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/database/verify-bad-combo", TestVerify, NULL,
               setup_verify, test_verify_database_bad_combo, teardown_verify);
-  g_test_add_func ("/tls/database/verify-with-incorrect-root-in-chain",
+  g_test_add_func ("/tls/" BACKEND "/database/verify-with-incorrect-root-in-chain",
                    test_verify_with_incorrect_root_in_chain);
 
-  g_test_add_func ("/tls/file-database/anchors-property",
+  g_test_add_func ("/tls/" BACKEND "/file-database/anchors-property",
                    test_anchors_property);
-  g_test_add_func ("/tls/file-database/lookup-certificates-issued-by",
+  g_test_add_func ("/tls/" BACKEND "/file-database/lookup-certificates-issued-by",
                    test_lookup_certificates_issued_by);
 
-  g_test_add ("/tls/file-database/test-handle", TestFileDatabase, NULL,
+  g_test_add ("/tls/" BACKEND "/file-database/test-handle", TestFileDatabase, NULL,
               setup_file_database, test_file_database_handle, teardown_file_database);
-  g_test_add ("/tls/file-database/test-handle-invalid", TestFileDatabase, NULL,
+  g_test_add ("/tls/" BACKEND "/file-database/test-handle-invalid", TestFileDatabase, NULL,
               setup_file_database, test_file_database_handle_invalid, teardown_file_database);
 
   return g_test_run();
