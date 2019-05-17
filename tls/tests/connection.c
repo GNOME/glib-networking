@@ -1259,13 +1259,10 @@ test_client_auth_request_fail (TestConnection *test,
   g_main_loop_run (test->loop);
   wait_until_server_finished (test);
 
-#if OPENSSL_VERSION_NUMBER < 0x10101000L || defined (LIBRESSL_VERSION_NUMBER)
-  /* FIXME: G_FILE_ERROR_ACCES is not a very great error to get here. */
+  /* G_FILE_ERROR_ACCES is the error returned by our mock interaction object
+   * when the GTlsInteraction's certificate request fails.
+   */
   g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
-#else
-  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
-#endif
-
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
   g_io_stream_close (test->server_connection, NULL, NULL);
