@@ -123,7 +123,7 @@ typedef struct
    */
   gboolean       need_handshake;
   gboolean       need_finish_handshake;
-  gboolean       sync_handshake_completed;
+  gboolean       sync_handshake_in_progress;
   gboolean       started_handshake;
   gboolean       handshaking;
   gboolean       ever_handshaked;
@@ -1254,11 +1254,19 @@ accept_or_reject_peer_certificate (gpointer user_data)
 
   if (!accepted)
     {
-      g_main_context_pop_thread_default (priv->handshake_context);
+      g_mutex_lock (&priv->op_mutex);
+      if (priv->sync_handshake_in_progress)
+        g_main_context_pop_thread_default (priv->handshake_context);
+      g_mutex_unlock (&priv->op_mutex);
+
       accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (tls),
                                                            priv->peer_certificate,
                                                            priv->peer_certificate_errors);
-      g_main_context_push_thread_default (priv->handshake_context);
+
+      g_mutex_lock (&priv->op_mutex);
+      if (priv->sync_handshake_in_progress)
+        g_main_context_push_thread_default (priv->handshake_context);
+      g_mutex_unlock (&priv->op_mutex);
     }
 
   priv->peer_certificate_accepted = accepted;
@@ -1407,7 +1415,7 @@ sync_handshake_thread_completed (GObject      *object,
   g_assert (g_main_context_is_owner (priv->handshake_context));
 
   g_mutex_lock (&priv->op_mutex);
-  priv->sync_handshake_completed = TRUE;
+  priv->sync_handshake_in_progress = FALSE;
   g_mutex_unlock (&priv->op_mutex);
 
   g_main_context_wakeup (priv->handshake_context);
@@ -1424,8 +1432,8 @@ crank_sync_handshake_context (GTlsConnectionBase *tls,
    * here. So need_finish_handshake should only change on this thread.
    */
   g_mutex_lock (&priv->op_mutex);
-  priv->sync_handshake_completed = FALSE;
-  while (!priv->sync_handshake_completed && !g_cancellable_is_cancelled (cancellable))
+  priv->sync_handshake_in_progress = TRUE;
+  while (priv->sync_handshake_in_progress && !g_cancellable_is_cancelled (cancellable))
     {
       g_mutex_unlock (&priv->op_mutex);
       g_main_context_iteration (priv->handshake_context, TRUE);
