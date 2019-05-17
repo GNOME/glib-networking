@@ -342,31 +342,23 @@ retrieve_certificate (SSL       *ssl,
   GTlsConnectionBase *tls;
   GTlsCertificate *cert;
   gboolean set_certificate = FALSE;
-  GError **certificate_error;
 
   client = SSL_get_ex_data (ssl, data_index);
   tls = G_TLS_CONNECTION_BASE (client);
-  certificate_error = g_tls_connection_base_get_certificate_error (tls);
-
-  g_tls_connection_base_request_certificate (tls, certificate_error);
 
   client->ca_list = SSL_get_client_CA_list (client->ssl);
   g_object_notify (G_OBJECT (client), "accepted-cas");
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
-  if (cert != NULL)
-    set_certificate = TRUE;
-  else
+  if (cert == NULL)
     {
-      g_clear_error (certificate_error);
-      if (g_tls_connection_base_request_certificate (tls, certificate_error))
-        {
-          cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
-          set_certificate = (cert != NULL);
-        }
+      g_clear_error (g_tls_connection_base_get_certificate_error (tls));
+
+      if (g_tls_connection_base_request_certificate (tls, g_tls_connection_base_get_certificate_error (tls)))
+        cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
     }
 
-  if (set_certificate)
+  if (cert != NULL)
     {
       EVP_PKEY *key;
 
