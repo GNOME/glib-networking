@@ -1259,7 +1259,7 @@ test_client_auth_request_fail (TestConnection *test,
   g_main_loop_run (test->loop);
   wait_until_server_finished (test);
 
-#if OPENSSL_VERSION_NUMBER < 0x10101000L || defined (LIBRESSL_VERSION_NUMBER)
+#if BACKEND_IS_OPENSSL
   /* FIXME: G_FILE_ERROR_ACCES is not a very great error to get here. */
   g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
 #else
