@@ -1453,24 +1453,15 @@ test_connection_socket_client_failed (TestConnection *test,
   g_object_unref (client);
 }
 
-#if 0
-static void
-socket_client_timed_out_write (GObject      *source,
-                               GAsyncResult *result,
-                               gpointer      user_data)
+static gboolean
+socket_client_timed_out_write (gpointer user_data)
 {
   TestConnection *test = user_data;
-  GSocketConnection *connection;
   GInputStream *input_stream;
   GOutputStream *output_stream;
   GError *error = NULL;
   gchar buffer[TEST_DATA_LENGTH];
   gssize size;
-
-  connection = g_socket_client_connect_finish (G_SOCKET_CLIENT (source),
-                                               result, &error);
-  g_assert_no_error (error);
-  test->client_connection = G_IO_STREAM (connection);
 
   input_stream = g_io_stream_get_input_stream (test->client_connection);
   output_stream = g_io_stream_get_output_stream (test->client_connection);
@@ -1495,16 +1486,40 @@ socket_client_timed_out_write (GObject      *source,
   g_assert_cmpint (size, ==, TEST_DATA_LENGTH);
 
   g_main_loop_quit (test->loop);
+
+  return G_SOURCE_REMOVE;
 }
-#endif
+
+static void
+socket_client_timed_out_write_connected (GObject      *source,
+                                         GAsyncResult *result,
+                                         gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  GSocketConnection *connection;
+  GError *error = NULL;
+
+  connection = g_socket_client_connect_finish (G_SOCKET_CLIENT (source),
+                                               result, &error);
+  g_assert_no_error (error);
+  test->client_connection = G_IO_STREAM (connection);
+
+  /* We need to use an idle callback here to guarantee that the upcoming call
+   * to g_input_stream_read() executes on the next iteration of the main
+   * context. Otherwise, we could deadlock ourselves: the read would not be able
+   * to complete if GTask executes socket_client_timed_out_write_connected()
+   * using g_task_return_now() instead of posting the invocation to the next
+   * iteration of the main context, because the server will not progress until
+   * the main context is iterated, but iteration would be blocked waiting for
+   * client's read to complete.
+   */
+  g_idle_add (socket_client_timed_out_write, test);
+}
 
 static void
 test_connection_read_time_out_write (TestConnection *test,
                                      gconstpointer   data)
 {
-#if 0
-  // FIXME: This test is broken.
-
   GSocketClient *client;
   GTlsCertificateFlags flags;
   GSocketConnection *connection;
@@ -1523,7 +1538,7 @@ test_connection_read_time_out_write (TestConnection *test,
   g_socket_client_set_tls_validation_flags (client, flags);
 
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
-                                 NULL, socket_client_timed_out_write, test);
+                                 NULL, socket_client_timed_out_write_connected, test);
 
   g_main_loop_run (test->loop);
 
@@ -1542,7 +1557,6 @@ test_connection_read_time_out_write (TestConnection *test,
   g_object_unref (connection);
 
   g_object_unref (client);
-#endif
 }
 
 static void
