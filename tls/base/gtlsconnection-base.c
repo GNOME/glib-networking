@@ -1522,6 +1522,7 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
   g_task_run_in_thread (task, handshake_thread);
   crank_sync_handshake_context (tls, cancellable);
 
+  g_main_context_pop_thread_default (priv->handshake_context);
   g_clear_pointer (&priv->handshake_context, g_main_context_unref);
 
   success = finish_handshake (tls, task, &my_error);
