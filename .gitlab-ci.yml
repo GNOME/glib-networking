@@ -2,8 +2,9 @@ image: registry.gitlab.gnome.org/gnome/glib-networking/master:v3
 
 fedora-x86_64:
   script:
-    - meson --prefix=$HOME/glib-networking-installed
-            -Db_sanitize=address
+    # Sadly, GCC 9's LeakSanitizer is quite crashy, #86.
+    # So we will run our tests under asan only once.
+    - meson -Db_sanitize=address
             -Dgnutls=enabled
             -Dopenssl=enabled
             -Dlibproxy=enabled
@@ -11,7 +12,19 @@ fedora-x86_64:
             -Dwerror=true
             build/
     - ninja -C build/
-    - meson test -v -C build/ --repeat=1000
+    - meson test -v -C build/
+    - rm -rf build/
+
+    # Now again, this time without asan. We will additionally test installation.
+    - meson --prefix=$HOME/glib-networking-installed
+            -Dgnutls=enabled
+            -Dopenssl=enabled
+            -Dlibproxy=enabled
+            -Dgnome_proxy=enabled
+            -Dwerror=true
+            build/
+    - ninja -C build/
+    - meson test -v -C build/ --repeat=500
     - meson install -C build/
   artifacts:
     paths:
