@@ -11,7 +11,7 @@ fedora-x86_64:
             -Dwerror=true
             build/
     - ninja -C build/
-    - meson test -v -C build/ --repeat=1000
+    - LSAN_OPTIONS=verbosity=1:log_threads=1 meson test -v -C build/ --repeat=1000
     - meson install -C build/
   artifacts:
     paths:
