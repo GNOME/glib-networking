@@ -866,37 +866,37 @@ main (int   argc,
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
   g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
-  g_test_add ("/dtls/connection/basic/blocking", TestConnection, &blocking,
+  g_test_add ("/dtls/" BACKEND "/connection/basic/blocking", TestConnection, &blocking,
               setup_connection, test_basic_connection, teardown_connection);
-  g_test_add ("/dtls/connection/basic/timeout", TestConnection, &server_timeout,
+  g_test_add ("/dtls/" BACKEND "/connection/basic/timeout", TestConnection, &server_timeout,
               setup_connection, test_basic_connection, teardown_connection);
-  g_test_add ("/dtls/connection/basic/nonblocking",
+  g_test_add ("/dtls/" BACKEND "/connection/basic/nonblocking",
               TestConnection, &nonblocking,
               setup_connection, test_basic_connection, teardown_connection);
 
-  g_test_add ("/dtls/connection/threaded/blocking", TestConnection, &blocking,
+  g_test_add ("/dtls/" BACKEND "/connection/threaded/blocking", TestConnection, &blocking,
               setup_connection, test_threaded_connection, teardown_connection);
-  g_test_add ("/dtls/connection/threaded/timeout",
+  g_test_add ("/dtls/" BACKEND "/connection/threaded/timeout",
               TestConnection, &server_timeout,
               setup_connection, test_threaded_connection, teardown_connection);
-  g_test_add ("/dtls/connection/threaded/nonblocking",
+  g_test_add ("/dtls/" BACKEND "/connection/threaded/nonblocking",
               TestConnection, &nonblocking,
               setup_connection, test_threaded_connection, teardown_connection);
 
-  g_test_add ("/dtls/connection/timeouts/read", TestConnection, &client_timeout,
+  g_test_add ("/dtls/" BACKEND "/connection/timeouts/read", TestConnection, &client_timeout,
               setup_connection, test_connection_timeouts_read,
               teardown_connection);
 
-  g_test_add ("/dtls/connection/alpn/match", TestConnection, &blocking,
+  g_test_add ("/dtls/" BACKEND "/connection/alpn/match", TestConnection, &blocking,
               setup_connection, test_alpn_match,
               teardown_connection);
-  g_test_add ("/dtls/connection/alpn/no-match", TestConnection, &blocking,
+  g_test_add ("/dtls/" BACKEND "/connection/alpn/no-match", TestConnection, &blocking,
               setup_connection, test_alpn_no_match,
               teardown_connection);
-  g_test_add ("/dtls/connection/alpn/client-only", TestConnection, &blocking,
+  g_test_add ("/dtls/" BACKEND "/connection/alpn/client-only", TestConnection, &blocking,
               setup_connection, test_alpn_client_only,
               teardown_connection);
-  g_test_add ("/dtls/connection/alpn/server-only", TestConnection, &blocking,
+  g_test_add ("/dtls/" BACKEND "/connection/alpn/server-only", TestConnection, &blocking,
               setup_connection, test_alpn_server_only,
               teardown_connection);
 

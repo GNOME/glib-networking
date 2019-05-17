@@ -562,38 +562,38 @@ main (int   argc,
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
   g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
-  g_test_add ("/tls/certificate/create-pem", TestCertificate, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/create-pem", TestCertificate, NULL,
               setup_certificate, test_create_pem, teardown_certificate);
-  g_test_add ("/tls/certificate/create-der", TestCertificate, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/create-der", TestCertificate, NULL,
               setup_certificate, test_create_der, teardown_certificate);
-  g_test_add ("/tls/certificate/create-with-key-pem", TestCertificate, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/create-with-key-pem", TestCertificate, NULL,
               setup_certificate, test_create_with_key_pem, teardown_certificate);
-  g_test_add ("/tls/certificate/create-with-key-der", TestCertificate, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/create-with-key-der", TestCertificate, NULL,
               setup_certificate, test_create_with_key_der, teardown_certificate);
-  g_test_add ("/tls/certificate/create-with-issuer", TestCertificate, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/create-with-issuer", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_issuer, teardown_certificate);
-  g_test_add ("/tls/certificate/create-with-garbage-input", TestCertificate, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/create-with-garbage-input", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_garbage_input, teardown_certificate);
 
-  g_test_add_func ("/tls/certificate/create-chain", test_create_certificate_chain);
-  g_test_add_func ("/tls/certificate/create-no-chain", test_create_certificate_no_chain);
-  g_test_add_func ("/tls/certificate/create-list", test_create_list);
-  g_test_add_func ("/tls/certificate/create-list-bad", test_create_list_bad);
+  g_test_add_func ("/tls/" BACKEND "/certificate/create-chain", test_create_certificate_chain);
+  g_test_add_func ("/tls/" BACKEND "/certificate/create-no-chain", test_create_certificate_no_chain);
+  g_test_add_func ("/tls/" BACKEND "/certificate/create-list", test_create_list);
+  g_test_add_func ("/tls/" BACKEND "/certificate/create-list-bad", test_create_list_bad);
 
-  g_test_add ("/tls/certificate/verify-good", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/verify-good", TestVerify, NULL,
               setup_verify, test_verify_certificate_good, teardown_verify);
-  g_test_add ("/tls/certificate/verify-bad-identity", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/verify-bad-identity", TestVerify, NULL,
               setup_verify, test_verify_certificate_bad_identity, teardown_verify);
-  g_test_add ("/tls/certificate/verify-bad-ca", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/verify-bad-ca", TestVerify, NULL,
               setup_verify, test_verify_certificate_bad_ca, teardown_verify);
-  g_test_add ("/tls/certificate/verify-bad-before", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/verify-bad-before", TestVerify, NULL,
               setup_verify, test_verify_certificate_bad_before, teardown_verify);
-  g_test_add ("/tls/certificate/verify-bad-expired", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/verify-bad-expired", TestVerify, NULL,
               setup_verify, test_verify_certificate_bad_expired, teardown_verify);
-  g_test_add ("/tls/certificate/verify-bad-combo", TestVerify, NULL,
+  g_test_add ("/tls/" BACKEND "/certificate/verify-bad-combo", TestVerify, NULL,
               setup_verify, test_verify_certificate_bad_combo, teardown_verify);
 
-  g_test_add_func ("/tls/certificate/is-same", test_certificate_is_same);
+  g_test_add_func ("/tls/" BACKEND "/certificate/is-same", test_certificate_is_same);
 
   return g_test_run();
 }
