@@ -70,10 +70,7 @@ foreach backend: backends
         'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
       ]
 
-      # OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
-      if backend != 'openssl'
-        test(program_name, exe, env: test_envs)
-      endif
+      test(program_name, exe, env: test_envs)
     endif
   endforeach
 endforeach
