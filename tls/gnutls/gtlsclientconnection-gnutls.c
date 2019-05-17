@@ -356,26 +356,14 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
 
       if (g_tls_connection_base_request_certificate (tls, g_tls_connection_base_get_certificate_error (tls)))
         g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
-
-      if (*pcert_length == 0)
-        {
-          g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
-
-          /* If there is still no client certificate, this connection will
-           * probably fail, but no reason to give up: let's try anyway.
-           */
-          g_tls_connection_base_set_missing_requested_client_certificate (tls);
-          return 0;
-        }
     }
 
-  if (*pkey == NULL)
+  /* If no client certificate was provided, or the provided certificate does not
+   * have a private key, then it's time to fail.
+   */
+  if (*pcert_length == 0 || *pkey == NULL)
     {
       g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
-
-      /* No private key. GnuTLS expects it to be non-null if pcert_length is
-       * nonzero, so we have to abort now.
-       */
       g_tls_connection_base_set_missing_requested_client_certificate (tls);
       return -1;
     }
