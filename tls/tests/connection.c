@@ -1073,7 +1073,7 @@ test_client_auth_failure (TestConnection *test,
   wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
-  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
 
   g_assert_true (accepted_changed);
 
@@ -1263,7 +1263,7 @@ test_client_auth_request_fail (TestConnection *test,
    * when the GTlsInteraction's certificate request fails.
    */
   g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
-  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
 
   g_io_stream_close (test->server_connection, NULL, NULL);
   g_io_stream_close (test->client_connection, NULL, NULL);
