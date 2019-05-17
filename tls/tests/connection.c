@@ -1594,7 +1594,7 @@ simul_async_write_complete (GObject      *object,
   if (test->nwrote < TEST_DATA_LENGTH)
     {
       g_output_stream_write_async (G_OUTPUT_STREAM (object),
-                                   TEST_DATA + test->nwrote,
+                                   &TEST_DATA[test->nwrote],
                                    TEST_DATA_LENGTH - test->nwrote,
                                    G_PRIORITY_DEFAULT, NULL,
                                    simul_async_write_complete, test);
@@ -1685,7 +1685,7 @@ simul_write_thread (gpointer user_data)
   while (test->nwrote < TEST_DATA_LENGTH)
     {
       nwrote = g_output_stream_write (ostream,
-                                      TEST_DATA + test->nwrote,
+                                      &TEST_DATA[test->nwrote],
                                       MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nwrote),
                                       NULL, &error);
       g_assert_no_error (error);
