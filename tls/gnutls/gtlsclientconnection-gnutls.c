@@ -104,7 +104,7 @@ g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
   gnutls_certificate_credentials_t creds;
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_retrieve_function);
+  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 }
 
 static const gchar *
@@ -313,14 +313,14 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 }
 
 static int
-g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              session,
-                                                  const gnutls_datum_t         *req_ca_rdn,
-                                                  int                           nreqs,
-                                                  const gnutls_pk_algorithm_t  *pk_algos,
-                                                  int                           pk_algos_length,
-                                                  gnutls_pcert_st             **pcert,
-                                                  unsigned int                 *pcert_length,
-                                                  gnutls_privkey_t             *pkey)
+g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+                                                                   const gnutls_datum_t         *req_ca_rdn,
+                                                                   int                           nreqs,
+                                                                   const gnutls_pk_algorithm_t  *pk_algos,
+                                                                   int                           pk_algos_length,
+                                                                   gnutls_pcert_st             **pcert,
+                                                                   unsigned int                 *pcert_length,
+                                                                   gnutls_privkey_t             *pkey)
 {
   GTlsConnectionBase *tls = gnutls_transport_get_ptr (session);
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
@@ -341,6 +341,10 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
       g_ptr_array_add (accepted_cas, dn);
     }
 
+  /* FIXME: All access to private data throughout this function, including all
+   * use of g_tls_connection_base functions, needs to be protected by a mutex.
+   * Also, we should only notify on the handshake context.
+   */
   if (gnutls->accepted_cas)
     g_ptr_array_unref (gnutls->accepted_cas);
   gnutls->accepted_cas = accepted_cas;
