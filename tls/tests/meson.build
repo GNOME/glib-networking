@@ -74,6 +74,13 @@ foreach backend: backends
       if backend != 'openssl'
         test(program_name, exe, env: test_envs)
       endif
+
+      # GnuTLS tests are run twice: once with TLS 1.3, then once again with
+      # TLS 1.2. (Assuming GnuTLS supports TLS 1.3.)
+      if backend == 'gnutls' and program_name.contains('connection')
+        test_envs += ['G_TLS_GNUTLS_PRIORITY=NORMAL:%COMPAT:-VERS-TLS1.3']
+        test(program_name + '-tls1.2', exe, env: test_envs)
+      endif
     endif
   endforeach
 endforeach
