@@ -426,7 +426,7 @@ g_tls_bio_wait_available (BIO          *bio,
   gbio = BIO_get_data (bio);
 #endif
 
-  loop = g_main_loop_new (NULL, FALSE);
+  loop = g_main_loop_new (g_main_context_get_thread_default (), FALSE);
   
   if (condition & G_IO_IN)
     source = g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (g_io_stream_get_input_stream (gbio->io_stream)),
@@ -436,10 +436,8 @@ g_tls_bio_wait_available (BIO          *bio,
                                                      cancellable);
 
   g_source_set_callback (source, (GSourceFunc)on_source_ready, loop, NULL);
-  g_source_attach (source, NULL);
+  g_source_attach (source, g_main_context_get_thread_default ());
 
-  g_message ("waiting for IO");
   g_main_loop_run (loop);
   g_main_loop_unref (loop);
-  g_message ("after waiting");
 }
