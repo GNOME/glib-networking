@@ -438,8 +438,6 @@ g_tls_bio_wait_available (BIO          *bio,
   g_source_set_callback (source, (GSourceFunc)on_source_ready, loop, NULL);
   g_source_attach (source, NULL);
 
-  g_message ("waiting for IO");
   g_main_loop_run (loop);
   g_main_loop_unref (loop);
-  g_message ("after waiting");
 }
