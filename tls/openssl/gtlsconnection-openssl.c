@@ -194,11 +194,11 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
-#define BEGIN_OPENSSL_IO(openssl, direction, timeout, cancellable)        \
-  g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),         \
-                                 direction, timeout, cancellable);         \
+#define BEGIN_OPENSSL_IO(openssl, direction, timeout, cancellable)          \
   do {                                                                      \
-    char error_str[256];
+    char error_str[256];                                                    \
+    g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),         \
+                                   direction, timeout, cancellable);
 
 #define END_OPENSSL_IO(openssl, direction, ret, status, errmsg, err)        \
     ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof(error_str)); \
