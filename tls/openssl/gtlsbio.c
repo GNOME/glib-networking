@@ -397,3 +397,49 @@ g_tls_bio_set_write_error (BIO     *bio,
 #endif
   gbio->write_error = error;
 }
+
+static gboolean
+on_source_ready (GObject *pollable_stream,
+                 gpointer user_data)
+{
+  GMainLoop *loop = user_data;
+
+  g_main_loop_quit (loop);
+
+  return G_SOURCE_REMOVE;
+}
+
+void
+g_tls_bio_wait_available (BIO          *bio,
+                          GIOCondition  condition,
+                          GCancellable *cancellable)
+{
+  GTlsBio *gbio;
+  GMainLoop *loop;
+  GSource *source;
+
+  g_return_if_fail (bio != NULL);
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+  gbio = (GTlsBio *)bio->ptr;
+#else
+  gbio = BIO_get_data (bio);
+#endif
+
+  loop = g_main_loop_new (NULL, FALSE);
+  
+  if (condition & G_IO_IN)
+    source = g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (g_io_stream_get_input_stream (gbio->io_stream)),
+                                                    cancellable);
+  else
+    source = g_pollable_output_stream_create_source (G_POLLABLE_OUTPUT_STREAM (g_io_stream_get_output_stream (gbio->io_stream)),
+                                                     cancellable);
+
+  g_source_set_callback (source, (GSourceFunc)on_source_ready, loop, NULL);
+  g_source_attach (source, NULL);
+
+  g_message ("waiting for IO");
+  g_main_loop_run (loop);
+  g_main_loop_unref (loop);
+  g_message ("after waiting");
+}
