@@ -1942,6 +1942,13 @@ test_output_stream_close (TestConnection *test,
   gboolean handshake_complete = FALSE;
   gssize size;
 
+#ifdef BACKEND_IS_OPENSSL
+# if OPENSSL_VERSION_NUMBER >= 0x10101000L
+  g_test_skip ("this is not supported with openssl 1.1.1");
+  return;
+# endif
+#endif
+
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
