@@ -51,6 +51,10 @@ void       g_tls_bio_set_write_blocking    (BIO          *bio,
 void       g_tls_bio_set_write_error       (BIO          *bio,
                                             GError      **error);
 
+void       g_tls_bio_wait_available        (BIO          *bio,
+                                            GIOCondition  condition,
+                                            GCancellable *cancellable);
+
 G_END_DECLS
 
 #endif /* __G_TLS_BIO_H__ */
