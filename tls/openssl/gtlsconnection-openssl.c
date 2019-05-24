@@ -75,10 +75,13 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
                 const char             *err_str)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (openssl);
+  GTlsConnectionOpensslPrivate *priv;
   int err_code, err, err_lib, reason;
   GError *my_error = NULL;
   GTlsConnectionBaseStatus status;
   SSL *ssl;
+
+  priv = g_tls_connection_openssl_get_instance_private (openssl);
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
@@ -108,7 +111,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 
   /* This case is documented that it may happen and that is perfectly fine */
   if (err_code == SSL_ERROR_SYSCALL &&
-      ((shutting_down && !my_error) ||
+      ((priv->shutting_down && !my_error) ||
        g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)))
     {
       g_clear_error (&my_error);
