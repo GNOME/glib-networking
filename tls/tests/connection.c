@@ -1945,6 +1945,7 @@ test_output_stream_close (TestConnection *test,
 #ifdef BACKEND_IS_OPENSSL
 # if OPENSSL_VERSION_NUMBER >= 0x10101000L
   g_test_skip ("this is not supported with openssl 1.1.1");
+  return;
 # endif
 #endif
 
