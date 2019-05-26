@@ -204,9 +204,9 @@ g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t              
 }
 
 static void
-g_tls_server_connection_gnutls_failed (GTlsConnectionBase *tls)
+g_tls_server_connection_gnutls_failed (GTlsConnectionGnutls *gnutls)
 {
-  gnutls_db_remove_session (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)));
+  gnutls_db_remove_session (g_tls_connection_gnutls_get_session (gnutls));
 }
 
 static void
@@ -238,7 +238,6 @@ g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
 }
 
 /* Session cache management */
-
 static int
 g_tls_server_connection_gnutls_db_store (void            *user_data,
                                          gnutls_datum_t   key,
@@ -300,13 +299,15 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
+  GTlsConnectionGnutlsClass *gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
   gobject_class->finalize     = g_tls_server_connection_gnutls_finalize;
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 
   base_class->prepare_handshake  = g_tls_server_connection_gnutls_prepare_handshake;
-  base_class->failed             = g_tls_server_connection_gnutls_failed;
+
+  gnutls_class->failed             = g_tls_server_connection_gnutls_failed;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }

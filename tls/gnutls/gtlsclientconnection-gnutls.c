@@ -397,9 +397,9 @@ g_tls_client_connection_gnutls_clear_session_data (GTlsClientConnectionGnutls *g
 }
 
 static void
-g_tls_client_connection_gnutls_failed (GTlsConnectionBase *tls)
+g_tls_client_connection_gnutls_failed (GTlsConnectionGnutls *gnutls)
 {
-  g_tls_client_connection_gnutls_clear_session_data (G_TLS_CLIENT_CONNECTION_GNUTLS (tls));
+  g_tls_client_connection_gnutls_clear_session_data (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
 }
 
 static void
@@ -494,6 +494,7 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
+  GTlsConnectionGnutlsClass *gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
   gobject_class->get_property = g_tls_client_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
@@ -501,7 +502,8 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
 
   base_class->prepare_handshake  = g_tls_client_connection_gnutls_prepare_handshake;
   base_class->complete_handshake = g_tls_client_connection_gnutls_complete_handshake;
-  base_class->failed             = g_tls_client_connection_gnutls_failed;
+
+  gnutls_class->failed             = g_tls_client_connection_gnutls_failed;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
