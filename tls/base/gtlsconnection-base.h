@@ -84,8 +84,6 @@ struct _GTlsConnectionBaseClass
                                                           gboolean              success,
                                                           GError              **error);
 
-  void                     (*failed)                     (GTlsConnectionBase   *tls);
-
   GTlsConnectionBaseStatus (*read_fn)                    (GTlsConnectionBase   *tls,
                                                           void                 *buffer,
                                                           gsize                 count,

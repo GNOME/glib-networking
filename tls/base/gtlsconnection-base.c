@@ -709,10 +709,10 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
                                    GError             **error)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GError *my_error = NULL;
 
   /* This function MAY or MAY NOT set error when it fails! */
+
   if (direction & G_IO_IN)
     {
       priv->read_cancellable = NULL;
@@ -751,9 +751,6 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
     }
   else if (my_error)
     g_propagate_error (error, my_error);
-
-  if (tls_class->failed)
-    tls_class->failed (tls);
 
   return G_TLS_CONNECTION_BASE_ERROR;
 }
