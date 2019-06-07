@@ -1092,7 +1092,7 @@ g_tls_database_gnutls_pkcs11_initable_init (GInitable     *initable,
 
   g_return_val_if_fail (!self->modules, FALSE);
 
-  self->modules = p11_kit_modules_load (NULL, 0);
+  self->modules = p11_kit_modules_load_and_initialize (0);
   if (self->modules == NULL) {
     g_set_error_literal (error, G_PKCS11_ERROR, CKR_FUNCTION_FAILED, p11_kit_message ());
     return FALSE;
