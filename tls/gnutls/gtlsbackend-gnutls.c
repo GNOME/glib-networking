@@ -309,7 +309,7 @@ g_tls_backend_gnutls_register (GIOModule *module)
   if (module == NULL)
     g_io_extension_point_register (G_TLS_BACKEND_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_TLS_BACKEND_EXTENSION_POINT_NAME,
-                                  g_tls_backend_gnutls_get_type(),
+                                  g_tls_backend_gnutls_get_type (),
                                   "gnutls",
                                   0);
 }

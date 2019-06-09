@@ -248,7 +248,7 @@ g_tls_backend_openssl_register (GIOModule *module)
   if (!module)
     g_io_extension_point_register (G_TLS_BACKEND_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_TLS_BACKEND_EXTENSION_POINT_NAME,
-                                  g_tls_backend_openssl_get_type(),
+                                  g_tls_backend_openssl_get_type (),
                                   "openssl",
                                   -1);
 }
