@@ -1,3 +1,12 @@
+2.60.3 - June 9, 2019
+=====================
+
+- Fix clobbering of the thread-default main context after certificate
+  verification failure during async handshakes since 2.60.1 (#85)
+- Fix GTlsDatabase initialization failures in OpenSSL backend due to
+  uninitialized memory use
+- Fix minor leak of ALPN protocols
+
 2.60.2 - May 2, 2019
 ====================
 
