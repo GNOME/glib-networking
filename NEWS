@@ -1,3 +1,25 @@
+2.61.1 - June 9, 2019
+=====================
+
+This release contains a major refactoring of the TLS codebase. The GnuTLS
+backend now shares the same base classes as the OpenSSL backend, to avoid
+duplicating as much code as possible. The base classes, previously used only by
+the OpenSSL backend and originally forked from glib-networking several years
+ago, have been enhanced to achieve feature-parity with the current state of the
+GnuTLS backend.
+
+Please note that the OpenSSL backend remains experimental. Further planned work
+is required before this backend will be production-ready.
+
+2.60.3 - June 9, 2019
+=====================
+
+- Fix clobbering of the thread-default main context after certificate
+  verification failure during async handshakes since 2.60.1 (#85)
+- Fix GTlsDatabase initialization failures in OpenSSL backend due to
+  uninitialized memory use
+- Fix minor leak of ALPN protocols
+
 2.60.2 - May 2, 2019
 ====================
 
