@@ -238,6 +238,7 @@ g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
 }
 
 /* Session cache management */
+
 static int
 g_tls_server_connection_gnutls_db_store (void            *user_data,
                                          gnutls_datum_t   key,
