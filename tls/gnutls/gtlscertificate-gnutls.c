@@ -359,6 +359,172 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
   return gtls_flags;
 }
 
+#if GLIB_CHECK_VERSION (2, 61, 1)
+static GVariant *
+serialize_single_cert (GTlsCertificateGnutls  *cert,
+                       GError                **error)
+{
+  GVariantDict *dict;
+  gnutls_datum_t cert_data;
+  int gnutls_err;
+
+  if ((gnutls_err = gnutls_x509_crt_export2 (cert->cert, GNUTLS_X509_FMT_DER, &cert_data)) != GNUTLS_E_SUCCESS)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Failed to export certificate (%d) (%s)", gnutls_err, gnutls_strerror (gnutls_err));
+      return NULL;
+    }
+
+  dict = g_variant_dict_new (NULL);
+  g_variant_dict_insert_value (dict, "certificate", g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE, cert_data.data, cert_data.size, sizeof (guchar)));
+  gnutls_free (cert_data.data);
+
+  if (g_tls_certificate_gnutls_has_key (cert))
+    {
+      gnutls_datum_t privkey_data;
+
+      /* NOTE: This can be encrypted by password in the future */
+      if ((gnutls_err = gnutls_x509_privkey_export2_pkcs8 (cert->key, GNUTLS_X509_FMT_DER, NULL, GNUTLS_PKCS_PLAIN, &privkey_data)) != GNUTLS_E_SUCCESS)
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Failed to export private-key (%d) (%s)", gnutls_err, gnutls_strerror (gnutls_err));
+          g_variant_dict_unref (dict);
+          return NULL;
+        }
+
+      g_variant_dict_insert_value (dict, "private-key", g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE, privkey_data.data, privkey_data.size, sizeof (guchar)));
+      gnutls_free (privkey_data.data);
+    }
+
+  if (cert->issuer != NULL)
+    {
+      GVariant *serialized_cert = serialize_single_cert (cert->issuer, error);
+      if (serialized_cert == NULL)
+        {
+          g_variant_dict_unref (dict);
+          return NULL;
+        }
+      g_variant_dict_insert_value (dict, "issuer", serialized_cert);
+    }
+
+  return g_variant_dict_end (dict);
+}
+
+#define CERTIFICATE_SERIALIZATION_FORMAT 1
+
+static GVariant *
+g_tls_certificate_gnutls_serialize (GTlsCertificate  *cert,
+                                    GError          **error)
+{
+  GVariantDict *dict = g_variant_dict_new (NULL);
+  GVariant *serialized_cert;
+
+  /* Metadata to sanely change formats and handle cross-backend serializing */
+  g_variant_dict_insert (dict, "tls-backend", "s", "gnutls");
+  g_variant_dict_insert (dict, "tls-backend-format", "q", CERTIFICATE_SERIALIZATION_FORMAT);
+
+  serialized_cert = serialize_single_cert (G_TLS_CERTIFICATE_GNUTLS (cert), error);
+  if (serialized_cert == NULL)
+    {
+      g_variant_dict_unref (dict);
+      return NULL;
+    }
+
+  g_variant_dict_insert_value (dict, "certificate", serialized_cert);
+  return g_variant_dict_end (dict);
+}
+
+static GTlsCertificate *
+deserialize_single_certificate (GVariant  *serialized_cert,
+                                GError   **error)
+{
+  GVariant *certificate_value;
+  gsize certificate_size;
+  GVariant *privkey_value;
+  GTlsCertificate *cert = NULL;
+  GTlsCertificate *issuer_cert = NULL;
+  GVariant *issuer;
+  gnutls_datum_t certificate_data;
+
+  certificate_value = g_variant_lookup_value (serialized_cert, "certificate", G_VARIANT_TYPE_ARRAY);
+  if (certificate_value == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                           "Failed to deserialize certificate (missing certificate)");
+      return NULL;
+    }
+
+  certificate_data.data = (guchar*) g_variant_get_fixed_array (certificate_value, &certificate_size, sizeof (guchar));
+  certificate_data.size = (int) certificate_size;
+
+  if ((issuer = g_variant_lookup_value (serialized_cert, "issuer", G_VARIANT_TYPE_VARDICT)))
+    {
+      issuer_cert = deserialize_single_certificate (issuer, error);
+      if (issuer_cert == NULL)
+          return NULL;
+    }
+
+  cert = g_tls_certificate_gnutls_new (&certificate_data, issuer_cert);
+
+  privkey_value = g_variant_lookup_value (serialized_cert, "private-key", G_VARIANT_TYPE_ARRAY);
+  if (privkey_value != NULL)
+    {
+      GTlsCertificateGnutls *gnutls = (GTlsCertificateGnutls*) cert;
+      gnutls_datum_t privkey_data;
+      gsize privkey_size;
+      int status;
+
+      privkey_data.data = (guchar*) g_variant_get_fixed_array (privkey_value, &privkey_size, sizeof (guchar));
+      privkey_data.size = (int) privkey_size;
+
+      gnutls_x509_privkey_init (&gnutls->key);
+
+      status = gnutls_x509_privkey_import_pkcs8 (gnutls->key, &privkey_data,
+                                                 GNUTLS_X509_FMT_DER, NULL,
+                                                 GNUTLS_PKCS_PLAIN);
+      if (status == GNUTLS_E_SUCCESS)
+        gnutls->have_key = TRUE;
+      else
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                        "Failed to deserialize private-key: %s",
+                        gnutls_strerror (status));
+          g_object_unref (cert);
+          return NULL;
+        }
+    }
+
+  return cert;
+}
+
+static GTlsCertificate *
+g_tls_certificate_gnutls_deserialize (GVariant  *serialized_cert,
+                                      GError   **error)
+{
+  GVariant *cert;
+  char *backend = NULL;
+  guint16 format = 0;
+
+  if (!g_variant_lookup (serialized_cert, "tls-backend", "s", &backend) ||
+      !g_variant_lookup (serialized_cert, "tls-backend-format", "q", &format) ||
+      g_strcmp0 (backend, "gnutls") != 0 ||
+      format > CERTIFICATE_SERIALIZATION_FORMAT)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Failed to deserialize certificate (unknown format (%s - %d))", backend ? backend : "missing", format);
+      g_free (backend);
+      return NULL;
+    }
+  g_free (backend);
+
+  cert = g_variant_lookup_value (serialized_cert, "certificate", G_VARIANT_TYPE_VARDICT);
+  if (cert == NULL)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Failed to deserialize certificate (missing certificate)");
+      return NULL;
+    }
+
+  return deserialize_single_certificate (cert, error);
+}
+#endif
+
 static void
 g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
 {
@@ -370,6 +536,10 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   gobject_class->finalize     = g_tls_certificate_gnutls_finalize;
 
   certificate_class->verify = g_tls_certificate_gnutls_verify;
+#if GLIB_CHECK_VERSION (2, 61, 1)
+  certificate_class->serialize = g_tls_certificate_gnutls_serialize;
+  certificate_class->deserialize = g_tls_certificate_gnutls_deserialize;
+#endif
 
   g_object_class_override_property (gobject_class, PROP_CERTIFICATE, "certificate");
   g_object_class_override_property (gobject_class, PROP_CERTIFICATE_PEM, "certificate-pem");
