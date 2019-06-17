@@ -322,6 +322,44 @@ test_create_list_bad (void)
   g_error_free (error);
 }
 
+static void
+test_certificate_serialize (void)
+{
+#if GLIB_CHECK_VERSION (2, 61, 1)
+
+  GTlsCertificate *cert, *deserialized;
+  GTlsCertificate *issuer, *deserialized_issuer;
+  GError *error = NULL;
+  GVariant *serialized;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("chain.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
+
+  serialized = g_tls_certificate_serialize (cert, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (serialized);
+
+  deserialized = g_tls_certificate_deserialize (serialized, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (deserialized);
+
+  /* Note this doesn't test private keys but should be good enough */
+  g_assert_true (g_tls_certificate_is_same (cert, deserialized));
+
+  /* Ensure the full chain is intact */
+  issuer = g_tls_certificate_get_issuer (cert);
+  deserialized_issuer = g_tls_certificate_get_issuer (deserialized);
+  g_assert_true (g_tls_certificate_is_same (issuer, deserialized_issuer));
+
+  g_object_unref (cert);
+  g_object_unref (deserialized);
+  g_variant_unref (serialized);
+#else
+  g_test_skip ("GLib too old for g_tls_certificate_serialize()");
+#endif
+}
+
 /* -----------------------------------------------------------------------------
  * CERTIFICATE VERIFY
  */
@@ -579,6 +617,7 @@ main (int   argc,
   g_test_add_func ("/tls/" BACKEND "/certificate/create-no-chain", test_create_certificate_no_chain);
   g_test_add_func ("/tls/" BACKEND "/certificate/create-list", test_create_list);
   g_test_add_func ("/tls/" BACKEND "/certificate/create-list-bad", test_create_list_bad);
+  g_test_add_func ("/tls/" BACKEND "/certificate/serialize", test_certificate_serialize);
 
   g_test_add ("/tls/" BACKEND "/certificate/verify-good", TestVerify, NULL,
               setup_verify, test_verify_certificate_good, teardown_verify);
