@@ -420,8 +420,7 @@ g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
       g_tls_bio_wait_available (priv->bio, G_IO_IN, cancellable);
     }
 
-  if (ret >= 0)
-    *nread = ret;
+  *nread = MAX (ret, 0);
   return status;
 }
 
@@ -465,8 +464,7 @@ g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
       g_tls_bio_wait_available (priv->bio, G_IO_OUT, cancellable);
     }
 
-  if (ret >= 0)
-    *nwrote = ret;
+  *nwrote = MAX (ret, 0);
   return status;
 }
 

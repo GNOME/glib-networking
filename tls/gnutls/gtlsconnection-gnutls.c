@@ -928,8 +928,7 @@ g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
   ret = gnutls_record_recv (priv->session, buffer, count);
   END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 
-  if (ret >= 0)
-    *nread = ret;
+  *nread = MAX (ret, 0);
   return status;
 }
 
@@ -989,8 +988,7 @@ g_tls_connection_gnutls_read_message (GTlsConnectionBase  *tls,
 
   END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 
-  if (ret >= 0)
-    *nread = ret;
+  *nread = MAX (ret, 0);
   return status;
 }
 
@@ -1012,8 +1010,7 @@ g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
   ret = gnutls_record_send (priv->session, buffer, count);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
-  if (ret >= 0)
-    *nwrote = ret;
+  *nwrote = MAX (ret, 0);
   return status;
 }
 
@@ -1077,8 +1074,7 @@ g_tls_connection_gnutls_write_message (GTlsConnectionBase  *tls,
   ret = gnutls_record_uncork (priv->session, 0  /* flags */);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
-  if (ret > 0)
-    *nwrote = ret;
+  *nwrote = MAX (ret, 0);
   return status;
 }
 
