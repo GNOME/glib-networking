@@ -135,8 +135,8 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
           reason == SSL_R_UNKNOWN_PROTOCOL)
         {
           g_clear_error (&my_error);
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
-                               _("Peer failed to perform TLS handshake"));
+          g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
+                       _("Peer failed to perform TLS handshake: %s"), ERR_reason_error_string (err));
           return G_TLS_CONNECTION_BASE_ERROR;
         }
     }
