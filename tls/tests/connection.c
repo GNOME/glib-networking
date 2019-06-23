@@ -65,6 +65,12 @@ tls_test_file_path (const char *name)
 #define TEST_DATA "You win again, gravity!\n"
 #define TEST_DATA_LENGTH 24
 
+typedef enum {
+  WRITE_THEN_CLOSE,
+  WRITE_THEN_WAIT,
+  HANDSHAKE_ONLY
+} ServerConnectionReceivedStrategy;
+
 typedef struct {
   GMainContext *context;
   GMainLoop *loop;
@@ -79,7 +85,7 @@ typedef struct {
   GTlsCertificateFlags accept_flags;
   GError *read_error;
   GError *server_error;
-  gboolean server_should_close;
+  ServerConnectionReceivedStrategy connection_received_strategy;
   gboolean server_running;
   GTlsCertificate *server_certificate;
   const gchar * const *server_protocols;
@@ -267,8 +273,18 @@ on_output_write_finish (GObject        *object,
       return;
     }
 
-  if (test->server_should_close)
+  if (test->connection_received_strategy == WRITE_THEN_CLOSE)
     close_server_connection (test);
+}
+
+static void
+on_server_handshake_finish (GObject      *object,
+                            GAsyncResult *res,
+                            gpointer      user_data)
+{
+  TestConnection *test = user_data;
+  g_tls_connection_handshake_finish (G_TLS_CONNECTION (object), res, &test->server_error);
+  g_assert_no_error (test->server_error);
 }
 
 static gboolean
@@ -291,7 +307,7 @@ on_incoming_connection (GSocketService     *service,
     {
       cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
       g_assert_no_error (error);
-      g_tls_connection_set_certificate ((GTlsConnection *)test->server_connection, cert);
+      g_tls_connection_set_certificate (G_TLS_CONNECTION (test->server_connection), cert);
       g_object_unref (cert);
     }
 
@@ -310,17 +326,28 @@ on_incoming_connection (GSocketService     *service,
 
   stream = g_io_stream_get_output_stream (test->server_connection);
 
-  g_output_stream_write_async (stream, TEST_DATA,
-                               test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH,
-                               G_PRIORITY_DEFAULT, NULL,
-                               on_output_write_finish, test);
+  if (test->connection_received_strategy == WRITE_THEN_CLOSE ||
+      test->connection_received_strategy == WRITE_THEN_WAIT)
+    {
+      g_output_stream_write_async (stream, TEST_DATA,
+                                   test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH,
+                                   G_PRIORITY_DEFAULT, NULL,
+                                   on_output_write_finish, test);
+    }
+  else
+    {
+      g_tls_connection_handshake_async (G_TLS_CONNECTION (test->server_connection),
+                                        G_PRIORITY_DEFAULT, NULL,
+                                        on_server_handshake_finish, test);
+    }
+
   return FALSE;
 }
 
 static void
-start_async_server_service (TestConnection         *test,
-                            GTlsAuthenticationMode  auth_mode,
-                            gboolean                should_close)
+start_async_server_service (TestConnection                   *test,
+                            GTlsAuthenticationMode            auth_mode,
+                            ServerConnectionReceivedStrategy  connection_received_strategy)
 {
   test->service = g_socket_service_new ();
   start_server (test);
@@ -328,7 +355,7 @@ start_async_server_service (TestConnection         *test,
   test->auth_mode = auth_mode;
   g_signal_connect (test->service, "incoming", G_CALLBACK (on_incoming_connection), test);
 
-  test->server_should_close = should_close;
+  test->connection_received_strategy = connection_received_strategy;
 }
 
 static GIOStream *
@@ -339,7 +366,7 @@ start_async_server_and_connect_to_it (TestConnection         *test,
   GError *error = NULL;
   GSocketConnection *connection;
 
-  start_async_server_service (test, auth_mode, TRUE);
+  start_async_server_service (test, auth_mode, WRITE_THEN_CLOSE);
 
   client = g_socket_client_new ();
   connection = g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
@@ -1382,7 +1409,7 @@ test_connection_socket_client (TestConnection *test,
   GIOStream *base;
   GError *error = NULL;
 
-  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_CLOSE);
   client = g_socket_client_new ();
   g_socket_client_set_tls (client, TRUE);
   flags = G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_UNKNOWN_CA;
@@ -1431,7 +1458,7 @@ test_connection_socket_client_failed (TestConnection *test,
 {
   GSocketClient *client;
 
-  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, TRUE);
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_CLOSE);
   client = g_socket_client_new ();
   g_socket_client_set_tls (client, TRUE);
   /* this time we don't adjust the validation flags */
@@ -1524,7 +1551,7 @@ test_connection_read_time_out_write (TestConnection *test,
   GError *error = NULL;
 
   /* Don't close the server connection after writing TEST_DATA. */
-  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, FALSE);
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_WAIT);
   client = g_socket_client_new ();
   /* Set a 1 second time out on the socket */
   g_socket_client_set_timeout (client, 1);
@@ -1780,6 +1807,90 @@ test_close_immediately (TestConnection *test,
    */
   g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
+}
+
+static void
+close_server_connection_uncleanly (TestConnection *test)
+{
+  GIOStream *base_iostream;
+  GError *error = NULL;
+
+  /* Instead of closing the GTlsConnection itself, we'll directly close its
+   * underlying output stream in order to ensure the TLS close notify is never
+   * sent.
+   */
+  g_object_get (test->server_connection,
+                "base-io-stream", &base_iostream,
+                NULL);
+
+  g_io_stream_close (base_iostream, NULL, &error);
+  g_assert_no_error (error);
+
+  test->server_running = FALSE;
+
+  g_object_unref (base_iostream);
+}
+
+static void
+test_unclean_close_by_server (TestConnection *test,
+                              gconstpointer   data)
+{
+  GSocketClient *client;
+  GTlsCertificateFlags flags;
+  GTlsConnection *client_connection;
+  gssize nread;
+
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, HANDSHAKE_ONLY);
+  client = g_socket_client_new ();
+  g_socket_client_set_tls (client, TRUE);
+  flags = G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_UNKNOWN_CA;
+  /* test->address doesn't match the server's cert */
+  flags = flags & ~G_TLS_CERTIFICATE_BAD_IDENTITY;
+  g_socket_client_set_tls_validation_flags (client, flags);
+
+  g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
+                                 NULL, socket_client_connected, test);
+  g_main_loop_run (test->loop);
+
+  close_server_connection_uncleanly (test);
+
+  /* Because the server closed its connection uncleanly, we should receive
+   * G_TLS_ERROR_EOF to warn that the close notify alert was not received,
+   * indicating a truncation attack.
+   */
+  nread = g_input_stream_read (g_io_stream_get_input_stream (test->client_connection),
+                               test->buf, TEST_DATA_LENGTH,
+                               NULL, &test->read_error);
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_EOF);
+  g_assert_cmpint (nread, ==, -1);
+
+  /* Now do it again, except this time, we ignore truncation attacks. This is
+   * important for protocols that have their own application-layer checks for
+   * truncation, like HTTP 1.0 and later. HTTP servers routinely close sockets
+   * without a close notify.
+   */
+  g_clear_error (&test->read_error);
+  g_clear_object (&test->service);
+  g_clear_object (&test->server_connection);
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, HANDSHAKE_ONLY);
+
+  g_socket_client_set_tls (client, TRUE);
+  g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
+                                 NULL, socket_client_connected, test);
+  g_main_loop_run (test->loop);
+
+  close_server_connection_uncleanly (test);
+
+  client_connection = G_TLS_CONNECTION (g_tcp_wrapper_connection_get_base_io_stream (G_TCP_WRAPPER_CONNECTION (test->client_connection)));
+  g_tls_connection_set_require_close_notify (client_connection, FALSE);
+
+  nread = g_input_stream_read (g_io_stream_get_input_stream (test->client_connection),
+                               test->buf, TEST_DATA_LENGTH,
+                               NULL, &test->read_error);
+  g_assert_no_error (test->read_error);
+  g_assert_cmpint (nread, ==, 0);
+
+  g_object_unref (client);
 }
 
 static gboolean
@@ -2291,6 +2402,8 @@ main (int   argc,
               setup_connection, test_simultaneous_sync_rehandshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/close-immediately", TestConnection, NULL,
               setup_connection, test_close_immediately, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/unclean-close-by-server", TestConnection, NULL,
+              setup_connection, test_unclean_close_by_server, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/async-implicit-handshake", TestConnection, NULL,
               setup_connection, test_async_implicit_handshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/output-stream-close", TestConnection, NULL,
