@@ -347,14 +347,21 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   if (handshaking && !ever_handshaked)
     {
       if (g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_FAILED) ||
-          g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE) ||
-          status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
+          g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
+        {
+          g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
+                       _("Peer failed to perform TLS handshake: %s"), my_error->message);
+          g_clear_error (&my_error);
+          return G_TLS_CONNECTION_BASE_ERROR;
+        }
+
+      if (status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
           status == GNUTLS_E_DECRYPTION_FAILED ||
           status == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
         {
           g_clear_error (&my_error);
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
-                               _("Peer failed to perform TLS handshake"));
+          g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
+                       _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (status));
           return G_TLS_CONNECTION_BASE_ERROR;
         }
     }
@@ -377,8 +384,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       if (handshaking && !ever_handshaked)
         {
           g_clear_error (&my_error);
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
-                               _("Peer failed to perform TLS handshake"));
+          g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
+                       _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (status));
           return G_TLS_CONNECTION_BASE_ERROR;
         }
 
@@ -408,8 +415,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   if (ret == GNUTLS_E_CERTIFICATE_ERROR)
     {
       g_clear_error (&my_error);
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                   _("Unacceptable TLS certificate"));
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Unacceptable TLS certificate"));
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
