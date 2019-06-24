@@ -72,7 +72,7 @@ g_tls_input_stream_read (GInputStream  *stream,
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  if (conn == NULL)
+  if (!conn)
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
                            _("Connection is closed"));
@@ -94,7 +94,7 @@ g_tls_input_stream_pollable_is_readable (GPollableInputStream *pollable)
   gboolean ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  if (conn == NULL)
+  if (!conn)
     return FALSE;
 
   ret = g_tls_connection_base_check (conn, G_IO_IN);
@@ -112,7 +112,7 @@ g_tls_input_stream_pollable_create_source (GPollableInputStream *pollable,
   GSource *ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  if (conn == NULL)
+  if (!conn)
     {
       ret = g_idle_source_new ();
       g_source_set_name (ret, "[glib-networking] g_tls_input_stream_pollable_create_source dummy source");
@@ -135,7 +135,7 @@ g_tls_input_stream_pollable_read_nonblocking (GPollableInputStream  *pollable,
   gssize ret;
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
-  if (conn == NULL)
+  if (!conn)
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
                            _("Connection is closed"));
@@ -160,7 +160,7 @@ g_tls_input_stream_close (GInputStream             *stream,
 
   conn = g_weak_ref_get (&tls_stream->weak_conn);
 
-  if (conn == NULL)
+  if (!conn)
     return TRUE;
 
   ret = g_tls_connection_base_close_internal (conn, G_TLS_DIRECTION_READ,

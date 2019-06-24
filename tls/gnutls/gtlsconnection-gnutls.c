@@ -235,7 +235,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   gnutls_transport_set_ptr (priv->session, gnutls);
 
   /* GDatagramBased supports vectored I/O; GPollableOutputStream does not. */
-  if (base_socket != NULL)
+  if (base_socket)
     {
       gnutls_transport_set_vec_push_function (priv->session,
                                               g_tls_connection_gnutls_vec_push_func);

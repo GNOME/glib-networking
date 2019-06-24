@@ -92,7 +92,7 @@ bytes_multi_table_insert (GHashTable *table,
   GPtrArray *multi;
 
   multi = g_hash_table_lookup (table, key);
-  if (multi == NULL)
+  if (!multi)
     {
       multi = g_ptr_array_new_with_free_func ((GDestroyNotify)g_bytes_unref);
       g_hash_table_insert (table, g_bytes_ref (key), multi);
@@ -107,7 +107,7 @@ bytes_multi_table_lookup_ref_one (GHashTable *table,
   GPtrArray *multi;
 
   multi = g_hash_table_lookup (table, key);
-  if (multi == NULL)
+  if (!multi)
     return NULL;
 
   g_assert (multi->len > 0);
@@ -123,7 +123,7 @@ bytes_multi_table_lookup_ref_all (GHashTable *table,
   guint i;
 
   multi = g_hash_table_lookup (table, key);
-  if (multi == NULL)
+  if (!multi)
     return NULL;
 
   for (i = 0; i < multi->len; i++)
@@ -149,7 +149,7 @@ create_handles_array_unlocked (GTlsDatabaseGnutls *self,
     {
       g_assert (G_TLS_DATABASE_GNUTLS_GET_CLASS (self)->create_handle_for_certificate);
       handle = G_TLS_DATABASE_GNUTLS_GET_CLASS (self)->create_handle_for_certificate (self, der);
-      if (handle != NULL)
+      if (handle)
         g_hash_table_insert (handles, handle, g_bytes_ref (der));
     }
 
@@ -251,7 +251,7 @@ g_tls_database_gnutls_create_certificate_handle (GTlsDatabase    *database,
   gchar *handle = NULL;
 
   der = g_tls_certificate_gnutls_get_bytes (G_TLS_CERTIFICATE_GNUTLS (certificate));
-  g_return_val_if_fail (der != NULL, FALSE);
+  g_return_val_if_fail (der, FALSE);
 
   g_mutex_lock (&priv->mutex);
 
@@ -299,12 +299,12 @@ g_tls_database_gnutls_lookup_certificate_for_handle (GTlsDatabase             *d
     priv->handles = create_handles_array_unlocked (self, priv->complete);
 
   der = g_hash_table_lookup (priv->handles, handle);
-  if (der != NULL)
+  if (der)
     g_bytes_ref (der);
 
   g_mutex_unlock (&priv->mutex);
 
-  if (der == NULL)
+  if (!der)
     return NULL;
 
   datum.data = (unsigned char *)g_bytes_get_data (der, &length);
@@ -367,14 +367,14 @@ g_tls_database_gnutls_lookup_certificate_issuer (GTlsDatabase             *datab
     {
       issuer = NULL;
     }
-  else if (der != NULL)
+  else if (der)
     {
       datum.data = (unsigned char *)g_bytes_get_data (der, &length);
       datum.size = length;
       issuer = g_tls_certificate_gnutls_new (&datum, NULL);
     }
 
-  if (der != NULL)
+  if (der)
     g_bytes_unref (der);
   return issuer;
 }
@@ -412,7 +412,7 @@ g_tls_database_gnutls_lookup_certificates_issued_by (GTlsDatabase             *d
 
   g_bytes_unref (issuer);
 
-  for (l = ders; l != NULL; l = g_list_next (l))
+  for (l = ders; l; l = g_list_next (l))
     {
       if (g_cancellable_set_error_if_cancelled (cancellable, error))
         {
@@ -643,13 +643,13 @@ g_tls_database_gnutls_initable_init (GInitable     *initable,
     }
 
 out:
-  if (trust_list != NULL)
+  if (trust_list)
     gnutls_x509_trust_list_deinit (trust_list, 1);
-  if (subjects != NULL)
+  if (subjects)
     g_hash_table_unref (subjects);
-  if (issuers != NULL)
+  if (issuers)
     g_hash_table_unref (issuers);
-  if (complete != NULL)
+  if (complete)
     g_hash_table_unref (complete);
   return result;
 }

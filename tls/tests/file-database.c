@@ -249,12 +249,12 @@ load_certificate_chain (const char  *filename,
   GList *l;
 
   certificates = g_tls_certificate_list_new_from_file (filename, error);
-  if (certificates == NULL)
+  if (!certificates)
     return NULL;
 
   backend = g_tls_backend_get_default ();
   certificates = g_list_reverse (certificates);
-  for (l = certificates; l != NULL; l = g_list_next (l))
+  for (l = certificates; l; l = g_list_next (l))
     {
       prev_chain = chain;
       g_object_get (l->data, "certificate", &der, NULL);
@@ -274,7 +274,7 @@ static gboolean
 is_certificate_in_chain (GTlsCertificate *chain,
                          GTlsCertificate *cert)
 {
-  while (chain != NULL)
+  while (chain)
     {
       if (g_tls_certificate_is_same (chain, cert))
         return TRUE;
@@ -452,7 +452,7 @@ certificate_is_in_list (GList *certificates,
   cert = g_tls_certificate_new_from_file (filename, &error);
   g_assert_no_error (error);
 
-  for (l = certificates; l != NULL; l = g_list_next (l))
+  for (l = certificates; l; l = g_list_next (l))
     {
       if (g_tls_certificate_is_same (l->data, cert))
         break;

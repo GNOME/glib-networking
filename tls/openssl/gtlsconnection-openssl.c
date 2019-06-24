@@ -189,7 +189,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
-  if (my_error != NULL)
+  if (my_error)
     g_propagate_error (error, my_error);
   else
     /* FIXME: this is just for debug */
@@ -270,11 +270,11 @@ g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
   ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (tls));
 
   peer = SSL_get_peer_certificate (ssl);
-  if (peer == NULL)
+  if (!peer)
     return NULL;
 
   certs = SSL_get_peer_cert_chain (ssl);
-  if (certs == NULL)
+  if (!certs)
     {
       X509_free (peer);
       return NULL;
@@ -531,12 +531,12 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
   g_object_get (tls,
                 "base-io-stream", &base_io_stream,
                 NULL);
-  g_return_val_if_fail (base_io_stream != NULL, FALSE);
+  g_return_val_if_fail (base_io_stream, FALSE);
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
-  g_assert (ssl != NULL);
+  g_assert (ssl);
 
   if (data_index == -1) {
       data_index = SSL_get_ex_new_index (0, (void *)"gtlsconnection", NULL, NULL, NULL);
@@ -577,7 +577,7 @@ g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *openssl)
 GTlsConnectionOpenssl *
 g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl)
 {
-  g_return_val_if_fail (ssl != NULL, NULL);
+  g_return_val_if_fail (ssl, NULL);
 
   return SSL_get_ex_data (ssl, data_index);
 }

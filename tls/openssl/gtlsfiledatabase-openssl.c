@@ -98,7 +98,7 @@ bytes_multi_table_insert (GHashTable *table,
   GPtrArray *multi;
 
   multi = g_hash_table_lookup (table, &key);
-  if (multi == NULL)
+  if (!multi)
     {
       int *key_ptr;
 
@@ -117,7 +117,7 @@ bytes_multi_table_lookup_ref_one (GHashTable *table,
   GPtrArray *multi;
 
   multi = g_hash_table_lookup (table, &key);
-  if (multi == NULL)
+  if (!multi)
     return NULL;
 
   g_assert (multi->len > 0);
@@ -133,7 +133,7 @@ bytes_multi_table_lookup_ref_all (GHashTable *table,
   guint i;
 
   multi = g_hash_table_lookup (table, &key);
-  if (multi == NULL)
+  if (!multi)
     return NULL;
 
   for (i = 0; i < multi->len; i++)
@@ -201,7 +201,7 @@ load_anchor_file (GTlsFileDatabaseOpenssl  *file_database,
       issuer = X509_issuer_name_hash (x);
 
       der = g_tls_certificate_openssl_get_bytes (l->data);
-      g_return_val_if_fail (der != NULL, FALSE);
+      g_return_val_if_fail (der, FALSE);
 
       g_hash_table_insert (complete, g_bytes_ref (der),
                            g_bytes_ref (der));
@@ -301,7 +301,7 @@ g_tls_file_database_openssl_create_certificate_handle (GTlsDatabase    *database
   gchar *handle = NULL;
 
   der = g_tls_certificate_openssl_get_bytes (G_TLS_CERTIFICATE_OPENSSL (certificate));
-  g_return_val_if_fail (der != NULL, FALSE);
+  g_return_val_if_fail (der, FALSE);
 
   g_mutex_lock (&file_database->mutex);
 
@@ -376,10 +376,10 @@ g_tls_file_database_openssl_lookup_certificate_issuer (GTlsDatabase             
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     issuer = NULL;
-  else if (der != NULL)
+  else if (der)
     issuer = g_tls_certificate_openssl_new (der, NULL);
 
-  if (der != NULL)
+  if (der)
     g_bytes_unref (der);
   return issuer;
 
@@ -408,7 +408,7 @@ g_tls_file_database_openssl_lookup_certificates_issued_by (GTlsDatabase         
 
   in = issuer_raw_dn->data;
   x_name = d2i_X509_NAME (NULL, &in, issuer_raw_dn->len);
-  if (x_name != NULL)
+  if (x_name)
     {
       unsigned long issuer_hash;
       GList *ders, *l;
@@ -420,7 +420,7 @@ g_tls_file_database_openssl_lookup_certificates_issued_by (GTlsDatabase         
       ders = bytes_multi_table_lookup_ref_all (file_database->issuers, issuer_hash);
       g_mutex_unlock (&file_database->mutex);
 
-      for (l = ders; l != NULL; l = g_list_next (l))
+      for (l = ders; l; l = g_list_next (l))
         {
           if (g_cancellable_set_error_if_cancelled (cancellable, error))
             {
@@ -502,13 +502,13 @@ g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
       g_mutex_unlock (&file_database->mutex);
     }
 
-  if (subjects != NULL)
+  if (subjects)
     g_hash_table_unref (subjects);
-  if (issuers != NULL)
+  if (issuers)
     g_hash_table_unref (issuers);
-  if (complete != NULL)
+  if (complete)
     g_hash_table_unref (complete);
-  if (certs_by_handle != NULL)
+  if (certs_by_handle)
     g_hash_table_unref (certs_by_handle);
   return result;
 }
