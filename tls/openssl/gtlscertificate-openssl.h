@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_CERTIFICATE_OPENSSL_H__
-#define __G_TLS_CERTIFICATE_OPENSSL_H__
+#pragma once
 
 #include <gio/gio.h>
 #include "openssl-include.h"
@@ -61,5 +60,3 @@ GTlsCertificateOpenssl      *g_tls_certificate_openssl_build_chain     (X509    
                                                                         STACK_OF (X509)        *chain);
 
 G_END_DECLS
-
-#endif /* __G_TLS_CERTIFICATE_OPENSSL_H___ */

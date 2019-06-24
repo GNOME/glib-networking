@@ -22,8 +22,7 @@
  * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
-#ifndef __G_TLS_CERTIFICATE_GNUTLS_H__
-#define __G_TLS_CERTIFICATE_GNUTLS_H__
+#pragma once
 
 #include <gio/gio.h>
 #include <gnutls/abstract.h>
@@ -71,5 +70,3 @@ GTlsCertificateGnutls*       g_tls_certificate_gnutls_build_chain     (const gnu
                                                                        gnutls_x509_crt_fmt_t  format);
 
 G_END_DECLS
-
-#endif /* __G_TLS_CERTIFICATE_GNUTLS_H___ */

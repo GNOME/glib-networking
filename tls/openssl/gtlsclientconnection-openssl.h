@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_CLIENT_CONNECTION_OPENSSL_H__
-#define __G_TLS_CLIENT_CONNECTION_OPENSSL_H__
+#pragma once
 
 #include "gtlsconnection-openssl.h"
 
@@ -35,5 +34,3 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (GTlsClientConnectionOpenssl, g_tls_client_connection_openssl, G, TLS_CLIENT_CONNECTION_OPENSSL, GTlsConnectionOpenssl)
 
 G_END_DECLS
-
-#endif /* __G_TLS_CLIENT_CONNECTION_OPENSSL_H___ */

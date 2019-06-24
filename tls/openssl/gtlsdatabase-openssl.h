@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_DATABASE_OPENSSL_H__
-#define __G_TLS_DATABASE_OPENSSL_H__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -52,5 +51,3 @@ GTlsCertificateFlags      g_tls_database_openssl_verify_ocsp_response     (GTlsD
                                                                            OCSP_RESPONSE       *resp);
 
 G_END_DECLS
-
-#endif /* __G_TLS_DATABASE_OPENSSL_H___ */

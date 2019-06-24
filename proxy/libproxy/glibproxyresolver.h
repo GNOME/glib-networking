@@ -21,8 +21,7 @@
  * Author: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>
  */
 
-#ifndef __G_LIBPROXY_RESOLVER_H__
-#define __G_LIBPROXY_RESOLVER_H__
+#pragma once
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -36,5 +35,3 @@ G_DECLARE_FINAL_TYPE (GLibproxyResolver, g_libproxy_resolver, G, LIBPROXY_RESOLV
 void  g_libproxy_resolver_register (GIOModule *module);
 
 G_END_DECLS
-
-#endif /* __G_LIBPROXY_RESOLVER_H__ */

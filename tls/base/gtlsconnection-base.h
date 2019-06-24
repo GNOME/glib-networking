@@ -22,8 +22,7 @@
  * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
-#ifndef __G_TLS_CONNECTION_BASE_H__
-#define __G_TLS_CONNECTION_BASE_H__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -196,5 +195,3 @@ void                      GTLS_DEBUG                                    (gpointe
                                                                          ...);
 
 G_END_DECLS
-
-#endif /* __G_TLS_CONNECTION_BASE_H___ */

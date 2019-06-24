@@ -24,16 +24,14 @@
  *          Christoph Reiter
  */
 
+#pragma once
+
+#include "glib.h"
+
 /* Due to name clashes between Windows and openssl headers we have to
  * make sure windows.h is included before openssl and that we undef the
  * clashing macros.
  */
-
-#ifndef __G_TLS_OPENSSL_INCLUDE_H__
-#define __G_TLS_OPENSSL_INCLUDE_H__
-
-#include "glib.h"
-
 #ifdef G_OS_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -55,5 +53,3 @@
 #if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_OCSP)
 #include <openssl/ocsp.h>
 #endif
-
-#endif /* __G_TLS_OPENSSL_INCLUDE_H__ */

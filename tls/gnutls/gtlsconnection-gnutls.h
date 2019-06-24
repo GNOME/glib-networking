@@ -22,8 +22,7 @@
  * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
-#ifndef __G_TLS_CONNECTION_GNUTLS_H__
-#define __G_TLS_CONNECTION_GNUTLS_H__
+#pragma once
 
 #include <gio/gio.h>
 #include <gnutls/abstract.h>
@@ -54,5 +53,3 @@ void     g_tls_connection_gnutls_get_certificate     (GTlsConnectionGnutls  *gnu
                                                       gnutls_privkey_t      *pkey);
 
 G_END_DECLS
-
-#endif /* __G_TLS_CONNECTION_GNUTLS_H___ */

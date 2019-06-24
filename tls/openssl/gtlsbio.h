@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_BIO_H__
-#define __G_TLS_BIO_H__
+#pragma once
 
 #include <gio/gio.h>
 #include "openssl-include.h"
@@ -56,5 +55,3 @@ void       g_tls_bio_wait_available        (BIO          *bio,
                                             GCancellable *cancellable);
 
 G_END_DECLS
-
-#endif /* __G_TLS_BIO_H__ */

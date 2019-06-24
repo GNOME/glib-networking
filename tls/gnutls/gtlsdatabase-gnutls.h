@@ -24,8 +24,7 @@
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
 
-#ifndef __G_TLS_DATABASE_GNUTLS_H__
-#define __G_TLS_DATABASE_GNUTLS_H__
+#pragma once
 
 #include <gio/gio.h>
 #include <gnutls/x509.h>
@@ -52,5 +51,3 @@ struct _GTlsDatabaseGnutlsClass
 GTlsDatabaseGnutls *g_tls_database_gnutls_new (GError **error);
 
 G_END_DECLS
-
-#endif /* __G_TLS_DATABASE_GNUTLS_H___ */

@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_SERVER_CONNECTION_OPENSSL_H__
-#define __G_TLS_SERVER_CONNECTION_OPENSSL_H__
+#pragma once
 
 #include <gio/gio.h> 
 #include "gtlsconnection-openssl.h"
@@ -36,5 +35,3 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (GTlsServerConnectionOpenssl, g_tls_server_connection_openssl, G, TLS_SERVER_CONNECTION_OPENSSL, GTlsConnectionOpenssl)
 
 G_END_DECLS
-
-#endif /* __G_TLS_SERVER_CONNECTION_OPENSSL_H___ */

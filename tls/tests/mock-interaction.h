@@ -22,8 +22,7 @@
 
 #include <gio/gio.h>
 
-#ifndef __MOCK_INTERACTION_H__
-#define __MOCK_INTERACTION_H__
+#pragma once
 
 G_BEGIN_DECLS
 
@@ -40,5 +39,3 @@ GTlsInteraction *mock_interaction_new_static_error          (GQuark domain,
                                                              const gchar *message);
 
 G_END_DECLS
-
-#endif /* __MOCK_INTERACTION_H__ */

@@ -22,8 +22,7 @@
  * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
-#ifndef __G_TLS_BACKEND_GNUTLS_H__
-#define __G_TLS_BACKEND_GNUTLS_H__
+#pragma once
 
 #include <gio/gio.h>
 #include <gnutls/gnutls.h>
@@ -45,5 +44,3 @@ GBytes *g_tls_backend_gnutls_lookup_session (unsigned int             type,
                                              GBytes                  *session_id);
 
 G_END_DECLS
-
-#endif /* __G_TLS_BACKEND_GNUTLS_H___ */

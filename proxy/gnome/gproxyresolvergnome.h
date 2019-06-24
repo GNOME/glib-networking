@@ -19,8 +19,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __G_PROXY_RESOLVER_GNOME_H__
-#define __G_PROXY_RESOLVER_GNOME_H__
+#pragma once
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -34,5 +33,3 @@ G_DECLARE_FINAL_TYPE (GProxyResolverGnome, g_proxy_resolver_gnome, G, PROXY_RESO
 void  g_proxy_resolver_gnome_register (GIOModule *module);
 
 G_END_DECLS
-
-#endif /* __G_PROXY_RESOLVER_GNOME_H__ */

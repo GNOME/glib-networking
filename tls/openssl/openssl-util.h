@@ -61,8 +61,7 @@
  */
 /* X509 v3 extension utilities */
 
-#ifndef __G_TLS_OPENSSL_UTIL_H__
-#define __G_TLS_OPENSSL_UTIL_H__
+#pragma once
 
 #include "openssl-include.h"
 
@@ -93,7 +92,3 @@ int g_tls_X509_check_email(X509 *x, const char *chk, size_t chklen,
 
 int g_tls_X509_check_ip(X509 *x, const unsigned char *chk, size_t chklen,
                   unsigned int flags);
-
-#endif /* __G_TLS_OPENSSL_UTIL_H__ */
-
-

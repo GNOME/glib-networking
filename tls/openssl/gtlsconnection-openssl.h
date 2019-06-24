@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_CONNECTION_OPENSSL_H__
-#define __G_TLS_CONNECTION_OPENSSL_H__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -49,5 +48,3 @@ SSL *g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection);
 GTlsConnectionOpenssl *g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl);
 
 G_END_DECLS
-
-#endif /* __G_TLS_CONNECTION_OPENSSL_H___ */

@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_BACKEND_OPENSSL_H__
-#define __G_TLS_BACKEND_OPENSSL_H__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -37,5 +36,3 @@ G_DECLARE_FINAL_TYPE (GTlsBackendOpenssl, g_tls_backend_openssl, G, TLS_BACKEND_
 void    g_tls_backend_openssl_register       (GIOModule *module);
 
 G_END_DECLS
-
-#endif /* __G_TLS_BACKEND_OPENSSL_H___ */

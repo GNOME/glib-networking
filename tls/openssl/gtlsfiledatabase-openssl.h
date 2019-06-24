@@ -23,8 +23,7 @@
  * Authors: Ignacio Casal Quinteiro
  */
 
-#ifndef __G_TLS_FILE_DATABASE_OPENSSL_H__
-#define __G_TLS_FILE_DATABASE_OPENSSL_H__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -37,5 +36,3 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (GTlsFileDatabaseOpenssl, g_tls_file_database_openssl, G, TLS_FILE_DATABASE_OPENSSL, GTlsDatabaseOpenssl)
 
 G_END_DECLS
-
-#endif /* __G_TLS_FILE_DATABASE_OPENSSL_H___ */

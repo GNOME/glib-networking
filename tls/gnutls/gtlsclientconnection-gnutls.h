@@ -22,8 +22,7 @@
  * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
-#ifndef __G_TLS_CLIENT_CONNECTION_GNUTLS_H__
-#define __G_TLS_CLIENT_CONNECTION_GNUTLS_H__
+#pragma once
 
 #include "gtlsconnection-gnutls.h"
 
@@ -34,5 +33,3 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (GTlsClientConnectionGnutls, g_tls_client_connection_gnutls, G, TLS_CLIENT_CONNECTION_GNUTLS, GTlsConnectionGnutls)
 
 G_END_DECLS
-
-#endif /* __G_TLS_CLIENT_CONNECTION_GNUTLS_H___ */

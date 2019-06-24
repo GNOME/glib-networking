@@ -22,8 +22,7 @@
  * exception applies. Refer to the LICENSE_EXCEPTION file for details.
  */
 
-#ifndef __G_TLS_OUTPUT_STREAM_H__
-#define __G_TLS_OUTPUT_STREAM_H__
+#pragma once
 
 #include <gio/gio.h>
 #include "gtlsconnection-base.h"
@@ -37,5 +36,3 @@ G_DECLARE_FINAL_TYPE (GTlsOutputStream, g_tls_output_stream, G, TLS_OUTPUT_STREA
 GOutputStream *g_tls_output_stream_new      (GTlsConnectionBase *conn);
 
 G_END_DECLS
-
-#endif /* __G_TLS_OUTPUT_STREAM_BASE_H___ */

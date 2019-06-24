@@ -24,8 +24,7 @@
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
 
-#ifndef __G_TLS_FILE_DATABASE_GNUTLS_H__
-#define __G_TLS_FILE_DATABASE_GNUTLS_H__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -40,5 +39,3 @@ G_DECLARE_FINAL_TYPE (GTlsFileDatabaseGnutls, g_tls_file_database_gnutls, G, TLS
 GTlsDatabase*                g_tls_file_database_gnutls_new                   (const gchar *anchor_file);
 
 G_END_DECLS
-
-#endif /* __G_TLS_FILE_DATABASE_GNUTLS_H___ */
