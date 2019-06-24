@@ -1864,10 +1864,8 @@ test_unclean_close_by_server (TestConnection *test,
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_EOF);
   g_assert_cmpint (nread, ==, -1);
 
-  /* Now do it again, except this time, we ignore truncation attacks. This is
-   * important for protocols that have their own application-layer checks for
-   * truncation, like HTTP 1.0 and later. HTTP servers routinely close sockets
-   * without a close notify.
+  /* Now do it again, except this time, we ignore truncation attacks by
+   * disabling require_close_notify.
    */
   g_clear_error (&test->read_error);
   g_clear_object (&test->service);
