@@ -72,7 +72,7 @@ gtls_gnutls_init (gpointer data)
 
   /* Leak the module to keep it from being unloaded. */
   plugin = g_type_get_plugin (G_TYPE_TLS_BACKEND_GNUTLS);
-  if (plugin != NULL)
+  if (plugin)
     g_type_plugin_use (plugin);
   return NULL;
 }
@@ -306,7 +306,7 @@ void
 g_tls_backend_gnutls_register (GIOModule *module)
 {
   g_tls_backend_gnutls_register_type (G_TYPE_MODULE (module));
-  if (module == NULL)
+  if (!module)
     g_io_extension_point_register (G_TLS_BACKEND_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_TLS_BACKEND_EXTENSION_POINT_NAME,
                                   g_tls_backend_gnutls_get_type (),

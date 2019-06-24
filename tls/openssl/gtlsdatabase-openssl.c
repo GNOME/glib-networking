@@ -58,7 +58,7 @@ g_tls_database_openssl_finalize (GObject *object)
 
   priv = g_tls_database_openssl_get_instance_private (self);
 
-  if (priv->store != NULL)
+  if (priv->store)
     X509_STORE_free (priv->store);
 
   g_mutex_clear (&priv->mutex);
@@ -251,7 +251,7 @@ g_tls_database_openssl_initable_init (GInitable    *initable,
     }
 
 out:
-  if (store != NULL)
+  if (store)
     X509_STORE_free (store);
 
   return result;
@@ -354,10 +354,10 @@ g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
     }
 
 end:
-  if (basic_resp != NULL)
+  if (basic_resp)
     OCSP_BASICRESP_free (basic_resp);
 
-  if (resp != NULL)
+  if (resp)
     OCSP_RESPONSE_free (resp);
 
 #endif
