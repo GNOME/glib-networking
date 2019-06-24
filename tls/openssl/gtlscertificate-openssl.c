@@ -161,7 +161,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       /* see that we cannot use bytes->data directly since it will move the pointer */
       data = bytes->data;
       openssl->cert = d2i_X509 (NULL, (const unsigned char **)&data, bytes->len);
-      if (openssl->cert != NULL)
+      if (openssl->cert)
         openssl->have_cert = TRUE;
       else if (!openssl->construct_error)
         {
@@ -181,7 +181,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       bio = BIO_new_mem_buf ((gpointer)string, -1);
       openssl->cert = PEM_read_bio_X509 (bio, NULL, NULL, NULL);
       BIO_free (bio);
-      if (openssl->cert != NULL)
+      if (openssl->cert)
         openssl->have_cert = TRUE;
       else if (!openssl->construct_error)
         {
@@ -200,7 +200,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       bio = BIO_new_mem_buf (bytes->data, bytes->len);
       openssl->key = d2i_PrivateKey_bio (bio, NULL);
       BIO_free (bio);
-      if (openssl->key != NULL)
+      if (openssl->key)
         openssl->have_key = TRUE;
       else if (!openssl->construct_error)
         {
@@ -219,7 +219,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       bio = BIO_new_mem_buf ((gpointer)string, -1);
       openssl->key = PEM_read_bio_PrivateKey (bio, NULL, NULL, NULL);
       BIO_free (bio);
-      if (openssl->key != NULL)
+      if (openssl->key)
         openssl->have_key = TRUE;
       else if (!openssl->construct_error)
         {
@@ -410,7 +410,7 @@ g_tls_certificate_openssl_set_data (GTlsCertificateOpenssl *openssl,
   data = (const unsigned char *)g_bytes_get_data (bytes, NULL);
   openssl->cert = d2i_X509 (NULL, &data, g_bytes_get_size (bytes));
 
-  if (openssl->cert != NULL)
+  if (openssl->cert)
     openssl->have_cert = TRUE;
 }
 
@@ -610,7 +610,7 @@ g_tls_certificate_openssl_build_chain (X509            *x,
   GTlsCertificateOpenssl *result;
   guint i, j;
 
-  g_return_val_if_fail (x != NULL, NULL);
+  g_return_val_if_fail (x, NULL);
   g_return_val_if_fail (chain, NULL);
 
   glib_certs = g_ptr_array_new_full (sk_X509_num (chain), g_object_unref);

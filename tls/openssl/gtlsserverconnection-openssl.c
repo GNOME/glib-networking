@@ -84,7 +84,7 @@ ssl_set_certificate (SSL              *ssl,
 
   key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
 
-  if (key == NULL)
+  if (!key)
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                            _("Certificate has no private key"));
@@ -117,7 +117,7 @@ ssl_set_certificate (SSL              *ssl,
 
   /* Add all the issuers to create the full certificate chain */
   for (issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (cert));
-       issuer != NULL;
+       issuer;
        issuer = g_tls_certificate_get_issuer (issuer))
     {
       X509 *issuer_x;
@@ -279,7 +279,7 @@ set_cipher_list (GTlsServerConnectionOpenssl  *server,
   const gchar *cipher_list;
 
   cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
-  if (cipher_list == NULL)
+  if (!cipher_list)
     cipher_list = DEFAULT_CIPHER_LIST;
 
   if (!SSL_CTX_set_cipher_list (server->ssl_ctx, cipher_list))
@@ -300,7 +300,7 @@ set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
   const gchar *signature_algorithm_list;
 
   signature_algorithm_list = g_getenv ("G_TLS_OPENSSL_SIGNATURE_ALGORITHM_LIST");
-  if (signature_algorithm_list == NULL)
+  if (!signature_algorithm_list)
     return;
 
   SSL_CTX_set1_sigalgs_list (server->ssl_ctx, signature_algorithm_list);
@@ -314,7 +314,7 @@ set_curve_list (GTlsServerConnectionOpenssl *server)
   const gchar *curve_list;
 
   curve_list = g_getenv ("G_TLS_OPENSSL_CURVE_LIST");
-  if (curve_list == NULL)
+  if (!curve_list)
     return;
 
   SSL_CTX_set1_curves_list (server->ssl_ctx, curve_list);
@@ -333,7 +333,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   server->session = SSL_SESSION_new ();
 
   server->ssl_ctx = SSL_CTX_new (SSLv23_server_method ());
-  if (server->ssl_ctx == NULL)
+  if (!server->ssl_ctx)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS context: %s"),
@@ -381,7 +381,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
     EC_KEY *ecdh;
 
     ecdh = EC_KEY_new_by_curve_name (NID_X9_62_prime256v1);
-    if (ecdh != NULL)
+    if (ecdh)
       {
         SSL_CTX_set_tmp_ecdh (server->ssl_ctx, ecdh);
         EC_KEY_free (ecdh);
@@ -393,7 +393,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
 #endif
 
   server->ssl = SSL_new (server->ssl_ctx);
-  if (server->ssl == NULL)
+  if (!server->ssl)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS connection: %s"),
@@ -402,7 +402,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
     }
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
-  if (cert != NULL && !ssl_set_certificate (server->ssl, cert, error))
+  if (cert && !ssl_set_certificate (server->ssl, cert, error))
     return FALSE;
 
   SSL_set_accept_state (server->ssl);

@@ -434,15 +434,15 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
   int status;
 
   g_return_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (gnutls));
-  g_return_if_fail (pcert != NULL);
-  g_return_if_fail (pcert_length != NULL);
-  g_return_if_fail (pkey != NULL);
+  g_return_if_fail (pcert);
+  g_return_if_fail (pcert_length);
+  g_return_if_fail (pkey);
 
   /* We will do this loop twice. It's probably more efficient than
    * re-allocating memory.
    */
   chain = gnutls;
-  while (chain != NULL)
+  while (chain)
     {
       num_certs++;
       chain = chain->issuer;
@@ -453,7 +453,7 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
 
   /* Now do the actual copy of the whole chain. */
   chain = gnutls;
-  while (chain != NULL)
+  while (chain)
     {
       gnutls_x509_crt_t cert;
       gnutls_datum_t data;
@@ -472,7 +472,7 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
       chain = chain->issuer;
     }
 
-    if (gnutls->key != NULL)
+    if (gnutls->key)
       {
         gnutls_x509_privkey_t x509_privkey;
         gnutls_privkey_t privkey;
@@ -496,14 +496,14 @@ g_tls_certificate_gnutls_copy_free (gnutls_pcert_st  *pcert,
                                     unsigned int      pcert_length,
                                     gnutls_privkey_t  pkey)
 {
-  if (pcert != NULL)
+  if (pcert)
     {
       for (unsigned int i = 0; i < pcert_length; i++)
         gnutls_pcert_deinit (&pcert[i]);
       g_free (pcert);
     }
 
-  if (pkey != NULL)
+  if (pkey)
     gnutls_privkey_deinit (pkey);
 }
 

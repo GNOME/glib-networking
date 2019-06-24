@@ -140,7 +140,7 @@ gtls_openssl_init (gpointer data)
 
   /* Leak the module to keep it from being unloaded. */
   plugin = g_type_get_plugin (G_TYPE_TLS_BACKEND_OPENSSL);
-  if (plugin != NULL)
+  if (plugin)
     g_type_plugin_use (plugin);
   return NULL;
 }

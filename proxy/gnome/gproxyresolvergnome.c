@@ -318,14 +318,14 @@ g_proxy_resolver_gnome_is_supported (GProxyResolver *object)
   const char *desktops;
 
   desktops = g_getenv ("XDG_CURRENT_DESKTOP");
-  if (desktops == NULL)
+  if (!desktops)
     return FALSE;
 
   /* Remember that XDG_CURRENT_DESKTOP is a list of strings. Desktops that
    * pretend to be GNOME and want to use our proxy settings will list
    * themselves alongside GNOME. That's fine; they'll get our proxy settings.
    */
-  return strstr (desktops, "GNOME") != NULL;
+  return !!strstr (desktops, "GNOME");
 }
 
 /* Threadsafely determines what to do with @uri; returns %FALSE if an
@@ -527,7 +527,7 @@ void
 g_proxy_resolver_gnome_register (GIOModule *module)
 {
   g_proxy_resolver_gnome_register_type (G_TYPE_MODULE (module));
-  if (module == NULL)
+  if (!module)
     g_io_extension_point_register (G_PROXY_RESOLVER_EXTENSION_POINT_NAME);
   g_io_extension_point_implement (G_PROXY_RESOLVER_EXTENSION_POINT_NAME,
                                   g_proxy_resolver_gnome_get_type(),

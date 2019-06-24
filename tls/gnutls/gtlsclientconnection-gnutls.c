@@ -369,7 +369,7 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
         }
     }
 
-  if (*pkey == NULL)
+  if (!*pkey)
     {
       g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
 

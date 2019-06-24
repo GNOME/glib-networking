@@ -204,7 +204,7 @@ g_tls_connection_base_is_dtls (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
-  return priv->base_socket != NULL;
+  return !!priv->base_socket;
 }
 
 static void
@@ -357,8 +357,7 @@ g_tls_connection_base_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_BASE_IO_STREAM:
-      g_assert (g_value_get_object (value) == NULL ||
-                priv->base_socket == NULL);
+      g_assert (!g_value_get_object (value) || !priv->base_socket);
 
       if (priv->base_io_stream)
         {
@@ -388,8 +387,7 @@ g_tls_connection_base_set_property (GObject      *object,
       break;
 
     case PROP_BASE_SOCKET:
-      g_assert (g_value_get_object (value) == NULL ||
-                priv->base_io_stream == NULL);
+      g_assert (!g_value_get_object (value) || !priv->base_io_stream);
 
       g_clear_object (&priv->base_socket);
       priv->base_socket = g_value_dup_object (value);
@@ -1038,9 +1036,9 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   tls_source->condition = condition;
   if (g_tls_connection_base_is_dtls (tls))
     tls_source->base = G_OBJECT (tls);
-  else if (priv->tls_istream != NULL && condition & G_IO_IN)
+  else if (priv->tls_istream && condition & G_IO_IN)
     tls_source->base = G_OBJECT (priv->tls_istream);
-  else if (priv->tls_ostream != NULL && condition & G_IO_OUT)
+  else if (priv->tls_ostream && condition & G_IO_OUT)
     tls_source->base = G_OBJECT (priv->tls_ostream);
   else
     g_assert_not_reached ();
@@ -1160,7 +1158,7 @@ verify_peer_certificate (GTlsConnectionBase *tls,
   errors = 0;
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (tls));
-  if (database == NULL)
+  if (!database)
     {
       errors |= G_TLS_CERTIFICATE_UNKNOWN_CA;
       errors |= g_tls_certificate_verify (peer_certificate, peer_identity, NULL);
@@ -1233,7 +1231,7 @@ accept_or_reject_peer_certificate (gpointer user_data)
 
   update_peer_certificate_and_compute_errors (tls);
 
-  if (G_IS_TLS_CLIENT_CONNECTION (tls) && priv->peer_certificate != NULL)
+  if (G_IS_TLS_CLIENT_CONNECTION (tls) && priv->peer_certificate)
     {
       GTlsCertificateFlags validation_flags;
 
@@ -1328,7 +1326,7 @@ handshake_thread (GTask        *task,
   gint64 timeout;
 
   /* A timeout, in microseconds, must be provided as a gint64* task_data. */
-  g_assert (task_data != NULL);
+  g_assert (task_data);
   start_time = g_get_monotonic_time ();
   timeout = *((gint64 *)task_data);
 
@@ -1509,7 +1507,7 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
   gint64 *timeout = NULL;
   GError *my_error = NULL;
 
-  g_assert (priv->handshake_context == NULL);
+  g_assert (!priv->handshake_context);
   priv->handshake_context = g_main_context_new ();
 
   g_main_context_push_thread_default (priv->handshake_context);
@@ -1696,7 +1694,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
 
   /* We have op_mutex */
 
-  g_assert (priv->handshake_context == NULL);
+  g_assert (!priv->handshake_context);
   if (timeout != 0)
     {
       priv->handshake_context = g_main_context_new ();
@@ -1707,7 +1705,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
       priv->handshake_context = g_main_context_ref_thread_default ();
     }
 
-  g_assert (priv->implicit_handshake == NULL);
+  g_assert (!priv->implicit_handshake);
   priv->implicit_handshake = g_task_new (tls, cancellable,
                                         timeout ? sync_handshake_thread_completed : NULL,
                                         NULL);
@@ -1893,7 +1891,7 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
-  for (i = 0; i < num_messages && child_error == NULL; i++)
+  for (i = 0; i < num_messages && !child_error; i++)
     {
       GInputMessage *message = &messages[i];
       gssize n_bytes_read;
@@ -1905,10 +1903,10 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
                                                          cancellable,
                                                          &child_error);
 
-      if (message->address != NULL)
+      if (message->address)
         *message->address = NULL;
       message->flags = G_SOCKET_MSG_NONE;
-      if (message->control_messages != NULL)
+      if (message->control_messages)
         *message->control_messages = NULL;
       message->num_control_messages = 0;
 
@@ -1939,7 +1937,7 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
         }
     }
 
-  if (child_error != NULL)
+  if (child_error)
     {
       g_propagate_error (error, child_error);
       return -1;
@@ -2028,7 +2026,7 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
-  for (i = 0; i < num_messages && child_error == NULL; i++)
+  for (i = 0; i < num_messages && !child_error; i++)
     {
       GOutputMessage *message = &messages[i];
       gssize n_bytes_sent;
@@ -2062,7 +2060,7 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
         }
     }
 
-  if (child_error != NULL)
+  if (child_error)
     {
       g_propagate_error (error, child_error);
       return -1;
@@ -2138,7 +2136,7 @@ g_tls_connection_base_close_internal (GIOStream      *stream,
   /* Close the underlying streams. Do this even if the close_fn() call failed,
    * as the parent GIOStream will have set its internal closed flag and hence
    * this implementation will never be called again. */
-  if (priv->base_io_stream != NULL)
+  if (priv->base_io_stream)
     {
       if (direction == G_TLS_DIRECTION_BOTH)
         success = g_io_stream_close (priv->base_io_stream,

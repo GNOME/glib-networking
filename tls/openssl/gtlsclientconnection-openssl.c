@@ -250,11 +250,11 @@ verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
   len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
   /* Soft fail in case of no response is the best we can do
    * FIXME: this makes it security theater, why bother with OCSP at all? */
-  if (p == NULL)
+  if (!p)
     return 0;
 
   resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
-  if (resp == NULL)
+  if (!resp)
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (openssl));
@@ -349,7 +349,7 @@ retrieve_certificate (SSL       *ssl,
   g_object_notify (G_OBJECT (client), "accepted-cas");
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
-  if (cert == NULL)
+  if (!cert)
     {
       g_clear_error (g_tls_connection_base_get_certificate_error (tls));
 
@@ -357,7 +357,7 @@ retrieve_certificate (SSL       *ssl,
         cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
     }
 
-  if (cert != NULL)
+  if (cert)
     {
       EVP_PKEY *key;
 
@@ -403,7 +403,7 @@ set_cipher_list (GTlsClientConnectionOpenssl  *client,
   const gchar *cipher_list;
 
   cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
-  if (cipher_list == NULL)
+  if (!cipher_list)
     cipher_list = DEFAULT_CIPHER_LIST;
 
   if (!SSL_CTX_set_cipher_list (client->ssl_ctx, cipher_list))
@@ -424,7 +424,7 @@ set_signature_algorithm_list (GTlsClientConnectionOpenssl *client)
   const gchar *signature_algorithm_list;
 
   signature_algorithm_list = g_getenv ("G_TLS_OPENSSL_SIGNATURE_ALGORITHM_LIST");
-  if (signature_algorithm_list == NULL)
+  if (!signature_algorithm_list)
     return;
 
   SSL_CTX_set1_sigalgs_list (client->ssl_ctx, signature_algorithm_list);
@@ -438,7 +438,7 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
   const gchar *curve_list;
 
   curve_list = g_getenv ("G_TLS_OPENSSL_CURVE_LIST");
-  if (curve_list == NULL)
+  if (!curve_list)
     return;
 
   SSL_CTX_set1_curves_list (client->ssl_ctx, curve_list);
@@ -448,7 +448,7 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 static gboolean
 use_ocsp (void)
 {
-  return g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED") != NULL;
+  return !!g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED");
 }
 
 static gboolean
@@ -463,7 +463,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   client->session = SSL_SESSION_new ();
 
   client->ssl_ctx = SSL_CTX_new (SSLv23_client_method ());
-  if (client->ssl_ctx == NULL)
+  if (!client->ssl_ctx)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS context: %s"),
@@ -516,7 +516,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 #endif
 
   client->ssl = SSL_new (client->ssl_ctx);
-  if (client->ssl == NULL)
+  if (!client->ssl)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS connection: %s"),
