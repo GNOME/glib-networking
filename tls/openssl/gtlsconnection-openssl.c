@@ -497,6 +497,18 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
   return status;
 }
 
+static GTlsSafeRenegotiationStatus
+g_tls_connection_openssl_safe_renegotiation_status (GTlsConnectionBase *tls)
+{
+  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
+  SSL *ssl;
+
+  ssl = g_tls_connection_openssl_get_ssl (openssl);
+
+  return SSL_get_secure_renegotiation_support (ssl) ? G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER
+                                                    : G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED;
+}
+
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
@@ -513,6 +525,7 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->read_fn                    = g_tls_connection_openssl_read;
   base_class->write_fn                   = g_tls_connection_openssl_write;
   base_class->close_fn                   = g_tls_connection_openssl_close;
+  base_class->safe_renegotiation_status  = g_tls_connection_openssl_safe_renegotiation_status;
 }
 
 static int data_index = -1;
