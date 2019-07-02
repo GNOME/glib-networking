@@ -830,20 +830,6 @@ typedef struct {
   gboolean            op_waiting;
 } GTlsConnectionBaseSource;
 
-static gboolean
-tls_source_prepare (GSource *source,
-                    gint    *timeout)
-{
-  *timeout = -1;
-  return FALSE;
-}
-
-static gboolean
-tls_source_check (GSource *source)
-{
-  return FALSE;
-}
-
 /* Use a custom dummy callback instead of g_source_set_dummy_callback(), as that
  * uses a GClosure and is slow. (The GClosure is necessary to deal with any
  * function prototype.) */
@@ -993,8 +979,8 @@ g_tls_connection_tls_source_dtls_closure_callback (GObject      *stream,
 
 static GSourceFuncs tls_source_funcs =
 {
-  tls_source_prepare,
-  tls_source_check,
+  NULL,
+  NULL,
   tls_source_dispatch,
   tls_source_finalize,
   (GSourceFunc)g_tls_connection_tls_source_closure_callback,
@@ -1003,8 +989,8 @@ static GSourceFuncs tls_source_funcs =
 
 static GSourceFuncs dtls_source_funcs =
 {
-  tls_source_prepare,
-  tls_source_check,
+  NULL,
+  NULL,
   tls_source_dispatch,
   tls_source_finalize,
   (GSourceFunc)g_tls_connection_tls_source_dtls_closure_callback,
