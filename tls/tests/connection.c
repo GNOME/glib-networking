@@ -1053,6 +1053,7 @@ test_client_auth_rehandshake (TestConnection *test,
                               gconstpointer   data)
 {
 #ifdef BACKEND_IS_OPENSSL
+  /* FIXME: this doesn't make sense, we should support safe renegotation */
   g_test_skip ("the server avoids rehandshake to avoid the security problem CVE-2009-3555");
   return;
 #endif

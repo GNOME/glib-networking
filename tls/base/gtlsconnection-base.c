@@ -1332,6 +1332,14 @@ handshake_thread (GTask        *task,
     {
       GTlsConnectionBaseStatus status;
 
+      if (priv->rehandshake_mode != G_TLS_REHANDSHAKE_UNSAFELY &&
+          tls_class->safe_renegotiation_status (tls) != G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER)
+        {
+          g_task_return_new_error (task, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                                   _("Peer does not support safe renegotiation"));
+          return;
+        }
+
       /* Adjust the timeout for the next operation in the sequence. */
       if (timeout > 0)
         {
