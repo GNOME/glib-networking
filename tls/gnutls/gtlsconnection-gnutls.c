@@ -1096,6 +1096,16 @@ g_tls_connection_gnutls_close (GTlsConnectionBase  *tls,
   return status;
 }
 
+static GTlsSafeRenegotiationStatus
+g_tls_connection_gnutls_safe_renegotiation_status (GTlsConnectionBase *tls)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+
+  return gnutls_safe_renegotiation_status (priv->session) ? G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER
+                                                          : G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED;
+}
+
 static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 {
@@ -1115,6 +1125,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   base_class->write_fn                   = g_tls_connection_gnutls_write;
   base_class->write_message_fn           = g_tls_connection_gnutls_write_message;
   base_class->close_fn                   = g_tls_connection_gnutls_close;
+  base_class->safe_renegotiation_status  = g_tls_connection_gnutls_safe_renegotiation_status;
 }
 
 static void
