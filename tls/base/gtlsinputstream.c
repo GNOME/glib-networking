@@ -211,6 +211,7 @@ g_tls_input_stream_close_async (GInputStream             *stream,
 
   task = g_task_new (stream, cancellable, callback, user_data);
   g_task_set_source_tag (task, g_tls_input_stream_close_async);
+  g_task_set_name (task, "[glib-networking] g_tls_input_stream_close_async");
   g_task_set_priority (task, io_priority);
   g_task_run_in_thread (task, close_thread);
   g_object_unref (task);

@@ -51,6 +51,8 @@ mock_interaction_ask_password_async (GTlsInteraction    *interaction,
   GTask *task;
 
   task = g_task_new (interaction, cancellable, callback, user_data);
+  g_task_set_source_tag (task, mock_interaction_ask_password_async);
+  g_task_set_name (task, "[glib-networking] mock_interaction_ask_password_async");
 
   if (self->static_error)
     g_task_return_error (task, g_error_copy (self->static_error));
@@ -66,6 +68,8 @@ mock_interaction_ask_password_finish (GTlsInteraction    *interaction,
                                       GError            **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, interaction),
+                        G_TLS_INTERACTION_UNHANDLED);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == mock_interaction_ask_password_async,
                         G_TLS_INTERACTION_UNHANDLED);
 
   if (g_task_had_error (G_TASK (result)))
@@ -112,6 +116,8 @@ mock_interaction_request_certificate_async (GTlsInteraction            *interact
   GTask *task;
 
   task = g_task_new (interaction, cancellable, callback, user_data);
+  g_task_set_source_tag (task, mock_interaction_request_certificate_async);
+  g_task_set_name (task, "[glib-networking] mock_interaction_request_certificate_async");
 
   if (self->static_error)
     g_task_return_error (task, g_error_copy (self->static_error));
@@ -129,6 +135,8 @@ mock_interaction_request_certificate_finish (GTlsInteraction    *interaction,
                                              GError            **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, interaction),
+                        G_TLS_INTERACTION_UNHANDLED);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == mock_interaction_request_certificate_async,
                         G_TLS_INTERACTION_UNHANDLED);
 
   if (!g_task_propagate_boolean (G_TASK (result), error))
