@@ -1344,7 +1344,7 @@ handshake_thread (GTask        *task,
       GTlsConnectionBaseStatus status;
 
       if (priv->rehandshake_mode != G_TLS_REHANDSHAKE_UNSAFELY &&
-          tls_class->safe_renegotiation_status (tls) != G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER)
+          tls_class->handshake_thread_safe_renegotiation_status (tls) != G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER)
         {
           g_task_return_new_error (task, G_TLS_ERROR, G_TLS_ERROR_MISC,
                                    _("Peer does not support safe renegotiation"));
@@ -1359,7 +1359,7 @@ handshake_thread (GTask        *task,
             timeout = 1;
         }
 
-      status = tls_class->request_rehandshake (tls, timeout, cancellable, &error);
+      status = tls_class->handshake_thread_request_rehandshake (tls, timeout, cancellable, &error);
       if (status != G_TLS_CONNECTION_BASE_OK)
         {
           g_task_return_error (task, error);
@@ -2486,13 +2486,11 @@ g_tls_connection_base_request_certificate (GTlsConnectionBase  *tls,
 }
 
 void
-g_tls_connection_base_buffer_application_data (GTlsConnectionBase *tls,
-                                               guint8             *data,
-                                               gsize               length)
+g_tls_connection_base_handshake_thread_buffer_application_data (GTlsConnectionBase *tls,
+                                                                guint8             *data,
+                                                                gsize               length)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  /* FIXME: Called from handshake thread, needs a mutex! */
 
   if (!priv->app_data_buf)
     priv->app_data_buf = g_byte_array_new ();
