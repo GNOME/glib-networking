@@ -463,6 +463,7 @@ g_proxy_resolver_gnome_lookup_async (GProxyResolver      *proxy_resolver,
 
   task = g_task_new (resolver, cancellable, callback, user_data);
   g_task_set_source_tag (task, g_proxy_resolver_gnome_lookup_async);
+  g_task_set_name (task, "[glib-networking] g_proxy_resolver_gnome_lookup_async");
 
    if (!g_proxy_resolver_gnome_lookup_internal (resolver, uri,
                                                 &proxies, &pacrunner, &autoconfig_url,
@@ -499,6 +500,7 @@ g_proxy_resolver_gnome_lookup_finish (GProxyResolver  *resolver,
                                       GError         **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, resolver), NULL);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == g_proxy_resolver_gnome_lookup_async, NULL);
 
   return g_task_propagate_pointer (G_TASK (result), error);
 }

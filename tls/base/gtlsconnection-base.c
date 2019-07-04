@@ -165,9 +165,20 @@ static gboolean do_implicit_handshake (GTlsConnectionBase  *tls,
                                        gint64               timeout,
                                        GCancellable        *cancellable,
                                        GError             **error);
+
 static gboolean finish_handshake (GTlsConnectionBase  *tls,
                                   GTask               *task,
                                   GError             **error);
+
+static void g_tls_connection_base_handshake_async (GTlsConnection      *conn,
+                                                   int                  io_priority,
+                                                   GCancellable        *cancellable,
+                                                   GAsyncReadyCallback  callback,
+                                                   gpointer             user_data);
+
+static gboolean g_tls_connection_base_handshake (GTlsConnection   *conn,
+                                                 GCancellable     *cancellable,
+                                                 GError          **error);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionBase, g_tls_connection_base, G_TYPE_TLS_CONNECTION,
                                   G_ADD_PRIVATE (GTlsConnectionBase);
@@ -1401,6 +1412,11 @@ sync_handshake_thread_completed (GObject      *object,
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  gpointer source_tag;
+
+  source_tag = g_task_get_source_tag (G_TASK (result));
+  g_assert (source_tag == do_implicit_handshake || source_tag == g_tls_connection_base_handshake);
+  g_assert (g_task_is_valid (result, object));
 
   g_assert (g_main_context_is_owner (priv->handshake_context));
 
@@ -1511,6 +1527,7 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
 
   task = g_task_new (conn, cancellable, sync_handshake_thread_completed, NULL);
   g_task_set_source_tag (task, g_tls_connection_base_handshake);
+  g_task_set_name (task, "[glib-networking] g_tls_connection_base_handshake");
   g_task_set_return_on_cancel (task, TRUE);
 
   timeout = g_new0 (gint64, 1);
@@ -1559,6 +1576,9 @@ handshake_thread_completed (GObject      *object,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GError *error = NULL;
   gboolean need_finish_handshake, success;
+
+  g_assert (g_task_is_valid (result, object));
+  g_assert (g_task_get_source_tag (G_TASK (result)) == g_tls_connection_base_handshake_async);
 
   g_mutex_lock (&priv->op_mutex);
   if (priv->need_finish_handshake)
@@ -1632,10 +1652,12 @@ g_tls_connection_base_handshake_async (GTlsConnection      *conn,
 
   caller_task = g_task_new (conn, cancellable, callback, user_data);
   g_task_set_source_tag (caller_task, g_tls_connection_base_handshake_async);
+  g_task_set_name (caller_task, "[glib-networking] g_tls_connection_base_handshake_async (caller task)");
   g_task_set_priority (caller_task, io_priority);
 
   thread_task = g_task_new (conn, cancellable, handshake_thread_completed, caller_task);
   g_task_set_source_tag (thread_task, g_tls_connection_base_handshake_async);
+  g_task_set_name (caller_task, "[glib-networking] g_tls_connection_base_handshake_async (thread task)");
   g_task_set_priority (thread_task, io_priority);
 
   timeout = g_new0 (gint64, 1);
@@ -1652,6 +1674,7 @@ g_tls_connection_base_handshake_finish (GTlsConnection  *conn,
                                         GError         **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, conn), FALSE);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == g_tls_connection_base_handshake_async, FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
 }
@@ -1704,6 +1727,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
                                         timeout ? sync_handshake_thread_completed : NULL,
                                         NULL);
   g_task_set_source_tag (priv->implicit_handshake, do_implicit_handshake);
+  g_task_set_name (priv->implicit_handshake, "[glib-networking] do_implicit_handshake");
 
   thread_timeout = g_new0 (gint64, 1);
   g_task_set_task_data (priv->implicit_handshake,
@@ -2238,6 +2262,7 @@ g_tls_connection_base_close_internal_async (GIOStream           *stream,
 
   task = g_task_new (stream, cancellable, callback, user_data);
   g_task_set_source_tag (task, g_tls_connection_base_close_internal_async);
+  g_task_set_name (task, "[glib-networking] g_tls_connection_base_close_internal_async");
   g_task_set_priority (task, io_priority);
   g_task_set_task_data (task, GINT_TO_POINTER (direction), NULL);
   g_task_run_in_thread (task, close_thread);
@@ -2262,6 +2287,7 @@ g_tls_connection_base_close_finish (GIOStream           *stream,
                                     GError             **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, stream), FALSE);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == g_tls_connection_base_close_internal_async, FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
 }
@@ -2293,6 +2319,7 @@ g_tls_connection_base_dtls_shutdown_finish (GDtlsConnection  *conn,
                                             GError          **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, conn), FALSE);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == g_tls_connection_base_close_internal_async, FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
 }
