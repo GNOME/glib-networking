@@ -66,6 +66,18 @@ g_tls_connection_openssl_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_connection_openssl_parent_class)->finalize (object);
 }
 
+static GTlsSafeRenegotiationStatus
+g_tls_connection_openssl_handshake_thread_safe_renegotiation_status (GTlsConnectionBase *tls)
+{
+  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
+  SSL *ssl;
+
+  ssl = g_tls_connection_openssl_get_ssl (openssl);
+
+  return SSL_get_secure_renegotiation_support (ssl) ? G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER
+                                                    : G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED;
+}
+
 static GTlsConnectionBaseStatus
 end_openssl_io (GTlsConnectionOpenssl  *openssl,
                 GIOCondition            direction,
@@ -213,10 +225,10 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
 static GTlsConnectionBaseStatus
-g_tls_connection_openssl_request_rehandshake (GTlsConnectionBase  *tls,
-                                              gint64               timeout,
-                                              GCancellable        *cancellable,
-                                              GError             **error)
+g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBase  *tls,
+                                                               gint64               timeout,
+                                                               GCancellable        *cancellable,
+                                                               GError             **error)
 {
   GTlsConnectionOpenssl *openssl;
   GTlsConnectionBaseStatus status;
@@ -497,35 +509,23 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
   return status;
 }
 
-static GTlsSafeRenegotiationStatus
-g_tls_connection_openssl_safe_renegotiation_status (GTlsConnectionBase *tls)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  SSL *ssl;
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-
-  return SSL_get_secure_renegotiation_support (ssl) ? G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER
-                                                    : G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED;
-}
-
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  object_class->finalize                 = g_tls_connection_openssl_finalize;
+  object_class->finalize                                 = g_tls_connection_openssl_finalize;
 
-  base_class->request_rehandshake        = g_tls_connection_openssl_request_rehandshake;
-  base_class->handshake_thread_handshake = g_tls_connection_openssl_handshake_thread_handshake;
-  base_class->retrieve_peer_certificate  = g_tls_connection_openssl_retrieve_peer_certificate;
-  base_class->push_io                    = g_tls_connection_openssl_push_io;
-  base_class->pop_io                     = g_tls_connection_openssl_pop_io;
-  base_class->read_fn                    = g_tls_connection_openssl_read;
-  base_class->write_fn                   = g_tls_connection_openssl_write;
-  base_class->close_fn                   = g_tls_connection_openssl_close;
-  base_class->safe_renegotiation_status  = g_tls_connection_openssl_safe_renegotiation_status;
+  base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_openssl_handshake_thread_safe_renegotiation_status;
+  base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
+  base_class->handshake_thread_handshake                 = g_tls_connection_openssl_handshake_thread_handshake;
+  base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
+  base_class->push_io                                    = g_tls_connection_openssl_push_io;
+  base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
+  base_class->read_fn                                    = g_tls_connection_openssl_read;
+  base_class->write_fn                                   = g_tls_connection_openssl_write;
+  base_class->close_fn                                   = g_tls_connection_openssl_close;
 }
 
 static int data_index = -1;
