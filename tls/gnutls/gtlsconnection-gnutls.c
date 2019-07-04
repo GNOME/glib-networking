@@ -757,11 +757,21 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
   return 0;
 }
 
+static GTlsSafeRenegotiationStatus
+g_tls_connection_gnutls_handshake_thread_safe_renegotiation_status (GTlsConnectionBase *tls)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+
+  return gnutls_safe_renegotiation_status (priv->session) ? G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER
+                                                          : G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED;
+}
+
 static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_request_rehandshake (GTlsConnectionBase  *tls,
-                                             gint64               timeout,
-                                             GCancellable        *cancellable,
-                                             GError             **error)
+g_tls_connection_gnutls_handshake_thread_request_rehandshake (GTlsConnectionBase  *tls,
+                                                              gint64               timeout,
+                                                              GCancellable        *cancellable,
+                                                              GError             **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
@@ -875,7 +885,7 @@ g_tls_connection_gnutls_handshake_thread_handshake (GTlsConnectionBase  *tls,
       ret = gnutls_record_recv (priv->session, buf, sizeof (buf));
       if (ret > -1)
         {
-          g_tls_connection_base_buffer_application_data (tls, buf, ret);
+          g_tls_connection_base_handshake_thread_buffer_application_data (tls, buf, ret);
           ret = GNUTLS_E_AGAIN;
         }
     }
@@ -1096,36 +1106,26 @@ g_tls_connection_gnutls_close (GTlsConnectionBase  *tls,
   return status;
 }
 
-static GTlsSafeRenegotiationStatus
-g_tls_connection_gnutls_safe_renegotiation_status (GTlsConnectionBase *tls)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-
-  return gnutls_safe_renegotiation_status (priv->session) ? G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER
-                                                          : G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED;
-}
-
 static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  gobject_class->finalize                = g_tls_connection_gnutls_finalize;
+  gobject_class->finalize                                = g_tls_connection_gnutls_finalize;
 
-  base_class->request_rehandshake        = g_tls_connection_gnutls_request_rehandshake;
-  base_class->prepare_handshake          = g_tls_connection_gnutls_prepare_handshake;
-  base_class->handshake_thread_handshake = g_tls_connection_gnutls_handshake_thread_handshake;
-  base_class->retrieve_peer_certificate  = g_tls_connection_gnutls_retrieve_peer_certificate;
-  base_class->complete_handshake         = g_tls_connection_gnutls_complete_handshake;
-  base_class->is_session_resumed         = g_tls_connection_gnutls_is_session_resumed;
-  base_class->read_fn                    = g_tls_connection_gnutls_read;
-  base_class->read_message_fn            = g_tls_connection_gnutls_read_message;
-  base_class->write_fn                   = g_tls_connection_gnutls_write;
-  base_class->write_message_fn           = g_tls_connection_gnutls_write_message;
-  base_class->close_fn                   = g_tls_connection_gnutls_close;
-  base_class->safe_renegotiation_status  = g_tls_connection_gnutls_safe_renegotiation_status;
+  base_class->prepare_handshake                          = g_tls_connection_gnutls_prepare_handshake;
+  base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_gnutls_handshake_thread_safe_renegotiation_status;
+  base_class->handshake_thread_request_rehandshake       = g_tls_connection_gnutls_handshake_thread_request_rehandshake;
+  base_class->handshake_thread_handshake                 = g_tls_connection_gnutls_handshake_thread_handshake;
+  base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
+  base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
+  base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
+  base_class->read_fn                                    = g_tls_connection_gnutls_read;
+  base_class->read_message_fn                            = g_tls_connection_gnutls_read_message;
+  base_class->write_fn                                   = g_tls_connection_gnutls_write;
+  base_class->write_message_fn                           = g_tls_connection_gnutls_write_message;
+  base_class->close_fn                                   = g_tls_connection_gnutls_close;
 }
 
 static void

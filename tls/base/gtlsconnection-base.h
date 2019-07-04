@@ -58,13 +58,15 @@ struct _GTlsConnectionBaseClass
 {
   GTlsConnectionClass parent_class;
 
-  GTlsConnectionBaseStatus    (*request_rehandshake)        (GTlsConnectionBase   *tls,
+  void                        (*prepare_handshake)          (GTlsConnectionBase   *tls,
+                                                             gchar               **advertised_protocols);
+  GTlsSafeRenegotiationStatus (*handshake_thread_safe_renegotiation_status)
+                                                            (GTlsConnectionBase    *tls);
+  GTlsConnectionBaseStatus    (*handshake_thread_request_rehandshake)
+                                                            (GTlsConnectionBase   *tls,
                                                              gint64                timeout,
                                                              GCancellable         *cancellable,
                                                              GError              **error);
-
-  void                        (*prepare_handshake)          (GTlsConnectionBase   *tls,
-                                                             gchar               **advertised_protocols);
   GTlsConnectionBaseStatus    (*handshake_thread_handshake) (GTlsConnectionBase   *tls,
                                                              gint64                timeout,
                                                              GCancellable         *cancellable,
@@ -122,8 +124,6 @@ struct _GTlsConnectionBaseClass
                                                              gint64                timeout,
                                                              GCancellable         *cancellable,
                                                              GError              **error);
-
-  GTlsSafeRenegotiationStatus (*safe_renegotiation_status)  (GTlsConnectionBase    *tls);
 };
 
 gboolean                  g_tls_connection_base_handshake_thread_verify_certificate
@@ -193,7 +193,8 @@ gboolean                  g_tls_connection_base_ever_handshaked         (GTlsCon
 gboolean                  g_tls_connection_base_request_certificate     (GTlsConnectionBase  *tls,
                                                                          GError             **error);
 
-void                      g_tls_connection_base_buffer_application_data (GTlsConnectionBase *tls,
+void                      g_tls_connection_base_handshake_thread_buffer_application_data
+                                                                        (GTlsConnectionBase *tls,
                                                                          guint8             *data,
                                                                          gsize               length);
 
