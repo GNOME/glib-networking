@@ -4,6 +4,7 @@
  *
  * Copyright 2009 Red Hat, Inc
  * Copyright 2015, 2016 Collabora, Ltd.
+ * Copyright 2019 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -513,6 +514,8 @@ set_gnutls_error (GTlsConnectionGnutls *gnutls,
     gnutls_transport_set_errno (priv->session, EIO);
 }
 
+/* FIXME: remove timeouts, make these always nonblocking */
+
 static ssize_t
 g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
                                    void                   *buf,
@@ -923,8 +926,7 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
 static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
                               void                *buffer,
-                              gsize                count,
-                              gint64               timeout,
+                              gsize                size,
                               gssize              *nread,
                               GCancellable        *cancellable,
                               GError             **error)
@@ -934,8 +936,8 @@ g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
-  ret = gnutls_record_recv (priv->session, buffer, count);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, 0, cancellable);
+  ret = gnutls_record_recv (priv->session, buffer, size);
   END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 
   *nread = MAX (ret, 0);
@@ -1005,8 +1007,7 @@ g_tls_connection_gnutls_read_message (GTlsConnectionBase  *tls,
 static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
                                const void          *buffer,
-                               gsize                count,
-                               gint64               timeout,
+                               gsize                size,
                                gssize              *nwrote,
                                GCancellable        *cancellable,
                                GError             **error)
@@ -1016,8 +1017,8 @@ g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
-  ret = gnutls_record_send (priv->session, buffer, count);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, 0, cancellable);
+  ret = gnutls_record_send (priv->session, buffer, size);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
   *nwrote = MAX (ret, 0);
