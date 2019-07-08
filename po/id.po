@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2019-06-06 11:17+0000\n"
-"PO-Revision-Date: 2019-06-07 21:55+0700\n"
+"POT-Creation-Date: 2019-07-04 09:53+0000\n"
+"PO-Revision-Date: 2019-07-08 15:13+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome@i15n.org>\n"
 "Language: id\n"
@@ -19,13 +19,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural= n!=1;\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.2.3\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Galat internal resolver proksi."
 
-#: tls/base/gtlsconnection-base.c:481 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:479 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -38,30 +38,34 @@ msgstr "Koneksi ditutup"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:551
+#: tls/base/gtlsconnection-base.c:549
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Tak bisa melakukan operasi pemblokiran selama jabat tangan TLS"
 
-#: tls/base/gtlsconnection-base.c:614 tls/base/gtlsconnection-base.c:1137
+#: tls/base/gtlsconnection-base.c:612 tls/base/gtlsconnection-base.c:1118
 msgid "Socket I/O timed out"
 msgstr "I/O soket kehabisan waktu"
 
-#: tls/base/gtlsconnection-base.c:1393
+#: tls/base/gtlsconnection-base.c:1339
+msgid "Peer does not support safe renegotiation"
+msgstr "Peer tidak mendukung renegosiasi yang aman"
+
+#: tls/base/gtlsconnection-base.c:1382
 msgid "Server required TLS certificate"
 msgstr "Server memerlukan sertifikat TLS"
 
-#: tls/base/gtlsconnection-base.c:1488 tls/gnutls/gtlsconnection-gnutls.c:412
+#: tls/base/gtlsconnection-base.c:1477 tls/gnutls/gtlsconnection-gnutls.c:419
 #: tls/openssl/gtlsconnection-openssl.c:172
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Sertifikat TLS tak dapat diterima"
 
-#: tls/base/gtlsconnection-base.c:1895
+#: tls/base/gtlsconnection-base.c:1884
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Menerima tanda tidak didukung"
 
-#: tls/base/gtlsconnection-base.c:2030
+#: tls/base/gtlsconnection-base.c:2019
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Mengirim tanda tidak didukung"
@@ -102,85 +106,87 @@ msgstr "Data sertifikat tak disediakan"
 msgid "Could not create TLS connection: %s"
 msgstr "Tak bisa membuat koneksi TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:357
-#: tls/gnutls/gtlsconnection-gnutls.c:381
+#: tls/gnutls/gtlsconnection-gnutls.c:353
+#: tls/gnutls/gtlsconnection-gnutls.c:364
+#: tls/gnutls/gtlsconnection-gnutls.c:388
 #: tls/openssl/gtlsconnection-openssl.c:139
-msgid "Peer failed to perform TLS handshake"
-msgstr "Peer gagal melakukan jabat tangan TLS"
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Peer gagal melakukan jabat tangan TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:368
+#: tls/gnutls/gtlsconnection-gnutls.c:375
 #: tls/openssl/gtlsconnection-openssl.c:248
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Peer meminta jabat tangan ulang TLS yang ilegal"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:389
+#: tls/gnutls/gtlsconnection-gnutls.c:396
 msgid "TLS connection closed unexpectedly"
 msgstr "Koneksi TLS tertutup tak disangka-sangka"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:404
+#: tls/gnutls/gtlsconnection-gnutls.c:411
 #: tls/openssl/gtlsconnection-openssl.c:164
 msgid "TLS connection peer did not send a certificate"
 msgstr "Pasangan koneksi TLS tak mengembalikan sertifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:420
+#: tls/gnutls/gtlsconnection-gnutls.c:427
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Peer mengirim peringatan TLS yang fatal: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:430
+#: tls/gnutls/gtlsconnection-gnutls.c:437
 msgid "Protocol version downgrade attack detected"
 msgstr "Serangan versi penurunan protokol terdeteksi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:439
+#: tls/gnutls/gtlsconnection-gnutls.c:446
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "Pesan terlalu besar untuk koneksi DTLS; maksimum adalah %u byte"
 msgstr[1] "Pesan terlalu besar untuk koneksi DTLS; maksimum adalah %u byte"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:448
+#: tls/gnutls/gtlsconnection-gnutls.c:455
 msgid "The operation timed out"
 msgstr "Waktu operasi habis"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:770
+#: tls/gnutls/gtlsconnection-gnutls.c:780
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Galat melakukan jabat tangan TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:873
+#: tls/gnutls/gtlsconnection-gnutls.c:883
 #: tls/openssl/gtlsconnection-openssl.c:257
 #: tls/openssl/gtlsconnection-openssl.c:307
 msgid "Error performing TLS handshake"
 msgstr "Galat melakukan jabat tangan TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:919
-#: tls/gnutls/gtlsconnection-gnutls.c:980
+#: tls/gnutls/gtlsconnection-gnutls.c:929
+#: tls/gnutls/gtlsconnection-gnutls.c:989
 #: tls/openssl/gtlsconnection-openssl.c:414
 msgid "Error reading data from TLS socket"
 msgstr "Galat saat membaca data dari soket TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
-#: tls/gnutls/gtlsconnection-gnutls.c:1068
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/gnutls/gtlsconnection-gnutls.c:1011
+#: tls/gnutls/gtlsconnection-gnutls.c:1075
+#: tls/openssl/gtlsconnection-openssl.c:458
 msgid "Error writing data to TLS socket"
 msgstr "Galat saat menulis data ke soket TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1038
+#: tls/gnutls/gtlsconnection-gnutls.c:1045
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Pesan ukuran %lu byte terlalu besar untuk koneksi DTLS"
 msgstr[1] "Pesan ukuran %lu byte terlalu besar untuk koneksi DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1040
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(maksimum adalah %u byte)"
 msgstr[1] "(maksimum adalah %u byte)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1088
+#: tls/gnutls/gtlsconnection-gnutls.c:1094
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Galat melaksanakan penutupan TLS: %s"
@@ -220,7 +226,7 @@ msgstr "Otoritas sertifikat TLS tak dapat diterima"
 msgid "Digest too big for RSA key"
 msgstr "Digest terlalu besar untuk kunci RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:497
+#: tls/openssl/gtlsconnection-openssl.c:495
 msgid "Error performing TLS close"
 msgstr "Galat melaksanakan penutupan TLS"
 
@@ -245,9 +251,6 @@ msgstr "Ada masalah dengan kunci privat sertifikat: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "Operasi akan memblokir"
-
-#~ msgid "Peer does not support safe renegotiation"
-#~ msgstr "Peer tidak mendukung renegosiasi yang aman"
 
 #~ msgid "Server did not return a valid TLS certificate"
 #~ msgstr "Server tak mengembalikan sertifikat TLS yang valid"
