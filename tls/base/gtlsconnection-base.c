@@ -3,6 +3,7 @@
  * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2009-2011 Red Hat, Inc
+ * Copyright 2019 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,6 +31,7 @@
 #include "gtlsconnection-base.h"
 #include "gtlsinputstream.h"
 #include "gtlsoutputstream.h"
+#include "gtlsthread.h"
 
 #include <glib/gi18n-lib.h>
 #include <glib/gprintf.h>
@@ -82,6 +84,8 @@ typedef struct
    * the other streams.
    */
   GDatagramBased        *base_socket;
+
+  GTlsThread            *thread;
 
   GTlsDatabase          *database;
   GTlsInteraction       *interaction;
@@ -223,6 +227,8 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
+  priv->thread = g_tls_thread_new (tls);
+
   priv->need_handshake = TRUE;
   priv->database_is_unset = TRUE;
   priv->is_system_certdb = TRUE;
@@ -240,6 +246,8 @@ g_tls_connection_base_finalize (GObject *object)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  g_clear_object (&priv->thread);
 
   g_clear_object (&priv->base_io_stream);
   g_clear_object (&priv->base_socket);
@@ -874,7 +882,8 @@ typedef struct {
 
 /* Use a custom dummy callback instead of g_source_set_dummy_callback(), as that
  * uses a GClosure and is slow. (The GClosure is necessary to deal with any
- * function prototype.) */
+ * function prototype.)
+ * */
 static gboolean
 dummy_callback (gpointer data)
 {
@@ -1016,7 +1025,6 @@ g_tls_connection_tls_source_dtls_closure_callback (GDatagramBased *datagram_base
   g_value_unset (&param[1]);
 
   return result;
-
 }
 
 static GSourceFuncs tls_source_funcs =
@@ -1039,6 +1047,7 @@ static GSourceFuncs dtls_source_funcs =
   (GSourceDummyMarshal)g_cclosure_marshal_generic
 };
 
+/* FIXME: all needs to be threadsafe... */
 GSource *
 g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
                                      GIOCondition         condition,
@@ -1098,11 +1107,31 @@ g_tls_connection_base_dtls_create_source (GDatagramBased  *datagram_based,
 
 static GIOCondition
 g_tls_connection_base_condition_check (GDatagramBased  *datagram_based,
-                                         GIOCondition     condition)
+                                       GIOCondition     condition)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
 
   return g_tls_connection_base_check (tls, condition) ? condition : 0;
+}
+
+/* Returns a GSource for the underlying GDatagramBased or base stream, not for
+ * the GTlsConnectionBase itself.
+ */
+GSource *
+g_tls_connection_base_create_base_source (GTlsConnectionBase *tls,
+                                          GIOCondition        condition,
+                                          GCancellable       *cancellable)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  if (g_tls_connection_base_is_dtls (tls))
+    return g_datagram_based_create_source (priv->base_socket, condition, cancellable);
+  if (condition & G_IO_IN)
+    return g_pollable_input_stream_create_source (priv->base_istream, cancellable);
+  if (condition & G_IO_OUT)
+    return g_pollable_output_stream_create_source (priv->base_ostream, cancellable);
+
+  g_assert_not_reached ();
 }
 
 static gboolean
@@ -1809,7 +1838,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
 gssize
 g_tls_connection_base_read (GTlsConnectionBase  *tls,
                             void                *buffer,
-                            gsize                count,
+                            gsize                size,
                             gint64               timeout,
                             GCancellable        *cancellable,
                             GError             **error)
@@ -1826,7 +1855,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
 
       if (priv->app_data_buf && !priv->handshaking)
         {
-          nread = MIN (count, priv->app_data_buf->len);
+          nread = MIN (size, priv->app_data_buf->len);
           memcpy (buffer, priv->app_data_buf->data, nread);
           if (nread == priv->app_data_buf->len)
             g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
@@ -1836,8 +1865,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
         }
       else
         {
-          status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-            read_fn (tls, buffer, count, timeout, &nread, cancellable, error);
+          status = g_tls_thread_read (priv->thread, buffer, size, timeout, &nread, cancellable, error);
         }
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
@@ -1990,7 +2018,7 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
 gssize
 g_tls_connection_base_write (GTlsConnectionBase  *tls,
                              const void          *buffer,
-                             gsize                count,
+                             gsize                size,
                              gint64               timeout,
                              GCancellable        *cancellable,
                              GError             **error)
@@ -2006,7 +2034,7 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
         return -1;
 
       status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-        write_fn (tls, buffer, count, timeout, &nwrote, cancellable, error);
+        write_fn (tls, buffer, size, timeout, &nwrote, cancellable, error);
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE, status);
     }
