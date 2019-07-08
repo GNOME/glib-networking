@@ -392,8 +392,7 @@ g_tls_connection_openssl_pop_io (GTlsConnectionBase  *tls,
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
                                void                  *buffer,
-                               gsize                  count,
-                               gint64                 timeout,
+                               gsize                  size,
                                gssize                *nread,
                                GCancellable          *cancellable,
                                GError               **error)
@@ -419,10 +418,10 @@ g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
       g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),
                                      G_IO_IN, 0, cancellable);
 
-      ret = SSL_read (ssl, buffer, count);
+      ret = SSL_read (ssl, buffer, size);
 
       ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof (error_str));
-      status = end_openssl_io (openssl, G_IO_IN, ret, timeout == -1, error,
+      status = end_openssl_io (openssl, G_IO_IN, ret, FALSE, error,
                                _("Error reading data from TLS socket"), error_str);
 
       if (status != G_TLS_CONNECTION_BASE_TRY_AGAIN)
@@ -439,7 +438,7 @@ g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
                                 const void            *buffer,
-                                gsize                  count,
+                                gsize                  size,
                                 gint64                 timeout,
                                 gssize                *nwrote,
                                 GCancellable          *cancellable,
@@ -463,7 +462,7 @@ g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
       g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),
                                      G_IO_OUT, 0, cancellable);
 
-      ret = SSL_write (ssl, buffer, count);
+      ret = SSL_write (ssl, buffer, size);
 
       ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof (error_str));
       status = end_openssl_io (openssl, G_IO_OUT, ret, timeout == -1, error,
