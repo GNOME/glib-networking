@@ -4,6 +4,7 @@
  *
  * Copyright 2009 Red Hat, Inc
  * Copyright 2015, 2016 Collabora, Ltd.
+ * Copyright 2019 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
