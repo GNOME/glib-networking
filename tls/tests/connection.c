@@ -1298,6 +1298,39 @@ test_client_auth_request_fail (TestConnection *test,
 }
 
 static void
+test_client_auth_request_none (TestConnection *test,
+                               gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  /* request, but don't provide a client certificate */
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
+
+static void
 test_connection_no_database (TestConnection *test,
                              gconstpointer   data)
 {
@@ -2381,6 +2414,8 @@ main (int   argc,
               setup_connection, test_client_auth_request_cert, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-request-fail", TestConnection, NULL,
               setup_connection, test_client_auth_request_fail, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/client-auth-request-none", TestConnection, NULL,
+              setup_connection, test_client_auth_request_none, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/failed", TestConnection, NULL,
