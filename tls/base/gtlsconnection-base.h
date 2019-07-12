@@ -175,6 +175,8 @@ GPollableOutputStream    *g_tls_connection_base_get_base_ostream        (GTlsCon
 
 void                      g_tls_connection_base_set_missing_requested_client_certificate
                                                                         (GTlsConnectionBase *tls);
+gboolean                  g_tls_connection_base_get_missing_requested_client_certificate
+                                                                        (GTlsConnectionBase *tls);
 
 GError                  **g_tls_connection_base_get_certificate_error   (GTlsConnectionBase *tls);
 GError                  **g_tls_connection_base_get_read_error          (GTlsConnectionBase *tls);
@@ -196,6 +198,9 @@ gboolean                  g_tls_connection_base_request_certificate     (GTlsCon
 void                      g_tls_connection_base_buffer_application_data (GTlsConnectionBase *tls,
                                                                          guint8             *data,
                                                                          gsize               length);
+
+gboolean                  g_tls_connection_base_has_successful_posthandshake_op
+                                                                        (GTlsConnectionBase *tls);
 
 void                      GTLS_DEBUG                                    (gpointer    connection,
                                                                          const char *message,

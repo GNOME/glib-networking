@@ -456,6 +456,21 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
+  if ((ret == GNUTLS_E_INVALID_SESSION || g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_CONNECTION_CLOSED)) &&
+      g_tls_connection_base_get_missing_requested_client_certificate (tls) &&
+      !g_tls_connection_base_has_successful_posthandshake_op (tls))
+    {
+      /* Probably the server requires a client certificate, but we failed to
+       * provide one. With TLS 1.3 the server is no longer able to tell us
+       * this so we just have to guess. This only applies to the small minority
+       * of connections where a client cert is requested but not provided.
+       */
+      g_clear_error (&my_error);
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
+                           _("Server required TLS certificate"));
+      return G_TLS_CONNECTION_BASE_ERROR;
+    }
+
   if (error && my_error)
     g_propagate_error (error, my_error);
 

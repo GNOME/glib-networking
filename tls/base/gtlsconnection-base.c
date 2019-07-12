@@ -147,6 +147,8 @@ typedef struct
   GError        *write_error;
   GCancellable  *write_cancellable;
 
+  gboolean       successful_posthandshake_op;
+
   gboolean       is_system_certdb;
   gboolean       database_is_unset;
 
@@ -1379,7 +1381,7 @@ handshake_thread (GTask        *task,
   tls_class->handshake_thread_handshake (tls, timeout, cancellable, &error);
   priv->need_handshake = FALSE;
 
-  if (priv->missing_requested_client_certificate)
+  if (error && priv->missing_requested_client_certificate)
     {
       g_clear_error (&error);
       if (priv->certificate_error)
@@ -1829,9 +1831,12 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
   while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);
 
   if (status == G_TLS_CONNECTION_BASE_OK)
-    return nread;
-  else
-    return -1;
+    {
+      priv->successful_posthandshake_op = TRUE;
+      return nread;
+    }
+
+  return -1;
 }
 
 static gssize
@@ -1883,7 +1888,11 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
   } while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);
 
   if (status == G_TLS_CONNECTION_BASE_OK)
-    return nread;
+    {
+      priv->successful_posthandshake_op = TRUE;
+      return nread;
+    }
+
   return -1;
 }
 
@@ -1896,11 +1905,10 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
                                         GCancellable    *cancellable,
                                         GError         **error)
 {
-  GTlsConnectionBase *tls;
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   guint i;
   GError *child_error = NULL;
-
-  tls = G_TLS_CONNECTION_BASE (datagram_based);
 
   if (flags != G_SOCKET_MSG_NONE)
     {
@@ -1961,6 +1969,7 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
+  priv->successful_posthandshake_op = TRUE;
   return i;
 }
 
@@ -1972,6 +1981,7 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
                              GCancellable        *cancellable,
                              GError             **error)
 {
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nwrote;
 
@@ -1989,9 +1999,12 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
   while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);
 
   if (status == G_TLS_CONNECTION_BASE_OK)
-    return nwrote;
-  else
-    return -1;
+    {
+      priv->successful_posthandshake_op = TRUE;
+      return nwrote;
+    }
+
+  return -1;
 }
 
 static gssize
@@ -2002,6 +2015,7 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
                                      GCancellable        *cancellable,
                                      GError             **error)
 {
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nwrote;
 
@@ -2018,7 +2032,11 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
   } while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);
 
   if (status == G_TLS_CONNECTION_BASE_OK)
-    return nwrote;
+    {
+      priv->successful_posthandshake_op = TRUE;
+      return nwrote;
+    }
+
   return -1;
 }
 
@@ -2031,11 +2049,10 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
                                      GCancellable    *cancellable,
                                      GError         **error)
 {
-  GTlsConnectionBase *tls;
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   guint i;
   GError *child_error = NULL;
-
-  tls = G_TLS_CONNECTION_BASE (datagram_based);
 
   if (flags != G_SOCKET_MSG_NONE)
     {
@@ -2084,6 +2101,7 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
+  priv->successful_posthandshake_op = TRUE;
   return i;
 }
 
@@ -2380,13 +2398,20 @@ g_tls_connection_base_get_base_ostream (GTlsConnectionBase *tls)
   return priv->base_ostream;
 }
 
+gboolean
+g_tls_connection_base_get_missing_requested_client_certificate (GTlsConnectionBase *tls)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  return priv->missing_requested_client_certificate;
+}
+
 void
 g_tls_connection_base_set_missing_requested_client_certificate (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
   /* FIXME: Assert this is only used on the handshake thread. */
-  /* FIXME: Assert it's not already requested? Probably. */
 
   priv->missing_requested_client_certificate = TRUE;
 }
@@ -2498,6 +2523,14 @@ g_tls_connection_base_buffer_application_data (GTlsConnectionBase *tls,
     priv->app_data_buf = g_byte_array_new ();
 
   g_byte_array_append (priv->app_data_buf, data, length);
+}
+
+gboolean
+g_tls_connection_base_has_successful_posthandshake_op (GTlsConnectionBase *tls)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  return priv->successful_posthandshake_op;
 }
 
 static void
