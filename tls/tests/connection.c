@@ -2221,7 +2221,7 @@ test_readwrite_after_connection_destroyed (TestConnection *test,
 
   g_test_bug ("792219");
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
