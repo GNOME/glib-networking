@@ -362,7 +362,9 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
           g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
 
           /* If there is still no client certificate, this connection will
-           * probably fail, but no reason to give up: let's try anyway.
+           * probably fail, but we must not give up yet. The certificate might
+           * be optional, e.g. if the server is using
+           * G_TLS_AUTHENTICATION_REQUESTED, not G_TLS_AUTHENTICATION_REQUIRED.
            */
           g_tls_connection_base_set_missing_requested_client_certificate (tls);
           return 0;
