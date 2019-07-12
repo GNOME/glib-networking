@@ -1379,7 +1379,7 @@ handshake_thread (GTask        *task,
   tls_class->handshake_thread_handshake (tls, timeout, cancellable, &error);
   priv->need_handshake = FALSE;
 
-  if (priv->missing_requested_client_certificate)
+  if (error && priv->missing_requested_client_certificate)
     {
       g_clear_error (&error);
       if (priv->certificate_error)
@@ -2380,13 +2380,20 @@ g_tls_connection_base_get_base_ostream (GTlsConnectionBase *tls)
   return priv->base_ostream;
 }
 
+gboolean
+g_tls_connection_base_get_missing_requested_client_certificate (GTlsConnectionBase *tls)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  return priv->missing_requested_client_certificate;
+}
+
 void
 g_tls_connection_base_set_missing_requested_client_certificate (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
   /* FIXME: Assert this is only used on the handshake thread. */
-  /* FIXME: Assert it's not already requested? Probably. */
 
   priv->missing_requested_client_certificate = TRUE;
 }
