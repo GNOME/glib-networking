@@ -351,9 +351,7 @@ retrieve_certificate (SSL       *ssl,
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
   if (!cert)
     {
-      g_clear_error (g_tls_connection_base_get_certificate_error (tls));
-
-      if (g_tls_connection_base_request_certificate (tls, g_tls_connection_base_get_certificate_error (tls)))
+      if (g_tls_connection_base_request_certificate (tls))
         cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
     }
 
