@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2019-05-24 16:23+0000\n"
-"PO-Revision-Date: 2019-06-22 17:35+0200\n"
-"Last-Translator: gogo <trebelnik2@gmail.com>\n"
+"POT-Creation-Date: 2019-07-08 08:14+0000\n"
+"PO-Revision-Date: 2019-07-19 23:32+0200\n"
+"Last-Translator: gogo <linux.hr@protonmail.com>\n"
 "Language-Team: Croatian <hr@li.org>\n"
 "Language: hr\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Unutrašnja greška proxy razrješitelja."
 
-#: tls/base/gtlsconnection-base.c:481 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -38,30 +38,34 @@ msgstr "Povezivanje je zatvoreno"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:551
+#: tls/base/gtlsconnection-base.c:560
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Ne može se izvesti radnja blokiranja tijekom TLS rukovanja"
 
-#: tls/base/gtlsconnection-base.c:614 tls/base/gtlsconnection-base.c:1137
+#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1129
 msgid "Socket I/O timed out"
 msgstr "Istek vremena U/I priključnice"
+
+#: tls/base/gtlsconnection-base.c:1350
+msgid "Peer does not support safe renegotiation"
+msgstr "Točka ne podržava sigurne pregovore"
 
 #: tls/base/gtlsconnection-base.c:1393
 msgid "Server required TLS certificate"
 msgstr "Poslužitelj zahtijeva TLS vjerodajnicu"
 
-#: tls/base/gtlsconnection-base.c:1488 tls/gnutls/gtlsconnection-gnutls.c:412
-#: tls/openssl/gtlsconnection-openssl.c:165
+#: tls/base/gtlsconnection-base.c:1493 tls/gnutls/gtlsconnection-gnutls.c:419
+#: tls/openssl/gtlsconnection-openssl.c:172
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Neprihvatljiva TLS vjerodajnica"
 
-#: tls/base/gtlsconnection-base.c:1895
+#: tls/base/gtlsconnection-base.c:1908
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Primanje oznaka nije podržano"
 
-#: tls/base/gtlsconnection-base.c:2030
+#: tls/base/gtlsconnection-base.c:2043
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Slanje oznaka nije podržano"
@@ -102,36 +106,38 @@ msgstr "Nema pruženih podataka vjerodajnica"
 msgid "Could not create TLS connection: %s"
 msgstr "Nemoguće stvaranje TLS povezivanja: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:357
-#: tls/gnutls/gtlsconnection-gnutls.c:381
-#: tls/openssl/gtlsconnection-openssl.c:132
-msgid "Peer failed to perform TLS handshake"
-msgstr "Čvor je odbio izvesti TLS rukovanje"
+#: tls/gnutls/gtlsconnection-gnutls.c:353
+#: tls/gnutls/gtlsconnection-gnutls.c:364
+#: tls/gnutls/gtlsconnection-gnutls.c:388
+#: tls/openssl/gtlsconnection-openssl.c:139
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Čvor je odbio izvesti TLS rukovanje: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:368
-#: tls/openssl/gtlsconnection-openssl.c:241
+#: tls/gnutls/gtlsconnection-gnutls.c:375
+#: tls/openssl/gtlsconnection-openssl.c:248
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Čvor zahtjeva ilegalno TLS ponovno rukovanje"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:389
+#: tls/gnutls/gtlsconnection-gnutls.c:396
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS povezivanje je neočekivano zatvoreno"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:404
-#: tls/openssl/gtlsconnection-openssl.c:157
+#: tls/gnutls/gtlsconnection-gnutls.c:411
+#: tls/openssl/gtlsconnection-openssl.c:164
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS čvor povezivanja nije poslao vjerodajnicu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:420
+#: tls/gnutls/gtlsconnection-gnutls.c:427
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Kobno slanje točke TLS upozorenje: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:430
+#: tls/gnutls/gtlsconnection-gnutls.c:437
 msgid "Protocol version downgrade attack detected"
 msgstr "Vraćena je starija inačica protokola, napad otkriven"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:439
+#: tls/gnutls/gtlsconnection-gnutls.c:446
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -139,35 +145,35 @@ msgstr[0] "Poruka je prevelika za DTLS povezivanje; najviše je %u bajt"
 msgstr[1] "Poruka je prevelika za DTLS povezivanje; najviše je %u bajta"
 msgstr[2] "Poruka je prevelika za DTLS povezivanje; najviše je %u bajta"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:448
+#: tls/gnutls/gtlsconnection-gnutls.c:455
 msgid "The operation timed out"
 msgstr "Istek vremena radnje"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:770
+#: tls/gnutls/gtlsconnection-gnutls.c:780
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Greška izvođenja TLS rukovanja: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:873
-#: tls/openssl/gtlsconnection-openssl.c:250
-#: tls/openssl/gtlsconnection-openssl.c:300
+#: tls/gnutls/gtlsconnection-gnutls.c:883
+#: tls/openssl/gtlsconnection-openssl.c:257
+#: tls/openssl/gtlsconnection-openssl.c:307
 msgid "Error performing TLS handshake"
 msgstr "Greška izvođenja TLS rukovanja"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:919
-#: tls/gnutls/gtlsconnection-gnutls.c:980
-#: tls/openssl/gtlsconnection-openssl.c:388
+#: tls/gnutls/gtlsconnection-gnutls.c:929
+#: tls/gnutls/gtlsconnection-gnutls.c:989
+#: tls/openssl/gtlsconnection-openssl.c:414
 msgid "Error reading data from TLS socket"
 msgstr "Greška čitanja podataka iz TLS priključnice"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
-#: tls/gnutls/gtlsconnection-gnutls.c:1068
-#: tls/openssl/gtlsconnection-openssl.c:414
+#: tls/gnutls/gtlsconnection-gnutls.c:1011
+#: tls/gnutls/gtlsconnection-gnutls.c:1075
+#: tls/openssl/gtlsconnection-openssl.c:458
 msgid "Error writing data to TLS socket"
 msgstr "Greška zapisivanja podataka u TLS priključnicu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1038
+#: tls/gnutls/gtlsconnection-gnutls.c:1045
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -175,7 +181,7 @@ msgstr[0] "Poruka veličine %lu bajta je prevelika za DTLS povezivanje"
 msgstr[1] "Poruka veličine %lu bajta je prevelika za DTLS povezivanje"
 msgstr[2] "Poruka veličine %lu bajta je prevelika za DTLS povezivanje"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1040
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -183,7 +189,7 @@ msgstr[0] "(najviše je %u bajt)"
 msgstr[1] "(najviše je %u bajta)"
 msgstr[2] "(najviše je %u bajta)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1088
+#: tls/gnutls/gtlsconnection-gnutls.c:1094
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Greška izvođenja TLS zatvaranja: %s"
@@ -214,16 +220,16 @@ msgstr "Vjerodajnica nema privatni ključ"
 msgid "Could not create TLS context: %s"
 msgstr "Nemoguće stvaranje TLS sadržaja: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:173
+#: tls/openssl/gtlsconnection-openssl.c:180
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Neprihvatljiva punomoć TLS vjerodajnice"
 
-#: tls/openssl/gtlsconnection-openssl.c:181
+#: tls/openssl/gtlsconnection-openssl.c:188
 msgid "Digest too big for RSA key"
 msgstr "Sadržaj je prevelik za RSA ključ"
 
-#: tls/openssl/gtlsconnection-openssl.c:441
+#: tls/openssl/gtlsconnection-openssl.c:495
 msgid "Error performing TLS close"
 msgstr "Greška izvođenja TLS zatvaranja"
 
@@ -248,9 +254,6 @@ msgstr "Postoji problem s privatnim ključem vjerodajnice: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "Radnja će blokirati"
-
-#~ msgid "Peer does not support safe renegotiation"
-#~ msgstr "Točka ne podržava sigurne pregovore"
 
 #~ msgid "Server did not return a valid TLS certificate"
 #~ msgstr "Poslužitelj nije vratio valjanu TLS vjerodajnicu"
