@@ -482,12 +482,7 @@ on_client_connection_close_finish (GObject        *object,
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
 
   if (test->expected_client_close_error)
-#ifdef BACKEND_IS_GNUTLS
     g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
-#else
-    /* FIXME: Fix this for OpenSSL. */
-    ;
-#endif
   else
     g_assert_no_error (error);
 
@@ -1303,16 +1298,10 @@ test_client_auth_request_fail (TestConnection *test,
   g_main_loop_run (test->loop);
   wait_until_server_finished (test);
 
-#if BACKEND_IS_GNUTLS
-  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
-#elif BACKEND_IS_OPENSSL
-  /* FIXME: G_FILE_ERROR_ACCES is the error returned by our mock interaction
-   * object when the GTlsInteraction's certificate request fails. OpenSSL needs
-   * to fudge the error a bit, matching the GNUTLS_E_INVALID_SESSION case in
-   * GTlsConnectionGnutls's end_gnutls_io().
+  /* G_FILE_ERROR_ACCES is the error returned by our mock interaction object
+   * when the GTlsInteraction's certificate request fails.
    */
   g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
-#endif
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 
   g_io_stream_close (test->server_connection, NULL, NULL);
