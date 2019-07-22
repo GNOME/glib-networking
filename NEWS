@@ -1,3 +1,9 @@
+2.61.2 - July 22, 2019
+======================
+
+- Improve certain handshake error messages (#13)
+- Fix regressions introduced in 2.61.1 (#91, #92)
+
 2.61.1 - June 9, 2019
 =====================
 
