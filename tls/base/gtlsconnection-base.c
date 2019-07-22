@@ -735,6 +735,7 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
       else
         g_clear_error (&priv->read_error);
     }
+
   if (direction & G_IO_OUT)
     {
       priv->write_cancellable = NULL;
@@ -755,13 +756,39 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
       g_propagate_error (error, my_error);
       return G_TLS_CONNECTION_BASE_WOULD_BLOCK;
     }
-  else if (g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
+
+  if (g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
     {
       g_propagate_error (error, my_error);
       return G_TLS_CONNECTION_BASE_TIMED_OUT;
     }
+
+  if (priv->missing_requested_client_certificate &&
+      !priv->successful_posthandshake_op)
+    {
+      /* Probably the server requires a client certificate, but we failed to
+       * provide one. With TLS 1.3 the server is no longer able to tell us
+       * this, so we just have to guess. This only applies to the small minority
+       * of connections where a client cert is requested but not provided, and
+       * then only if the client has seen a "successful" handshake but never a
+       * successful read or write.
+       */
+      if (priv->interaction_error)
+        {
+          g_propagate_error (error, priv->interaction_error);
+          priv->interaction_error = NULL;
+        }
+      else
+        {
+          g_clear_error (error);
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
+                               _("Server required TLS certificate"));
+        }
+    }
   else if (my_error)
-    g_propagate_error (error, my_error);
+    {
+      g_propagate_error (error, my_error);
+    }
 
   return G_TLS_CONNECTION_BASE_ERROR;
 }
@@ -1380,21 +1407,6 @@ handshake_thread (GTask        *task,
   priv->started_handshake = TRUE;
   tls_class->handshake_thread_handshake (tls, timeout, cancellable, &error);
   priv->need_handshake = FALSE;
-
-  if (error && priv->missing_requested_client_certificate)
-    {
-      g_clear_error (&error);
-      if (priv->interaction_error)
-        {
-          error = priv->interaction_error;
-          priv->interaction_error = NULL;
-        }
-      else
-        {
-          g_set_error_literal (&error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
-                               _("Server required TLS certificate"));
-        }
-    }
 
   if (error)
     {
@@ -2398,14 +2410,6 @@ g_tls_connection_base_get_base_ostream (GTlsConnectionBase *tls)
   return priv->base_ostream;
 }
 
-gboolean
-g_tls_connection_base_get_missing_requested_client_certificate (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  return priv->missing_requested_client_certificate;
-}
-
 void
 g_tls_connection_base_set_missing_requested_client_certificate (GTlsConnectionBase *tls)
 {
@@ -2517,14 +2521,6 @@ g_tls_connection_base_buffer_application_data (GTlsConnectionBase *tls,
     priv->app_data_buf = g_byte_array_new ();
 
   g_byte_array_append (priv->app_data_buf, data, length);
-}
-
-gboolean
-g_tls_connection_base_has_successful_posthandshake_op (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  return priv->successful_posthandshake_op;
 }
 
 static void
