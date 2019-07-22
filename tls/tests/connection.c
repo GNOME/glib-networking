@@ -85,6 +85,7 @@ typedef struct {
   GTlsCertificateFlags accept_flags;
   GError *read_error;
   GError *server_error;
+  GError *expected_client_close_error;
   ServerConnectionReceivedStrategy connection_received_strategy;
   gboolean server_running;
   GTlsCertificate *server_certificate;
@@ -171,6 +172,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
 
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
+  g_clear_error (&test->expected_client_close_error);
 }
 
 static void
@@ -478,7 +480,11 @@ on_client_connection_close_finish (GObject        *object,
   GError *error = NULL;
 
   g_io_stream_close_finish (G_IO_STREAM (object), res, &error);
-  g_assert_no_error (error);
+
+  if (test->expected_client_close_error)
+    g_assert_error (error, test->expected_client_close_error->domain, test->expected_client_close_error->code);
+  else
+    g_assert_no_error (error);
 
   g_main_loop_quit (test->loop);
 }
@@ -1096,6 +1102,8 @@ test_client_auth_failure (TestConnection *test,
   g_signal_connect (test->client_connection, "notify::accepted-cas",
                     G_CALLBACK (on_notify_accepted_cas), &accepted_changed);
 
+  g_set_error_literal (&test->expected_client_close_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED, "");
+
   read_test_data_async (test);
   g_main_loop_run (test->loop);
   wait_until_server_finished (test);
@@ -1109,6 +1117,7 @@ test_client_auth_failure (TestConnection *test,
   g_clear_object (&test->server_connection);
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
+  g_clear_error (&test->expected_client_close_error);
 
   /* Now start a new connection to the same server with a valid client cert;
    * this should succeed, and not use the cached failed session from above */
@@ -1283,6 +1292,8 @@ test_client_auth_request_fail (TestConnection *test,
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
 
+  g_set_error_literal (&test->expected_client_close_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED, "");
+
   read_test_data_async (test);
   g_main_loop_run (test->loop);
   wait_until_server_finished (test);
@@ -1296,6 +1307,43 @@ test_client_auth_request_fail (TestConnection *test,
   g_io_stream_close (test->server_connection, NULL, NULL);
   g_io_stream_close (test->client_connection, NULL, NULL);
 }
+
+static void
+test_client_auth_request_none (TestConnection *test,
+                               gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  /* Request, but don't provide, a client certificate */
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  /* The connection should succeed and everything should work. We only REQUESTED
+   * authentication, in contrast to G_TLS_AUTHENTICATION_REQUIRED where this
+   * should fail.
+   */
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
 
 static void
 test_connection_no_database (TestConnection *test,
@@ -2162,7 +2210,7 @@ test_readwrite_after_connection_destroyed (TestConnection *test,
 
   g_test_bug ("792219");
 
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUESTED);
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_object_unref (connection);
@@ -2381,6 +2429,8 @@ main (int   argc,
               setup_connection, test_client_auth_request_cert, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-request-fail", TestConnection, NULL,
               setup_connection, test_client_auth_request_fail, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/client-auth-request-none", TestConnection, NULL,
+              setup_connection, test_client_auth_request_none, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/failed", TestConnection, NULL,
