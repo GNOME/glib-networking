@@ -31,6 +31,7 @@
 #include "gtlsconnection-base.h"
 #include "gtlsinputstream.h"
 #include "gtlsoutputstream.h"
+#include "gtlsthread.h"
 
 #include <glib/gi18n-lib.h>
 #include <glib/gprintf.h>
@@ -83,6 +84,8 @@ typedef struct
    * the other streams.
    */
   GDatagramBased        *base_socket;
+
+  GTlsThread            *thread;
 
   GTlsDatabase          *database;
   GTlsInteraction       *interaction;

@@ -2,7 +2,7 @@ tlsbase_sources = files(
   'gtlsconnection-base.c',
   'gtlsinputstream.c',
   'gtlsoutputstream.c',
-  'gtlsthread-base.c'
+  'gtlsthread.c'
 )
 
 tlsbase = static_library('tlsbase',

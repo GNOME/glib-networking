@@ -25,7 +25,7 @@
 
 #include "config.h"
 
-#include "gtlsthread-base.h"
+#include "gtlsthread.h"
 
 /* The purpose of this class is to ensure the underlying TLS library is only
  * ever used on a single thread. There are multiple benefits of this:
@@ -58,10 +58,11 @@
  * This means that underlying TLS operations must use async I/O. To emulate
  * blocking operations, we will have to use poll().
  */
-typedef struct {
+struct _GTlsThread {
+  GObject parent_instance;
   GThread *thread;
   GAsyncQueue *queue;
-} GTlsThreadBasePrivate;
+};
 
 typedef enum {
   G_TLS_THREAD_OP_READ,
@@ -78,7 +79,7 @@ typedef struct {
   gint result;
 } GTlsThreadOperation;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GTlsThreadBase, g_tls_thread_base, G_TYPE_TLS_THREAD_BASE)
+G_DEFINE_TYPE (GTlsThread, g_tls_thread, G_TYPE_TLS_THREAD)
 
 static GTlsThreadOperation *
 g_tls_thread_operation_new (GTlsThreadOperationType  type,
@@ -86,8 +87,7 @@ g_tls_thread_operation_new (GTlsThreadOperationType  type,
                             gsize                    size,
                             gint64                   timeout,
                             GCancellable            *cancellable,
-                            GMainLoop               *main_loop,
-                            gint                     result)
+                            GMainLoop               *main_loop)
 {
   GTlsThreadOperation *op;
 
@@ -119,19 +119,18 @@ g_tls_thread_operation_free (GTlsThreadOperation *op)
 {
   g_clear_pointer (&op->data, g_free);
   g_clear_object (&op->cancellable);
-  g_clear_pointer (&op->main_context, g_main_loop_unref);
+  g_clear_pointer (&op->main_loop, g_main_loop_unref);
   g_free (op);
 }
 
 gssize
-g_tls_thread_base_read (GTlsThreadBase  *tls,
-                        void            *buffer,
-                        gsize            size,
-                        gint64           timeout,
-                        GCancellable    *cancellable,
-                        GError         **error)
+g_tls_thread_read (GTlsThread    *self,
+                   void          *buffer,
+                   gsize          size,
+                   gint64         timeout,
+                   GCancellable  *cancellable,
+                   GError       **error)
 {
-  GTlsThreadBasePrivate *priv = g_tls_thread_base_get_instance_private (tls);
   GTlsThreadOperation *op;
   GMainContext *main_context;
   GMainLoop *main_loop;
@@ -141,15 +140,18 @@ g_tls_thread_base_read (GTlsThreadBase  *tls,
   op = g_tls_thread_operation_new (G_TLS_THREAD_OP_READ,
                                    buffer, size, timeout,
                                    cancellable, main_loop);
-  g_async_queue_push (priv->queue, op);
+  g_async_queue_push (self->queue, op);
 
   /* FIXME: must respect timeout somehow */
   g_main_loop_run (main_loop);
 
-  /* FIXME: do something with result */
+  /* FIXME: do something with op->result */
 
   g_main_context_unref (main_context);
   g_main_loop_unref (main_loop);
+
+  /* FIXME: return something */
+  return 0;
 }
 
 static gpointer
@@ -182,38 +184,35 @@ tls_thread (gpointer data)
     }
 
   g_object_unref (queue);
+  return NULL;
 }
 
 static void
-g_tls_thread_base_init (GTlsThreadBase *tls)
+g_tls_thread_init (GTlsThread *self)
 {
-  GTlsThreadBasePrivate *priv = g_tls_thread_base_get_instance_private (tls);
-
-  priv->thread = g_thread_new ("[glib-networking] GTlsThreadBase TLS operations thread", tls_thread, priv->queue);
-  priv->async_queue = g_async_queue_new_full (g_tls_thread_operation_free);
+  self->queue = g_async_queue_new_full ((GDestroyNotify)g_tls_thread_operation_free);
+  self->thread = g_thread_new ("[glib-networking] GTlsThreadBase TLS operations thread", tls_thread, self->queue);
 }
 
 static void
-g_tls_thread_base_dispose (GObject *object)
+g_tls_thread_dispose (GObject *object)
 {
-  GTlsThreadBase *thread = G_TLS_THREAD_BASE (object);
-  GTlsThreadBasePrivate *priv = g_tls_thread_base_get_instance_private (thread);
-  GTlsThreadOperation *op;
+  GTlsThread *self = G_TLS_THREAD (object);
 
-  if (priv->queue)
+  if (self->queue)
     {
-      g_async_queue_push (priv->queue, g_tls_thread_shutdown_operation_new ());
-      g_clear_pointer (&priv->thread, g_thread_join);
-      g_clear_pointer (&priv->queue, g_async_queue_unref);
+      g_async_queue_push (self->queue, g_tls_thread_shutdown_operation_new ());
+      g_clear_pointer (&self->thread, g_thread_join);
+      g_clear_pointer (&self->queue, g_async_queue_unref);
     }
 
-  G_OBJECT_CLASS (g_tls_thread_base_parent_class)->dispose (object);
+  G_OBJECT_CLASS (g_tls_thread_parent_class)->dispose (object);
 }
 
 static void
-g_tls_thread_base_class_init (GTlsThreadBaseClass *klass)
+g_tls_thread_class_init (GTlsThreadClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-  gobject_class->dispose = g_tls_thread_base_dispose;
+  gobject_class->dispose = g_tls_thread_dispose;
 }
