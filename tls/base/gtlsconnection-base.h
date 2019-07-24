@@ -91,6 +91,7 @@ struct _GTlsConnectionBaseClass
                                                              gboolean              success,
                                                              GError              **error);
 
+  /* FIXME: must remove timeout parameters from all vfuncs, including handshake vfuncs */
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsConnectionBase   *tls,
                                                              void                 *buffer,
                                                              gsize                 size,

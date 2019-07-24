@@ -1844,8 +1844,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
         }
       else
         {
-          status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-            read_fn (tls, buffer, size, timeout, &nread, cancellable, error);
+          status = g_tls_thread_read (priv->thread, buffer, size, timeout, &nread, cancellable, error);
         }
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
