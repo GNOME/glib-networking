@@ -60,6 +60,8 @@
  */
 struct _GTlsThread {
   GObject parent_instance;
+
+  GTlsConnectionBase *connection; /* unowned */
   GThread *thread;
   GAsyncQueue *queue;
 };
@@ -82,8 +84,11 @@ typedef struct {
 enum
 {
   PROP_0,
-  PROP_CONNECTION,
+  PROP_TLS_CONNECTION,
+  LAST_PROP
 };
+
+static GParamSpec *obj_properties[LAST_PROP];
 
 G_DEFINE_TYPE (GTlsThread, g_tls_thread, G_TYPE_TLS_THREAD)
 
@@ -123,7 +128,6 @@ g_tls_thread_shutdown_operation_new (void)
 static void
 g_tls_thread_operation_free (GTlsThreadOperation *op)
 {
-  g_clear_pointer (&op->data, g_free);
   g_clear_object (&op->cancellable);
   g_clear_pointer (&op->main_loop, g_main_loop_unref);
   g_free (op);
@@ -148,7 +152,6 @@ g_tls_thread_read (GTlsThread    *self,
                                    cancellable, main_loop);
   g_async_queue_push (self->queue, op);
 
-  /* FIXME: must respect timeout somehow */
   g_main_loop_run (main_loop);
 
   /* FIXME: do something with op->result */
@@ -176,6 +179,7 @@ tls_thread (gpointer data)
         {
         case G_TLS_THREAD_OP_READ:
           /* FIXME: handle this */
+          /* FIXME: must respect timeout somehow */
           break;
         case G_TLS_THREAD_OP_SHUTDOWN:
           break;
@@ -200,12 +204,11 @@ g_tls_thread_get_property (GObject    *object,
                            GParamSpec *pspec)
 {
   GTlsThread *self = G_TLS_THREAD (object);
-  GTlsBackend *backend;
 
   switch (prop_id)
     {
-    case PROP_BASE_IO_STREAM:
-      g_value_set_object (value, priv->base_io_stream);
+    case PROP_TLS_CONNECTION:
+      g_value_set_object (value, self->connection);
       break;
 
     default:
@@ -214,25 +217,17 @@ g_tls_thread_get_property (GObject    *object,
 }
 
 static void
-g_tls_connection_base_set_property (GObject      *object,
-                                    guint         prop_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec)
+g_tls_thread_set_property (GObject      *object,
+                           guint         prop_id,
+                           const GValue *value,
+                           GParamSpec   *pspec)
 {
-  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GInputStream *istream;
-  GOutputStream *ostream;
-  gboolean system_certdb;
-  GTlsBackend *backend;
+  GTlsThread *self = G_TLS_THREAD (object);
 
   switch (prop_id)
     {
-    case PROP_BASE_SOCKET:
-      g_assert (!g_value_get_object (value) || !priv->base_io_stream);
-
-      g_clear_object (&priv->base_socket);
-      priv->base_socket = g_value_dup_object (value);
+    case PROP_TLS_CONNECTION:
+      self->connection = g_value_get_object (value);
       break;
 
     default:
@@ -270,6 +265,15 @@ g_tls_thread_class_init (GTlsThreadClass *klass)
   gobject_class->dispose = g_tls_thread_dispose;
   gobject_class->get_property = g_tls_thread_get_property;
   gobject_class->set_property = g_tls_thread_set_property;
+
+  obj_properties[PROP_TLS_CONNECTION] =
+    g_param_spec_object ("tls-connection",
+                         "TLS Connection",
+                         "The thread's GTlsConnection",
+                         G_TYPE_TLS_CONNECTION_BASE,
+                         G_PARAM_READABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (gobject_class, LAST_PROP, obj_properties);
 }
 
 GTlsThread *
@@ -278,7 +282,7 @@ g_tls_thread_new (GTlsConnectionBase *tls)
   GTlsThread *thread;
 
   thread = g_object_new (G_TYPE_TLS_THREAD,
-                         "connection", tls,
+                         "tls-connection", tls,
                          NULL);
 
   return thread;

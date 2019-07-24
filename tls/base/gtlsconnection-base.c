@@ -1817,7 +1817,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
 gssize
 g_tls_connection_base_read (GTlsConnectionBase  *tls,
                             void                *buffer,
-                            gsize                count,
+                            gsize                size,
                             gint64               timeout,
                             GCancellable        *cancellable,
                             GError             **error)
@@ -1834,7 +1834,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
 
       if (priv->app_data_buf && !priv->handshaking)
         {
-          nread = MIN (count, priv->app_data_buf->len);
+          nread = MIN (size, priv->app_data_buf->len);
           memcpy (buffer, priv->app_data_buf->data, nread);
           if (nread == priv->app_data_buf->len)
             g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
@@ -1845,7 +1845,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
       else
         {
           status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-            read_fn (tls, buffer, count, timeout, &nread, cancellable, error);
+            read_fn (tls, buffer, size, timeout, &nread, cancellable, error);
         }
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
@@ -1998,7 +1998,7 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
 gssize
 g_tls_connection_base_write (GTlsConnectionBase  *tls,
                              const void          *buffer,
-                             gsize                count,
+                             gsize                size,
                              gint64               timeout,
                              GCancellable        *cancellable,
                              GError             **error)
@@ -2014,7 +2014,7 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
         return -1;
 
       status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-        write_fn (tls, buffer, count, timeout, &nwrote, cancellable, error);
+        write_fn (tls, buffer, size, timeout, &nwrote, cancellable, error);
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE, status);
     }

@@ -924,7 +924,7 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
 static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
                               void                *buffer,
-                              gsize                count,
+                              gsize                size,
                               gint64               timeout,
                               gssize              *nread,
                               GCancellable        *cancellable,
@@ -936,7 +936,7 @@ g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
   gssize ret;
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
-  ret = gnutls_record_recv (priv->session, buffer, count);
+  ret = gnutls_record_recv (priv->session, buffer, size);
   END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 
   *nread = MAX (ret, 0);
@@ -1006,7 +1006,7 @@ g_tls_connection_gnutls_read_message (GTlsConnectionBase  *tls,
 static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
                                const void          *buffer,
-                               gsize                count,
+                               gsize                size,
                                gint64               timeout,
                                gssize              *nwrote,
                                GCancellable        *cancellable,
@@ -1018,7 +1018,7 @@ g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
   gssize ret;
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
-  ret = gnutls_record_send (priv->session, buffer, count);
+  ret = gnutls_record_send (priv->session, buffer, size);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
   *nwrote = MAX (ret, 0);

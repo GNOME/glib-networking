@@ -93,7 +93,7 @@ struct _GTlsConnectionBaseClass
 
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsConnectionBase   *tls,
                                                              void                 *buffer,
-                                                             gsize                 count,
+                                                             gsize                 size,
                                                              gint64                timeout,
                                                              gssize               *nread,
                                                              GCancellable         *cancellable,
@@ -108,7 +108,7 @@ struct _GTlsConnectionBaseClass
 
   GTlsConnectionBaseStatus    (*write_fn)                   (GTlsConnectionBase   *tls,
                                                              const void           *buffer,
-                                                             gsize                 count,
+                                                             gsize                 size,
                                                              gint64                timeout,
                                                              gssize               *nwrote,
                                                              GCancellable         *cancellable,
@@ -196,6 +196,8 @@ void                      g_tls_connection_base_handshake_thread_buffer_applicat
                                                                         (GTlsConnectionBase *tls,
                                                                          guint8             *data,
                                                                          gsize               length);
+
+
 
 void                      GTLS_DEBUG                                    (gpointer    connection,
                                                                          const char *message,
