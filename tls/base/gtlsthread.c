@@ -79,6 +79,12 @@ typedef struct {
   gint result;
 } GTlsThreadOperation;
 
+enum
+{
+  PROP_0,
+  PROP_CONNECTION,
+};
+
 G_DEFINE_TYPE (GTlsThread, g_tls_thread, G_TYPE_TLS_THREAD)
 
 static GTlsThreadOperation *
@@ -188,6 +194,53 @@ tls_thread (gpointer data)
 }
 
 static void
+g_tls_thread_get_property (GObject    *object,
+                           guint       prop_id,
+                           GValue     *value,
+                           GParamSpec *pspec)
+{
+  GTlsThread *self = G_TLS_THREAD (object);
+  GTlsBackend *backend;
+
+  switch (prop_id)
+    {
+    case PROP_BASE_IO_STREAM:
+      g_value_set_object (value, priv->base_io_stream);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+g_tls_connection_base_set_property (GObject      *object,
+                                    guint         prop_id,
+                                    const GValue *value,
+                                    GParamSpec   *pspec)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GInputStream *istream;
+  GOutputStream *ostream;
+  gboolean system_certdb;
+  GTlsBackend *backend;
+
+  switch (prop_id)
+    {
+    case PROP_BASE_SOCKET:
+      g_assert (!g_value_get_object (value) || !priv->base_io_stream);
+
+      g_clear_object (&priv->base_socket);
+      priv->base_socket = g_value_dup_object (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
 g_tls_thread_init (GTlsThread *self)
 {
   self->queue = g_async_queue_new_full ((GDestroyNotify)g_tls_thread_operation_free);
@@ -215,4 +268,18 @@ g_tls_thread_class_init (GTlsThreadClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
   gobject_class->dispose = g_tls_thread_dispose;
+  gobject_class->get_property = g_tls_thread_get_property;
+  gobject_class->set_property = g_tls_thread_set_property;
+}
+
+GTlsThread *
+g_tls_thread_new (GTlsConnectionBase *tls)
+{
+  GTlsThread *thread;
+
+  thread = g_object_new (G_TYPE_TLS_THREAD,
+                         "connection", tls,
+                         NULL);
+
+  return thread;
 }

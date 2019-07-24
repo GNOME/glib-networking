@@ -227,6 +227,8 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
+  priv->thread = g_tls_thread_new (tls);
+
   priv->need_handshake = TRUE;
   priv->database_is_unset = TRUE;
   priv->is_system_certdb = TRUE;
@@ -244,6 +246,8 @@ g_tls_connection_base_finalize (GObject *object)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  g_clear_object (&priv->thread);
 
   g_clear_object (&priv->base_io_stream);
   g_clear_object (&priv->base_socket);

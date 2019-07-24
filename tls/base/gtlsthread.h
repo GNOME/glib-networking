@@ -34,11 +34,13 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GTlsThread, g_tls_thread, G, TLS_THREAD, GObject)
 
-gssize g_tls_thread_base_read (GTlsThread    *self,
-                               void          *buffer,
-                               gsize          size,
-                               gint64         timeout,
-                               GCancellable  *cancellable,
-                               GError       **error);
+GTlsThread *g_tls_thread_new       (GTlsConnectionBase *tls);
+
+gssize      g_tls_thread_base_read (GTlsThread    *self,
+                                    void          *buffer,
+                                    gsize          size,
+                                    gint64         timeout,
+                                    GCancellable  *cancellable,
+                                    GError       **error);
 
 G_END_DECLS
