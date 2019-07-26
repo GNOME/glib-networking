@@ -179,13 +179,22 @@ static gpointer
 tls_thread (gpointer data)
 {
   GAsyncQueue *queue = data;
-  gboolean done = FALSE;
 
-  while (!done)
+  while (TRUE)
     {
       GTlsThreadOperation *op;
+      GIOCondition condition = 0;
 
+      /* FIXME: how do we simultaneously wait for a new queue item
+       * and also run the main loop? Add another GSource?
+       */
       op = g_async_queue_pop (queue);
+
+      if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
+        {
+          g_tls_thread_operation_free (op);
+          break;
+        }
 
       switch (op->type)
         {
@@ -196,17 +205,26 @@ tls_thread (gpointer data)
                                                                                   &op->count,
                                                                                   op->cancellable,
                                                                                   &op->error);
+          condition = G_IO_IN;
           break;
         case G_TLS_THREAD_OP_SHUTDOWN:
           break;
         }
 
-      if (op->type != G_TLS_THREAD_OP_SHUTDOWN)
-        g_main_loop_quit (op->main_loop);
+      if (op->result != G_TLS_CONNECTION_BASE_WOULD_BLOCK)
+        {
+          g_main_loop_quit (op->main_loop);
+          g_tls_thread_operation_free (op);
+        }
       else
-        done = TRUE;
+        {
+          GSource *tls_source;
 
-      g_tls_thread_operation_free (op);
+          tls_source = g_tls_connection_base_create_source (op->connection,
+                                                            condition,
+                                                            op->cancellable);
+
+        }
     }
 
   g_async_queue_unref (queue);

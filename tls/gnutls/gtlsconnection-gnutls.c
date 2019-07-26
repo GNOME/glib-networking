@@ -514,6 +514,8 @@ set_gnutls_error (GTlsConnectionGnutls *gnutls,
     gnutls_transport_set_errno (priv->session, EIO);
 }
 
+/* FIXME: remove timeouts, make these always nonblocking */
+
 static ssize_t
 g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
                                    void                   *buf,

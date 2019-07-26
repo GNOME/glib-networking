@@ -1047,6 +1047,7 @@ static GSourceFuncs dtls_source_funcs =
   (GSourceDummyMarshal)g_cclosure_marshal_generic
 };
 
+/* FIXME: all needs to be threadsafe... */
 GSource *
 g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
                                      GIOCondition         condition,
