@@ -25,7 +25,7 @@
 #include "config.h"
 #include "gtlsinputstream.h"
 
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 struct _GTlsInputStream
 {
