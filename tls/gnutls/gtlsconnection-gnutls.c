@@ -925,7 +925,6 @@ static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
                               void                *buffer,
                               gsize                size,
-                              gint64               timeout,
                               gssize              *nread,
                               GCancellable        *cancellable,
                               GError             **error)
@@ -935,7 +934,7 @@ g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
+  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, 0, cancellable);
   ret = gnutls_record_recv (priv->session, buffer, size);
   END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 

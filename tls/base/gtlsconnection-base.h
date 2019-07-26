@@ -95,7 +95,6 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsConnectionBase   *tls,
                                                              void                 *buffer,
                                                              gsize                 size,
-                                                             gint64                timeout,
                                                              gssize               *nread,
                                                              GCancellable         *cancellable,
                                                              GError              **error);

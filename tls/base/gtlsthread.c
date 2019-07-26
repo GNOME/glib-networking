@@ -190,10 +190,9 @@ tls_thread (gpointer data)
       switch (op->type)
         {
         case G_TLS_THREAD_OP_READ:
-          /* FIXME: this is not async when timeout != 0 */
+          /* FIXME: do something with op->timeout */
           op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
                                                                                   op->data, op->size,
-                                                                                  op->timeout,
                                                                                   &op->count,
                                                                                   op->cancellable,
                                                                                   &op->error);
@@ -252,7 +251,8 @@ g_tls_thread_set_property (GObject      *object,
        * as a sanity-check and debugging aid, to ensure self->connection
        * isn't ever dangling.
        */
-      g_object_add_weak_pointer (G_OBJECT (self->connection), (gpointer *)&self->connection);
+      g_object_add_weak_pointer (G_OBJECT (self->connection),
+                                 (gpointer *)&self->connection);
       break;
 
     default:
