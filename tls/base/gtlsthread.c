@@ -112,7 +112,7 @@ g_tls_thread_operation_new (GTlsThreadOperationType  type,
   op->data = data;
   op->size = size;
   op->timeout = timeout;
-  op->cancellable = g_object_ref (cancellable);
+  op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
   op->main_loop = g_main_loop_ref (main_loop);
 
   return op;
@@ -178,7 +178,7 @@ g_tls_thread_read (GTlsThread    *self,
 static gpointer
 tls_thread (gpointer data)
 {
-  GAsyncQueue *queue = g_object_ref (data);
+  GAsyncQueue *queue = data;
   gboolean done = FALSE;
 
   while (!done)
@@ -210,7 +210,7 @@ tls_thread (gpointer data)
       g_tls_thread_operation_free (op);
     }
 
-  g_object_unref (queue);
+  g_async_queue_unref (queue);
   return NULL;
 }
 
@@ -264,7 +264,9 @@ static void
 g_tls_thread_init (GTlsThread *self)
 {
   self->queue = g_async_queue_new_full ((GDestroyNotify)g_tls_thread_operation_free);
-  self->thread = g_thread_new ("[glib-networking] GTlsThreadBase TLS operations thread", tls_thread, self->queue);
+  self->thread = g_thread_new ("[glib-networking] GTlsThreadBase TLS operations thread",
+                               tls_thread,
+                               g_async_queue_ref (self->queue));
 }
 
 static void
@@ -272,7 +274,7 @@ g_tls_thread_finalize (GObject *object)
 {
   GTlsThread *self = G_TLS_THREAD (object);
 
-  g_object_remove_weak_pointer (G_OBJECT (self->connection), (gpointer *)&self->connection);
+  g_clear_weak_pointer (&self->connection);
 
   g_async_queue_push (self->queue, g_tls_thread_shutdown_operation_new ());
   g_clear_pointer (&self->thread, g_thread_join);
