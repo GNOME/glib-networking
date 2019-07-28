@@ -187,6 +187,7 @@ tls_thread (gpointer data)
 
       /* FIXME: how do we simultaneously wait for a new queue item
        * and also run the main loop? Add another GSource?
+       * Probably want to dispatch() if try_pop() returns TRUE? Or peek?
        */
       op = g_async_queue_pop (queue);
 
