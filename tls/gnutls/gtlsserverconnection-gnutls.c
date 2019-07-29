@@ -130,8 +130,10 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
   gnutls_db_set_store_function (session, g_tls_server_connection_gnutls_db_store);
   gnutls_db_set_remove_function (session, g_tls_server_connection_gnutls_db_remove);
 
+  /* Currently we don't know ahead of time if a PKCS11 backed certificate has a private key */
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
-  if (cert && !g_tls_certificate_gnutls_has_key (G_TLS_CERTIFICATE_GNUTLS (cert)))
+  if (cert && !g_tls_certificate_gnutls_has_key (G_TLS_CERTIFICATE_GNUTLS (cert)) &&
+      !g_tls_certificate_gnutls_is_pkcs11_backed (G_TLS_CERTIFICATE_GNUTLS (cert)))
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                            _("Certificate has no private key"));
