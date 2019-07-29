@@ -74,6 +74,7 @@ typedef struct
   gnutls_certificate_credentials_t creds;
   gnutls_session_t session;
   gchar *interaction_id;
+  GCancellable *cancellable;
 } GTlsConnectionGnutlsPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION_BASE,
@@ -95,6 +96,8 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 
   unique_id = g_atomic_int_add (&unique_interaction_id, 1);
   priv->interaction_id = g_strdup_printf ("gtls:%d", unique_id);
+
+  priv->cancellable = g_cancellable_new ();
 }
 
 /* First field is "fallback", second is "allow unsafe rehandshaking" */
@@ -259,6 +262,12 @@ g_tls_connection_gnutls_finalize (GObject *object)
   if (priv->creds)
     gnutls_certificate_free_credentials (priv->creds);
 
+  if (priv->cancellable)
+    {
+      g_cancellable_cancel (priv->cancellable);
+      g_clear_object (&priv->cancellable);
+    }
+
   g_free (priv->interaction_id);
 
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
@@ -280,6 +289,71 @@ g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
   return priv->session;
 }
 
+static int
+on_pin_request (void         *userdata,
+                int           attempt,
+                const char   *token_url,
+                const char   *token_label,
+                unsigned int  callback_flags,
+                char         *pin,
+                size_t        pin_max)
+{
+  GTlsConnection *connection = G_TLS_CONNECTION (userdata);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (G_TLS_CONNECTION_GNUTLS (connection));
+  GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
+  GTlsInteractionResult result;
+  GTlsPassword *password;
+  GTlsPasswordFlags password_flags = 0;
+  GError *error = NULL;
+  gchar *description;
+  int ret = -1;
+
+  if (!interaction)
+    return -1;
+
+  if (callback_flags & GNUTLS_PIN_WRONG)
+    password_flags |= G_TLS_PASSWORD_RETRY;
+  if (callback_flags & GNUTLS_PIN_COUNT_LOW)
+    password_flags |= G_TLS_PASSWORD_MANY_TRIES;
+  if (callback_flags & GNUTLS_PIN_FINAL_TRY || attempt > 5) /* Give up at some point */
+    password_flags |= G_TLS_PASSWORD_FINAL_TRY;
+
+  description = g_strdup_printf (" %s (%s)", token_label, token_url);
+  password = g_tls_password_new (password_flags, description);
+  result = g_tls_interaction_invoke_ask_password (interaction, password,
+                                                  priv->cancellable,
+                                                  &error);
+  g_free (description);
+
+  switch (result)
+    {
+    case G_TLS_INTERACTION_FAILED:
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Error getting PIN: %s", error->message);
+      g_error_free (error);
+      break;
+    case G_TLS_INTERACTION_UNHANDLED:
+      break;
+    case G_TLS_INTERACTION_HANDLED:
+      {
+        gsize password_size;
+        const guchar *password_data = g_tls_password_get_value (password, &password_size);
+        if (password_size > pin_max)
+          g_warning ("PIN is larger than max PIN size");
+
+        memcpy (pin, password_data, MIN (password_size, pin_max));
+        ret = GNUTLS_E_SUCCESS;
+        break;
+      }
+    default:
+      g_assert_not_reached ();
+    }
+
+  g_object_unref (password);
+
+  return ret;
+}
+
 void
 g_tls_connection_gnutls_handshake_thread_get_certificate (GTlsConnectionGnutls  *gnutls,
                                                           gnutls_pcert_st      **pcert,
@@ -293,9 +367,16 @@ g_tls_connection_gnutls_handshake_thread_get_certificate (GTlsConnectionGnutls  
 
   if (cert)
     {
+      /* Send along a pre-initialized privkey so we can handle the callback here. */
+      gnutls_privkey_t privkey;
+      gnutls_privkey_init (&privkey);
+      /* NOTE: The gnutls object should be valid as long as this connection is. */
+      gnutls_privkey_set_pin_function (privkey, on_pin_request, gnutls);
+
       g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
                                      priv->interaction_id,
-                                     pcert, pcert_length, pkey);
+                                     pcert, pcert_length, &privkey);
+      *pkey = privkey;
     }
   else
     {
