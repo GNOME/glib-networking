@@ -280,6 +280,70 @@ g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
   return priv->session;
 }
 
+static int
+on_pin_request (void         *userdata,
+                int           attempt,
+                const char   *token_url,
+                const char   *token_label,
+                unsigned int  callback_flags,
+                char         *pin,
+                size_t        pin_max)
+{
+  GTlsConnection *connection = G_TLS_CONNECTION (userdata);
+  GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
+  GTlsInteractionResult result;
+  GTlsPassword *password;
+  GTlsPasswordFlags password_flags = 0;
+  GError *error = NULL;
+  gchar *description;
+  int ret = -1;
+
+  if (interaction == NULL)
+    return -1;
+
+  // FIXME: Mock module isn't triggering this codepath?
+  if (callback_flags & GNUTLS_PIN_WRONG)
+    password_flags |= G_TLS_PASSWORD_RETRY;
+  if (callback_flags & GNUTLS_PIN_COUNT_LOW)
+    password_flags |= G_TLS_PASSWORD_MANY_TRIES;
+  if (callback_flags & GNUTLS_PIN_FINAL_TRY || attempt > 5) /* Give up at some point */
+    password_flags |= G_TLS_PASSWORD_FINAL_TRY;
+
+  description = g_strdup_printf (_("PIN for PKCS #11 token: %s (%s)"), token_label, token_url);
+  password = g_tls_password_new (password_flags, description);
+  // FIXME: Cancellation
+  result = g_tls_interaction_invoke_ask_password (interaction, password, NULL, &error);
+  g_free (description);
+
+  switch (result)
+    {
+    case G_TLS_INTERACTION_FAILED:
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Error getting PIN: %s", error->message);
+      g_error_free (error);
+      break;
+    case G_TLS_INTERACTION_UNHANDLED:
+      break;
+    case G_TLS_INTERACTION_HANDLED:
+      {
+        size_t password_size;
+        const guchar *password_data = g_tls_password_get_value (password, &password_size);
+        if (password_size > pin_max)
+          g_warning ("PIN is larger than max PIN size");
+
+        memcpy (pin, password_data, MIN (password_size, pin_max));
+        ret = GNUTLS_E_SUCCESS;
+        break;
+      }
+    default:
+      g_assert_not_reached ();
+    }
+
+  g_object_unref (password);
+
+  return ret;
+}
+
 void
 g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls  *gnutls,
                                          gnutls_pcert_st      **pcert,
@@ -293,9 +357,15 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls  *gnutls,
 
   if (cert)
     {
+      /* Send along a pre-initialized privkey so we can handle the callback here */
+      gnutls_privkey_t privkey;
+      gnutls_privkey_init (&privkey);
+      gnutls_privkey_set_pin_function (privkey, on_pin_request, gnutls); // FXIME: Ensure gnutls is a valid object
+
       g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
                                      priv->interaction_id,
-                                     pcert, pcert_length, pkey);
+                                     pcert, pcert_length, &privkey);
+      *pkey = privkey;
     }
   else
     {
