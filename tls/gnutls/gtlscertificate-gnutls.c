@@ -39,7 +39,9 @@ enum
   PROP_CERTIFICATE_PEM,
   PROP_PRIVATE_KEY,
   PROP_PRIVATE_KEY_PEM,
-  PROP_ISSUER
+  PROP_ISSUER,
+  PROP_PKCS11_CERTIFICATE_URI,
+  PROP_PKCS11_PRIVATE_KEY_URI,
 };
 
 struct _GTlsCertificateGnutls
@@ -47,7 +49,10 @@ struct _GTlsCertificateGnutls
   GTlsCertificate parent_instance;
 
   gnutls_x509_crt_t cert;
-  gnutls_x509_privkey_t key;
+  gnutls_privkey_t key;
+
+  gchar *pkcs11_cert_uri;
+  gchar *pkcs11_key_uri;
 
   GTlsCertificateGnutls *issuer;
 
@@ -69,7 +74,10 @@ g_tls_certificate_gnutls_finalize (GObject *object)
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (object);
 
   g_clear_pointer (&gnutls->cert, gnutls_x509_crt_deinit);
-  g_clear_pointer (&gnutls->key, gnutls_x509_privkey_deinit);
+  g_clear_pointer (&gnutls->key, gnutls_privkey_deinit);
+
+  g_clear_pointer (&gnutls->pkcs11_cert_uri, g_free);
+  g_clear_pointer (&gnutls->pkcs11_key_uri, g_free);
 
   g_clear_object (&gnutls->issuer);
 
@@ -141,6 +149,14 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
       g_value_set_object (value, gnutls->issuer);
       break;
 
+    case PROP_PKCS11_CERTIFICATE_URI:
+      g_value_set_string (value, gnutls->pkcs11_cert_uri);
+      break;
+
+    case PROP_PKCS11_PRIVATE_KEY_URI:
+      g_value_set_string (value, gnutls->pkcs11_key_uri);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -209,18 +225,10 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       data.data = bytes->data;
       data.size = bytes->len;
       if (!gnutls->key)
-        gnutls_x509_privkey_init (&gnutls->key);
-      status = gnutls_x509_privkey_import (gnutls->key, &data,
-                                           GNUTLS_X509_FMT_DER);
-      if (status != 0)
-        {
-          int pkcs8_status =
-            gnutls_x509_privkey_import_pkcs8 (gnutls->key, &data,
-                                              GNUTLS_X509_FMT_DER, NULL,
-                                              GNUTLS_PKCS_PLAIN);
-          if (pkcs8_status == 0)
-            status = 0;
-        }
+        gnutls_privkey_init (&gnutls->key);
+      status = gnutls_privkey_import_x509_raw (gnutls->key, &data,
+                                               GNUTLS_X509_FMT_DER,
+                                               NULL, GNUTLS_PKCS_PLAIN);
       if (status == 0)
         gnutls->have_key = TRUE;
       else if (!gnutls->construct_error)
@@ -240,18 +248,10 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       data.data = (void *)string;
       data.size = strlen (string);
       if (!gnutls->key)
-        gnutls_x509_privkey_init (&gnutls->key);
-      status = gnutls_x509_privkey_import (gnutls->key, &data,
-                                           GNUTLS_X509_FMT_PEM);
-      if (status != 0)
-        {
-          int pkcs8_status =
-            gnutls_x509_privkey_import_pkcs8 (gnutls->key, &data,
-                                              GNUTLS_X509_FMT_PEM, NULL,
-                                              GNUTLS_PKCS_PLAIN);
-          if (pkcs8_status == 0)
-            status = 0;
-        }
+        gnutls_privkey_init (&gnutls->key);
+      status = gnutls_privkey_import_x509_raw (gnutls->key, &data,
+                                               GNUTLS_X509_FMT_PEM,
+                                               NULL, GNUTLS_PKCS_PLAIN);
       if (status == 0)
         gnutls->have_key = TRUE;
       else if (!gnutls->construct_error)
@@ -265,6 +265,48 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
 
     case PROP_ISSUER:
       gnutls->issuer = g_value_dup_object (value);
+      break;
+
+    case PROP_PKCS11_CERTIFICATE_URI:
+      string = g_value_get_string (value);
+      if (!string)
+        break;
+      g_return_if_fail (gnutls->have_cert == FALSE);
+      g_return_if_fail (gnutls->pkcs11_cert_uri == NULL);
+
+      gnutls->pkcs11_cert_uri = g_strdup (string);
+
+      status = gnutls_x509_crt_import_url (gnutls->cert, string, GNUTLS_PKCS11_OBJ_FLAG_CRT);
+      if (status == GNUTLS_E_SUCCESS)
+        {
+          gnutls->have_cert = TRUE;
+        }
+      else if (!gnutls->construct_error)
+        {
+          gnutls->construct_error =
+            g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                          _("Could not import PKCS #11 certificate URI: %s"),
+                          gnutls_strerror (status));
+        }
+      break;
+
+    case PROP_PKCS11_PRIVATE_KEY_URI:
+      string = g_value_get_string (value);
+      if (!string)
+        break;
+      g_return_if_fail (gnutls->have_key == FALSE);
+      g_return_if_fail (gnutls->pkcs11_key_uri == NULL);
+      if (gnutls_url_is_supported (string))
+        {
+          gnutls->pkcs11_key_uri = g_strdup (string);
+          gnutls->have_key = TRUE;
+        }
+      else
+        {
+          gnutls->construct_error =
+            g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                          _("Could not import PKCS #11 private key URI: %s"), string);
+        }
       break;
 
     default:
@@ -376,6 +418,8 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
+  g_object_class_override_property (gobject_class, PROP_PKCS11_CERTIFICATE_URI, "pkcs11-certificate-uri");
+  g_object_class_override_property (gobject_class, PROP_PKCS11_PRIVATE_KEY_URI, "pkcs11-private-key-uri");
 }
 
 static void
@@ -472,23 +516,27 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
       chain = chain->issuer;
     }
 
-    if (gnutls->key)
-      {
-        gnutls_x509_privkey_t x509_privkey;
-        gnutls_privkey_t privkey;
+  if (gnutls->key)
+    {
+      gnutls_x509_privkey_t x509_privkey;
 
-        gnutls_x509_privkey_init (&x509_privkey);
-        gnutls_x509_privkey_cpy (x509_privkey, gnutls->key);
+      gnutls_privkey_export_x509 (gnutls->key, &x509_privkey);
+      gnutls_privkey_import_x509 (*pkey, x509_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
+      gnutls_x509_privkey_deinit (x509_privkey);
+    }
+  else if (!gnutls->pkcs11_key_uri)
+    {
+      int status;
 
-        gnutls_privkey_init (&privkey);
-        gnutls_privkey_import_x509 (privkey, x509_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
-        *pkey = privkey;
-        gnutls_x509_privkey_deinit (x509_privkey);
-      }
-    else
-      {
-        *pkey = NULL;
-      }
+      status = gnutls_privkey_import_pkcs11_url (*pkey, gnutls->pkcs11_key_uri);
+      if (status != GNUTLS_E_SUCCESS)
+        g_warning ("Failed to copy PKCS #11 private key: %s", gnutls_strerror (status));
+    }
+  else
+    {
+      gnutls_privkey_deinit (*pkey);
+      *pkey = NULL;
+    }
 }
 
 void
