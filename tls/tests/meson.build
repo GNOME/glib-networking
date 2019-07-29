@@ -21,10 +21,20 @@ envs = [
   'G_TEST_BUILDDIR=' + meson.current_build_dir(),
 ]
 
+mock_pkcs11_module = shared_module('mock-pkcs11',
+  sources: 'mock-pkcs11.c',
+  name_prefix: '',
+  gnu_symbol_visibility: 'hidden',
+  dependencies: [
+    gio_dep,
+    gnutls_dep,
+  ]
+)
+
 test_programs = [
-  ['certificate', [], deps, []],
-  ['file-database', [], deps, []],
-  ['connection', ['mock-interaction.c'], deps, []],
+  ['certificate', [], deps, [], []],
+  ['file-database', [], deps, [], []],
+  ['connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
 # DTLS tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/49
 #  ['dtls-connection', ['mock-interaction.c'], deps, ['openssl']],
 ]
@@ -72,7 +82,7 @@ foreach backend: backends
 
       # OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
       if backend != 'openssl'
-        test(program_name, exe, env: test_envs)
+        test(program_name, exe, env: test_envs, depends: program[4])
       endif
     endif
   endforeach
