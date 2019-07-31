@@ -314,7 +314,6 @@ static int callback (void *userdata,
   result = g_tls_interaction_invoke_ask_password (interaction, password, NULL, &error);
   g_free (description);
 
-  g_message("RESULT %d", result);
   switch (result)
     {
     case G_TLS_INTERACTION_FAILED:
