@@ -259,8 +259,8 @@ test_create_certificate_pkcs11 (TestCertificate *test,
   GError *error = NULL;
 
   cert = g_initable_new (test->cert_gtype, NULL, &error,
-                         "pkcs11-certificate-uri", "pkcs11:model=mock;manufacturer=GLib-Networking;serial=1;token=Mock%20Certificate;id=%4D%6F%63%6B%20%43%65%72%74%69%66%69%63%61%74%65;object=Mock%20Certificate;type=cert",
-                         "pkcs11-private-key-uri", "pkcs11:model=mock;manufacturer=GLib-Networking;serial=1;token=Mock%20Certificate;id=%4D%6F%63%6B%20%50%72%69%76%61%74%65%20%4B%65%79;object=Mock%20Private%20Key;type=private",
+                         "pkcs11-certificate-uri", "pkcs11:model=mock;token=Mock%20Certificate;object=Mock%20Certificate;type=cert",
+                         "pkcs11-private-key-uri", "pkcs11:model=mock;token=Mock%20Certificate;object=Mock%20Private%20Key;type=private",
                          NULL);
 
   g_assert_no_error (error);

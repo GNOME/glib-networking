@@ -49,6 +49,8 @@
 
 #define MOCK_MANUFACTURER_ID "GLib-Networking"
 #define MOCK_MODEL "mock"
+#define PKCS11_MOCK_CK_TOKEN_INFO_MAX_PIN_LEN 256
+#define PKCS11_MOCK_CK_TOKEN_INFO_MIN_PIN_LEN 4
 
 static CK_INFO mock_info = {
         .cryptokiVersion = { CRYPTOKI_VERSION_MAJOR, CRYPTOKI_VERSION_MINOR },
@@ -73,7 +75,8 @@ static MockObject mock_objects[] = {
                         .label = "Mock Certificate",
                         .serialNumber = "1",
                         .manufacturerID = MOCK_MANUFACTURER_ID,
-                        .flags = CKF_TOKEN_INITIALIZED | CKF_WRITE_PROTECTED,
+                        // FIXME: Login seems to be per-slot not per-object
+                        .flags = CKF_TOKEN_INITIALIZED | CKF_WRITE_PROTECTED | CKF_LOGIN_REQUIRED | CKF_USER_PIN_INITIALIZED,
                         .ulMaxSessionCount = 1,
                 },
         },
@@ -84,8 +87,10 @@ static MockObject mock_objects[] = {
                         .label = "Mock Private Key",
                         .serialNumber = "2",
                         .manufacturerID = MOCK_MANUFACTURER_ID,
-                        .flags = CKF_TOKEN_INITIALIZED | CKF_WRITE_PROTECTED | CKF_LOGIN_REQUIRED,
+                        .flags = CKF_TOKEN_INITIALIZED | CKF_WRITE_PROTECTED | CKF_LOGIN_REQUIRED | CKF_USER_PIN_INITIALIZED,
                         .ulMaxSessionCount = 1,
+                        .ulMaxPinLen = PKCS11_MOCK_CK_TOKEN_INFO_MAX_PIN_LEN,
+                        .ulMinPinLen = PKCS11_MOCK_CK_TOKEN_INFO_MIN_PIN_LEN,
                 },
         },
         {
@@ -95,8 +100,10 @@ static MockObject mock_objects[] = {
                         .label = "Mock Private Key 2",
                         .serialNumber = "3",
                         .manufacturerID = MOCK_MANUFACTURER_ID,
-                        .flags = CKF_TOKEN_INITIALIZED | CKF_WRITE_PROTECTED | CKF_LOGIN_REQUIRED,
+                        .flags = CKF_TOKEN_INITIALIZED | CKF_WRITE_PROTECTED | CKF_LOGIN_REQUIRED | CKF_USER_PIN_INITIALIZED,
                         .ulMaxSessionCount = 1,
+                        .ulMaxPinLen = PKCS11_MOCK_CK_TOKEN_INFO_MAX_PIN_LEN,
+                        .ulMinPinLen = PKCS11_MOCK_CK_TOKEN_INFO_MIN_PIN_LEN,
                 },
         },
         {
@@ -133,15 +140,7 @@ static const MockSlot mock_slots[] = {
 #define PKCS11_MOCK_CK_OBJECT_HANDLE_SECRET_KEY 2
 #define PKCS11_MOCK_CK_OBJECT_HANDLE_PUBLIC_KEY 3
 #define PKCS11_MOCK_CK_OBJECT_HANDLE_PRIVATE_KEY 4
-#define PKCS11_MOCK_CK_SLOT_ID 1
-
-
-#define PKCS11_MOCK_CK_TOKEN_INFO_LABEL "Mock"
-#define PKCS11_MOCK_CK_TOKEN_INFO_MANUFACTURER_ID "GLib"
-#define PKCS11_MOCK_CK_TOKEN_INFO_MODEL "Mock token"
-#define PKCS11_MOCK_CK_TOKEN_INFO_SERIAL_NUMBER "0123456789A"
-#define PKCS11_MOCK_CK_TOKEN_INFO_MAX_PIN_LEN 256
-#define PKCS11_MOCK_CK_TOKEN_INFO_MIN_PIN_LEN 4
+#define PKCS11_MOCK_CK_SLOT_ID 0
 
 #define PKCS11_MOCK_CK_SESSION_ID 1
 
@@ -172,6 +171,8 @@ static CK_ULONG pkcs11_mock_sign_key = 0;
 static CK_LONG mock_search_template_class = PKCS11_MOCK_CKO_ANYTHING;
 static char *mock_search_template_label;
 static CK_ULONG mock_search_iterator = 0;
+static gboolean mock_logged_in_state = FALSE;
+static size_t mock_login_attempts = 0;
 
 static CK_FUNCTION_LIST pkcs11_mock_functions = 
 {
@@ -436,7 +437,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetSlotInfo)(CK_SLOT_ID slotID, CK_SLOT_INFO_PTR pIn
 
 CK_DEFINE_FUNCTION(CK_RV, C_GetTokenInfo)(CK_SLOT_ID slotID, CK_TOKEN_INFO_PTR pInfo)
 {
-        g_debug ("C_GetTokenInfo");
+        g_debug ("C_GetTokenInfo %lu", slotID);
         if (CK_FALSE == pkcs11_mock_initialized)
                 return CKR_CRYPTOKI_NOT_INITIALIZED;
 
@@ -446,13 +447,13 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetTokenInfo)(CK_SLOT_ID slotID, CK_TOKEN_INFO_PTR p
         if (NULL == pInfo)
                 return CKR_ARGUMENTS_BAD;
 
-        CK_TOKEN_INFO token = mock_objects[0].info;
+        CK_TOKEN_INFO token = mock_objects[slotID].info;
 
         copy_padded_string(pInfo->label, token.label, sizeof(pInfo->label));
         copy_padded_string(pInfo->manufacturerID, token.manufacturerID, sizeof(pInfo->manufacturerID));
         copy_padded_string(pInfo->serialNumber, token.serialNumber, sizeof(pInfo->serialNumber));
         copy_padded_string(pInfo->model, token.model, sizeof(pInfo->model));
-        pInfo->flags = token.flags; // CKF_TOKEN_INITIALIZED; //CKF_RNG | CKF_LOGIN_REQUIRED | CKF_USER_PIN_INITIALIZED | CKF_TOKEN_INITIALIZED;
+        pInfo->flags = token.flags;
         pInfo->ulMaxSessionCount = token.ulMaxSessionCount;
         pInfo->ulSessionCount = (CK_TRUE == pkcs11_mock_session_opened) ? 1 : 0;
         pInfo->ulMaxRwSessionCount = token.ulMaxRwSessionCount;
@@ -467,13 +468,19 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetTokenInfo)(CK_SLOT_ID slotID, CK_TOKEN_INFO_PTR p
         pInfo->firmwareVersion = token.firmwareVersion;
         memset(pInfo->utcTime, ' ', sizeof(pInfo->utcTime));
 
+        // FIXME: Not picked up by gnutls
+        if (mock_login_attempts > 2)
+        {
+                pInfo->flags |= CKF_USER_PIN_COUNT_LOW;
+        }
+
         return CKR_OK;
 }
 
 
 CK_DEFINE_FUNCTION(CK_RV, C_GetMechanismList)(CK_SLOT_ID slotID, CK_MECHANISM_TYPE_PTR pMechanismList, CK_ULONG_PTR pulCount)
 {
-        g_message ("C_GetMechanismList");
+        g_debug ("C_GetMechanismList");
         if (CK_FALSE == pkcs11_mock_initialized)
                 return CKR_CRYPTOKI_NOT_INITIALIZED;
 
@@ -805,9 +812,9 @@ CK_DEFINE_FUNCTION(CK_RV, C_SetOperationState)(CK_SESSION_HANDLE hSession, CK_BY
 
 CK_DEFINE_FUNCTION(CK_RV, C_Login)(CK_SESSION_HANDLE hSession, CK_USER_TYPE userType, CK_UTF8CHAR_PTR pPin, CK_ULONG ulPinLen)
 {
-        CK_RV rv = CKR_OK;
+        // CK_RV rv = CKR_OK;
 
-        g_debug ("C_Login");
+        g_debug ("C_Login %lu %s", userType, pPin);
 
         if (CK_FALSE == pkcs11_mock_initialized)
                 return CKR_CRYPTOKI_NOT_INITIALIZED;
@@ -815,7 +822,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_Login)(CK_SESSION_HANDLE hSession, CK_USER_TYPE user
         if ((CK_FALSE == pkcs11_mock_session_opened) || (PKCS11_MOCK_CK_SESSION_ID != hSession))
                 return CKR_SESSION_HANDLE_INVALID;
 
-        if ((CKU_SO != userType) && (CKU_USER != userType))
+        if ((CKU_SO != userType) && (CKU_USER != userType) && (CKU_CONTEXT_SPECIFIC != userType))
                 return CKR_USER_TYPE_INVALID;
 
         if (NULL == pPin)
@@ -824,38 +831,60 @@ CK_DEFINE_FUNCTION(CK_RV, C_Login)(CK_SESSION_HANDLE hSession, CK_USER_TYPE user
         if ((ulPinLen < PKCS11_MOCK_CK_TOKEN_INFO_MIN_PIN_LEN) || (ulPinLen > PKCS11_MOCK_CK_TOKEN_INFO_MAX_PIN_LEN))
                 return CKR_PIN_LEN_RANGE;
 
-        switch (pkcs11_mock_session_state)
+        // FIXME: gnutls bug? It calls this before an operation
+        // if (pkcs11_mock_active_operation == PKCS11_MOCK_CK_OPERATION_NONE && CKU_CONTEXT_SPECIFIC != userType)
+        //         return CKR_OPERATION_NOT_INITIALIZED;
+
+        if (mock_logged_in_state == TRUE)
+                return CKR_USER_ALREADY_LOGGED_IN;
+
+        // More hardcoding
+        const char *password = "ABC123";
+        if (ulPinLen == strlen (password) && strncmp ((char*)pPin, password, ulPinLen) == 0)
         {
-                case CKS_RO_PUBLIC_SESSION:
-
-                        if (CKU_SO == userType)
-                                rv = CKR_SESSION_READ_ONLY_EXISTS;
-                        else
-                                pkcs11_mock_session_state = CKS_RO_USER_FUNCTIONS;
-
-                        break;
-
-                case CKS_RO_USER_FUNCTIONS:
-                case CKS_RW_USER_FUNCTIONS:
-
-                        rv = (CKU_SO == userType) ? CKR_USER_ANOTHER_ALREADY_LOGGED_IN : CKR_USER_ALREADY_LOGGED_IN;
-
-                        break;
-
-                case CKS_RW_PUBLIC_SESSION:
-
-                        pkcs11_mock_session_state = (CKU_SO == userType) ? CKS_RW_SO_FUNCTIONS : CKS_RW_USER_FUNCTIONS;
-
-                        break;
-
-                case CKS_RW_SO_FUNCTIONS:
-
-                        rv = (CKU_SO == userType) ? CKR_USER_ALREADY_LOGGED_IN : CKR_USER_ANOTHER_ALREADY_LOGGED_IN;
-
-                        break;
+                mock_logged_in_state = TRUE;
+                mock_login_attempts = 0;
+                return CKR_OK;
+        }
+        else
+        {
+                mock_login_attempts += 1;
+                return CKR_PIN_INCORRECT;
         }
 
-        return rv;
+        // TODO: We don't test any of these states atm
+        // switch (pkcs11_mock_session_state)
+        // {
+        //         case CKS_RO_PUBLIC_SESSION:
+
+        //                 if (CKU_SO == userType)
+        //                         rv = CKR_SESSION_READ_ONLY_EXISTS;
+        //                 else
+        //                         pkcs11_mock_session_state = CKS_RO_USER_FUNCTIONS;
+
+        //                 break;
+
+        //         case CKS_RO_USER_FUNCTIONS:
+        //         case CKS_RW_USER_FUNCTIONS:
+
+        //                 rv = (CKU_SO == userType) ? CKR_USER_ANOTHER_ALREADY_LOGGED_IN : CKR_USER_ALREADY_LOGGED_IN;
+
+        //                 break;
+
+        //         case CKS_RW_PUBLIC_SESSION:
+
+        //                 pkcs11_mock_session_state = (CKU_SO == userType) ? CKS_RW_SO_FUNCTIONS : CKS_RW_USER_FUNCTIONS;
+
+        //                 break;
+
+        //         case CKS_RW_SO_FUNCTIONS:
+
+        //                 rv = (CKU_SO == userType) ? CKR_USER_ALREADY_LOGGED_IN : CKR_USER_ANOTHER_ALREADY_LOGGED_IN;
+
+        //                 break;
+        // }
+
+        // return rv;
 }
 
 
@@ -869,8 +898,13 @@ CK_DEFINE_FUNCTION(CK_RV, C_Logout)(CK_SESSION_HANDLE hSession)
         if ((CK_FALSE == pkcs11_mock_session_opened) || (PKCS11_MOCK_CK_SESSION_ID != hSession))
                 return CKR_SESSION_HANDLE_INVALID;
 
-        if ((pkcs11_mock_session_state == CKS_RO_PUBLIC_SESSION) || (pkcs11_mock_session_state == CKS_RW_PUBLIC_SESSION))
+        if (mock_logged_in_state == FALSE)
                 return CKR_USER_NOT_LOGGED_IN;
+
+        // if ((pkcs11_mock_session_state == CKS_RO_PUBLIC_SESSION) || (pkcs11_mock_session_state == CKS_RW_PUBLIC_SESSION))
+        //         return CKR_USER_NOT_LOGGED_IN;
+
+        mock_logged_in_state =  FALSE;
 
         return CKR_OK;
 }
@@ -1050,15 +1084,12 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetAttributeValue)(CK_SESSION_HANDLE hSession, CK_OB
                         
                         int status;
                         gnutls_datum_t data;
-                        gnutls_x509_dn_t dn;
+                        gnutls_x509_dn_t dn; /* Owned by cert */
 
-                        gnutls_x509_dn_init(&dn);
-                        gnutls_x509_crt_get_subject(obj.cert, &dn);
+                        status = gnutls_x509_crt_get_subject(obj.cert, &dn);
+                        g_assert(status == GNUTLS_E_SUCCESS);
                         status = gnutls_x509_dn_get_str(dn, &data);
                         g_assert(status == GNUTLS_E_SUCCESS);
-                        gnutls_x509_dn_deinit(dn);
-
-                        g_debug("SUBJECT: %s", data.data);
 
                         if (data.size > pTemplate[i].ulValueLen)
                         {
@@ -1110,6 +1141,16 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetAttributeValue)(CK_SESSION_HANDLE hSession, CK_OB
                                 *((CK_ULONG *) pTemplate[i].pValue) = obj.object_class;
                         pTemplate[i].ulValueLen = sizeof (obj.object_class);
                 }
+                 else if (CKA_CERTIFICATE_TYPE == pTemplate[i].type)
+                {
+                        CK_CERTIFICATE_TYPE ret = CKC_X_509;
+
+			if (pTemplate[i].ulValueLen != sizeof(CK_CERTIFICATE_TYPE))
+				return CKR_ARGUMENTS_BAD;
+
+                        /* TODO: Test both TRUE and FALSE */
+			memcpy(pTemplate[i].pValue, &ret, sizeof(CK_CERTIFICATE_TYPE));
+                }
 		else if (CKA_KEY_TYPE == pTemplate[i].type)
 		{
 			CK_KEY_TYPE t;
@@ -1150,7 +1191,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetAttributeValue)(CK_SESSION_HANDLE hSession, CK_OB
                         /* TODO: Test both TRUE and FALSE */
 			memcpy(pTemplate[i].pValue, &ret, sizeof(CK_BBOOL));
 		}
-		else if (CKA_MODULUS == pTemplate[i].type && obj.object_class == CKO_PRIVATE_KEY) /* Any key type in future */
+		else if (CKA_MODULUS == pTemplate[i].type && obj.object_class == CKO_PRIVATE_KEY)
 		{
                         /* Hardcode RSA for now */
                         gnutls_datum_t modulus;
@@ -1248,7 +1289,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_FindObjectsInit)(CK_SESSION_HANDLE hSession, CK_ATTR
         if ((CK_FALSE == pkcs11_mock_session_opened) || (PKCS11_MOCK_CK_SESSION_ID != hSession))
                 return CKR_SESSION_HANDLE_INVALID;
 
-        if (NULL == pTemplate)
+        if (NULL == pTemplate && ulCount != 0)
                 return CKR_ARGUMENTS_BAD;
 
         mock_search_template_class = PKCS11_MOCK_CKO_ANYTHING;
@@ -2003,6 +2044,8 @@ CK_DEFINE_FUNCTION(CK_RV, C_Sign)(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
 
         if (NULL == pulSignatureLen)
                 return CKR_ARGUMENTS_BAD;
+
+        // TODO: Handle user not logged in
 
         const gnutls_datum_t data = {
                 .data = pData,

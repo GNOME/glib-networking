@@ -162,16 +162,6 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
     }
 }
 
-static int callback (void *userdata, int attempt,
-                                      const char *token_url,
-                                      const char *token_label,
-                                      unsigned int flags,
-                                      char *pin, size_t pin_max)
-{
-  // TODO
-  return -1;
-}
-
 static void
 g_tls_certificate_gnutls_set_property (GObject      *object,
                                        guint         prop_id,
@@ -324,8 +314,6 @@ static void
 g_tls_certificate_gnutls_init (GTlsCertificateGnutls *gnutls)
 {
   gnutls_x509_crt_init (&gnutls->cert);
-  // gnutls_x509_crt_set_pin_function ();
-  // gnutls_privkey_set_pin_function ()
 }
 
 static gboolean
@@ -527,29 +515,21 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
   if (gnutls->key)
     {
       gnutls_x509_privkey_t x509_privkey;
-      gnutls_privkey_t privkey;
 
-      gnutls_privkey_init (&privkey);
       gnutls_privkey_export_x509 (gnutls->key, &x509_privkey);
-      gnutls_privkey_import_x509 (privkey, x509_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
+      gnutls_privkey_import_x509 (*pkey, x509_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
       gnutls_x509_privkey_deinit (x509_privkey);
-
-      *pkey = privkey;
     }
   else if (gnutls->pkcs11_key_uri != NULL)
     {
-      gnutls_privkey_t privkey;
-      gnutls_privkey_init (&privkey);
-      gnutls_privkey_set_pin_function (privkey, callback, NULL);
       int status;
-      
-      status = gnutls_privkey_import_pkcs11_url (privkey, gnutls->pkcs11_key_uri);
-      g_debug ("Copying PKCS #11 private key result: %s", gnutls_strerror (status));
 
-      *pkey = privkey;
+      status = gnutls_privkey_import_pkcs11_url (*pkey, gnutls->pkcs11_key_uri);
+      g_debug ("Copying PKCS #11 private key result: %s", gnutls_strerror (status));
     }
   else
     {
+      gnutls_privkey_deinit (*pkey);
       *pkey = NULL;
     }
 }

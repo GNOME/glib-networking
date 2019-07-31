@@ -1068,10 +1068,13 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   GTlsCertificate *peer;
   gboolean cas_changed;
   GSocketClient *client;
+  GTlsInteraction *interaction;
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
+
+  interaction = mock_interaction_new_static_password ("ABC123");
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
@@ -1079,6 +1082,7 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
+  g_tls_connection_set_interaction (G_TLS_CONNECTION (test->client_connection), interaction);
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
 
   cert = g_tls_certificate_new_from_pkcs11_uris ("pkcs11:model=mock;manufacturer=GLib-Networking;token=Mock%20Certificate;object=Mock%20Certificate;type=cert",
@@ -1123,6 +1127,7 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
 
+  g_tls_connection_set_interaction (G_TLS_CONNECTION (test->client_connection), interaction);
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 0);
   cert = g_tls_certificate_new_from_pkcs11_uris ("pkcs11:model=mock;manufacturer=GLib-Networking;token=Mock%20Certificate;object=Mock%20Certificate%202;type=cert",
@@ -1144,6 +1149,8 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
   g_assert_nonnull (peer);
   g_assert_true (g_tls_certificate_is_same (peer, cert));
+
+  g_object_unref (interaction);
 #endif
 }
 
