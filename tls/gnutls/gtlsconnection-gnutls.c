@@ -280,13 +280,14 @@ g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
   return priv->session;
 }
 
-static int callback (void *userdata,
-                     int attempt,
-                     const char *token_url,
-                     const char *token_label,
-                     unsigned int callback_flags,
-                     char *pin,
-                     size_t pin_max)
+static int
+on_pin_request (void         *userdata,
+                int           attempt,
+                const char   *token_url,
+                const char   *token_label,
+                unsigned int  callback_flags,
+                char         *pin,
+                size_t        pin_max)
 {
   GTlsConnection *connection = G_TLS_CONNECTION (userdata);
   GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
@@ -359,7 +360,7 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls  *gnutls,
       /* Send along a pre-initialized privkey so we can handle the callback here */
       gnutls_privkey_t privkey;
       gnutls_privkey_init (&privkey);
-      gnutls_privkey_set_pin_function (privkey, callback, gnutls); // FXIME: Ensure gnutls is a valid object
+      gnutls_privkey_set_pin_function (privkey, on_pin_request, gnutls); // FXIME: Ensure gnutls is a valid object
 
       g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
                                      priv->interaction_id,
