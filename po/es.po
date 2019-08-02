@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-06-24 00:58+0000\n"
+"POT-Creation-Date: 2019-07-08 08:14+0000\n"
 "PO-Revision-Date: 2019-06-24 09:56+0200\n"
 "Last-Translator: Daniel Mustieles <daniel.mustieles@gmail.com>\n"
 "Language-Team: es <gnome-es-list@gnome.org>\n"
@@ -23,7 +23,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Error interno del proxy."
 
-#: tls/base/gtlsconnection-base.c:481 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -36,30 +36,34 @@ msgstr "La conexión está cerrada"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:551
+#: tls/base/gtlsconnection-base.c:560
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "No se puede bloquear la operación durante la negociación de TLS"
 
-#: tls/base/gtlsconnection-base.c:614 tls/base/gtlsconnection-base.c:1134
+#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1129
 msgid "Socket I/O timed out"
 msgstr "Expiró la E/S del socket"
 
-#: tls/base/gtlsconnection-base.c:1390
+#: tls/base/gtlsconnection-base.c:1350
+msgid "Peer does not support safe renegotiation"
+msgstr "El par no soporta renegociación segura"
+
+#: tls/base/gtlsconnection-base.c:1393
 msgid "Server required TLS certificate"
 msgstr "El servidor requiere un certificado TLS"
 
-#: tls/base/gtlsconnection-base.c:1485 tls/gnutls/gtlsconnection-gnutls.c:419
+#: tls/base/gtlsconnection-base.c:1493 tls/gnutls/gtlsconnection-gnutls.c:419
 #: tls/openssl/gtlsconnection-openssl.c:172
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceptable"
 
-#: tls/base/gtlsconnection-base.c:1892
+#: tls/base/gtlsconnection-base.c:1908
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "No se soporta recibir opciones"
 
-#: tls/base/gtlsconnection-base.c:2027
+#: tls/base/gtlsconnection-base.c:2043
 #, c-format
 msgid "Send flags are not supported"
 msgstr "No se soporta enviar opciones"
@@ -105,7 +109,6 @@ msgstr "No se pudo crear la conexión TLS: %s"
 #: tls/gnutls/gtlsconnection-gnutls.c:388
 #: tls/openssl/gtlsconnection-openssl.c:139
 #, c-format
-#| msgid "Peer failed to perform TLS handshake"
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "El par falló al realizar la negociación TLS: %s"
 
@@ -157,19 +160,19 @@ msgid "Error performing TLS handshake"
 msgstr "Error al realizar la negociación TLS"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:929
-#: tls/gnutls/gtlsconnection-gnutls.c:990
+#: tls/gnutls/gtlsconnection-gnutls.c:989
 #: tls/openssl/gtlsconnection-openssl.c:414
 msgid "Error reading data from TLS socket"
 msgstr "Error al leer datos del socket TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1013
-#: tls/gnutls/gtlsconnection-gnutls.c:1078
-#: tls/openssl/gtlsconnection-openssl.c:459
+#: tls/gnutls/gtlsconnection-gnutls.c:1011
+#: tls/gnutls/gtlsconnection-gnutls.c:1075
+#: tls/openssl/gtlsconnection-openssl.c:458
 msgid "Error writing data to TLS socket"
 msgstr "Error al escribir datos en el socket TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1048
+#: tls/gnutls/gtlsconnection-gnutls.c:1045
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -178,14 +181,14 @@ msgstr[0] ""
 msgstr[1] ""
 "El mensaje de tamaño %lu bytes es demasiado largo para una conexión DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1050
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(el máximo es %u byte)"
 msgstr[1] "(el máximo es %u bytes)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1098
+#: tls/gnutls/gtlsconnection-gnutls.c:1094
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Error al cerrar el TLS: %s"
@@ -225,7 +228,7 @@ msgstr "Autoridad del certificado TLS inaceptable"
 msgid "Digest too big for RSA key"
 msgstr "Resumen demasiado grande para la clave RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:497
+#: tls/openssl/gtlsconnection-openssl.c:495
 msgid "Error performing TLS close"
 msgstr "Error al cerrar el TLS"
 
@@ -250,9 +253,6 @@ msgstr "Hay un problema con la clave privada del certificado: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "La operación de bloqueará"
-
-#~ msgid "Peer does not support safe renegotiation"
-#~ msgstr "El par no soporta renegociación segura"
 
 #~ msgid "Server did not return a valid TLS certificate"
 #~ msgstr "El servidor no devolvió un certificado TLS válido"
