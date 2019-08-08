@@ -298,7 +298,7 @@ on_pin_request (void         *userdata,
   gchar *description;
   int ret = -1;
 
-  if (interaction == NULL)
+  if (!interaction)
     return -1;
 
   // FIXME: Mock module isn't triggering this codepath?
@@ -326,7 +326,7 @@ on_pin_request (void         *userdata,
       break;
     case G_TLS_INTERACTION_HANDLED:
       {
-        size_t password_size;
+        gsize password_size;
         const guchar *password_data = g_tls_password_get_value (password, &password_size);
         if (password_size > pin_max)
           g_warning ("PIN is larger than max PIN size");
@@ -357,10 +357,11 @@ g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls  *gnutls,
 
   if (cert)
     {
-      /* Send along a pre-initialized privkey so we can handle the callback here */
+      /* Send along a pre-initialized privkey so we can handle the callback here. */
       gnutls_privkey_t privkey;
       gnutls_privkey_init (&privkey);
-      gnutls_privkey_set_pin_function (privkey, on_pin_request, gnutls); // FXIME: Ensure gnutls is a valid object
+      /* NOTE: The gnutls object should be valid as long as this connection is. */
+      gnutls_privkey_set_pin_function (privkey, on_pin_request, gnutls);
 
       g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
                                      priv->interaction_id,

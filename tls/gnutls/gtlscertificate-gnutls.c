@@ -273,10 +273,14 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
         break;
       g_return_if_fail (gnutls->have_cert == FALSE);
       g_return_if_fail (gnutls->pkcs11_cert_uri == NULL);
+
       gnutls->pkcs11_cert_uri = g_strdup (string);
+
       status = gnutls_x509_crt_import_url (gnutls->cert, string, GNUTLS_PKCS11_OBJ_FLAG_CRT);
       if (status == GNUTLS_E_SUCCESS)
-        gnutls->have_cert = TRUE;
+        {
+          gnutls->have_cert = TRUE;
+        }
       else if (!gnutls->construct_error)
         {
           gnutls->construct_error =
@@ -520,12 +524,13 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
       gnutls_privkey_import_x509 (*pkey, x509_privkey, GNUTLS_PRIVKEY_IMPORT_COPY);
       gnutls_x509_privkey_deinit (x509_privkey);
     }
-  else if (gnutls->pkcs11_key_uri != NULL)
+  else if (!gnutls->pkcs11_key_uri)
     {
       int status;
 
       status = gnutls_privkey_import_pkcs11_url (*pkey, gnutls->pkcs11_key_uri);
-      g_debug ("Copying PKCS #11 private key result: %s", gnutls_strerror (status));
+      if (status != GNUTLS_E_SUCCESS)
+        g_warning ("Failed to copy PKCS #11 private key: %s", gnutls_strerror (status));
     }
   else
     {
