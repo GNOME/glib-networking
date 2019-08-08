@@ -74,6 +74,7 @@ typedef struct
   gnutls_certificate_credentials_t creds;
   gnutls_session_t session;
   gchar *interaction_id;
+  GCancellable *pin_interaction_cancellable;
 } GTlsConnectionGnutlsPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION_BASE,
@@ -259,6 +260,12 @@ g_tls_connection_gnutls_finalize (GObject *object)
   if (priv->creds)
     gnutls_certificate_free_credentials (priv->creds);
 
+  if (priv->pin_interaction_cancellable)
+    {
+      g_cancellable_cancel (priv->pin_interaction_cancellable);
+      g_clear_object (&priv->pin_interaction_cancellable);
+    }
+
   g_free (priv->interaction_id);
 
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
@@ -290,6 +297,7 @@ on_pin_request (void         *userdata,
                 size_t        pin_max)
 {
   GTlsConnection *connection = G_TLS_CONNECTION (userdata);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (G_TLS_CONNECTION_GNUTLS (connection));
   GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
   GTlsInteractionResult result;
   GTlsPassword *password;
@@ -309,10 +317,14 @@ on_pin_request (void         *userdata,
   if (callback_flags & GNUTLS_PIN_FINAL_TRY || attempt > 5) /* Give up at some point */
     password_flags |= G_TLS_PASSWORD_FINAL_TRY;
 
+  if (!priv->pin_interaction_cancellable)
+    priv->pin_interaction_cancellable = g_cancellable_new ();
+
   description = g_strdup_printf (_("PIN for PKCS #11 token: %s (%s)"), token_label, token_url);
   password = g_tls_password_new (password_flags, description);
-  // FIXME: Cancellation
-  result = g_tls_interaction_invoke_ask_password (interaction, password, NULL, &error);
+  result = g_tls_interaction_invoke_ask_password (interaction, password,
+                                                  priv->pin_interaction_cancellable,
+                                                  &error);
   g_free (description);
 
   switch (result)
