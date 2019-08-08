@@ -29,7 +29,7 @@
  * - Logging was added again just for ease of debugging.
  * - Instead of hardcoded defines for objects this now has an array
  *   of mock_objects that is easier to read and extend.
- * - The certificates/keys are real certificates/keys backed by gnutls.
+ * - The certificates/keys are real certificates/keys backed by gnutls
  *   loading them in C_Initialize from glib-networkings normal test data.
  *   This changes the behavior of many functions most notably including C_GetAttributeValue
  *   and C_Sign to use them. Any function not used in a TLS handshake was largely
