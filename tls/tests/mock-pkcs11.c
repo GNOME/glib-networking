@@ -26,9 +26,10 @@
  *
  * Quite a few things have been changed since then though:
  * - The CK defines just below use glib macros just out of convenience.
- * - Logging was added again just for ease of debugging.
+ * - Logging was added just for ease of debugging.
  * - Instead of hardcoded defines for objects this now has an array
- *   of mock_objects that is easier to read and extend.
+ *   of mock_objects that is easier to read and extend. The search behavior
+ *   of C_FindObjects was also updated to actually search through this.
  * - The certificates/keys are real certificates/keys backed by gnutls
  *   loading them in C_Initialize from glib-networkings normal test data.
  *   This changes the behavior of many functions most notably including C_GetAttributeValue
