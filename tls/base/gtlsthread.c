@@ -27,6 +27,8 @@
 
 #include "gtlsthread.h"
 
+#include <glib/gi18n-lib.h>
+
 /* The purpose of this class is to ensure the underlying TLS library is only
  * ever used on a single thread. There are multiple benefits of this:
  *
@@ -390,6 +392,9 @@ process_op (GAsyncQueue *queue,
   if (!op)
     {
       /* Timeout has been reached. */
+      op->count = 0;
+      g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
+                   _("Socket I/O timed out"));
       goto finished;
     }
 
