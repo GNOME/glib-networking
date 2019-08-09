@@ -260,12 +260,42 @@ tls_op_queue_source_finalize (GSource *source)
   g_async_queue_unref (op_source->queue);
 }
 
+static gboolean
+tls_op_queue_source_closure_callback (GAsyncQueue *queue,
+                                      GMainLoop   *main_loop,
+                                      gpointer     data)
+{
+  GClosure *closure = data;
+
+  GValue param[2] = { G_VALUE_INIT, G_VALUE_INIT };
+  GValue result_value = G_VALUE_INIT;
+  gboolean result;
+
+  g_value_init (&result_value, G_TYPE_BOOLEAN);
+
+  g_value_init (&param[0], G_TYPE_POINTER);
+  g_value_set_pointer (&param[0], queue);
+  g_value_init (&param[1], G_TYPE_MAIN_LOOP);
+  g_value_set_pointer (&param[1], main_loop);
+
+  g_closure_invoke (closure, &result_value, 2, param, NULL);
+
+  result = g_value_get_boolean (&result_value);
+  g_value_unset (&result_value);
+  g_value_unset (&param[0]);
+  g_value_unset (&param[1]);
+
+  return result;
+}
+
 static GSourceFuncs tls_op_queue_source_funcs =
 {
   tls_op_queue_source_prepare,
   tls_op_queue_source_check,
   tls_op_queue_source_dispatch,
-  tls_op_queue_source_finalize
+  tls_op_queue_source_finalize,
+  (GSourceFunc)tls_op_queue_source_closure_callback,
+  (GSourceDummyMarshal)g_cclosure_marshal_generic
 };
 
 static GSource *
@@ -333,6 +363,16 @@ resume_dtls_op (GDatagramBased *datagram_based,
   return G_SOURCE_REMOVE;
 }
 
+/* Use a custom dummy callback instead of g_source_set_dummy_callback(), as that
+ * uses a GClosure and is slow. (The GClosure is necessary to deal with any
+ * function prototype.)
+ */
+static gboolean
+dummy_callback (gpointer data)
+{
+  return G_SOURCE_CONTINUE;
+}
+
 static gboolean
 process_op (GAsyncQueue *queue,
             GMainLoop   *main_loop)
@@ -383,6 +423,7 @@ process_op (GAsyncQueue *queue,
        * blocking, or (b) the timeout has elasped.
        */
       timeout_source = g_timeout_source_new (op->timeout);
+      g_source_set_callback (timeout_source, dummy_callback, NULL, NULL);
       g_source_add_child_source (tls_source, timeout_source);
       g_source_unref (timeout_source);
 
@@ -412,18 +453,16 @@ static gpointer
 tls_op_thread (gpointer data)
 {
   GTlsThread *self = G_TLS_THREAD (data);
-  GMainContext *main_context;
   GMainLoop *main_loop;
   GSource *source;
 
-  main_context = g_main_context_new ();
-  main_loop = g_main_loop_new (main_context, FALSE);
+  main_loop = g_main_loop_new (self->op_thread_context, FALSE);
 
-  g_main_context_push_thread_default (main_context);
+  g_main_context_push_thread_default (self->op_thread_context);
 
   source = tls_op_queue_source_new (self->queue);
   g_source_set_callback (source, G_SOURCE_FUNC (process_op), main_loop, NULL);
-  g_source_attach (source, main_context);
+  g_source_attach (source, self->op_thread_context);
 
   g_main_loop_run (main_loop);
 
@@ -431,10 +470,9 @@ tls_op_thread (gpointer data)
    * They should be cancelled somehow. Figure out how. Assert this has happened?
    */
 
-  g_main_context_pop_thread_default (main_context);
+  g_main_context_pop_thread_default (self->op_thread_context);
 
   g_main_loop_unref (main_loop);
-  g_main_context_unref (main_context);
 
   return NULL;
 }

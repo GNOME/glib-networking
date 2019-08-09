@@ -882,7 +882,8 @@ typedef struct {
 
 /* Use a custom dummy callback instead of g_source_set_dummy_callback(), as that
  * uses a GClosure and is slow. (The GClosure is necessary to deal with any
- * function prototype.) */
+ * function prototype.)
+ * */
 static gboolean
 dummy_callback (gpointer data)
 {
@@ -1024,7 +1025,6 @@ g_tls_connection_tls_source_dtls_closure_callback (GDatagramBased *datagram_base
   g_value_unset (&param[1]);
 
   return result;
-
 }
 
 static GSourceFuncs tls_source_funcs =
