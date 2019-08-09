@@ -991,9 +991,9 @@ g_tls_connection_tls_source_closure_callback (GObject  *stream,
 }
 
 static gboolean
-g_tls_connection_tls_source_dtls_closure_callback (GObject      *stream,
-                                                   GIOCondition  condition,
-                                                   gpointer      data)
+g_tls_connection_tls_source_dtls_closure_callback (GDatagramBased *datagram_based,
+                                                   GIOCondition    condition,
+                                                   gpointer        data)
 {
   GClosure *closure = data;
 
@@ -1004,7 +1004,7 @@ g_tls_connection_tls_source_dtls_closure_callback (GObject      *stream,
   g_value_init (&result_value, G_TYPE_BOOLEAN);
 
   g_value_init (&param[0], G_TYPE_DATAGRAM_BASED);
-  g_value_set_object (&param[0], stream);
+  g_value_set_object (&param[0], datagram_based);
   g_value_init (&param[1], G_TYPE_IO_CONDITION);
   g_value_set_flags (&param[1], condition);
 
