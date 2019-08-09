@@ -64,9 +64,18 @@ struct _GTlsThread {
   GObject parent_instance;
 
   GTlsConnectionBase *connection; /* unowned */
-  GThread *thread;
+
+  GThread *op_thread;
+  GMainContext *op_thread_context;
+
+  /* When pushing ops onto the queue, call g_main_context_wakeup() on
+   * op_thread_context to ensure the op is noticed.
+   */
   GAsyncQueue *queue;
 };
+
+static gboolean process_op (GAsyncQueue *queue,
+                            GMainLoop   *main_loop);
 
 typedef enum {
   G_TLS_THREAD_OP_READ,
@@ -75,7 +84,7 @@ typedef enum {
 
 typedef struct {
   GTlsThreadOperationType type;
-  GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare */
+  GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
   void *data; /* unowned */
   gsize size;
   gint64 timeout;
@@ -160,6 +169,7 @@ g_tls_thread_read (GTlsThread    *self,
                                    buffer, size, timeout,
                                    cancellable, main_loop);
   g_async_queue_push (self->queue, op);
+  g_main_context_wakeup (self->op_thread_context);
 
   g_main_loop_run (main_loop);
 
@@ -213,12 +223,11 @@ tls_op_queue_source_prepare (GSource *source,
   GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
   gboolean ready;
 
-  /* FIXME: is using -1 timeout OK here? Probably not.
-   * The GAsyncQueue could become ready before the timeout of another op expires.
-   * So an op with a long timeout could improperly block the queue op.
-   * But we cannot use 0 because that would churn the CPU. What's to do?
-   */
   ready = queue_has_pending_op (op_source->queue);
+
+  /* Why is it safe to use -1 as the timeout here? Because
+   * g_main_context_wakeup() will be called when pushing ops onto the queue!
+   */
   *timeout = ready ? 0 : -1;
 
   return ready;
@@ -270,6 +279,60 @@ tls_op_queue_source_new (GAsyncQueue *queue)
   return (GSource *)source;
 }
 
+typedef struct
+{
+  GAsyncQueue *queue;
+  GMainLoop   *main_loop;
+} DelayedOpAsyncData;
+
+static DelayedOpAsyncData *
+delayed_op_async_data_new (GAsyncQueue *queue,
+                           GMainLoop   *main_loop)
+{
+  DelayedOpAsyncData *data;
+
+  data = g_new (DelayedOpAsyncData, 1);
+
+  /* No refs because these are guaranteed to outlive data. */
+  data->queue = queue;
+  data->main_loop = main_loop;
+
+  return data;
+}
+
+static void
+delayed_op_async_data_free (DelayedOpAsyncData *data)
+{
+  g_free (data);
+}
+
+static gboolean
+resume_tls_op (GObject  *pollable_stream,
+               gpointer  user_data)
+{
+  DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
+
+  process_op (data->queue, data->main_loop);
+
+  delayed_op_async_data_free (data);
+
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean
+resume_dtls_op (GDatagramBased *datagram_based,
+                GIOCondition    condition,
+                gpointer        user_data)
+{
+  DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
+
+  process_op (data->queue, data->main_loop);
+
+  delayed_op_async_data_free (data);
+
+  return G_SOURCE_REMOVE;
+}
+
 static gboolean
 process_op (GAsyncQueue *queue,
             GMainLoop   *main_loop)
@@ -294,7 +357,6 @@ process_op (GAsyncQueue *queue,
     {
     /* FIXME: handle all op types, including handshake and directional closes */
     case G_TLS_THREAD_OP_READ:
-      /* FIXME: do something with op->timeout */
       op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
                                                                               op->data, op->size,
                                                                               &op->count,
@@ -306,38 +368,31 @@ process_op (GAsyncQueue *queue,
       g_assert_not_reached ();
     }
 
-//////
-  GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc)callback;
-  GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
-  GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
-  gboolean ret;
-
-  if (G_IS_DATAGRAM_BASED (tls_source->base))
-    ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
-                                  tls_source->condition, user_data);
-  else
-    ret = (*pollable_func) (tls_source->base, user_data);
-//////
-
   if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK)
     {
       GSource *tls_source;
+      GSource *timeout_source;
       GMainContext *main_context;
+      DelayedOpAsyncData *data;
 
       tls_source = g_tls_connection_base_create_source (op->connection,
                                                         condition,
                                                         op->cancellable);
-      main_context = g_main_loop_get_context (main_loop);
 
+      /* tls_source should fire if (a) we're ready to ready/write without
+       * blocking, or (b) the timeout has elasped.
+       */
+      timeout_source = g_timeout_source_new (op->timeout);
+      g_source_add_child_source (tls_source, timeout_source);
+      g_source_unref (timeout_source);
+
+      data = delayed_op_async_data_new (queue, main_loop);
       if (G_IS_DATAGRAM_BASED (op->connection))
-        {
-          g_source_set_callback (tls_source, G_SOURCE_FUNC ());
-        }
+        g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_dtls_op), data, NULL);
       else
-        {
+        g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_tls_op), data, NULL);
 
-        }
-
+      main_context = g_main_loop_get_context (main_loop);
       g_source_attach (tls_source, main_context);
     }
   else
@@ -354,9 +409,9 @@ process_op (GAsyncQueue *queue,
 }
 
 static gpointer
-tls_thread (gpointer data)
+tls_op_thread (gpointer data)
 {
-  GAsyncQueue *queue = data;
+  GTlsThread *self = G_TLS_THREAD (data);
   GMainContext *main_context;
   GMainLoop *main_loop;
   GSource *source;
@@ -366,17 +421,20 @@ tls_thread (gpointer data)
 
   g_main_context_push_thread_default (main_context);
 
-  source = tls_op_queue_source_new (queue);
+  source = tls_op_queue_source_new (self->queue);
   g_source_set_callback (source, G_SOURCE_FUNC (process_op), main_loop, NULL);
   g_source_attach (source, main_context);
 
   g_main_loop_run (main_loop);
 
+  /* FIXME FIXME: what happens if there are still ops in progress?
+   * They should be cancelled somehow. Figure out how. Assert this has happened?
+   */
+
   g_main_context_pop_thread_default (main_context);
 
   g_main_loop_unref (main_loop);
   g_main_context_unref (main_context);
-  g_async_queue_unref (queue);
 
   return NULL;
 }
@@ -432,9 +490,10 @@ static void
 g_tls_thread_init (GTlsThread *self)
 {
   self->queue = g_async_queue_new_full ((GDestroyNotify)g_tls_thread_operation_free);
-  self->thread = g_thread_new ("[glib-networking] GTlsThreadBase TLS operations thread",
-                               tls_thread,
-                               g_async_queue_ref (self->queue));
+  self->op_thread_context = g_main_context_new ();
+  self->op_thread = g_thread_new ("[glib-networking] GTlsThreadBase TLS operations thread",
+                                  tls_op_thread,
+                                  self);
 }
 
 static void
@@ -442,11 +501,14 @@ g_tls_thread_finalize (GObject *object)
 {
   GTlsThread *self = G_TLS_THREAD (object);
 
-  g_clear_weak_pointer (&self->connection);
-
   g_async_queue_push (self->queue, g_tls_thread_shutdown_operation_new ());
-  g_clear_pointer (&self->thread, g_thread_join);
+  g_main_context_wakeup (self->op_thread_context);
+
+  g_clear_pointer (&self->op_thread, g_thread_join);
+  g_clear_pointer (&self->op_thread_context, g_main_context_unref);
   g_clear_pointer (&self->queue, g_async_queue_unref);
+
+  g_clear_weak_pointer (&self->connection);
 
   G_OBJECT_CLASS (g_tls_thread_parent_class)->finalize (object);
 }
