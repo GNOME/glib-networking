@@ -78,7 +78,7 @@ typedef struct {
   gsize size;
   gint64 timeout;
   GCancellable *cancellable;
-  GMainLoop *main_loop;
+  GMainLoop *main_loop; /* Running on the ORIGINAL thread, not the op thread. */
   GTlsConnectionBaseStatus result;
   gssize count; /* Bytes read or written */
   GError *error;
@@ -175,60 +175,179 @@ g_tls_thread_read (GTlsThread    *self,
   return op->result;
 }
 
+typedef struct {
+  GSource source;
+
+  GAsyncQueue *queue;
+} GTlsOpQueueSource;
+
+static gboolean
+queue_has_pending_op (GAsyncQueue *queue)
+{
+  GTlsThreadOperation *op;
+  gboolean ready = FALSE;
+
+  g_async_queue_unlock (queue);
+
+  op = g_async_queue_try_pop_unlocked (queue);
+  if (op)
+    {
+      g_async_queue_push_front_unlocked (queue, op);
+      ready = TRUE;
+    }
+
+  g_async_queue_lock (queue);
+
+  return ready;
+}
+
+static gboolean
+tls_op_queue_source_prepare (GSource *source,
+                             gint    *timeout)
+{
+  GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
+  gboolean ready;
+
+  ready = queue_has_pending_op (op_source->queue);
+  *timeout = ready ? 0 : -1;
+
+  return ready;
+}
+
+static gboolean
+tls_op_queue_source_check (GSource *source)
+{
+  GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
+
+  return queue_has_pending_op (op_source->queue);
+}
+
+typedef gboolean (*GTlsOpQueueSourceFunc) (GAsyncQueue *queue,
+                                           GMainLoop   *main_loop);
+
+static gboolean
+tls_op_queue_source_dispatch (GSource     *source,
+                              GSourceFunc  callback,
+                              gpointer     user_data)
+{
+  GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
+
+  return ((GTlsOpQueueSourceFunc)(callback)) (op_source->queue,
+                                              user_data);
+}
+
+static void
+tls_op_queue_source_finalize (GSource *source)
+{
+  GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
+
+  g_async_queue_unref (op_source->queue);
+}
+
+static GSourceFuncs tls_op_queue_source_funcs =
+{
+  tls_op_queue_source_prepare,
+  tls_op_queue_source_check,
+  tls_op_queue_source_dispatch,
+  tls_op_queue_source_finalize
+};
+
+static GSource *
+tls_op_queue_source_new (GAsyncQueue *queue)
+{
+  GTlsOpQueueSource *source;
+
+  source = (GTlsOpQueueSource *)g_source_new (&tls_op_queue_source_funcs, sizeof (GTlsOpQueueSource));
+  source->queue = g_async_queue_ref (queue);
+
+  return (GSource *)source;
+}
+
+static gboolean
+process_op (GAsyncQueue *queue,
+            GMainLoop   *main_loop)
+{
+  GTlsThreadOperation *op;
+  GIOCondition condition = 0;
+
+  op = g_async_queue_pop (queue);
+
+  if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
+    {
+      /* Note that main_loop is running on here on the op thread until this
+       * GTlsThread, so this will shut down the whole thing. This is different
+       * from op->main_loop, which runs on the original thread.
+       */
+      g_main_loop_quit (main_loop);
+      g_tls_thread_operation_free (op);
+      return G_SOURCE_REMOVE;
+    }
+
+  switch (op->type)
+    {
+    case G_TLS_THREAD_OP_READ:
+      /* FIXME: do something with op->timeout */
+      op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
+                                                                              op->data, op->size,
+                                                                              &op->count,
+                                                                              op->cancellable,
+                                                                              &op->error);
+      condition = G_IO_IN;
+      break;
+    case G_TLS_THREAD_OP_SHUTDOWN:
+      g_assert_not_reached ();
+    }
+
+  if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK)
+    {
+      GSource *tls_source;
+      GMainContext *main_context;
+
+      tls_source = g_tls_connection_base_create_source (op->connection,
+                                                        condition,
+                                                        op->cancellable);
+      main_context = g_main_loop_get_context (main_loop);
+      /* FIXME: need to attach a callback or nothing will ever happen! */
+      g_source_attach (tls_source, main_context);
+    }
+  else
+    {
+      /* op->main_loop is running on the original thread to block the original
+       * thread until op has completed on the op thread, which it just has.
+       * This is different from main_loop, which is running the op thread.
+       */
+      g_main_loop_quit (op->main_loop);
+      g_tls_thread_operation_free (op);
+    }
+
+  return G_SOURCE_CONTINUE;
+}
+
 static gpointer
 tls_thread (gpointer data)
 {
   GAsyncQueue *queue = data;
+  GMainContext *main_context;
+  GMainLoop *main_loop;
+  GSource *source;
 
-  while (TRUE)
-    {
-      GTlsThreadOperation *op;
-      GIOCondition condition = 0;
+  main_context = g_main_context_new ();
+  main_loop = g_main_loop_new (main_context, FALSE);
 
-      /* FIXME: how do we simultaneously wait for a new queue item
-       * and also run the main loop? Add another GSource?
-       * Probably want to dispatch() if try_pop() returns TRUE? Or peek?
-       */
-      op = g_async_queue_pop (queue);
+  g_main_context_push_thread_default (main_context);
 
-      if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
-        {
-          g_tls_thread_operation_free (op);
-          break;
-        }
+  source = tls_op_queue_source_new (queue);
+  g_source_set_callback (source, G_SOURCE_FUNC (process_op), main_loop, NULL);
+  g_source_attach (source, main_context);
 
-      switch (op->type)
-        {
-        case G_TLS_THREAD_OP_READ:
-          /* FIXME: do something with op->timeout */
-          op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
-                                                                                  op->data, op->size,
-                                                                                  &op->count,
-                                                                                  op->cancellable,
-                                                                                  &op->error);
-          condition = G_IO_IN;
-          break;
-        case G_TLS_THREAD_OP_SHUTDOWN:
-          break;
-        }
+  g_main_loop_run (main_loop);
 
-      if (op->result != G_TLS_CONNECTION_BASE_WOULD_BLOCK)
-        {
-          g_main_loop_quit (op->main_loop);
-          g_tls_thread_operation_free (op);
-        }
-      else
-        {
-          GSource *tls_source;
+  g_main_context_pop_thread_default (main_context);
 
-          tls_source = g_tls_connection_base_create_source (op->connection,
-                                                            condition,
-                                                            op->cancellable);
-
-        }
-    }
-
+  g_main_loop_unref (main_loop);
+  g_main_context_unref (main_context);
   g_async_queue_unref (queue);
+
   return NULL;
 }
 
