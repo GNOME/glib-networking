@@ -35,7 +35,10 @@
  *
  * - With GnuTLS, this dramatically simplifies implementation of post-handshake
  *   authentication and alerts, which are hard to handle when the
- *   gnutls_session_t may be used on multiple threads at once.
+ *   gnutls_session_t may be used on multiple threads at once. Moving
+ *   gnutls_session_t use to a single thread should also make it easier to
+ *   implement support for downloading missing certificates using the
+ *   Authority Information Access extension.
  *
  * - GTlsConnectionBase and its subclasses are very complicated, and it has
  *   become difficult to ensure the correctness of the code considering that the
@@ -55,8 +58,7 @@
  * is completed. The application is allowed to do this and expect it to work,
  * because GIOStream says it will work. If our TLS thread were to block on the
  * read, then the write would never start, and the read could never complete.
- * This means that underlying TLS operations must use async I/O. To emulate
- * blocking operations, we will have to use poll().
+ * This means that underlying TLS operations must use async I/O.
  */
 struct _GTlsThread {
   GObject parent_instance;
@@ -181,6 +183,9 @@ typedef struct {
   GAsyncQueue *queue;
 } GTlsOpQueueSource;
 
+typedef gboolean (*GTlsOpQueueSourceFunc) (GAsyncQueue *queue,
+                                           GMainLoop   *main_loop);
+
 static gboolean
 queue_has_pending_op (GAsyncQueue *queue)
 {
@@ -208,6 +213,11 @@ tls_op_queue_source_prepare (GSource *source,
   GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
   gboolean ready;
 
+  /* FIXME: is using -1 timeout OK here? Probably not.
+   * The GAsyncQueue could become ready before the timeout of another op expires.
+   * So an op with a long timeout could improperly block the queue op.
+   * But we cannot use 0 because that would churn the CPU. What's to do?
+   */
   ready = queue_has_pending_op (op_source->queue);
   *timeout = ready ? 0 : -1;
 
@@ -222,9 +232,6 @@ tls_op_queue_source_check (GSource *source)
   return queue_has_pending_op (op_source->queue);
 }
 
-typedef gboolean (*GTlsOpQueueSourceFunc) (GAsyncQueue *queue,
-                                           GMainLoop   *main_loop);
-
 static gboolean
 tls_op_queue_source_dispatch (GSource     *source,
                               GSourceFunc  callback,
@@ -232,8 +239,8 @@ tls_op_queue_source_dispatch (GSource     *source,
 {
   GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
 
-  return ((GTlsOpQueueSourceFunc)(callback)) (op_source->queue,
-                                              user_data);
+  return ((GTlsOpQueueSourceFunc)callback) (op_source->queue,
+                                            user_data);
 }
 
 static void
@@ -285,6 +292,7 @@ process_op (GAsyncQueue *queue,
 
   switch (op->type)
     {
+    /* FIXME: handle all op types, including handshake and directional closes */
     case G_TLS_THREAD_OP_READ:
       /* FIXME: do something with op->timeout */
       op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
@@ -298,6 +306,19 @@ process_op (GAsyncQueue *queue,
       g_assert_not_reached ();
     }
 
+//////
+  GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc)callback;
+  GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
+  GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
+  gboolean ret;
+
+  if (G_IS_DATAGRAM_BASED (tls_source->base))
+    ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
+                                  tls_source->condition, user_data);
+  else
+    ret = (*pollable_func) (tls_source->base, user_data);
+//////
+
   if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK)
     {
       GSource *tls_source;
@@ -307,7 +328,16 @@ process_op (GAsyncQueue *queue,
                                                         condition,
                                                         op->cancellable);
       main_context = g_main_loop_get_context (main_loop);
-      /* FIXME: need to attach a callback or nothing will ever happen! */
+
+      if (G_IS_DATAGRAM_BASED (op->connection))
+        {
+          g_source_set_callback (tls_source, G_SOURCE_FUNC ());
+        }
+      else
+        {
+
+        }
+
       g_source_attach (tls_source, main_context);
     }
   else
