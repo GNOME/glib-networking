@@ -53,15 +53,8 @@
 #define CK_CALLBACK_FUNCTION(returnType, name) returnType (* name)
 #define NULL_PTR NULL
 
-#if G_OS_WIN32
-#pragma pack(push, cryptoki, 1)
-#endif
-
 #include "pkcs11/pkcs11.h"
 
-#if G_OS_WIN32
-#pragma pack(pop, cryptoki)
-#endif
 
 #define IGNORE(P) (void)(P)
 
@@ -71,7 +64,7 @@
 #define PKCS11_MOCK_CK_TOKEN_INFO_MIN_PIN_LEN 4
 
 static CK_INFO mock_info = {
-        .cryptokiVersion = { CRYPTOKI_VERSION_MAJOR, CRYPTOKI_VERSION_MINOR },
+        .cryptokiVersion = { 2, 40 },
         .manufacturerID = MOCK_MANUFACTURER_ID,
         .libraryDescription = "Mock Module",
 };
@@ -2973,9 +2966,6 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetUnmanagedStructSizeList)(CK_ULONG_PTR pSizeList, 
                 sizeof(CK_VERSION),
                 sizeof(CK_AES_CBC_ENCRYPT_DATA_PARAMS),
                 sizeof(CK_AES_CTR_PARAMS),
-                sizeof(CK_ARIA_CBC_ENCRYPT_DATA_PARAMS),
-                sizeof(CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS),
-                sizeof(CK_CAMELLIA_CTR_PARAMS),
                 sizeof(CK_CMS_SIG_PARAMS),
                 sizeof(CK_DES_CBC_ENCRYPT_DATA_PARAMS),
                 sizeof(CK_ECDH1_DERIVE_PARAMS),
@@ -2985,11 +2975,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetUnmanagedStructSizeList)(CK_ULONG_PTR pSizeList, 
                 sizeof(CK_KEA_DERIVE_PARAMS),
                 sizeof(CK_KEY_DERIVATION_STRING_DATA),
                 sizeof(CK_KEY_WRAP_SET_OAEP_PARAMS),
-                sizeof(CK_KIP_PARAMS),
                 sizeof(CK_MAC_GENERAL_PARAMS),
-                sizeof(CK_OTP_PARAM),
-                sizeof(CK_OTP_PARAMS),
-                sizeof(CK_OTP_SIGNATURE_INFO),
                 sizeof(CK_PBE_PARAMS),
                 sizeof(CK_PKCS5_PBKD2_PARAMS),
                 sizeof(CK_RC2_CBC_PARAMS),
