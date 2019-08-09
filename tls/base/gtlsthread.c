@@ -187,7 +187,7 @@ queue_has_pending_op (GAsyncQueue *queue)
   GTlsThreadOperation *op;
   gboolean ready = FALSE;
 
-  g_async_queue_unlock (queue);
+  g_async_queue_lock (queue);
 
   op = g_async_queue_try_pop_unlocked (queue);
   if (op)
@@ -196,7 +196,7 @@ queue_has_pending_op (GAsyncQueue *queue)
       ready = TRUE;
     }
 
-  g_async_queue_lock (queue);
+  g_async_queue_unlock (queue);
 
   return ready;
 }
