@@ -74,9 +74,6 @@ struct _GTlsThread {
   GAsyncQueue *queue;
 };
 
-static gboolean process_op (GAsyncQueue *queue,
-                            GMainLoop   *main_loop);
-
 typedef enum {
   G_TLS_THREAD_OP_READ,
   G_TLS_THREAD_OP_SHUTDOWN
@@ -94,6 +91,13 @@ typedef struct {
   gssize count; /* Bytes read or written */
   GError *error;
 } GTlsThreadOperation;
+
+static gboolean process_op (GAsyncQueue *queue,
+                            GMainLoop   *main_loop);
+
+static void GTLS_OP_DEBUG (GTlsThreadOperation *op,
+                           const char          *message,
+                           ...) G_GNUC_UNUSED;
 
 enum
 {
@@ -342,6 +346,7 @@ resume_tls_op (GObject  *pollable_stream,
 {
   DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
 
+  /* FIXME: handle G_SOURCE_REMOVE return */
   process_op (data->queue, data->main_loop);
 
   delayed_op_async_data_free (data);
@@ -356,6 +361,7 @@ resume_dtls_op (GDatagramBased *datagram_based,
 {
   DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
 
+  /* FIXME: handle G_SOURCE_REMOVE return */
   process_op (data->queue, data->main_loop);
 
   delayed_op_async_data_free (data);
@@ -380,13 +386,18 @@ process_op (GAsyncQueue *queue,
   GTlsThreadOperation *op;
   GIOCondition condition = 0;
 
-  op = g_async_queue_pop (queue);
+  op = g_async_queue_try_pop (queue);
+  if (!op)
+    {
+      /* Timeout has been reached. */
+      goto finished;
+    }
 
   if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
     {
-      /* Note that main_loop is running on here on the op thread until this
-       * GTlsThread, so this will shut down the whole thing. This is different
-       * from op->main_loop, which runs on the original thread.
+      /* Note that main_loop is running on here on the op thread for the
+       * lifetime of this GTlsThread. This will shut down the whole thing. This
+       * is different from op->main_loop, which runs on the original thread.
        */
       g_main_loop_quit (main_loop);
       g_tls_thread_operation_free (op);
@@ -408,7 +419,8 @@ process_op (GAsyncQueue *queue,
       g_assert_not_reached ();
     }
 
-  if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK)
+  if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK &&
+      op->timeout != 0)
     {
       GSource *tls_source;
       GSource *timeout_source;
@@ -418,33 +430,36 @@ process_op (GAsyncQueue *queue,
       tls_source = g_tls_connection_base_create_source (op->connection,
                                                         condition,
                                                         op->cancellable);
-
-      /* tls_source should fire if (a) we're ready to ready/write without
-       * blocking, or (b) the timeout has elasped.
-       */
-      timeout_source = g_timeout_source_new (op->timeout);
-      g_source_set_callback (timeout_source, dummy_callback, NULL, NULL);
-      g_source_add_child_source (tls_source, timeout_source);
-      g_source_unref (timeout_source);
+      if (op->timeout > 0)
+        {
+          /* tls_source should fire if (a) we're ready to ready/write without
+           * blocking, or (b) the timeout has elasped.
+           */
+          timeout_source = g_timeout_source_new (op->timeout);
+          g_source_set_callback (timeout_source, dummy_callback, NULL, NULL);
+          g_source_add_child_source (tls_source, timeout_source);
+          g_source_unref (timeout_source);
+        }
 
       data = delayed_op_async_data_new (queue, main_loop);
-      if (G_IS_DATAGRAM_BASED (op->connection))
+      if (g_tls_connection_base_is_dtls (op->connection))
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_dtls_op), data, NULL);
       else
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_tls_op), data, NULL);
 
       main_context = g_main_loop_get_context (main_loop);
       g_source_attach (tls_source, main_context);
+
+      return G_SOURCE_CONTINUE;
     }
-  else
-    {
-      /* op->main_loop is running on the original thread to block the original
-       * thread until op has completed on the op thread, which it just has.
-       * This is different from main_loop, which is running the op thread.
-       */
-      g_main_loop_quit (op->main_loop);
-      g_tls_thread_operation_free (op);
-    }
+
+finished:
+  /* op->main_loop is running on the original thread to block the original
+   * thread until op has completed on the op thread, which it just has.
+   * This is different from main_loop, which is running the op thread.
+   */
+  g_main_loop_quit (op->main_loop);
+  g_tls_thread_operation_free (op);
 
   return G_SOURCE_CONTINUE;
 }
@@ -579,4 +594,18 @@ g_tls_thread_new (GTlsConnectionBase *tls)
                          "tls-connection", tls,
                          NULL);
   return thread;
+}
+
+static void
+GTLS_OP_DEBUG (GTlsThreadOperation *op,
+               const char          *message,
+               ...)
+{
+
+  va_list args;
+  va_start (args, message);
+
+  GTLS_DEBUG (op->connection, message, args);
+
+  va_end (args);
 }
