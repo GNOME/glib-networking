@@ -1017,12 +1017,13 @@ g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   GTlsConnectionBaseStatus status;
   gssize ret;
-
+GTLS_DEBUG (tls, "%s: writing buffer size=%zu", __FUNCTION__, size);
   BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
   ret = gnutls_record_send (priv->session, buffer, size);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
   *nwrote = MAX (ret, 0);
+GTLS_DEBUG (tls, "%s: wrote %zd bytes", __FUNCTION__, ret);
   return status;
 }
 

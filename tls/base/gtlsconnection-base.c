@@ -1826,6 +1826,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nread;
+GTLS_DEBUG (tls, "%s: timeout=%ld", __FUNCTION__, timeout);
 
   do
     {
@@ -1845,7 +1846,9 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
         }
       else
         {
+GTLS_DEBUG (tls, "%s: Entering TLS thread read...", __FUNCTION__);
           status = g_tls_thread_read (priv->thread, buffer, size, timeout, &nread, cancellable, error);
+GTLS_DEBUG (tls, "%s: Completed TLS thread read, status=%d nread=%zd", __FUNCTION__, status, nread);
         }
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);

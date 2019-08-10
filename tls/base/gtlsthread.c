@@ -28,6 +28,7 @@
 #include "gtlsthread.h"
 
 #include <glib/gi18n-lib.h>
+#include <glib/gstdio.h>
 
 /* The purpose of this class is to ensure the underlying TLS library is only
  * ever used on a single thread. There are multiple benefits of this:
@@ -178,6 +179,7 @@ g_tls_thread_read (GTlsThread    *self,
   GTlsThreadOperation *op;
   GMainContext *main_context;
   GMainLoop *main_loop;
+  GTlsConnectionBaseStatus result;
 
   main_context = g_main_context_new ();
   main_loop = g_main_loop_new (main_context, FALSE);
@@ -187,7 +189,7 @@ g_tls_thread_read (GTlsThread    *self,
                                    cancellable, main_loop);
   g_async_queue_push (self->queue, op);
   g_main_context_wakeup (self->op_thread_context);
-
+GTLS_OP_DEBUG (op, "%s: timeout=%zd: starting read...", __FUNCTION__, timeout);
   g_main_loop_run (main_loop);
 
   *nread = op->count;
@@ -198,10 +200,15 @@ g_tls_thread_read (GTlsThread    *self,
       op->error = NULL;
     }
 
+GTLS_OP_DEBUG (op, "%s: nread=%zd error=%s", __FUNCTION__, *nread, error && *error ? (*error)->message : NULL);
+
+  result = op->result;
+
+  g_tls_thread_operation_free (op);
   g_main_context_unref (main_context);
   g_main_loop_unref (main_loop);
 
-  return op->result;
+  return result;
 }
 
 typedef struct {
@@ -444,7 +451,6 @@ process_op (GAsyncQueue         *queue,
            * is different from op->main_loop, which runs on the original thread.
            */
           g_main_loop_quit (main_loop);
-          g_tls_thread_operation_free (op);
           return G_SOURCE_REMOVE;
         }
     }
@@ -504,7 +510,6 @@ finished:
    * This is different from main_loop, which is running the op thread.
    */
   g_main_loop_quit (op->main_loop);
-  g_tls_thread_operation_free (op);
 
   return G_SOURCE_CONTINUE;
 }
@@ -588,7 +593,7 @@ g_tls_thread_set_property (GObject      *object,
 static void
 g_tls_thread_init (GTlsThread *self)
 {
-  self->queue = g_async_queue_new_full ((GDestroyNotify)g_tls_thread_operation_free);
+  self->queue = g_async_queue_new ();
   self->op_thread_context = g_main_context_new ();
   self->op_thread = g_thread_new ("[glib-networking] GTlsThreadBase TLS operations thread",
                                   tls_op_thread,
@@ -599,13 +604,16 @@ static void
 g_tls_thread_finalize (GObject *object)
 {
   GTlsThread *self = G_TLS_THREAD (object);
+  GTlsThreadOperation *op;
 
-  g_async_queue_push (self->queue, g_tls_thread_shutdown_operation_new ());
+  op = g_tls_thread_shutdown_operation_new ();
+  g_async_queue_push (self->queue, op);
   g_main_context_wakeup (self->op_thread_context);
 
   g_clear_pointer (&self->op_thread, g_thread_join);
   g_clear_pointer (&self->op_thread_context, g_main_context_unref);
   g_clear_pointer (&self->queue, g_async_queue_unref);
+  g_tls_thread_operation_free (op);
 
   g_clear_weak_pointer (&self->connection);
 
@@ -642,16 +650,33 @@ g_tls_thread_new (GTlsConnectionBase *tls)
   return thread;
 }
 
+// FIXME: Redundant
 static void
 GTLS_OP_DEBUG (GTlsThreadOperation *op,
                const char          *message,
                ...)
 {
-
+  char *result = NULL;
+  GTlsConnection *connection = G_TLS_CONNECTION (op->connection);
+  int ret;
   va_list args;
+
   va_start (args, message);
 
-  GTLS_DEBUG (op->connection, message, args);
+  ret = g_vasprintf (&result, message, args);
+  g_assert (ret > 0);
 
+  if (G_IS_TLS_CLIENT_CONNECTION (connection))
+    g_printf ("CLIENT %p: ", connection);
+  else if (G_IS_TLS_SERVER_CONNECTION (connection))
+    g_printf ("SERVER %p: ", connection);
+  else
+    g_assert_not_reached ();
+
+  g_printf ("%s\n", result);
+
+  fflush (stdout);
+
+  g_free (result);
   va_end (args);
 }
