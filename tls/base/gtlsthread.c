@@ -210,8 +210,9 @@ typedef struct {
   GAsyncQueue *queue;
 } GTlsOpQueueSource;
 
-typedef gboolean (*GTlsOpQueueSourceFunc) (GAsyncQueue *queue,
-                                           GMainLoop   *main_loop);
+typedef gboolean (*GTlsOpQueueSourceFunc) (GAsyncQueue         *queue,
+                                           GTlsThreadOperation *op,
+                                           GMainLoop           *main_loop);
 
 static gboolean
 queue_has_pending_op (GAsyncQueue *queue)
@@ -242,8 +243,10 @@ tls_op_queue_source_prepare (GSource *source,
 
   ready = queue_has_pending_op (op_source->queue);
 
-  /* Why is it safe to use -1 as the timeout here? Because
-   * g_main_context_wakeup() will be called when pushing ops onto the queue!
+  /* If we are ready to dispatch, timeout should be 0 to ensure poll() returns
+   * immediately. Otherwise, we are in no hurry and can wait "forever." If
+   * a new op is pushed onto the queue, the code performing the push is
+   * responsible for calling g_main_context_wakeup() to end the wait.
    */
   *timeout = ready ? 0 : -1;
 
@@ -266,6 +269,7 @@ tls_op_queue_source_dispatch (GSource     *source,
   GTlsOpQueueSource *op_source = (GTlsOpQueueSource *)source;
 
   return ((GTlsOpQueueSourceFunc)callback) (op_source->queue,
+                                            NULL, /* no delayed source */
                                             user_data);
 }
 
@@ -284,7 +288,7 @@ tls_op_queue_source_closure_callback (GAsyncQueue *queue,
 {
   GClosure *closure = data;
 
-  GValue param[2] = { G_VALUE_INIT, G_VALUE_INIT };
+  GValue param[3] = { G_VALUE_INIT, G_VALUE_INIT, G_VALUE_INIT };
   GValue result_value = G_VALUE_INIT;
   gboolean result;
 
@@ -292,15 +296,18 @@ tls_op_queue_source_closure_callback (GAsyncQueue *queue,
 
   g_value_init (&param[0], G_TYPE_POINTER);
   g_value_set_pointer (&param[0], queue);
-  g_value_init (&param[1], G_TYPE_MAIN_LOOP);
-  g_value_set_pointer (&param[1], main_loop);
+  g_value_init (&param[1], G_TYPE_POINTER);
+  g_value_set_pointer (&param[1], NULL);
+  g_value_init (&param[2], G_TYPE_MAIN_LOOP);
+  g_value_set_pointer (&param[2], main_loop);
 
-  g_closure_invoke (closure, &result_value, 2, param, NULL);
+  g_closure_invoke (closure, &result_value, 3, param, NULL);
 
   result = g_value_get_boolean (&result_value);
   g_value_unset (&result_value);
   g_value_unset (&param[0]);
   g_value_unset (&param[1]);
+  g_value_unset (&param[2]);
 
   return result;
 }
@@ -424,9 +431,6 @@ process_op (GAsyncQueue         *queue,
     }
   else
     {
-      /* We could use normal pop() here, but try_pop() allows us to assert that
-       * we never block.
-       */
       op = g_async_queue_try_pop (queue);
       g_assert (op);
     }
