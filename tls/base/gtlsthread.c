@@ -368,9 +368,10 @@ resume_tls_op (GObject  *pollable_stream,
                gpointer  user_data)
 {
   DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
+  gboolean ret;
 
-  /* FIXME: handle G_SOURCE_REMOVE return */
-  process_op (data->queue, data->op, data->main_loop);
+  ret = process_op (data->queue, data->op, data->main_loop);
+  g_assert (ret == G_SOURCE_CONTINUE);
 
   delayed_op_async_data_free (data);
 
@@ -383,9 +384,10 @@ resume_dtls_op (GDatagramBased *datagram_based,
                 gpointer        user_data)
 {
   DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
+  gboolean ret;
 
-  /* FIXME: handle G_SOURCE_REMOVE return */
-  process_op (data->queue, data->op, data->main_loop);
+  ret = process_op (data->queue, data->op, data->main_loop);
+  g_assert (ret == G_SOURCE_CONTINUE);
 
   delayed_op_async_data_free (data);
 
@@ -424,6 +426,7 @@ process_op (GAsyncQueue         *queue,
           /* Not ready, so we must have timed out. */
           /* FIXME: track the timeout in the op to assert this is right */
           op->count = 0;
+          g_clear_error (&op->error);
           g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
                        _("Socket I/O timed out"));
           goto finished;
@@ -433,19 +436,17 @@ process_op (GAsyncQueue         *queue,
     {
       op = g_async_queue_try_pop (queue);
       g_assert (op);
-    }
 
-  if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
-    {
-      g_assert (!delayed_op);
-
-      /* Note that main_loop is running on here on the op thread for the
-       * lifetime of this GTlsThread. This will shut down the whole thing. This
-       * is different from op->main_loop, which runs on the original thread.
-       */
-      g_main_loop_quit (main_loop);
-      g_tls_thread_operation_free (op);
-      return G_SOURCE_REMOVE;
+      if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
+        {
+          /* Note that main_loop is running on here on the op thread for the
+           * lifetime of this GTlsThread. This will shut down the whole thing. This
+           * is different from op->main_loop, which runs on the original thread.
+           */
+          g_main_loop_quit (main_loop);
+          g_tls_thread_operation_free (op);
+          return G_SOURCE_REMOVE;
+        }
     }
 
   switch (op->type)
@@ -492,6 +493,7 @@ process_op (GAsyncQueue         *queue,
 
       main_context = g_main_loop_get_context (main_loop);
       g_source_attach (tls_source, main_context);
+      g_source_unref (tls_source);
 
       return G_SOURCE_CONTINUE;
     }
@@ -521,6 +523,7 @@ tls_op_thread (gpointer data)
   source = tls_op_queue_source_new (self->queue);
   g_source_set_callback (source, G_SOURCE_FUNC (process_op), main_loop, NULL);
   g_source_attach (source, self->op_thread_context);
+  g_source_unref (source);
 
   g_main_loop_run (main_loop);
 
