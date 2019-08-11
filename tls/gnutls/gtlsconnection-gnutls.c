@@ -938,6 +938,7 @@ g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_IN, 0, cancellable);
   ret = gnutls_record_recv (priv->session, buffer, size);
+GTLS_DEBUG (tls, "%s: read completed: ret=%zd (%s)", __FUNCTION__, ret, ret < 0 ? gnutls_strerror (ret) : "");
   END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 
   *nread = MAX (ret, 0);

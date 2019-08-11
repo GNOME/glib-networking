@@ -423,6 +423,7 @@ process_op (GAsyncQueue         *queue,
     {
 gint64 original_timeout = delayed_op->timeout;
       op = delayed_op;
+      g_clear_error (&op->error);
 
       if (op->timeout != -1)
         {
@@ -433,6 +434,7 @@ gint64 original_timeout = delayed_op->timeout;
 GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld", __FUNCTION__, delayed_op, op->type, original_timeout, op->timeout);
       if (!g_tls_connection_base_base_check (op->connection, op->condition))
         {
+GTLS_OP_DEBUG (op, "base stream not ready for I/O cond=%d", op->condition);
           /* Not ready for I/O. Either we timed out, or were cancelled, or we
            * could have a spurious wakeup caused by GTlsConnectionBase yield_op.
            */
@@ -441,7 +443,6 @@ GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld",
             {
               GTLS_OP_DEBUG (op, "Delayed op %p cancelled!", op);
               op->count = 0;
-              g_clear_error (&op->error);
               g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_CANCELLED,
                            _("Operation cancelled"));
               goto finished;
@@ -452,7 +453,6 @@ GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld",
               GTLS_OP_DEBUG (op, "Delayed op %p timed out!", op);
               g_assert (op->timeout != -1);
               op->count = 0;
-              g_clear_error (&op->error);
               g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
                            _("Socket I/O timed out"));
               goto finished;
@@ -486,11 +486,13 @@ GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
     {
     /* FIXME: handle all op types, including handshake and directional closes */
     case G_TLS_THREAD_OP_READ:
+GTLS_OP_DEBUG (op, "%s: error=%s before calling read_fn", __FUNCTION__, op->error ? op->error->message : NULL);
       op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
                                                                               op->data, op->size,
                                                                               &op->count,
                                                                               op->cancellable,
                                                                               &op->error);
+GTLS_OP_DEBUG (op, "%s: count=%zd error=%s", __FUNCTION__, op->count, op->error ? op->error->message : NULL);
       break;
     case G_TLS_THREAD_OP_SHUTDOWN:
       g_assert_not_reached ();
