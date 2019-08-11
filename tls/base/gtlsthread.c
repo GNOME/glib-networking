@@ -376,7 +376,7 @@ resume_tls_op (GObject  *pollable_stream,
 {
   DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
   gboolean ret;
-
+GTLS_OP_DEBUG (data->op, "%s: resuming op %p", __FUNCTION__, data->op);
   ret = process_op (data->queue, data->op, data->main_loop);
   g_assert (ret == G_SOURCE_CONTINUE);
 
@@ -427,23 +427,36 @@ process_op (GAsyncQueue         *queue,
   if (delayed_op)
     {
       op = delayed_op;
-
+GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d", __FUNCTION__, delayed_op, op->type);
       if (!g_tls_connection_base_check (op->connection, op->condition))
         {
-          /* Not ready, so we must have timed out. */
-          /* FIXME: track the timeout in the op to assert this is right */
-          op->count = 0;
-          g_clear_error (&op->error);
-          g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
-                       _("Socket I/O timed out"));
-          goto finished;
+          /* Not ready. Either we timed out, or were cancelled. */
+          /* FIXME: very fragile, assumes op->cancellable is the GTlsConnectionBase's cancellable */
+          if (g_cancellable_is_cancelled (op->cancellable))
+            {
+              GTLS_OP_DEBUG (op, "Delayed op %p cancelled!", op);
+              op->count = 0;
+              g_clear_error (&op->error);
+              g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_CANCELLED,
+                           _("Operation cancelled"));
+            }
+          else
+            {
+              GTLS_OP_DEBUG (op, "Delayed op %p timed out!", op);
+              g_assert (op->timeout != -1);
+              op->count = 0;
+              g_clear_error (&op->error);
+              g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
+                           _("Socket I/O timed out"));
+              goto finished;
+            }
         }
     }
   else
     {
       op = g_async_queue_try_pop (queue);
       g_assert (op);
-
+GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
       if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
         {
           /* Note that main_loop is running on here on the op thread for the
@@ -657,7 +670,7 @@ GTLS_OP_DEBUG (GTlsThreadOperation *op,
                ...)
 {
   char *result = NULL;
-  GTlsConnection *connection = G_TLS_CONNECTION (op->connection);
+  GTlsConnection *connection = op->connection ? G_TLS_CONNECTION (op->connection) : NULL;
   int ret;
   va_list args;
 
@@ -666,7 +679,9 @@ GTLS_OP_DEBUG (GTlsThreadOperation *op,
   ret = g_vasprintf (&result, message, args);
   g_assert (ret > 0);
 
-  if (G_IS_TLS_CLIENT_CONNECTION (connection))
+  if (!connection)
+    g_printf ("(Shutdown op): ");
+  else if (G_IS_TLS_CLIENT_CONNECTION (connection))
     g_printf ("CLIENT %p: ", connection);
   else if (G_IS_TLS_SERVER_CONNECTION (connection))
     g_printf ("SERVER %p: ", connection);
