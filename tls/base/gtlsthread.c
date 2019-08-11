@@ -89,6 +89,7 @@ typedef struct {
   void *data; /* unowned */
   gsize size;
   gint64 timeout;
+  gint64 start_time;
   GCancellable *cancellable;
   GMainLoop *main_loop; /* Running on the ORIGINAL thread, not the op thread. */
   GTlsConnectionBaseStatus result;
@@ -418,19 +419,20 @@ process_op (GAsyncQueue         *queue,
 {
   GTlsThreadOperation *op;
 
-  /* There are three reasons this function could be called:
-   *
-   * (1) A delayed operation is ready to perform I/O.
-   * (2) A delayed operation has timed out.
-   * (3) A new operation has been added to the queue.
-   */
   if (delayed_op)
     {
+gint64 original_timeout = delayed_op->timeout;
       op = delayed_op;
-GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d", __FUNCTION__, delayed_op, op->type);
+
+      if (op->timeout != -1)
+        op->timeout = MAX (op->timeout - (g_get_monotonic_time () - op->start_time), 0);
+
+GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld", __FUNCTION__, delayed_op, op->type, original_timeout, op->timeout);
       if (!g_tls_connection_base_check (op->connection, op->condition))
         {
-          /* Not ready. Either we timed out, or were cancelled. */
+          /* Not ready for I/O. Either we timed out, or were cancelled, or we
+           * could have a spurious wakeup caused by GTlsConnectionBase yield_op.
+           */
           /* FIXME: very fragile, assumes op->cancellable is the GTlsConnectionBase's cancellable */
           if (g_cancellable_is_cancelled (op->cancellable))
             {
@@ -441,7 +443,8 @@ GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d", __FUNCTION__, delayed_op, op->ty
                            _("Operation cancelled"));
               goto finished;
             }
-          else /* FIXME: this could trigger if GTlsConnectionBase yielded an op, even if op isn't ready. We need to do the check timeout/reschedule dance */
+
+          if (op->timeout == 0)
             {
               GTLS_OP_DEBUG (op, "Delayed op %p timed out!", op);
               g_assert (op->timeout != -1);
@@ -451,6 +454,10 @@ GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d", __FUNCTION__, delayed_op, op->ty
                            _("Socket I/O timed out"));
               goto finished;
             }
+
+          /* Spurious wakeup. Try again later. */
+          op->result = G_TLS_CONNECTION_BASE_WOULD_BLOCK;
+          goto wait;
         }
     }
   else
@@ -483,6 +490,7 @@ GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
       g_assert_not_reached ();
     }
 
+wait:
   if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK &&
       op->timeout != 0)
     {
@@ -496,6 +504,8 @@ GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
                                                         op->cancellable);
       if (op->timeout > 0)
         {
+          op->start_time = g_get_monotonic_time ();
+
           /* tls_source should fire if (a) we're ready to ready/write without
            * blocking, or (b) the timeout has elasped.
            */
