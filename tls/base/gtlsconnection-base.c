@@ -1123,11 +1123,31 @@ g_tls_connection_base_dtls_create_source (GDatagramBased  *datagram_based,
 
 static GIOCondition
 g_tls_connection_base_condition_check (GDatagramBased  *datagram_based,
-                                         GIOCondition     condition)
+                                       GIOCondition     condition)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
 
   return g_tls_connection_base_check (tls, condition) ? condition : 0;
+}
+
+/* Returns a GSource for the underlying GDatagramBased or base stream, not for
+ * the GTlsConnectionBase itself.
+ */
+GSource *
+g_tls_connection_base_create_base_source (GTlsConnectionBase *tls,
+                                          GIOCondition        condition,
+                                          GCancellable       *cancellable)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  if (g_tls_connection_base_is_dtls (tls))
+    return g_datagram_based_create_source (priv->base_socket, condition, cancellable);
+  if (condition & G_IO_IN)
+    return g_pollable_input_stream_create_source (priv->base_istream, cancellable);
+  if (condition & G_IO_OUT)
+    return g_pollable_output_stream_create_source (priv->base_ostream, cancellable);
+
+  g_assert_not_reached ();
 }
 
 static gboolean

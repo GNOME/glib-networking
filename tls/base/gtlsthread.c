@@ -431,7 +431,7 @@ gint64 original_timeout = delayed_op->timeout;
         }
 
 GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld", __FUNCTION__, delayed_op, op->type, original_timeout, op->timeout);
-      if (!g_tls_connection_base_check (op->connection, op->condition))
+      if (!g_tls_connection_base_base_check (op->connection, op->condition))
         {
           /* Not ready for I/O. Either we timed out, or were cancelled, or we
            * could have a spurious wakeup caused by GTlsConnectionBase yield_op.
@@ -505,9 +505,9 @@ wait:
       GMainContext *main_context;
       DelayedOpAsyncData *data;
 
-      tls_source = g_tls_connection_base_create_source (op->connection,
-                                                        op->condition,
-                                                        op->cancellable);
+      tls_source = g_tls_connection_base_create_base_source (op->connection,
+                                                             op->condition,
+                                                             op->cancellable);
       if (op->timeout > 0)
         {
           op->start_time = g_get_monotonic_time ();
