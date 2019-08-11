@@ -448,8 +448,6 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
   G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->
     complete_handshake (tls, negotiated_protocol, error);
 
-  // FIXME: restore
-#if 0
   resumed = gnutls_session_is_resumed (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)));
   if (!resumed)
     {
@@ -471,7 +469,6 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
                                                 gnutls->session_data);
         }
     }
-#endif
 }
 
 static void

@@ -39,9 +39,6 @@
 #include "openssl-include.h"
 #endif
 
-//FIXME
-#include <glib/gstdio.h>
-
 static const gchar *
 tls_test_file_path (const char *name)
 {
@@ -1647,8 +1644,6 @@ simul_async_read_complete (GObject      *object,
   nread = g_input_stream_read_finish (G_INPUT_STREAM (object),
                                       result, &error);
   g_assert_no_error (error);
-g_printf("%s: successfully read %zd bytes\n", __FUNCTION__, nread);
-fflush(stdout);
 
   test->nread += nread;
   g_assert_cmpint (test->nread, <=, TEST_DATA_LENGTH);
@@ -1681,14 +1676,10 @@ simul_async_write_complete (GObject      *object,
   nwrote = g_output_stream_write_finish (G_OUTPUT_STREAM (object),
                                          result, &error);
   g_assert_no_error (error);
-g_printf("%s: successfully wrote %zd bytes\n", __FUNCTION__, nwrote);
-fflush(stdout);
 
   test->nwrote += nwrote;
   if (test->nwrote < TEST_DATA_LENGTH)
     {
-g_printf("test->nwrote=%zd < TEST_DATA_LENGTH %d, writing again...\n", test->nwrote, TEST_DATA_LENGTH);
-fflush(stdout);
       g_output_stream_write_async (G_OUTPUT_STREAM (object),
                                    &TEST_DATA[test->nwrote],
                                    TEST_DATA_LENGTH - test->nwrote,
@@ -1717,9 +1708,6 @@ test_simultaneous_async (TestConnection *test,
 
   memset (test->buf, 0, sizeof (test->buf));
   test->nread = test->nwrote = 0;
-
-g_printf("%s: starting simul async read and async write\n", __FUNCTION__);
-fflush(stdout);
 
   g_input_stream_read_async (g_io_stream_get_input_stream (test->client_connection),
                              test->buf, TEST_DATA_LENGTH / 2,
