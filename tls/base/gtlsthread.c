@@ -439,8 +439,9 @@ GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d", __FUNCTION__, delayed_op, op->ty
               g_clear_error (&op->error);
               g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_CANCELLED,
                            _("Operation cancelled"));
+              goto finished;
             }
-          else
+          else /* FIXME: this could trigger if GTlsConnectionBase yielded an op, even if op isn't ready. We need to do the check timeout/reschedule dance */
             {
               GTLS_OP_DEBUG (op, "Delayed op %p timed out!", op);
               g_assert (op->timeout != -1);
@@ -509,7 +510,7 @@ GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_dtls_op), data, NULL);
       else
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_tls_op), data, NULL);
-
+GTLS_OP_DEBUG (op, "%s: created tls_source %p for op %p", __FUNCTION__, tls_source, op);
       main_context = g_main_loop_get_context (main_loop);
       g_source_attach (tls_source, main_context);
       g_source_unref (tls_source);
