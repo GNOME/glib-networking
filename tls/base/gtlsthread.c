@@ -425,7 +425,10 @@ gint64 original_timeout = delayed_op->timeout;
       op = delayed_op;
 
       if (op->timeout != -1)
-        op->timeout = MAX (op->timeout - (g_get_monotonic_time () - op->start_time), 0);
+        {
+          op->timeout -= g_get_monotonic_time () - op->start_time;
+          op->timeout = MAX (op->timeout, 0);
+        }
 
 GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld", __FUNCTION__, delayed_op, op->type, original_timeout, op->timeout);
       if (!g_tls_connection_base_check (op->connection, op->condition))
@@ -456,6 +459,9 @@ GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld",
             }
 
           /* Spurious wakeup. Try again later. */
+          /* FIXME: This could loop forever because the source could be blocked on our own op_waiting.
+           * Perhaps we need to use the base stream source directly here instead?
+           */
           op->result = G_TLS_CONNECTION_BASE_WOULD_BLOCK;
           goto wait;
         }
@@ -691,7 +697,7 @@ GTLS_OP_DEBUG (GTlsThreadOperation *op,
   g_assert (ret > 0);
 
   if (!connection)
-    g_printf ("(Shutdown op): ");
+    g_printf ("SHUTDOWN: ");
   else if (G_IS_TLS_CLIENT_CONNECTION (connection))
     g_printf ("CLIENT %p: ", connection);
   else if (G_IS_TLS_SERVER_CONNECTION (connection))
