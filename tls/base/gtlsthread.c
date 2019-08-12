@@ -48,7 +48,7 @@
  *   threadsafety semantics of its parent class, GIOStream, allow it to be used
  *   from separate reader and writer threads simultaneously.
  *
- * While the TLS thread class is intended to simplify our code, it has one
+ * While the TLS thread class is intended to simplify our code, it has one major
  * disadvantage: the TLS thread *must never block* because GIOStream users are
  * allowed to do a sync read and a sync write simultaneously in separate threads
  * threads. Consider a hypothetical scenario:
@@ -61,7 +61,13 @@
  * is completed. The application is allowed to do this and expect it to work,
  * because GIOStream says it will work. If our TLS thread were to block on the
  * read, then the write would never start, and the read could never complete.
- * This means that underlying TLS operations must use async I/O.
+ *
+ * This means that underlying TLS operations must use entirely nonblocking I/O.
+ * We specify a timeout of 0 for every operation to ensure it returns
+ * immediately with an error if I/O cannot be performed immediately. If so, we
+ * create a GSource that will trigger later on, when possibly ready to perform
+ * I/O. In this way, we can simultaneously handle separate synchronous read and
+ * write operations on one thread without either one blocking the other.
  */
 struct _GTlsThread {
   GObject parent_instance;
@@ -190,7 +196,7 @@ g_tls_thread_read (GTlsThread    *self,
                                    cancellable, main_loop);
   g_async_queue_push (self->queue, op);
   g_main_context_wakeup (self->op_thread_context);
-GTLS_OP_DEBUG (op, "%s: timeout=%zd: starting read...", __FUNCTION__, timeout);
+GTLS_OP_DEBUG (op, "%s: timeout=%zd: main_loop=%p starting read...", __FUNCTION__, timeout, main_loop);
   g_main_loop_run (main_loop);
 
   *nread = op->count;
@@ -583,6 +589,7 @@ GTLS_OP_DEBUG (op, "%s: created tls_source %p for op %p", __FUNCTION__, tls_sour
     }
 
 finished:
+GTLS_OP_DEBUG (op, "%s: completed, calling g_main_loop_quit for op->main_loop=%p", __FUNCTION__, op->main_loop);
   /* op->main_loop is running on the original thread to block the original
    * thread until op has completed on the op thread, which it just has.
    * This is different from main_loop, which is running the op thread.
@@ -611,7 +618,7 @@ tls_op_thread (gpointer data)
   g_main_loop_run (main_loop);
 
   /* FIXME FIXME: what happens if there are still ops in progress?
-   * They should be cancelled somehow. Figure out how. Assert this has happened?
+   * They should be cancelled somehow. Figure out how.
    */
 
   g_main_context_pop_thread_default (self->op_thread_context);
