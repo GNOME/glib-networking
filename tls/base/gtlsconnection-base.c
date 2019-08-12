@@ -928,33 +928,17 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
                                     tls_source->child_source);
       g_source_unref (tls_source->child_source);
     }
-GTLS_DEBUG (tls, "%s: tls_source=%p op_waiting=%d io_waiting=%d", __FUNCTION__, tls_source, op_waiting, io_waiting);
 
   if (op_waiting)
-{
-GTLS_DEBUG (tls, "created GCancellableSource");
     tls_source->child_source = g_cancellable_source_new (priv->waiting_for_op);
-}
   else if (io_waiting && G_IS_DATAGRAM_BASED (tls_source->base))
-{
-GTLS_DEBUG (tls, "created GDatagramBasedSource");
     tls_source->child_source = g_datagram_based_create_source (priv->base_socket, tls_source->condition, NULL);
-}
   else if (io_waiting && G_IS_POLLABLE_INPUT_STREAM (tls_source->base))
-{
-GTLS_DEBUG (tls, "created GPollableInputStreamSource");
     tls_source->child_source = g_pollable_input_stream_create_source (priv->base_istream, NULL);
-}
   else if (io_waiting && G_IS_POLLABLE_OUTPUT_STREAM (tls_source->base))
-{
-GTLS_DEBUG (tls, "created GPollableOutputStreamSource");
     tls_source->child_source = g_pollable_output_stream_create_source (priv->base_ostream, NULL);
-}
   else
-{
-GTLS_DEBUG (tls, "op ready, created GTimeoutSource and it's set to expire!");
     tls_source->child_source = g_timeout_source_new (0);
-}
 
   g_source_set_callback (tls_source->child_source, dummy_callback, NULL, NULL);
   g_source_add_child_source ((GSource *)tls_source, tls_source->child_source);
@@ -1881,9 +1865,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
         }
       else
         {
-GTLS_DEBUG (tls, "%s: Entering TLS thread read...", __FUNCTION__);
           status = g_tls_thread_read (priv->thread, buffer, size, timeout, &nread, cancellable, error);
-GTLS_DEBUG (tls, "%s: Completed TLS thread read, status=%d nread=%zd", __FUNCTION__, status, nread);
         }
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
