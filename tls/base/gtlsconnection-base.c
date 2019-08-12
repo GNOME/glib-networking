@@ -1851,40 +1851,6 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
     }
 }
 
-static gint64
-get_op_timeout (GTlsConnectionBase *tls,
-                gint64              timeout)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GSocket *socket = NULL;
-
-  /* Nonblocking? */
-  if (timeout == 0)
-    return 0;
-
-  if (g_tls_connection_base_is_dtls (tls) && G_IS_SOCKET (priv->base_socket))
-    socket = (GSocket *)priv->base_socket;
-  else if (G_IS_SOCKET_CONNECTION (priv->base_io_stream))
-    socket = g_socket_connection_get_socket ((GSocketConnection *)priv->base_io_stream);
-
-  /* Never block for longer than the underlying socket timeout. */
-  /* FIXME: close glib-networking#18 */
-  if (socket)
-    {
-      gint64 socket_timeout = g_socket_get_timeout (socket);
-      if (socket_timeout > 0)
-        {
-          if (timeout == -1)
-            return socket_timeout;
-
-          g_assert (timeout > 0);
-          return MIN (timeout, socket_timeout);
-        }
-    }
-
-  return timeout;
-}
-
 gssize
 g_tls_connection_base_read (GTlsConnectionBase  *tls,
                             void                *buffer,
@@ -1896,10 +1862,6 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nread;
-GTLS_DEBUG (tls, "%s: timeout=%ld", __FUNCTION__, timeout);
-
-  timeout = get_op_timeout (tls, timeout);
-GTLS_DEBUG (tls, "%s: adjusted timeout=%ld", __FUNCTION__, timeout);
 
   do
     {
@@ -1948,8 +1910,6 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nread;
-
-  timeout = get_op_timeout (tls, timeout);
 
   do {
     if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_READ,
@@ -2009,8 +1969,6 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   guint i;
   GError *child_error = NULL;
-
-  timeout = get_op_timeout (tls, timeout);
 
   if (flags != G_SOCKET_MSG_NONE)
     {
@@ -2087,8 +2045,6 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
   GTlsConnectionBaseStatus status;
   gssize nwrote;
 
-  timeout = get_op_timeout (tls, timeout);
-
   do
     {
       if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE,
@@ -2122,8 +2078,6 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nwrote;
-
-  timeout = get_op_timeout (tls, timeout);
 
   do {
     if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE,
@@ -2159,8 +2113,6 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   guint i;
   GError *child_error = NULL;
-
-  timeout = get_op_timeout (tls, timeout);
 
   if (flags != G_SOCKET_MSG_NONE)
     {
@@ -2244,8 +2196,6 @@ g_tls_connection_base_close_internal (GIOStream      *stream,
   GTlsConnectionBaseStatus status;
   gboolean success = TRUE;
   GError *close_error = NULL, *stream_error = NULL;
-
-  timeout = get_op_timeout (tls, timeout);
 
   /* This can be called from g_io_stream_close(), g_input_stream_close(),
    * g_output_stream_close(), or g_tls_connection_close(). In all cases, we only

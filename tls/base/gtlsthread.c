@@ -412,6 +412,50 @@ dummy_callback (gpointer data)
   return G_SOURCE_CONTINUE;
 }
 
+static void
+adjust_op_timeout (GTlsThreadOperation *op)
+{
+  GSocket *socket = NULL;
+
+  /* Nonblocking? */
+  if (op->timeout == 0)
+    return;
+
+  if (g_tls_connection_base_is_dtls (op->connection))
+    {
+      GDatagramBased *base_socket = g_tls_connection_base_get_base_socket (op->connection);
+
+      if (G_IS_SOCKET (base_socket))
+        socket = (GSocket *)base_socket;
+    }
+  else
+    {
+      GIOStream *base_stream = g_tls_connection_base_get_base_iostream (op->connection);
+
+      if (G_IS_SOCKET_CONNECTION (base_stream))
+        socket = g_socket_connection_get_socket ((GSocketConnection *)base_stream);
+    }
+
+  /* We have to "massage" the timeout here because we are using only nonblocking
+   * I/O, so the underlying socket will never time out even if a timeout has
+   * been set. But if we are emulating a blocking operation, we need to make
+   * sure we don't block for longer than the underyling timeout.
+   */
+  if (socket)
+    {
+      gint64 socket_timeout = g_socket_get_timeout (socket);
+
+      if (socket_timeout > 0)
+        {
+          if (op->timeout == -1)
+            op->timeout = socket_timeout;
+
+          g_assert (op->timeout > 0);
+          op->timeout = MIN (op->timeout, socket_timeout);
+        }
+    }
+}
+
 static gboolean
 process_op (GAsyncQueue         *queue,
             GTlsThreadOperation *delayed_op,
@@ -480,6 +524,8 @@ GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
           g_main_loop_quit (main_loop);
           return G_SOURCE_REMOVE;
         }
+
+      adjust_op_timeout (op);
     }
 
   switch (op->type)
