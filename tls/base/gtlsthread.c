@@ -197,7 +197,7 @@ g_tls_thread_read (GTlsThread    *self,
   g_async_queue_push (self->queue, op);
   g_main_context_wakeup (self->op_thread_context);
 GTLS_OP_DEBUG (op, "%s: timeout=%zd: main_loop=%p starting read...", __FUNCTION__, timeout, main_loop);
-  g_main_loop_run (main_loop);
+  g_main_loop_run (main_loop); // FIXME: the loop could be quit on the other thread already!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   *nread = op->count;
 
@@ -512,9 +512,11 @@ GTLS_OP_DEBUG (op, "base stream not ready for I/O cond=%d", op->condition);
           /* FIXME: This could loop forever because the source could be blocked on our own op_waiting.
            * Perhaps we need to use the base stream source directly here instead?
            */
+GTLS_OP_DEBUG (op, "%s: op %p spurious wakeup, try again later...", op);
           op->result = G_TLS_CONNECTION_BASE_WOULD_BLOCK;
           goto wait;
         }
+else GTLS_OP_DEBUG (op, "%s: op %p ready for I/O, yippee!", op);
     }
   else
     {
@@ -580,7 +582,7 @@ wait:
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_dtls_op), data, NULL);
       else
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_tls_op), data, NULL);
-GTLS_OP_DEBUG (op, "%s: created tls_source %p for op %p", __FUNCTION__, tls_source, op);
+GTLS_OP_DEBUG (op, "%s: op would block, so created tls_source %p for delayed op %p", __FUNCTION__, tls_source, op);
       main_context = g_main_loop_get_context (main_loop);
       g_source_attach (tls_source, main_context);
       g_source_unref (tls_source);
@@ -589,7 +591,7 @@ GTLS_OP_DEBUG (op, "%s: created tls_source %p for op %p", __FUNCTION__, tls_sour
     }
 
 finished:
-GTLS_OP_DEBUG (op, "%s: completed, calling g_main_loop_quit for op->main_loop=%p", __FUNCTION__, op->main_loop);
+GTLS_OP_DEBUG (op, "%s: completed successfully, calling g_main_loop_quit for op->main_loop=%p", __FUNCTION__, op->main_loop);
   /* op->main_loop is running on the original thread to block the original
    * thread until op has completed on the op thread, which it just has.
    * This is different from main_loop, which is running the op thread.
