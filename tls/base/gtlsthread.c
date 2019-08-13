@@ -489,7 +489,6 @@ process_op (GAsyncQueue         *queue,
 
   if (delayed_op)
     {
-gint64 original_timeout = delayed_op->timeout;
       op = delayed_op;
       g_clear_error (&op->error);
 
