@@ -522,9 +522,6 @@ process_op (GAsyncQueue         *queue,
             }
 
           /* Spurious wakeup. Try again later. */
-          /* FIXME: This could loop forever because the source could be blocked on our own op_waiting.
-           * Perhaps we need to use the base stream source directly here instead?
-           */
           op->result = G_TLS_CONNECTION_BASE_WOULD_BLOCK;
           goto wait;
         }
