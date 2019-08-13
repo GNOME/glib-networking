@@ -90,14 +90,23 @@ typedef enum {
 
 typedef struct {
   GTlsThreadOperationType type;
-  GIOCondition condition;
+  GIOCondition io_condition;
+
   GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
+
+  /* Input */
   void *data; /* unowned */
   gsize size;
   gint64 timeout;
   gint64 start_time;
   GCancellable *cancellable;
-  GMainLoop *main_loop; /* Running on the ORIGINAL thread, not the op thread. */
+
+  /* Used to indicate op completion. */
+  GMutex finished_mutex;
+  GCond finished_condition;
+  gboolean finished;
+
+  /* Result */
   GTlsConnectionBaseStatus result;
   gssize count; /* Bytes read or written */
   GError *error;
@@ -128,8 +137,7 @@ g_tls_thread_operation_new (GTlsThreadOperationType  type,
                             void                    *data,
                             gsize                    size,
                             gint64                   timeout,
-                            GCancellable            *cancellable,
-                            GMainLoop               *main_loop)
+                            GCancellable            *cancellable)
 {
   GTlsThreadOperation *op;
 
@@ -140,13 +148,16 @@ g_tls_thread_operation_new (GTlsThreadOperationType  type,
   op->size = size;
   op->timeout = timeout;
   op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-  op->main_loop = g_main_loop_ref (main_loop);
+
+  g_mutex_init (&op->finished_mutex);
+  g_cond_init (&op->finished_condition);
 
   switch (type)
     {
     case G_TLS_THREAD_OP_READ:
-      op->condition = G_IO_IN;
+      op->io_condition = G_IO_IN;
       break;
+    /* FIXME: more pls */
     case G_TLS_THREAD_OP_SHUTDOWN:
       break;
     }
@@ -170,8 +181,23 @@ g_tls_thread_operation_free (GTlsThreadOperation *op)
 {
   g_clear_object (&op->connection);
   g_clear_object (&op->cancellable);
-  g_clear_pointer (&op->main_loop, g_main_loop_unref);
+
+  if (op->type != G_TLS_THREAD_OP_SHUTDOWN)
+    {
+      g_mutex_clear (&op->finished_mutex);
+      g_cond_clear (&op->finished_condition);
+    }
+
   g_free (op);
+}
+
+static void
+wait_for_op_completion (GTlsThreadOperation *op)
+{
+  g_mutex_lock (&op->finished_mutex);
+  while (!op->finished)
+    g_cond_wait (&op->finished_condition, &op->finished_mutex);
+  g_mutex_unlock (&op->finished_mutex);
 }
 
 GTlsConnectionBaseStatus
@@ -184,20 +210,16 @@ g_tls_thread_read (GTlsThread    *self,
                    GError       **error)
 {
   GTlsThreadOperation *op;
-  GMainContext *main_context;
-  GMainLoop *main_loop;
   GTlsConnectionBaseStatus result;
 
-  main_context = g_main_context_new ();
-  main_loop = g_main_loop_new (main_context, FALSE);
   op = g_tls_thread_operation_new (G_TLS_THREAD_OP_READ,
                                    self->connection,
                                    buffer, size, timeout,
-                                   cancellable, main_loop);
+                                   cancellable);
   g_async_queue_push (self->queue, op);
   g_main_context_wakeup (self->op_thread_context);
-GTLS_OP_DEBUG (op, "%s: timeout=%zd: main_loop=%p starting read...", __FUNCTION__, timeout, main_loop);
-  g_main_loop_run (main_loop); // FIXME: the loop could be quit on the other thread already!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  wait_for_op_completion (op);
 
   *nread = op->count;
 
@@ -207,13 +229,9 @@ GTLS_OP_DEBUG (op, "%s: timeout=%zd: main_loop=%p starting read...", __FUNCTION_
       op->error = NULL;
     }
 
-GTLS_OP_DEBUG (op, "%s: nread=%zd error=%s", __FUNCTION__, *nread, error && *error ? (*error)->message : NULL);
-
   result = op->result;
 
   g_tls_thread_operation_free (op);
-  g_main_context_unref (main_context);
-  g_main_loop_unref (main_loop);
 
   return result;
 }
@@ -383,7 +401,7 @@ resume_tls_op (GObject  *pollable_stream,
 {
   DelayedOpAsyncData *data = (DelayedOpAsyncData *)user_data;
   gboolean ret;
-GTLS_OP_DEBUG (data->op, "%s: resuming op %p", __FUNCTION__, data->op);
+
   ret = process_op (data->queue, data->op, data->main_loop);
   g_assert (ret == G_SOURCE_CONTINUE);
 
@@ -481,17 +499,14 @@ gint64 original_timeout = delayed_op->timeout;
           op->timeout = MAX (op->timeout, 0);
         }
 
-GTLS_OP_DEBUG (op, "%s: delayed_op=%p type=%d, timeout reduced from %ld to %ld", __FUNCTION__, delayed_op, op->type, original_timeout, op->timeout);
-      if (!g_tls_connection_base_base_check (op->connection, op->condition))
+      if (!g_tls_connection_base_base_check (op->connection, op->io_condition))
         {
-GTLS_OP_DEBUG (op, "base stream not ready for I/O cond=%d", op->condition);
           /* Not ready for I/O. Either we timed out, or were cancelled, or we
            * could have a spurious wakeup caused by GTlsConnectionBase yield_op.
            */
           /* FIXME: very fragile, assumes op->cancellable is the GTlsConnectionBase's cancellable */
           if (g_cancellable_is_cancelled (op->cancellable))
             {
-              GTLS_OP_DEBUG (op, "Delayed op %p cancelled!", op);
               op->count = 0;
               g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_CANCELLED,
                            _("Operation cancelled"));
@@ -500,7 +515,6 @@ GTLS_OP_DEBUG (op, "base stream not ready for I/O cond=%d", op->condition);
 
           if (op->timeout == 0)
             {
-              GTLS_OP_DEBUG (op, "Delayed op %p timed out!", op);
               g_assert (op->timeout != -1);
               op->count = 0;
               g_set_error (&op->error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
@@ -512,23 +526,17 @@ GTLS_OP_DEBUG (op, "base stream not ready for I/O cond=%d", op->condition);
           /* FIXME: This could loop forever because the source could be blocked on our own op_waiting.
            * Perhaps we need to use the base stream source directly here instead?
            */
-GTLS_OP_DEBUG (op, "%s: op %p spurious wakeup, try again later...", op);
           op->result = G_TLS_CONNECTION_BASE_WOULD_BLOCK;
           goto wait;
         }
-else GTLS_OP_DEBUG (op, "%s: op %p ready for I/O, yippee!", op);
     }
   else
     {
       op = g_async_queue_try_pop (queue);
       g_assert (op);
-GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
+
       if (op->type == G_TLS_THREAD_OP_SHUTDOWN)
         {
-          /* Note that main_loop is running on here on the op thread for the
-           * lifetime of this GTlsThread. This will shut down the whole thing. This
-           * is different from op->main_loop, which runs on the original thread.
-           */
           g_main_loop_quit (main_loop);
           return G_SOURCE_REMOVE;
         }
@@ -540,13 +548,11 @@ GTLS_OP_DEBUG (op, "%s: New op %p from queue", __FUNCTION__, op);
     {
     /* FIXME: handle all op types, including handshake and directional closes */
     case G_TLS_THREAD_OP_READ:
-GTLS_OP_DEBUG (op, "%s: error=%s before calling read_fn", __FUNCTION__, op->error ? op->error->message : NULL);
       op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
                                                                               op->data, op->size,
                                                                               &op->count,
                                                                               op->cancellable,
                                                                               &op->error);
-GTLS_OP_DEBUG (op, "%s: count=%zd error=%s", __FUNCTION__, op->count, op->error ? op->error->message : NULL);
       break;
     case G_TLS_THREAD_OP_SHUTDOWN:
       g_assert_not_reached ();
@@ -562,7 +568,7 @@ wait:
       DelayedOpAsyncData *data;
 
       tls_source = g_tls_connection_base_create_base_source (op->connection,
-                                                             op->condition,
+                                                             op->io_condition,
                                                              op->cancellable);
       if (op->timeout > 0)
         {
@@ -582,7 +588,7 @@ wait:
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_dtls_op), data, NULL);
       else
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_tls_op), data, NULL);
-GTLS_OP_DEBUG (op, "%s: op would block, so created tls_source %p for delayed op %p", __FUNCTION__, tls_source, op);
+
       main_context = g_main_loop_get_context (main_loop);
       g_source_attach (tls_source, main_context);
       g_source_unref (tls_source);
@@ -591,12 +597,10 @@ GTLS_OP_DEBUG (op, "%s: op would block, so created tls_source %p for delayed op 
     }
 
 finished:
-GTLS_OP_DEBUG (op, "%s: completed successfully, calling g_main_loop_quit for op->main_loop=%p", __FUNCTION__, op->main_loop);
-  /* op->main_loop is running on the original thread to block the original
-   * thread until op has completed on the op thread, which it just has.
-   * This is different from main_loop, which is running the op thread.
-   */
-  g_main_loop_quit (op->main_loop);
+  g_mutex_lock (&op->finished_mutex);
+  op->finished = TRUE;
+  g_cond_signal (&op->finished_condition);
+  g_mutex_unlock (&op->finished_mutex);
 
   return G_SOURCE_CONTINUE;
 }
@@ -737,7 +741,6 @@ g_tls_thread_new (GTlsConnectionBase *tls)
   return thread;
 }
 
-// FIXME: Redundant
 static void
 GTLS_OP_DEBUG (GTlsThreadOperation *op,
                const char          *message,
