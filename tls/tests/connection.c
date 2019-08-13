@@ -116,7 +116,7 @@ setup_connection (TestConnection *test, gconstpointer data)
           g_main_context_iteration (NULL, FALSE);            \
         }                                                    \
                                                              \
-      g_assert (!(var));                                     \
+      g_assert_true (!(var));                                \
     }
 
 static void
@@ -2264,7 +2264,7 @@ test_alpn (TestConnection *test,
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert (test->database);
+  g_assert_nonnull (test->database);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
@@ -2438,7 +2438,8 @@ main (int   argc,
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
-  g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
+
+  g_assert_true (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
   g_test_add ("/tls/" BACKEND "/connection/basic", TestConnection, NULL,
               setup_connection, test_basic_connection, teardown_connection);
