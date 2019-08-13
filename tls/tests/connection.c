@@ -90,6 +90,7 @@ typedef struct {
   gboolean server_running;
   GTlsCertificate *server_certificate;
   const gchar * const *server_protocols;
+  guint64 incoming_connection_delay;
 
   char buf[128];
   gssize nread, nwrote;
@@ -299,6 +300,9 @@ on_incoming_connection (GSocketService     *service,
   GOutputStream *stream;
   GTlsCertificate *cert;
   GError *error = NULL;
+
+  if (test->incoming_connection_delay != 0)
+    g_usleep (test->incoming_connection_delay);
 
   g_assert_null (test->server_connection);
   test->server_connection = g_tls_server_connection_new (G_IO_STREAM (connection),
@@ -2388,6 +2392,41 @@ test_sync_op_during_handshake (TestConnection *test,
   g_assert_no_error (test->server_error);
 }
 
+static void
+test_socket_timeout (TestConnection *test,
+                     gconstpointer   data)
+{
+  GIOStream *connection;
+  GSocketClient *client;
+  GError *error = NULL;
+
+  test->incoming_connection_delay = 1.1 * G_USEC_PER_SEC;
+
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_CLOSE);
+
+  client = g_socket_client_new ();
+  g_socket_client_set_timeout (client, 1);
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  /* No validation at all in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_error (test->read_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -2473,6 +2512,8 @@ main (int   argc,
               setup_connection, test_alpn_server_only, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/sync-op-during-handshake", TestConnection, NULL,
               setup_connection, test_sync_op_during_handshake, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/socket-timeout", TestConnection, NULL,
+              setup_connection, test_socket_timeout, teardown_connection);
 
   ret = g_test_run ();
 
