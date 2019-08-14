@@ -64,14 +64,6 @@ static int g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gn
                                                                               unsigned int                 *pcert_length,
                                                                               gnutls_privkey_t             *pkey);
 
-static int            g_tls_server_connection_gnutls_db_store    (void            *user_data,
-                                                                  gnutls_datum_t   key,
-                                                                  gnutls_datum_t   data);
-static int            g_tls_server_connection_gnutls_db_remove   (void            *user_data,
-                                                                  gnutls_datum_t   key);
-static gnutls_datum_t g_tls_server_connection_gnutls_db_retrieve (void            *user_data,
-                                                                  gnutls_datum_t   key);
-
 static GInitableIface *g_tls_server_connection_gnutls_parent_initable_iface;
 
 G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
@@ -125,9 +117,6 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
   gnutls_certificate_set_retrieve_function2 (creds, g_tls_server_connection_gnutls_handshake_thread_retrieve_function);
 
   session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_db_set_retrieve_function (session, g_tls_server_connection_gnutls_db_retrieve);
-  gnutls_db_set_store_function (session, g_tls_server_connection_gnutls_db_store);
-  gnutls_db_set_remove_function (session, g_tls_server_connection_gnutls_db_remove);
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
   if (cert && !g_tls_certificate_gnutls_has_key (G_TLS_CERTIFICATE_GNUTLS (cert)))
@@ -203,12 +192,6 @@ g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
 }
 
 static void
-g_tls_server_connection_gnutls_failed (GTlsConnectionGnutls *gnutls)
-{
-  gnutls_db_remove_session (g_tls_connection_gnutls_get_session (gnutls));
-}
-
-static void
 g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
                                                   gchar              **advertised_protocols)
 {
@@ -236,78 +219,17 @@ g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
   G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_gnutls_parent_class)->prepare_handshake (tls, advertised_protocols);
 }
 
-/* Session cache management */
-
-static int
-g_tls_server_connection_gnutls_db_store (void            *user_data,
-                                         gnutls_datum_t   key,
-                                         gnutls_datum_t   data)
-{
-  GBytes *session_id, *session_data;
-
-  session_id = g_bytes_new (key.data, key.size);
-  session_data = g_bytes_new (data.data, data.size);
-  g_tls_backend_gnutls_store_session (GNUTLS_SERVER, session_id, session_data);
-  g_bytes_unref (session_id);
-  g_bytes_unref (session_data);
-
-  return 0;
-}
-
-static int
-g_tls_server_connection_gnutls_db_remove (void            *user_data,
-                                          gnutls_datum_t   key)
-{
-  GBytes *session_id;
-
-  session_id = g_bytes_new (key.data, key.size);
-  g_tls_backend_gnutls_remove_session (GNUTLS_SERVER, session_id);
-  g_bytes_unref (session_id);
-
-  return 0;
-}
-
-static gnutls_datum_t
-g_tls_server_connection_gnutls_db_retrieve (void            *user_data,
-                                            gnutls_datum_t   key)
-{
-  GBytes *session_id, *session_data;
-  gnutls_datum_t data;
-
-  session_id = g_bytes_new (key.data, key.size);
-  session_data = g_tls_backend_gnutls_lookup_session (GNUTLS_SERVER, session_id);
-  g_bytes_unref (session_id);
-
-  if (session_data)
-    {
-      data.size = g_bytes_get_size (session_data);
-      data.data = gnutls_malloc (data.size);
-      memcpy (data.data, g_bytes_get_data (session_data, NULL), data.size);
-      g_bytes_unref (session_data);
-    }
-  else
-    {
-      data.size = 0;
-      data.data = NULL;
-    }
-
-  return data;
-}
-
 static void
 g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
-  GTlsConnectionGnutlsClass *gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
   gobject_class->finalize     = g_tls_server_connection_gnutls_finalize;
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 
   base_class->prepare_handshake  = g_tls_server_connection_gnutls_prepare_handshake;
-
-  gnutls_class->failed             = g_tls_server_connection_gnutls_failed;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }
