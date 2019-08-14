@@ -39,8 +39,6 @@ G_DECLARE_DERIVABLE_TYPE (GTlsConnectionGnutls, g_tls_connection_gnutls, G, TLS_
 struct _GTlsConnectionGnutlsClass
 {
   GTlsConnectionBaseClass parent_class;
-
-  void (*failed) (GTlsConnectionGnutls *tls);
 };
 
 gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);
