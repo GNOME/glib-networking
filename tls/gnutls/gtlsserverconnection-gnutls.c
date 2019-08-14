@@ -49,6 +49,8 @@ struct _GTlsServerConnectionGnutls
   gnutls_pcert_st *pcert;
   unsigned int pcert_length;
   gnutls_privkey_t pkey;
+
+  gnutls_datum_t session_ticket_key;
 };
 
 static void     g_tls_server_connection_gnutls_initable_interface_init (GInitableIface  *iface);
@@ -97,6 +99,12 @@ g_tls_server_connection_gnutls_finalize (GObject *object)
 
   clear_gnutls_certificate_copy (gnutls);
 
+  if (gnutls->session_ticket_key.data)
+    {
+      gnutls_memset (gnutls->session_ticket_key.data, 0, gnutls->session_ticket_key.size);
+      gnutls_free (gnutls->session_ticket_key.data);
+    }
+
   G_OBJECT_CLASS (g_tls_server_connection_gnutls_parent_class)->finalize (object);
 }
 
@@ -105,10 +113,14 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
                                               GCancellable    *cancellable,
                                               GError         **error)
 {
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (initable);
   GTlsCertificate *cert;
   gnutls_session_t session;
+<<<<<<< HEAD
   gnutls_certificate_credentials_t creds;
+=======
+  int ret;
+>>>>>>> gnutls: enable session tickets on server side
 
   if (!g_tls_server_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
@@ -124,6 +136,18 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                            _("Certificate has no private key"));
       return FALSE;
+    }
+
+  ret = gnutls_session_ticket_key_generate (&gnutls->session_ticket_key);
+  if (ret != GNUTLS_E_SUCCESS)
+    {
+      g_warning ("Failed to generate session ticket key, session resumption will not work: %s", gnutls_strerror (ret));
+    }
+  else
+    {
+      ret = gnutls_session_ticket_enable_server (session, &gnutls->session_ticket_key);
+      if (ret != GNUTLS_E_SUCCESS)
+        g_warning ("Failed to enable session tickets, session resumption will not work: %s", gnutls_strerror (ret));
     }
 
   return TRUE;
