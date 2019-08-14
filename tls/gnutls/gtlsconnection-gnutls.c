@@ -558,11 +558,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 
 #define END_GNUTLS_IO(gnutls, direction, ret, status, errmsg, err)      \
     status = end_gnutls_io (gnutls, direction, ret, err, errmsg);       \
-  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);                  \
-                                                                        \
-  if (status == G_TLS_CONNECTION_BASE_ERROR &&                          \
-      G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)-> failed)              \
-    G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
+  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
 static void
 set_gnutls_error (GTlsConnectionGnutls *gnutls,
