@@ -40,54 +40,63 @@ test_programs = [
   ['file-database', [], deps, [], []],
   ['connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
 # DTLS tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/49
-#  ['dtls-connection', ['mock-interaction.c'], deps, ['openssl']],
+#  ['dtls-connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
 ]
 
 foreach backend: backends
   foreach program: test_programs
-    if not program[3].contains(backend)
-      program_name = program[0] + '-' + backend
+    # OpenSSL does not support DTLS yet.
+    if program[0] == 'dtls-connection' and backend == 'openssl'
+      continue
+    endif
 
-      test_conf = configuration_data()
-      test_conf.set('installed_tests_dir', installed_tests_execdir)
-      test_conf.set('program', program_name)
+    program_name = program[0] + '-' + backend
 
-      if enable_installed_tests
-        configure_file(
-          input: test_template,
-          output: program_name + '.test',
-          install_dir: installed_tests_metadir,
-          configuration: test_conf
-        )
-      endif
+    test_conf = configuration_data()
+    test_conf.set('installed_tests_dir', installed_tests_execdir)
+    test_conf.set('program', program_name)
 
-      test_cflags = cflags + [
-        '-DBACKEND="@0@"'.format(backend),
-        '-DBACKEND_IS_' + backend.to_upper(),
-      ]
-
-      if backend == 'openssl'
-        incs += openssl_inc
-      endif
-
-      exe = executable(
-        program_name,
-        [program[0] + '.c'] + program[1],
-        include_directories: incs,
-        dependencies: program[2],
-        c_args: test_cflags,
-        install: enable_installed_tests,
-        install_dir: installed_tests_execdir
+    if enable_installed_tests
+      configure_file(
+        input: test_template,
+        output: program_name + '.test',
+        install_dir: installed_tests_metadir,
+        configuration: test_conf
       )
+    endif
 
-      test_envs = envs + [
-        'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
+    test_cflags = cflags + [
+      '-DBACKEND="@0@"'.format(backend),
+      '-DBACKEND_IS_' + backend.to_upper(),
+    ]
+
+    if backend == 'openssl'
+      incs += openssl_inc
+    endif
+
+    exe = executable(
+      program_name,
+      [program[0] + '.c'] + program[1],
+      include_directories: incs,
+      dependencies: program[2],
+      c_args: test_cflags,
+      install: enable_installed_tests,
+      install_dir: installed_tests_execdir
+    )
+
+    test_envs = envs + [
+      'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
+    ]
+
+    if backend == 'gnutls'
+      test_envs += [
+        'G_TLS_GNUTLS_PRIORITY=NORMAL:%COMPAT:-VERS-TLS1.3'
       ]
+    endif
 
-      # OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
-      if backend != 'openssl'
-        test(program_name, exe, env: test_envs, depends: program[4])
-      endif
+    # OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
+    if backend != 'openssl'
+      test(program_name, exe, env: test_envs, depends: program[4])
     endif
   endforeach
 endforeach
