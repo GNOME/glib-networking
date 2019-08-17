@@ -74,15 +74,15 @@ foreach backend: backends
       'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
     ]
 
-    if backend == 'gnutls'
-      test_envs += [
-        'G_TLS_GNUTLS_PRIORITY=NORMAL:%COMPAT:-VERS-TLS1.3'
-      ]
-    endif
-
-    # OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
+    # FIXME: OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
     if backend != 'openssl'
       test(program_name, exe, env: test_envs)
+    endif
+
+    if backend == 'gnutls' and program[0] == 'connection' or program[0] == 'dtls-connection'
+      # Run the tests again, this time with TLS 1.3 disabled.
+      # FIXME: TLS 1.2 tests are disabled until we fix
+      #test(program_name + '-tls1.2', exe, env: test_envs + ['G_TLS_GNUTLS_PRIORITY=NORMAL:%COMPAT:!VERS-TLS1.3'])
     endif
   endforeach
 endforeach
