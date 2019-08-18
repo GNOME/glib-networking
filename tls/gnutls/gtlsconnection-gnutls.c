@@ -89,9 +89,11 @@ static void
 g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  gint unique_id;
+  int unique_id;
+  int ret;
 
-  gnutls_certificate_allocate_credentials (&priv->creds);
+  ret = gnutls_certificate_allocate_credentials (&priv->creds);
+  g_assert (ret == GNUTLS_E_SUCCESS);
 
   unique_id = g_atomic_int_add (&unique_interaction_id, 1);
   priv->interaction_id = g_strdup_printf ("gtls:%d", unique_id);
