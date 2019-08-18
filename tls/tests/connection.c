@@ -1548,15 +1548,28 @@ socket_client_timed_out_write (gpointer user_data)
   /* read TEST_DATA_LENGTH once */
   size = g_input_stream_read (input_stream, &buffer, TEST_DATA_LENGTH,
                               NULL, &error);
-  g_assert_no_error (error);
-  g_assert_cmpint (size, ==, TEST_DATA_LENGTH);
+  if (error)
+    {
+      /* This should very rarely ever happen, but in practice it can take more
+       * than one second to read under heavy load, or when running many tests
+       * simultaneously, so don't fail if this happens.
+       */
+      g_assert_error (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
+      g_assert_cmpint (size, ==, -1);
+      g_clear_error (&error);
+    }
+  else
+    {
+      g_assert_no_error (error);
+      g_assert_cmpint (size, ==, TEST_DATA_LENGTH);
 
-  /* read TEST_DATA_LENGTH again to cause the time out */
-  size = g_input_stream_read (input_stream, &buffer, TEST_DATA_LENGTH,
-                              NULL, &error);
-  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
-  g_assert_cmpint (size, ==, -1);
-  g_clear_error (&error);
+      /* read TEST_DATA_LENGTH again to cause the time out */
+      size = g_input_stream_read (input_stream, &buffer, TEST_DATA_LENGTH,
+                                  NULL, &error);
+      g_assert_error (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
+      g_assert_cmpint (size, ==, -1);
+      g_clear_error (&error);
+    }
 
   /* write after a timeout, session should still be valid */
   size = g_output_stream_write (output_stream, TEST_DATA, TEST_DATA_LENGTH,
