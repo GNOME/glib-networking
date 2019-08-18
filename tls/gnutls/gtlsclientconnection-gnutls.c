@@ -102,10 +102,6 @@ clear_gnutls_certificate_copy (GTlsClientConnectionGnutls *gnutls)
 static void
 g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
 {
-  gnutls_certificate_credentials_t creds;
-
-  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 }
 
 static const gchar *
@@ -203,10 +199,13 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   gnutls_session_t session;
   const gchar *hostname;
+  gnutls_certificate_credentials_t creds;
 
-  if (!g_tls_client_connection_gnutls_parent_initable_iface->
-      init (initable, cancellable, error))
+  if (!g_tls_client_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
+
+  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
+  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 
   session = g_tls_connection_gnutls_get_session (gnutls);
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
