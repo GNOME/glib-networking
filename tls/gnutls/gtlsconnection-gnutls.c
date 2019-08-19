@@ -364,7 +364,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
         {
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
-                       _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (status));
+                       _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (ret));
           return G_TLS_CONNECTION_BASE_ERROR;
         }
     }
@@ -388,7 +388,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
         {
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
-                       _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (status));
+                       _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (ret));
           return G_TLS_CONNECTION_BASE_ERROR;
         }
 
