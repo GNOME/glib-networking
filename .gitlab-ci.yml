@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/glib-networking/master:v3
+image: registry.gitlab.gnome.org/gnome/glib-networking/master:v5
 
 fedora-x86_64:
   script:
