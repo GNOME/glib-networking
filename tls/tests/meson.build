@@ -80,9 +80,8 @@ foreach backend: backends
     endif
 
     if backend == 'gnutls' and program[0] == 'connection' or program[0] == 'dtls-connection'
-      # Run the tests again, this time with TLS 1.3 disabled.
-      # FIXME: TLS 1.2 tests are disabled until we fix
-      #test(program_name + '-tls1.2', exe, env: test_envs + ['G_TLS_GNUTLS_PRIORITY=NORMAL:%COMPAT:!VERS-TLS1.3'])
+      # Run the tests again, this time with TLS 1.3 disabled so we can test TLS 1.2.
+      test(program_name + '-tls1.2', exe, env: test_envs + ['G_TLS_GNUTLS_PRIORITY=NORMAL:%COMPAT:!VERS-TLS1.3'])
     endif
   endforeach
 endforeach
