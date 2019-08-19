@@ -2,17 +2,17 @@
 
 set -e
 
-TAG="registry.gitlab.gnome.org/gnome/glib-networking/master:v5"
+TAG="registry.gitlab.gnome.org/gnome/glib-networking/master:v4"
 
 cd "$(dirname "$0")"
 
-podman build --build-arg HOST_USER_ID="$UID" --tag "${TAG}" .
+sudo docker build --build-arg HOST_USER_ID="$UID" --tag "${TAG}" --file "Dockerfile" .
 
 if [ "$1" = "--push" ]; then
-  podman login registry.gitlab.gnome.org
-  podman push $TAG
+  sudo docker login registry.gitlab.gnome.org
+  sudo docker push $TAG
 else
-  podman run --rm \
+  sudo docker run --rm \
       --volume "$(pwd)/..:/home/user/app" --workdir "/home/user/app" \
       --tty --interactive "${TAG}" bash
 fi
