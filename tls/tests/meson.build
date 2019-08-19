@@ -75,9 +75,9 @@ foreach backend: backends
     ]
 
     # FIXME: OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
-    if backend != 'openssl'
-      test(program_name, exe, env: test_envs)
-    endif
+    #if backend != 'openssl'
+    #  test(program_name, exe, env: test_envs)
+    #endif
 
     if backend == 'gnutls' and program[0] == 'connection' or program[0] == 'dtls-connection'
       # Run the tests again, this time with TLS 1.3 disabled so we can test TLS 1.2.

@@ -2455,6 +2455,7 @@ main (int   argc,
 
   g_assert_true (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
+#if 0
   g_test_add ("/tls/" BACKEND "/connection/basic", TestConnection, NULL,
               setup_connection, test_basic_connection, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/verified", TestConnection, NULL,
@@ -2475,8 +2476,10 @@ main (int   argc,
               setup_connection, test_client_auth_connection, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-rehandshake", TestConnection, NULL,
               setup_connection, test_client_auth_rehandshake, teardown_connection);
+#endif
   g_test_add ("/tls/" BACKEND "/connection/client-auth-failure", TestConnection, NULL,
               setup_connection, test_client_auth_failure, teardown_connection);
+#if 0
   g_test_add ("/tls/" BACKEND "/connection/client-auth-fail-missing-client-private-key", TestConnection, NULL,
               setup_connection, test_client_auth_fail_missing_client_private_key, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-request-cert", TestConnection, NULL,
@@ -2529,6 +2532,7 @@ main (int   argc,
               setup_connection, test_sync_op_during_handshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/socket-timeout", TestConnection, NULL,
               setup_connection, test_socket_timeout, teardown_connection);
+#endif
 
   ret = g_test_run ();
 
