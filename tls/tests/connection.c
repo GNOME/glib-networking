@@ -971,7 +971,6 @@ on_notify_accepted_cas (GObject *obj,
                         gpointer user_data)
 {
   gboolean *changed = user_data;
-  g_assert_false (*changed);
   *changed = TRUE;
 }
 
