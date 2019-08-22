@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-02-03 13:01+0000\n"
+"POT-Creation-Date: 2019-07-04 09:53+0000\n"
 "PO-Revision-Date: 2018-07-01 08:56+0200\n"
 "Last-Translator: Gil Forcada <gilforcada@guifi.net>\n"
 "Language-Team: Catalan <gnome-dl@llistes.softcatala.org>\n"
@@ -25,103 +25,121 @@ msgstr ""
 "S'ha produït un error intern al sistema de resolució del servidor "
 "intermediari."
 
-#: tls/base/gtlsconnection-base.c:282 tls/base/gtlsinputstream-base.c:74
-#: tls/base/gtlsoutputstream-base.c:74 tls/gnutls/gtlsconnection-gnutls.c:740
-#: tls/gnutls/gtlsinputstream-gnutls.c:78
-#: tls/gnutls/gtlsinputstream-gnutls.c:141
-#: tls/gnutls/gtlsoutputstream-gnutls.c:78
-#: tls/gnutls/gtlsoutputstream-gnutls.c:143
+#: tls/base/gtlsconnection-base.c:479 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
 msgstr "La connexió està tancada"
 
-#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
-msgid "Operation would block"
-msgstr "L'operació bloquejaria"
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:549
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "No es pot dur a terme una operació de bloqueig durant l'encaixada TLS"
 
-#: tls/base/gtlsconnection-base.c:809
-#: tls/gnutls/gtlsclientconnection-gnutls.c:454
+#: tls/base/gtlsconnection-base.c:612 tls/base/gtlsconnection-base.c:1118
+msgid "Socket I/O timed out"
+msgstr "S'ha excedit el temps d'espera d'entrada/sortida del sòcol"
+
+#: tls/base/gtlsconnection-base.c:1339
+msgid "Peer does not support safe renegotiation"
+msgstr ""
+"L'altre extrem de la connexió no és compatible amb una negociació segura"
+
+#: tls/base/gtlsconnection-base.c:1382
 msgid "Server required TLS certificate"
 msgstr "El servidor requereix un certificat TLS"
 
+#: tls/base/gtlsconnection-base.c:1477 tls/gnutls/gtlsconnection-gnutls.c:419
+#: tls/openssl/gtlsconnection-openssl.c:172
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "No es pot acceptar el certificat TLS"
+
+#: tls/base/gtlsconnection-base.c:1884
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Els senyaladors de recepció no són compatibles"
+
+#: tls/base/gtlsconnection-base.c:2019
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Els senyaladors d'enviament no són compatibles"
+
 #: tls/gnutls/gtlscertificate-gnutls.c:178
-#: tls/openssl/gtlscertificate-openssl.c:177
+#: tls/openssl/gtlscertificate-openssl.c:170
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "No s'ha pogut analitzar el certificat DER: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:199
-#: tls/openssl/gtlscertificate-openssl.c:197
+#: tls/openssl/gtlscertificate-openssl.c:190
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "No s'ha pogut analitzar el certificat PEM: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:230
-#: tls/openssl/gtlscertificate-openssl.c:216
+#: tls/openssl/gtlscertificate-openssl.c:209
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "No s'ha pogut analitzar la clau privada DER: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:261
-#: tls/openssl/gtlscertificate-openssl.c:235
+#: tls/openssl/gtlscertificate-openssl.c:228
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "No s'ha pogut analitzar la clau privada PEM: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:297
-#: tls/openssl/gtlscertificate-openssl.c:273
+#: tls/openssl/gtlscertificate-openssl.c:263
 msgid "No certificate data provided"
 msgstr "No s'ha proporcionat cap dada per al certificat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:405
-#: tls/openssl/gtlsclientconnection-openssl.c:537
-#: tls/openssl/gtlsserverconnection-openssl.c:401
+#: tls/gnutls/gtlsconnection-gnutls.c:224
+#: tls/openssl/gtlsclientconnection-openssl.c:522
+#: tls/openssl/gtlsserverconnection-openssl.c:399
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "No s'ha pogut crear una connexió TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:858
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-msgid "Socket I/O timed out"
-msgstr "S'ha excedit el temps d'espera d'entrada/sortida del sòcol"
+#: tls/gnutls/gtlsconnection-gnutls.c:353
+#: tls/gnutls/gtlsconnection-gnutls.c:364
+#: tls/gnutls/gtlsconnection-gnutls.c:388
+#: tls/openssl/gtlsconnection-openssl.c:139
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "L'altre extrem de la connexió no ha pogut realitzar l'encaixada TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
-#: tls/gnutls/gtlsconnection-gnutls.c:1036
-#: tls/openssl/gtlsconnection-openssl.c:150
-msgid "Peer failed to perform TLS handshake"
-msgstr "L'altre extrem de la connexió no ha pogut realitzar l'encaixada TLS"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/openssl/gtlsconnection-openssl.c:234
+#: tls/gnutls/gtlsconnection-gnutls.c:375
+#: tls/openssl/gtlsconnection-openssl.c:248
 msgid "Peer requested illegal TLS rehandshake"
 msgstr ""
 "L'altre extrem de la connexió ha sol·licitat una reencaixada TLS no vàlida"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1042
+#: tls/gnutls/gtlsconnection-gnutls.c:396
 msgid "TLS connection closed unexpectedly"
 msgstr "La connexió TLS s'ha tancat de manera inesperada"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1052
-#: tls/openssl/gtlsconnection-openssl.c:171
+#: tls/gnutls/gtlsconnection-gnutls.c:411
+#: tls/openssl/gtlsconnection-openssl.c:164
 msgid "TLS connection peer did not send a certificate"
 msgstr "L'altre extrem de la connexió TLS no ha enviat cap certificat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1058
-#: tls/gnutls/gtlsconnection-gnutls.c:2160
-#: tls/openssl/gtlsconnection-openssl.c:416
-#, c-format
-msgid "Unacceptable TLS certificate"
-msgstr "No es pot acceptar el certificat TLS"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1064
+#: tls/gnutls/gtlsconnection-gnutls.c:427
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "L'altre extrem de la connexió ha enviat una alerta fatal TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1076
+#: tls/gnutls/gtlsconnection-gnutls.c:437
 msgid "Protocol version downgrade attack detected"
 msgstr "Atacat de rebaixa de la versió de protocol detectat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1083
+#: tls/gnutls/gtlsconnection-gnutls.c:446
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -130,57 +148,52 @@ msgstr[0] ""
 msgstr[1] ""
 "El missatge és massa gran per a una connexió DTLS; el màxim és %u bytes"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1090
+#: tls/gnutls/gtlsconnection-gnutls.c:455
 msgid "The operation timed out"
 msgstr "L'operació ha excedit el temps"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1981
-msgid "Peer does not support safe renegotiation"
-msgstr "L'altre extrem de la connexió no és compatible amb una negociació segura"
+#: tls/gnutls/gtlsconnection-gnutls.c:780
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "S'ha produït un error en realitzar l'encaixada TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2008
-#: tls/gnutls/gtlsconnection-gnutls.c:2058
+#: tls/gnutls/gtlsconnection-gnutls.c:883
+#: tls/openssl/gtlsconnection-openssl.c:257
+#: tls/openssl/gtlsconnection-openssl.c:307
 msgid "Error performing TLS handshake"
 msgstr "S'ha produït un error en realitzar l'encaixada TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2510
-#: tls/gnutls/gtlsconnection-gnutls.c:2602
+#: tls/gnutls/gtlsconnection-gnutls.c:929
+#: tls/gnutls/gtlsconnection-gnutls.c:989
+#: tls/openssl/gtlsconnection-openssl.c:414
 msgid "Error reading data from TLS socket"
 msgstr "S'ha produït un error en llegir les dades del sòcol TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2632
-#, c-format
-msgid "Receive flags are not supported"
-msgstr "Els senyaladors de recepció no són compatibles"
-
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2709
-#: tls/gnutls/gtlsconnection-gnutls.c:2781
+#: tls/gnutls/gtlsconnection-gnutls.c:1011
+#: tls/gnutls/gtlsconnection-gnutls.c:1075
+#: tls/openssl/gtlsconnection-openssl.c:458
 msgid "Error writing data to TLS socket"
 msgstr "S'ha produït un error en escriure les dades al sòcol TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2751
+#: tls/gnutls/gtlsconnection-gnutls.c:1045
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "El missatge de mida %lu byte és massa gran per a la connexió DTLS"
 msgstr[1] "El missatge de mida %lu bytes és massa gran per a la connexió DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2753
+#: tls/gnutls/gtlsconnection-gnutls.c:1047
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(el màxim és %u byte)"
 msgstr[1] "(el màxim és %u bytes)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2812
+#: tls/gnutls/gtlsconnection-gnutls.c:1094
 #, c-format
-msgid "Send flags are not supported"
-msgstr "Els senyaladors d'enviament no són compatibles"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:2915
-msgid "Error performing TLS close"
-msgstr "S'ha produït un error en realitzar el tancament TLS"
+msgid "Error performing TLS close: %s"
+msgstr "S'ha produït un error en realitzar el tancament TLS: %s"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:553
 msgid ""
@@ -190,7 +203,7 @@ msgstr ""
 "S'ha produït un error en carregar l'emmagatzematge del sistema de confiança: "
 "GnuTLS no està configurat amb un sistema de confiança"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:187
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr ""
@@ -198,52 +211,47 @@ msgstr ""
 "%s"
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:328
+#: tls/openssl/gtlsserverconnection-openssl.c:90
 msgid "Certificate has no private key"
 msgstr "El certificat no té cap clau privada"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:486
-#: tls/openssl/gtlsserverconnection-openssl.c:292
+#: tls/openssl/gtlsclientconnection-openssl.c:412
+#: tls/openssl/gtlsclientconnection-openssl.c:469
+#: tls/openssl/gtlsserverconnection-openssl.c:288
+#: tls/openssl/gtlsserverconnection-openssl.c:339
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "No s'ha pogut crear un context TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:179
+#: tls/openssl/gtlsconnection-openssl.c:180
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "No es pot acceptar l'autoritat del certificat TLS"
+
+#: tls/openssl/gtlsconnection-openssl.c:188
 msgid "Digest too big for RSA key"
 msgstr "Resum massa gran per la clau RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:243
-#: tls/openssl/gtlsconnection-openssl.c:376
+#: tls/openssl/gtlsconnection-openssl.c:495
+msgid "Error performing TLS close"
+msgstr "S'ha produït un error en realitzar el tancament TLS"
+
+#: tls/openssl/gtlsdatabase-openssl.c:227
+msgid "Could not create CA store"
+msgstr "No s'ha pogut crear un emmagatzematge CA"
+
+#: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
-msgid "Error performing TLS handshake: %s"
-msgstr "S'ha produït un error en realitzar l'encaixada TLS: %s"
+msgid "Failed to load file path: %s"
+msgstr "S'ha produït un error en carregar el camí del fitxer: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:386
-msgid "Server did not return a valid TLS certificate"
-msgstr "El servidor no ha retornat un certificat TLS vàlid"
-
-#: tls/openssl/gtlsconnection-openssl.c:500
-#, c-format
-msgid "Error reading data from TLS socket: %s"
-msgstr "S'ha produït un error en llegir les dades del sòcol TLS: %s"
-
-#: tls/openssl/gtlsconnection-openssl.c:526
-#, c-format
-msgid "Error writing data to TLS socket: %s"
-msgstr "S'ha produït un error en escriure les dades al sòcol TLS: %s"
-
-#: tls/openssl/gtlsconnection-openssl.c:552
-#, c-format
-msgid "Error performing TLS close: %s"
-msgstr "S'ha produït un error en realitzar el tancament TLS: %s"
-
-#: tls/openssl/gtlsserverconnection-openssl.c:335
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Hi ha un problema amb el certificat de la clau privada: %s"
-
-#: tls/openssl/gtlsserverconnection-openssl.c:344
+#: tls/openssl/gtlsserverconnection-openssl.c:101
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Hi ha un problema amb el certificat: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:109
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Hi ha un problema amb el certificat de la clau privada: %s"
 
