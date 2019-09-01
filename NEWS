@@ -1,3 +1,10 @@
+2.61.92 - September 2, 2019
+===========================
+
+- Discard queued data after interrupted writes (#15)
+- Verify socket timeouts are respected (#18)
+- Fix a couple broken error messages
+
 2.61.90 - August 5, 2019
 ========================
 
