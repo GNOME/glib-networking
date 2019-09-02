@@ -1020,12 +1020,6 @@ g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
   ret = gnutls_record_send (priv->session, buffer, count);
   END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
-  /* GnuTLS will resend interrupted writes unless we discard its send queue.
-   * But GOutputStream requires explicit resend when interrupted.
-   */
-  if (ret == GNUTLS_E_INTERRUPTED || ret == GNUTLS_E_AGAIN)
-    gnutls_record_discard_queued (priv->session);
-
   *nwrote = MAX (ret, 0);
   return status;
 }
