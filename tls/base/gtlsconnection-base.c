@@ -1239,6 +1239,7 @@ update_peer_certificate_and_compute_errors (GTlsConnectionBase *tls)
     peer_certificate_errors = verify_peer_certificate (tls, peer_certificate);
 
   g_set_object (&priv->peer_certificate, peer_certificate);
+  g_clear_object (&peer_certificate);
 
   priv->peer_certificate_errors = peer_certificate_errors;
 
