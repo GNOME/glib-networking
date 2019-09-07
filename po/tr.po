@@ -7,21 +7,22 @@
 # Muhammet Kara <muhammetk@gmail.com>, 2011, 2012, 2013.
 # Furkan Tokaç <developmentft@gmail.com>, 2017.
 # Emin Tufan Çetin <etcetin@gmail.com>, 2017-2019.
+# Çağatay Yiğit Şahin <cyigitsahin@outlook.com>, 2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-03-02 02:19+0000\n"
-"PO-Revision-Date: 2019-03-02 09:36+0300\n"
-"Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
-"Language-Team: Türkçe <gnome-turk@gnome.org>\n"
+"POT-Creation-Date: 2019-05-05 13:52+0000\n"
+"PO-Revision-Date: 2019-05-15 12:46+0300\n"
+"Last-Translator: Çağatay Yiğit Şahin <cyigitsahin@outlook.com>\n"
+"Language-Team: Turkish <>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0\n"
-"X-Generator: Gtranslator 3.30.1\n"
+"X-Generator: Gtranslator 3.32.1\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
@@ -89,12 +90,11 @@ msgstr "TLS bağlantısı oluşturulamadı: %s"
 #. * op would deadlock here.
 #.
 #: tls/gnutls/gtlsconnection-gnutls.c:811
-#| msgid "Error performing TLS handshake"
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "TLS el sıkışması sırasında engelleme işlemi gerçekleştirilemez"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:874
-#: tls/gnutls/gtlsconnection-gnutls.c:1484
+#: tls/gnutls/gtlsconnection-gnutls.c:1488
 msgid "Socket I/O timed out"
 msgstr "G/Ç yuvası zaman aşımına uğradı"
 
@@ -113,80 +113,80 @@ msgstr "Eş, kural dışı bir TLS yeniden el sıkışması istedi"
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS bağlantısı beklenmedik biçimde sonlandı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1068
+#: tls/gnutls/gtlsconnection-gnutls.c:1072
 #: tls/openssl/gtlsconnection-openssl.c:175
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS bağlantısı eşi sertifika göndermedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1074
-#: tls/gnutls/gtlsconnection-gnutls.c:2176
+#: tls/gnutls/gtlsconnection-gnutls.c:1078
+#: tls/gnutls/gtlsconnection-gnutls.c:2169
 #: tls/openssl/gtlsconnection-openssl.c:420
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Kabul edilemez bir TLS sertifikası"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1080
+#: tls/gnutls/gtlsconnection-gnutls.c:1084
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Eş, ölümcül TLS uyarısı gönderdi: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1092
+#: tls/gnutls/gtlsconnection-gnutls.c:1096
 msgid "Protocol version downgrade attack detected"
 msgstr "İletişim kuralı sürümünü düşürme saldırısı saptandı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1099
+#: tls/gnutls/gtlsconnection-gnutls.c:1103
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "İleti, DTLS bağlantısı için çok büyük; azami %u bayt"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1106
+#: tls/gnutls/gtlsconnection-gnutls.c:1110
 msgid "The operation timed out"
 msgstr "İşlem zaman aşımına uğradı"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1997
+#: tls/gnutls/gtlsconnection-gnutls.c:1990
 msgid "Peer does not support safe renegotiation"
 msgstr "Eş, güvenli yeniden anlaşmayı desteklemiyor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2024
-#: tls/gnutls/gtlsconnection-gnutls.c:2074
+#: tls/gnutls/gtlsconnection-gnutls.c:2017
+#: tls/gnutls/gtlsconnection-gnutls.c:2067
 msgid "Error performing TLS handshake"
 msgstr "TLS el sıkışması sırasında hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2526
-#: tls/gnutls/gtlsconnection-gnutls.c:2618
+#: tls/gnutls/gtlsconnection-gnutls.c:2519
+#: tls/gnutls/gtlsconnection-gnutls.c:2611
 msgid "Error reading data from TLS socket"
 msgstr "TLS yuvasından veri okurken hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2648
+#: tls/gnutls/gtlsconnection-gnutls.c:2641
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Bayrak alma desteklenmiyor"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2725
-#: tls/gnutls/gtlsconnection-gnutls.c:2797
+#: tls/gnutls/gtlsconnection-gnutls.c:2718
+#: tls/gnutls/gtlsconnection-gnutls.c:2790
 msgid "Error writing data to TLS socket"
 msgstr "TLS yuvasına veri yazarken hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2767
+#: tls/gnutls/gtlsconnection-gnutls.c:2760
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "%lu bayt ileti boyutu DTLS bağlantısı için çok büyük"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2769
+#: tls/gnutls/gtlsconnection-gnutls.c:2762
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(azami %u bayt)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2828
+#: tls/gnutls/gtlsconnection-gnutls.c:2821
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Bayrak gönderme desteklenmiyor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2931
+#: tls/gnutls/gtlsconnection-gnutls.c:2924
 msgid "Error performing TLS close"
 msgstr "TLS kapatma işleminde hata"
 
@@ -198,7 +198,7 @@ msgstr ""
 "Sistem güven deposu yüklenemedi: GnuTLS, bir sistem güveniyle "
 "yapılandırılmamış"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:186
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Sistem güven deposu yüklenemedi: %s"
@@ -244,6 +244,17 @@ msgstr "TLS yuvasına veri yazarken hata: %s"
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS kapatma işleminde hata: %s"
+
+#: tls/openssl/gtlsdatabase-openssl.c:226
+#| msgid "Could not create TLS context: %s"
+msgid "Could not create CA store"
+msgstr "Sertifika otoritesi deposu oluşturulamadı"
+
+#: tls/openssl/gtlsfiledatabase-openssl.c:483
+#, c-format
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to load file path: %s"
+msgstr "Dosya yolu yüklenemedi: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:102
 #, c-format
