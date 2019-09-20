@@ -55,14 +55,14 @@ static void     g_tls_server_connection_gnutls_initable_interface_init (GInitabl
 
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
 
-static int g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t              session,
-                                                             const gnutls_datum_t         *req_ca_rdn,
-                                                             int                           nreqs,
-                                                             const gnutls_pk_algorithm_t  *pk_algos,
-                                                             int                           pk_algos_length,
-                                                             gnutls_pcert_st             **pcert,
-                                                             unsigned int                 *pcert_length,
-                                                             gnutls_privkey_t             *pkey);
+static int g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+                                                                              const gnutls_datum_t         *req_ca_rdn,
+                                                                              int                           nreqs,
+                                                                              const gnutls_pk_algorithm_t  *pk_algos,
+                                                                              int                           pk_algos_length,
+                                                                              gnutls_pcert_st             **pcert,
+                                                                              unsigned int                 *pcert_length,
+                                                                              gnutls_privkey_t             *pkey);
 
 static int            g_tls_server_connection_gnutls_db_store    (void            *user_data,
                                                                   gnutls_datum_t   key,
@@ -99,7 +99,7 @@ g_tls_server_connection_gnutls_init (GTlsServerConnectionGnutls *gnutls)
   gnutls_certificate_credentials_t creds;
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_server_connection_gnutls_retrieve_function);
+  gnutls_certificate_set_retrieve_function2 (creds, g_tls_server_connection_gnutls_handshake_thread_retrieve_function);
 }
 
 static void
@@ -180,21 +180,21 @@ g_tls_server_connection_gnutls_set_property (GObject      *object,
 }
 
 static int
-g_tls_server_connection_gnutls_retrieve_function (gnutls_session_t              session,
-                                                  const gnutls_datum_t         *req_ca_rdn,
-                                                  int                           nreqs,
-                                                  const gnutls_pk_algorithm_t  *pk_algos,
-                                                  int                           pk_algos_length,
-                                                  gnutls_pcert_st             **pcert,
-                                                  unsigned int                 *pcert_length,
-                                                  gnutls_privkey_t             *pkey)
+g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+                                                                   const gnutls_datum_t         *req_ca_rdn,
+                                                                   int                           nreqs,
+                                                                   const gnutls_pk_algorithm_t  *pk_algos,
+                                                                   int                           pk_algos_length,
+                                                                   gnutls_pcert_st             **pcert,
+                                                                   unsigned int                 *pcert_length,
+                                                                   gnutls_privkey_t             *pkey)
 {
   GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (gnutls_transport_get_ptr (session));
 
   clear_gnutls_certificate_copy (gnutls);
 
-  g_tls_connection_gnutls_get_certificate (G_TLS_CONNECTION_GNUTLS (gnutls),
-                                           pcert, pcert_length, pkey);
+  g_tls_connection_gnutls_handshake_thread_get_certificate (G_TLS_CONNECTION_GNUTLS (gnutls),
+                                                            pcert, pcert_length, pkey);
 
   gnutls->pcert = *pcert;
   gnutls->pcert_length = *pcert_length;
