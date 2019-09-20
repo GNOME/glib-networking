@@ -70,14 +70,14 @@ static void     g_tls_client_connection_gnutls_initable_interface_init (GInitabl
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
 static void g_tls_client_connection_gnutls_dtls_client_connection_interface_init (GDtlsClientConnectionInterface *iface);
 
-static int g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              session,
-                                                             const gnutls_datum_t         *req_ca_rdn,
-                                                             int                           nreqs,
-                                                             const gnutls_pk_algorithm_t  *pk_algos,
-                                                             int                           pk_algos_length,
-                                                             gnutls_pcert_st             **pcert,
-                                                             unsigned int                 *pcert_length,
-                                                             gnutls_privkey_t             *pkey);
+static int g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+                                                                              const gnutls_datum_t         *req_ca_rdn,
+                                                                              int                           nreqs,
+                                                                              const gnutls_pk_algorithm_t  *pk_algos,
+                                                                              int                           pk_algos_length,
+                                                                              gnutls_pcert_st             **pcert,
+                                                                              unsigned int                 *pcert_length,
+                                                                              gnutls_privkey_t             *pkey);
 
 static GInitableIface *g_tls_client_connection_gnutls_parent_initable_iface;
 
@@ -105,7 +105,7 @@ g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
   gnutls_certificate_credentials_t creds;
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_retrieve_function);
+  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 }
 
 static const gchar *
@@ -314,14 +314,14 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 }
 
 static int
-g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              session,
-                                                  const gnutls_datum_t         *req_ca_rdn,
-                                                  int                           nreqs,
-                                                  const gnutls_pk_algorithm_t  *pk_algos,
-                                                  int                           pk_algos_length,
-                                                  gnutls_pcert_st             **pcert,
-                                                  unsigned int                 *pcert_length,
-                                                  gnutls_privkey_t             *pkey)
+g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+                                                                   const gnutls_datum_t         *req_ca_rdn,
+                                                                   int                           nreqs,
+                                                                   const gnutls_pk_algorithm_t  *pk_algos,
+                                                                   int                           pk_algos_length,
+                                                                   gnutls_pcert_st             **pcert,
+                                                                   unsigned int                 *pcert_length,
+                                                                   gnutls_privkey_t             *pkey)
 {
   GTlsConnectionBase *tls = gnutls_transport_get_ptr (session);
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
@@ -352,14 +352,14 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
   gnutls->accepted_cas_changed = gnutls->accepted_cas || had_accepted_cas;
 
   clear_gnutls_certificate_copy (gnutls);
-  g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
+  g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
 
   if (*pcert_length == 0)
     {
       g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
 
-      if (g_tls_connection_base_request_certificate (tls))
-        g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
+      if (g_tls_connection_base_handshake_thread_request_certificate (tls))
+        g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
 
       if (*pcert_length == 0)
         {
@@ -370,7 +370,7 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
            * be optional, e.g. if the server is using
            * G_TLS_AUTHENTICATION_REQUESTED, not G_TLS_AUTHENTICATION_REQUIRED.
            */
-          g_tls_connection_base_set_missing_requested_client_certificate (tls);
+          g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
           return 0;
         }
     }
@@ -382,7 +382,7 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
       /* No private key. GnuTLS expects it to be non-null if pcert_length is
        * nonzero, so we have to abort now.
        */
-      g_tls_connection_base_set_missing_requested_client_certificate (tls);
+      g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
       return -1;
     }
 

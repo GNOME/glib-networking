@@ -2415,11 +2415,9 @@ g_tls_connection_base_get_base_ostream (GTlsConnectionBase *tls)
 }
 
 void
-g_tls_connection_base_set_missing_requested_client_certificate (GTlsConnectionBase *tls)
+g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  /* FIXME: Assert this is only used on the handshake thread. */
 
   priv->missing_requested_client_certificate = TRUE;
 }
@@ -2489,7 +2487,7 @@ g_tls_connection_base_ever_handshaked (GTlsConnectionBase *tls)
 }
 
 gboolean
-g_tls_connection_base_request_certificate (GTlsConnectionBase *tls)
+g_tls_connection_base_handshake_thread_request_certificate (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;

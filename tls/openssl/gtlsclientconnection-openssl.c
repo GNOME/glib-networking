@@ -349,9 +349,9 @@ g_tls_client_connection_openssl_client_connection_interface_init (GTlsClientConn
 static int data_index = -1;
 
 static int
-retrieve_certificate (SSL       *ssl,
-                      X509     **x509,
-                      EVP_PKEY **pkey)
+handshake_thread_retrieve_certificate (SSL       *ssl,
+                                       X509     **x509,
+                                       EVP_PKEY **pkey)
 {
   GTlsClientConnectionOpenssl *client;
   GTlsConnectionBase *tls;
@@ -368,7 +368,7 @@ retrieve_certificate (SSL       *ssl,
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
   if (!cert)
     {
-      if (g_tls_connection_base_request_certificate (tls))
+      if (g_tls_connection_base_handshake_thread_request_certificate (tls))
         cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
     }
 
@@ -390,7 +390,7 @@ retrieve_certificate (SSL       *ssl,
       return 1;
     }
 
-  g_tls_connection_base_set_missing_requested_client_certificate (tls);
+  g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
 
   return 0;
 }
@@ -520,7 +520,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   SSL_CTX_add_session (client->ssl_ctx, client->session);
 
-  SSL_CTX_set_client_cert_cb (client->ssl_ctx, retrieve_certificate);
+  SSL_CTX_set_client_cert_cb (client->ssl_ctx, handshake_thread_retrieve_certificate);
 
 #ifdef SSL_CTX_set1_sigalgs_list
   set_signature_algorithm_list (client);

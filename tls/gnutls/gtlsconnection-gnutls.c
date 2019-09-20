@@ -281,10 +281,10 @@ g_tls_connection_gnutls_get_session (GTlsConnectionGnutls *gnutls)
 }
 
 void
-g_tls_connection_gnutls_get_certificate (GTlsConnectionGnutls  *gnutls,
-                                         gnutls_pcert_st      **pcert,
-                                         unsigned int          *pcert_length,
-                                         gnutls_privkey_t      *pkey)
+g_tls_connection_gnutls_handshake_thread_get_certificate (GTlsConnectionGnutls  *gnutls,
+                                                          gnutls_pcert_st      **pcert,
+                                                          unsigned int          *pcert_length,
+                                                          gnutls_privkey_t      *pkey)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   GTlsCertificate *cert;
