@@ -173,7 +173,7 @@ GIOStream                *g_tls_connection_base_get_base_iostream       (GTlsCon
 GPollableInputStream     *g_tls_connection_base_get_base_istream        (GTlsConnectionBase *tls);
 GPollableOutputStream    *g_tls_connection_base_get_base_ostream        (GTlsConnectionBase *tls);
 
-void                      g_tls_connection_base_set_missing_requested_client_certificate
+void                      g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate
                                                                         (GTlsConnectionBase *tls);
 
 GError                  **g_tls_connection_base_get_read_error          (GTlsConnectionBase *tls);
@@ -189,7 +189,8 @@ gboolean                  g_tls_connection_base_is_handshaking          (GTlsCon
 
 gboolean                  g_tls_connection_base_ever_handshaked         (GTlsConnectionBase *tls);
 
-gboolean                  g_tls_connection_base_request_certificate     (GTlsConnectionBase  *tls);
+gboolean                  g_tls_connection_base_handshake_thread_request_certificate
+                                                                        (GTlsConnectionBase  *tls);
 
 void                      g_tls_connection_base_handshake_thread_buffer_application_data
                                                                         (GTlsConnectionBase *tls,

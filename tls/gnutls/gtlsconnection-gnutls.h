@@ -47,9 +47,9 @@ gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsCo
 
 gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
 
-void     g_tls_connection_gnutls_get_certificate     (GTlsConnectionGnutls  *gnutls,
-                                                      gnutls_pcert_st      **pcert,
-                                                      unsigned int          *pcert_length,
-                                                      gnutls_privkey_t      *pkey);
+void     g_tls_connection_gnutls_handshake_thread_get_certificate     (GTlsConnectionGnutls  *gnutls,
+                                                                       gnutls_pcert_st      **pcert,
+                                                                       unsigned int          *pcert_length,
+                                                                       gnutls_privkey_t      *pkey);
 
 G_END_DECLS
