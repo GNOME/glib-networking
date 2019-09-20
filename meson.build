@@ -33,6 +33,10 @@ common_flags = [
 
 add_project_arguments(common_flags, language: 'c')
 
+cflags = cc.get_supported_arguments(['-Werror=declaration-after-statement',
+                                     '-Werror=implicit-function-declaration'])
+add_project_arguments(cflags, language: 'c')
+
 symbol_map = join_paths(meson.current_source_dir(), meson.project_name() + '.map')
 
 module_ldflags = []

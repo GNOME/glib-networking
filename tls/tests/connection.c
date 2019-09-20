@@ -2252,13 +2252,13 @@ test_alpn (TestConnection *test,
            const char * const *server_protocols,
            const char *negotiated_protocol)
 {
+  GIOStream *connection;
+  GError *error = NULL;
+
 #ifdef BACKEND_IS_OPENSSL
   g_test_skip ("this is not yet passing with openssl");
   return;
 #endif
-
-  GIOStream *connection;
-  GError *error = NULL;
 
   test->server_protocols = server_protocols;
 

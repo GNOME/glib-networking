@@ -2593,11 +2593,11 @@ GTLS_DEBUG (gpointer    connection,
             ...)
 {
   char *result = NULL;
+  va_list args;
   int ret;
 
   g_assert (G_IS_TLS_CONNECTION (connection));
 
-  va_list args;
   va_start (args, message);
 
   ret = g_vasprintf (&result, message, args);
