@@ -103,7 +103,7 @@ static gnutls_priority_t priorities[2][2];
 /* TODO: Get rid of this in favor of gnutls_set_default_priority_append()
  * when upgrading to GnuTLS 3.6.3.
  */
-#define DEFAULT_BASE_PRIORITY "NORMAL:%COMPAT"
+#define DEFAULT_BASE_PRIORITY "NORMAL:%COMPAT:-VERS-TLS1.1:-VERS-TLS1.0"
 
 static void
 g_tls_connection_gnutls_init_priorities (void)
