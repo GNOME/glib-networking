@@ -58,6 +58,7 @@ struct _GTlsClientConnectionGnutls
   GBytes *session_data;
 
   GPtrArray *accepted_cas;
+  gboolean accepted_cas_changed;
 
   gnutls_pcert_st *pcert;
   unsigned int pcert_length;
@@ -326,12 +327,15 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
   GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
   GTlsConnectionGnutls *conn = G_TLS_CONNECTION_GNUTLS (gnutls);
   GPtrArray *accepted_cas;
+  gboolean had_accepted_cas;
   GByteArray *dn;
   int i;
 
   /* FIXME: Here we are supposed to ensure that the certificate supports one of
    * the algorithms given in pk_algos.
    */
+
+  had_accepted_cas = gnutls->accepted_cas != NULL;
 
   accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
   for (i = 0; i < nreqs; i++)
@@ -344,7 +348,8 @@ g_tls_client_connection_gnutls_retrieve_function (gnutls_session_t              
   if (gnutls->accepted_cas)
     g_ptr_array_unref (gnutls->accepted_cas);
   gnutls->accepted_cas = accepted_cas;
-  g_object_notify (G_OBJECT (gnutls), "accepted-cas");
+
+  gnutls->accepted_cas_changed = gnutls->accepted_cas || had_accepted_cas;
 
   clear_gnutls_certificate_copy (gnutls);
   g_tls_connection_gnutls_get_certificate (conn, pcert, pcert_length, pkey);
@@ -445,8 +450,10 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
   int resumed;
 
-  G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->
-    complete_handshake (tls, negotiated_protocol, error);
+  G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->complete_handshake (tls, negotiated_protocol, error);
+
+  if (gnutls->accepted_cas_changed)
+    g_object_notify (G_OBJECT (gnutls), "accepted-cas");
 
   resumed = gnutls_session_is_resumed (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)));
   if (!resumed)
