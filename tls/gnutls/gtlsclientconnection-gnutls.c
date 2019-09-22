@@ -102,10 +102,6 @@ clear_gnutls_certificate_copy (GTlsClientConnectionGnutls *gnutls)
 static void
 g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
 {
-  gnutls_certificate_credentials_t creds;
-
-  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_retrieve_function);
 }
 
 static const gchar *
@@ -126,6 +122,20 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
   GSocketAddress *remote_addr;
   GInetAddress *iaddr;
   guint port;
+
+  /* The testsuite expects handshakes to actually happen. E.g. a test might
+   * check to see that a handshake succeeds and then later check that a new
+   * handshake fails. If we get really unlucky and the same port number is
+   * reused for the server socket between connections, then we'll accidentally
+   * resume the old session and skip certificate verification. Such failures
+   * are difficult to debug because they require running the tests hundreds of
+   * times simultaneously to reproduce (the port number does not get reused
+   * quickly enough if the tests are run sequentially).
+   *
+   * So session resumption will just need to be tested manually.
+   */
+  if (g_test_initialized ())
+    return;
 
   /* Create a TLS session ID. We base it on the IP address since
    * different hosts serving the same hostname/service will probably
@@ -154,7 +164,8 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
 
           /* If we have a certificate, make its hash part of the session ID, so
            * that different connections to the same server can use different
-           * certificates. */
+           * certificates.
+           */
           g_object_get (G_OBJECT (gnutls), "certificate", &cert, NULL);
           if (cert)
             {
@@ -203,10 +214,13 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   gnutls_session_t session;
   const gchar *hostname;
+  gnutls_certificate_credentials_t creds;
 
-  if (!g_tls_client_connection_gnutls_parent_initable_iface->
-      init (initable, cancellable, error))
+  if (!g_tls_client_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
+
+  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
+  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_retrieve_function);
 
   session = g_tls_connection_gnutls_get_session (gnutls);
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
