@@ -88,6 +88,7 @@ typedef struct {
   gboolean ignore_client_close_error;
   ServerConnectionReceivedStrategy connection_received_strategy;
   gboolean server_running;
+  gboolean server_ever_handshaked;
   GTlsCertificate *server_certificate;
   const gchar * const *server_protocols;
   guint64 incoming_connection_delay;
@@ -287,6 +288,7 @@ on_server_handshake_finish (GObject      *object,
   TestConnection *test = user_data;
   g_tls_connection_handshake_finish (G_TLS_CONNECTION (object), res, &test->server_error);
   g_assert_no_error (test->server_error);
+  test->server_ever_handshaked = TRUE;
 }
 
 static gboolean
@@ -1919,16 +1921,25 @@ test_unclean_close_by_server (TestConnection *test,
                                  NULL, socket_client_connected, test);
   g_main_loop_run (test->loop);
 
+  /* The server might not have completed its handshake yet. We want to
+   * wait until the handshake has completed successfully before closing
+   * the connection.
+   */
+  while (!test->server_ever_handshaked)
+    g_main_context_iteration (test->context, TRUE);
+
   close_server_connection_uncleanly (test);
 
   /* Because the server closed its connection uncleanly, we should receive
    * G_TLS_ERROR_EOF to warn that the close notify alert was not received,
-   * indicating a truncation attack.
+   * indicating a truncation attack. The only other acceptable error here
+   * is connection closed, which is an uncommon race.
    */
   nread = g_input_stream_read (g_io_stream_get_input_stream (test->client_connection),
                                test->buf, TEST_DATA_LENGTH,
                                NULL, &test->read_error);
-  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_EOF);
+  if (!g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
+    g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_EOF);
   g_assert_cmpint (nread, ==, -1);
 
   /* Now do it again, except this time, we ignore truncation attacks by
@@ -1937,12 +1948,16 @@ test_unclean_close_by_server (TestConnection *test,
   g_clear_error (&test->read_error);
   g_clear_object (&test->service);
   g_clear_object (&test->server_connection);
+  test->server_ever_handshaked = FALSE;
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, HANDSHAKE_ONLY);
 
   g_socket_client_set_tls (client, TRUE);
   g_socket_client_connect_async (client, G_SOCKET_CONNECTABLE (test->address),
                                  NULL, socket_client_connected, test);
   g_main_loop_run (test->loop);
+
+  while (!test->server_ever_handshaked)
+    g_main_context_iteration (test->context, TRUE);
 
   close_server_connection_uncleanly (test);
 
@@ -1952,7 +1967,8 @@ test_unclean_close_by_server (TestConnection *test,
   nread = g_input_stream_read (g_io_stream_get_input_stream (test->client_connection),
                                test->buf, TEST_DATA_LENGTH,
                                NULL, &test->read_error);
-  g_assert_no_error (test->read_error);
+  if (!g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
+    g_assert_no_error (test->read_error);
   g_assert_cmpint (nread, ==, 0);
 
   g_object_unref (client);
