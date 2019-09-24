@@ -111,9 +111,9 @@ typedef struct
    * handshake, it becomes FALSE (and need_finish_handshake becomes
    * TRUE) at the end of the handshaking thread (and then the next
    * non-close op will call finish_handshake()). We can't just wait
-   * for handshake_thread_completed() to run, because it's possible
-   * that its main loop is being blocked by a synchronous op which is
-   * waiting for handshaking to become FALSE...
+   * for async_handshake_thread_completed() to run, because it's
+   * possible that its main loop is being blocked by a synchronous op
+   * which is waiting for handshaking to become FALSE...
    *
    * started_handshake indicates that the current handshake attempt
    * got at least as far as sending the first handshake packet (and so
@@ -1579,15 +1579,15 @@ g_tls_connection_base_dtls_handshake (GDtlsConnection  *conn,
 }
 
 /* In the async version we use two GTasks; one to run
- * handshake_thread() and then call handshake_thread_completed(), and
- * a second to call the caller's original callback after we call
+ * handshake_thread() and then call async_handshake_thread_completed(),
+ * and a second to call the caller's original callback after we call
  * finish_handshake().
  */
 
 static void
-handshake_thread_completed (GObject      *object,
-                            GAsyncResult *result,
-                            gpointer      user_data)
+async_handshake_thread_completed (GObject      *object,
+                                  GAsyncResult *result,
+                                  gpointer      user_data)
 {
   GTask *caller_task = user_data;
   GTlsConnectionBase *tls = g_task_get_source_object (caller_task);
@@ -1673,7 +1673,7 @@ g_tls_connection_base_handshake_async (GTlsConnection      *conn,
   g_task_set_name (caller_task, "[glib-networking] g_tls_connection_base_handshake_async (caller task)");
   g_task_set_priority (caller_task, io_priority);
 
-  thread_task = g_task_new (conn, cancellable, handshake_thread_completed, caller_task);
+  thread_task = g_task_new (conn, cancellable, async_handshake_thread_completed, caller_task);
   g_task_set_source_tag (thread_task, g_tls_connection_base_handshake_async);
   g_task_set_name (caller_task, "[glib-networking] g_tls_connection_base_handshake_async (thread task)");
   g_task_set_priority (thread_task, io_priority);
