@@ -1566,13 +1566,6 @@ finish_handshake (GTlsConnectionBase  *tls,
           g_mutex_unlock (&priv->verify_certificate_mutex);
         }
 
-      if (tls_class->complete_handshake)
-        tls_class->complete_handshake (tls, &priv->negotiated_protocol, &my_error);
-
-      if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
-        g_object_notify (G_OBJECT (tls), "negotiated-protocol");
-      g_free (original_negotiated_protocol);
-
       /* FIXME: Return an error from the handshake thread instead. */
       if (priv->peer_certificate && !priv->peer_certificate_accepted)
         {
@@ -1580,6 +1573,16 @@ finish_handshake (GTlsConnectionBase  *tls,
                                _("Unacceptable TLS certificate"));
         }
     }
+
+  if (tls_class->complete_handshake)
+    {
+      /* If we already have an error, ignore further errors. */
+      tls_class->complete_handshake (tls, &priv->negotiated_protocol, my_error ? NULL : &my_error);
+
+      if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
+        g_object_notify (G_OBJECT (tls), "negotiated-protocol");
+    }
+  g_free (original_negotiated_protocol);
 
   if (my_error && priv->started_handshake)
     priv->handshake_error = g_error_copy (my_error);
