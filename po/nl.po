@@ -3,7 +3,7 @@
 #
 # Wouter Bolsterlee <wbolster@gnome.org>, 2011–2013
 # Rachid <rachidbm@ubuntu.com>, 2012.
-# Nathan Follens <nthn@unseen.is>, 2017.
+# Nathan Follens <nthn@unseen.is>, 2017, 2019.
 #
 # Peer - andere kant van de verbinding   (heel vrij vertaald)
 msgid ""
@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: gconf\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2019-05-24 16:23+0000\n"
-"PO-Revision-Date: 2019-06-18 10:22+0200\n"
+"POT-Creation-Date: 2019-09-21 08:32+0000\n"
+"PO-Revision-Date: 2019-09-25 12:51+0200\n"
 "Last-Translator: Nathan Follens <nthn@unseen.is>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Interne fout in proxy-resolver."
 
-#: tls/base/gtlsconnection-base.c:481 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -39,30 +39,34 @@ msgstr "Verbinding is gesloten"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:551
+#: tls/base/gtlsconnection-base.c:560
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Kan blokkeerbewerking tijdens TLS-handshake niet uitvoeren"
 
-#: tls/base/gtlsconnection-base.c:614 tls/base/gtlsconnection-base.c:1137
+#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1161
 msgid "Socket I/O timed out"
 msgstr "Time-out bij socket-I/O"
 
-#: tls/base/gtlsconnection-base.c:1393
+#: tls/base/gtlsconnection-base.c:787
 msgid "Server required TLS certificate"
 msgstr "Server vereiste een TLS-certificaat"
 
-#: tls/base/gtlsconnection-base.c:1488 tls/gnutls/gtlsconnection-gnutls.c:412
-#: tls/openssl/gtlsconnection-openssl.c:165
+#: tls/base/gtlsconnection-base.c:1383
+msgid "Peer does not support safe renegotiation"
+msgstr "Peer ondersteunt geen veilige heronderhandeling"
+
+#: tls/base/gtlsconnection-base.c:1511 tls/gnutls/gtlsconnection-gnutls.c:419
+#: tls/openssl/gtlsconnection-openssl.c:184
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Onacceptabel TLS-certificaat"
 
-#: tls/base/gtlsconnection-base.c:1895
+#: tls/base/gtlsconnection-base.c:1932
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Ontvangstvlaggen worden niet ondersteund"
 
-#: tls/base/gtlsconnection-base.c:2030
+#: tls/base/gtlsconnection-base.c:2076
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Verstuurvlaggen worden niet ondersteund"
@@ -97,91 +101,93 @@ msgid "No certificate data provided"
 msgstr "Geen certificaatgegevens opgegeven"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:522
+#: tls/openssl/gtlsclientconnection-openssl.c:520
 #: tls/openssl/gtlsserverconnection-openssl.c:399
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Kon geen TLS-verbinding maken: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:357
-#: tls/gnutls/gtlsconnection-gnutls.c:381
-#: tls/openssl/gtlsconnection-openssl.c:132
-msgid "Peer failed to perform TLS handshake"
-msgstr "Andere kant van de verbinding gaf geen TLS-handshake"
+#: tls/gnutls/gtlsconnection-gnutls.c:353
+#: tls/gnutls/gtlsconnection-gnutls.c:364
+#: tls/gnutls/gtlsconnection-gnutls.c:388
+#: tls/openssl/gtlsconnection-openssl.c:151
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Andere kant van de verbinding gaf geen TLS-handshake: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:368
-#: tls/openssl/gtlsconnection-openssl.c:241
+#: tls/gnutls/gtlsconnection-gnutls.c:375
+#: tls/openssl/gtlsconnection-openssl.c:260
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Andere kant van de verbinding verzocht een ongeldige TLS-rehandshake"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:389
+#: tls/gnutls/gtlsconnection-gnutls.c:396
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS-verbinding onverwachts afgebroken"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:404
-#: tls/openssl/gtlsconnection-openssl.c:157
+#: tls/gnutls/gtlsconnection-gnutls.c:411
+#: tls/openssl/gtlsconnection-openssl.c:176
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-verbinding van andere kant stuurde geen certificaat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:420
+#: tls/gnutls/gtlsconnection-gnutls.c:427
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Andere kant van de verbinding stuurde fatale TLS-waarschuwing: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:430
+#: tls/gnutls/gtlsconnection-gnutls.c:437
 msgid "Protocol version downgrade attack detected"
 msgstr "Downgrade-aanval op de protocolversie gedetecteerd"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:439
+#: tls/gnutls/gtlsconnection-gnutls.c:446
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "Bericht is te groot voor DTLS-verbinding; maximaal %u byte"
 msgstr[1] "Bericht is te groot voor DTLS-verbinding, maximaal %u bytes"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:448
+#: tls/gnutls/gtlsconnection-gnutls.c:455
 msgid "The operation timed out"
 msgstr "Time-out bij bewerking"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:770
+#: tls/gnutls/gtlsconnection-gnutls.c:790
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fout bij uitvoeren van TLS-handshake: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:873
-#: tls/openssl/gtlsconnection-openssl.c:250
-#: tls/openssl/gtlsconnection-openssl.c:300
+#: tls/gnutls/gtlsconnection-gnutls.c:893
+#: tls/openssl/gtlsconnection-openssl.c:269
+#: tls/openssl/gtlsconnection-openssl.c:319
 msgid "Error performing TLS handshake"
 msgstr "Fout bij uitvoeren van TLS-handshake"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:919
-#: tls/gnutls/gtlsconnection-gnutls.c:980
-#: tls/openssl/gtlsconnection-openssl.c:388
+#: tls/gnutls/gtlsconnection-gnutls.c:939
+#: tls/gnutls/gtlsconnection-gnutls.c:999
+#: tls/openssl/gtlsconnection-openssl.c:426
 msgid "Error reading data from TLS socket"
 msgstr "Fout bij het lezen van de TLS-socket"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
-#: tls/gnutls/gtlsconnection-gnutls.c:1068
-#: tls/openssl/gtlsconnection-openssl.c:414
+#: tls/gnutls/gtlsconnection-gnutls.c:1021
+#: tls/gnutls/gtlsconnection-gnutls.c:1085
+#: tls/openssl/gtlsconnection-openssl.c:470
 msgid "Error writing data to TLS socket"
 msgstr "Fout bij het schrijven naar de TLS-socket"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1038
+#: tls/gnutls/gtlsconnection-gnutls.c:1055
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Bericht van grootte %lu byte is te groot voor DTLS-verbinding"
 msgstr[1] "Bericht van grootte %lu bytes is te groot voor DTLS-verbinding"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1040
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(maximaal %u byte)"
 msgstr[1] "(maximaal %u bytes)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1088
+#: tls/gnutls/gtlsconnection-gnutls.c:1104
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fout bij sluiten van TLS: %s"
@@ -204,24 +210,24 @@ msgstr "Laden van vertrouwensopslag van systeem mislukt: %s"
 msgid "Certificate has no private key"
 msgstr "Certificaat heeft geen privésleutel"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:412
-#: tls/openssl/gtlsclientconnection-openssl.c:469
+#: tls/openssl/gtlsclientconnection-openssl.c:410
+#: tls/openssl/gtlsclientconnection-openssl.c:467
 #: tls/openssl/gtlsserverconnection-openssl.c:288
 #: tls/openssl/gtlsserverconnection-openssl.c:339
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Kon geen TLS-context maken: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:173
+#: tls/openssl/gtlsconnection-openssl.c:192
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Onacceptabele TLS-certificaatautoriteit"
 
-#: tls/openssl/gtlsconnection-openssl.c:181
+#: tls/openssl/gtlsconnection-openssl.c:200
 msgid "Digest too big for RSA key"
 msgstr "Digest te groot voor RSA-sleutel"
 
-#: tls/openssl/gtlsconnection-openssl.c:441
+#: tls/openssl/gtlsconnection-openssl.c:507
 msgid "Error performing TLS close"
 msgstr "Fout bij sluiten van TLS"
 
@@ -246,9 +252,6 @@ msgstr "Probleem met privésleutel van certificaat: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "Bewerking zou blokkeren"
-
-#~ msgid "Peer does not support safe renegotiation"
-#~ msgstr "Peer ondersteunt geen veilige heronderhandeling"
 
 #~ msgid "Server did not return a valid TLS certificate"
 #~ msgstr "Server gaf geen geldig TLS-certificaat weer"
