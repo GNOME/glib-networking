@@ -2039,6 +2039,11 @@ quit_on_handshake_complete (GObject      *object,
   return;
 }
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 static void
 test_fallback (TestConnection *test,
                gconstpointer   data)
@@ -2060,15 +2065,8 @@ test_fallback (TestConnection *test,
 
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 0);
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
   g_tls_client_connection_set_use_ssl3 (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                         TRUE);
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
   g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
                                     quit_on_handshake_complete, test);
@@ -2082,6 +2080,10 @@ test_fallback (TestConnection *test,
   g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 static void
 handshake_completed (GObject      *object,

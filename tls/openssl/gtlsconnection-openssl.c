@@ -224,6 +224,11 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     status = end_openssl_io (openssl, direction, ret, timeout == -1, err, errmsg, error_str); \
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBase  *tls,
                                                                gint64               timeout,
@@ -245,14 +250,7 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
 
   openssl = G_TLS_CONNECTION_OPENSSL (tls);
 
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
   rehandshake_mode = g_tls_connection_get_rehandshake_mode (G_TLS_CONNECTION (tls));
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
   if (rehandshake_mode == G_TLS_REHANDSHAKE_NEVER)
     {
@@ -270,6 +268,10 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
 
   return status;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 static GTlsCertificate *
 g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
