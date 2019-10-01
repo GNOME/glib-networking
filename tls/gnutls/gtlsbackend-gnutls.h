@@ -35,8 +35,12 @@ G_DECLARE_FINAL_TYPE (GTlsBackendGnutls, g_tls_backend_gnutls, G, TLS_BACKEND_GN
 
 void  g_tls_backend_gnutls_register (GIOModule *module);
 
-void    g_tls_backend_gnutls_store_session_data  (GBytes *session_id,
-                                                  GBytes *session_data);
-GBytes *g_tls_backend_gnutls_lookup_session_data (GBytes *session_id);
+void    g_tls_backend_gnutls_store_session  (unsigned int             type,
+                                             GBytes                  *session_id,
+                                             GBytes                  *session_data);
+void    g_tls_backend_gnutls_remove_session (unsigned int             type,
+                                             GBytes                  *session_id);
+GBytes *g_tls_backend_gnutls_lookup_session (unsigned int             type,
+                                             GBytes                  *session_id);
 
 G_END_DECLS
