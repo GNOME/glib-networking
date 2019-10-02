@@ -467,6 +467,7 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
       if (gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
                                     &session_datum) == 0)
         {
+          g_clear_pointer (&gnutls->session_data, g_bytes_unref);
           gnutls->session_data = g_bytes_new_with_free_func (session_datum.data,
                                                              session_datum.size,
                                                              (GDestroyNotify)gnutls_free,
