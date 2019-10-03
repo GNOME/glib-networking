@@ -1063,7 +1063,9 @@ static void
 test_client_auth_pkcs11_connection (TestConnection *test,
                                     gconstpointer   data)
 {
-#ifndef BACKEND_IS_GNUTLS
+#if !GLIB_CHECK_VERSION (2, 63, 0)
+  g_test_skip ("glib-networking built against too old GLib");
+#elif defined (BACKEND_IS_GNUTLS)
   g_test_skip ("This backend does not support PKCS #11");
 #else
   GIOStream *connection;
