@@ -148,6 +148,7 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
       g_value_set_object (value, gnutls->issuer);
       break;
 
+#if GLIB_CHECK_VERSION (2, 63, 0)
     case PROP_PKCS11_URI:
       g_value_set_string (value, gnutls->pkcs11_uri);
       break;
@@ -155,6 +156,7 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
     case PROP_PRIVATE_KEY_PKCS11_URI:
       g_value_set_string (value, gnutls->private_key_pkcs11_uri);
       break;
+#endif
 
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -266,6 +268,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       gnutls->issuer = g_value_dup_object (value);
       break;
 
+#if GLIB_CHECK_VERSION (2, 63, 0)
     case PROP_PKCS11_URI:
       string = g_value_get_string (value);
       if (!string)
@@ -298,6 +301,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
 
       gnutls->private_key_pkcs11_uri = g_strdup (string);
       break;
+#endif
 
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -408,8 +412,10 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
+#if GLIB_CHECK_VERSION (2, 63, 0)
   g_object_class_override_property (gobject_class, PROP_PKCS11_URI, "pkcs11-uri");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PKCS11_URI, "private-key-pkcs11-uri");
+#endif
 }
 
 static void
