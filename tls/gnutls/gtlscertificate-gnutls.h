@@ -44,6 +44,7 @@ void                         g_tls_certificate_gnutls_set_data        (GTlsCerti
 
 const gnutls_x509_crt_t      g_tls_certificate_gnutls_get_cert        (GTlsCertificateGnutls *gnutls);
 gboolean                     g_tls_certificate_gnutls_has_key         (GTlsCertificateGnutls *gnutls);
+gboolean                     g_tls_certificate_gnutls_is_pkcs11_backed (GTlsCertificateGnutls *gnutls);
 
 void                         g_tls_certificate_gnutls_copy            (GTlsCertificateGnutls  *gnutls,
                                                                        const gchar            *interaction_id,

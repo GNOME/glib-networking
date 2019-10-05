@@ -35,6 +35,7 @@
 
 #ifdef BACKEND_IS_GNUTLS
 #include <gnutls/gnutls.h>
+#include <gnutls/pkcs11.h>
 #else
 #include "openssl-include.h"
 #endif
@@ -1056,6 +1057,109 @@ test_client_auth_connection (TestConnection *test,
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
   g_assert_nonnull (peer);
   g_assert_true (g_tls_certificate_is_same (peer, cert));
+}
+
+static void
+test_client_auth_pkcs11_connection (TestConnection *test,
+                                    gconstpointer   data)
+{
+#if !GLIB_CHECK_VERSION (2, 63, 0)
+  g_test_skip ("glib-networking built against too old GLib");
+#elif !defined (BACKEND_IS_GNUTLS)
+  g_test_skip ("This backend does not support PKCS #11");
+#else
+  GIOStream *connection;
+  GError *error = NULL;
+  GTlsCertificate *cert;
+  GTlsCertificate *peer;
+  gboolean cas_changed;
+  GSocketClient *client;
+  GTlsInteraction *interaction;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  interaction = mock_interaction_new_static_password ("ABC123");
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_interaction (G_TLS_CONNECTION (test->client_connection), interaction);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  cert = g_tls_certificate_new_from_pkcs11_uris ("pkcs11:model=mock;manufacturer=GLib-Networking;serial=1;token=Mock%20Certificate;id=%4D%6F%63%6B%20%43%65%72%74%69%66%69%63%61%74%65;object=Mock%20Certificate;type=cert",
+                                                 "pkcs11:model=mock;manufacturer=GLib-Networking;serial=1;token=Mock%20Certificate;id=%4D%6F%63%6B%20%50%72%69%76%61%74%65%20%4B%65%79;object=Mock%20Private%20Key;type=private",
+                                                 &error);
+  g_assert_no_error (error);
+
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  cas_changed = FALSE;
+  g_signal_connect (test->client_connection, "notify::accepted-cas",
+                    G_CALLBACK (on_notify_accepted_cas), &cas_changed);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
+  g_assert_nonnull (peer);
+  g_assert_true (g_tls_certificate_is_same (peer, cert));
+  g_assert_true (cas_changed);
+
+  g_object_unref (cert);
+  g_object_unref (test->client_connection);
+  g_clear_object (&test->server_connection);
+
+  /* Now start a new connection to the same server with a different client cert.
+   * Also test using a single URI matching both the cert and private key.
+   */
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_interaction (G_TLS_CONNECTION (test->client_connection), interaction);
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+  cert = g_tls_certificate_new_from_pkcs11_uris ("pkcs11:model=mock;manufacturer=GLib-Networking;serial=1;token=Mock%20Certificate;id=%4D%6F%63%6B%20%50%72%69%76%61%74%65%20%4B%65%79%20%32",
+                                                 NULL,
+                                                 &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+  g_object_unref (cert);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  /* peer should see the second client cert */
+  peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
+  g_assert_nonnull (peer);
+  g_assert_true (g_tls_certificate_is_same (peer, cert));
+
+  g_object_unref (interaction);
+#endif
 }
 
 static void
@@ -2432,6 +2536,9 @@ main (int   argc,
       char *argv[])
 {
   int ret;
+#ifdef BACKEND_IS_GNUTLS
+  char *module_path;
+#endif
 
   g_test_init (&argc, &argv, NULL);
   g_test_bug_base ("http://bugzilla.gnome.org/");
@@ -2440,6 +2547,15 @@ main (int   argc,
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
 
   g_assert_true (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
+
+#ifdef BACKEND_IS_GNUTLS
+  module_path = g_build_filename (g_getenv ("G_TEST_BUILDDIR"), "mock-pkcs11.so", NULL);
+  ret = gnutls_pkcs11_init (GNUTLS_PKCS11_FLAG_MANUAL, NULL);
+  g_assert_cmpint (ret, ==, GNUTLS_E_SUCCESS);
+  ret = gnutls_pkcs11_add_provider (module_path, NULL);
+  g_assert_cmpint (ret, ==, GNUTLS_E_SUCCESS);
+  g_free (module_path);
+#endif
 
   g_test_add ("/tls/" BACKEND "/connection/basic", TestConnection, NULL,
               setup_connection, test_basic_connection, teardown_connection);
@@ -2471,6 +2587,8 @@ main (int   argc,
               setup_connection, test_client_auth_request_fail, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-request-none", TestConnection, NULL,
               setup_connection, test_client_auth_request_none, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/client-auth-pkcs11", TestConnection, NULL,
+              setup_connection, test_client_auth_pkcs11_connection, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/failed", TestConnection, NULL,
