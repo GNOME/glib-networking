@@ -1,17 +1,18 @@
 # Danish translation for glib-networking.
-# Copyright (C) 2011-2013, 2017-2019 glib-networking's COPYRIGHT HOLDER
+# Copyright (C) 2011-2013, 2017-2018 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
 # Kris Thomsen <lakristho@gmail.com>, 2011.
-# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-2013, 2017-2019.
+# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-2013, 2017-2018.
 # Alan Mortensen <alanmortensen.am@gmail.com>, 2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-07-04 09:53+0000\n"
-"PO-Revision-Date: 2019-09-09 00:41+0200\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2019-10-05 11:22+0000\n"
+"PO-Revision-Date: 2019-10-06 14:58+0200\n"
 "Last-Translator: Alan Mortensen <alanmortensen.am@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -25,7 +26,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Intern fejl i proxy-opløser."
 
-#: tls/base/gtlsconnection-base.c:479 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -38,34 +39,34 @@ msgstr "Forbindelsen er lukket"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:549
+#: tls/base/gtlsconnection-base.c:560
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Kan ikke udføre en blokerende operation under TLS-forhandling: %s"
 
-#: tls/base/gtlsconnection-base.c:612 tls/base/gtlsconnection-base.c:1118
+#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1161
 msgid "Socket I/O timed out"
 msgstr "Tidsudløb i sokkel-I/O"
 
-#: tls/base/gtlsconnection-base.c:1339
-msgid "Peer does not support safe renegotiation"
-msgstr "Modpart understøtter ikke sikker genforhandling"
-
-#: tls/base/gtlsconnection-base.c:1382
+#: tls/base/gtlsconnection-base.c:787
 msgid "Server required TLS certificate"
 msgstr "Server kræver et TLS-certifikat"
 
-#: tls/base/gtlsconnection-base.c:1477 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:172
+#: tls/base/gtlsconnection-base.c:1383
+msgid "Peer does not support safe renegotiation"
+msgstr "Modpart understøtter ikke sikker genforhandling"
+
+#: tls/base/gtlsconnection-base.c:1511 tls/gnutls/gtlsconnection-gnutls.c:419
+#: tls/openssl/gtlsconnection-openssl.c:184
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Uacceptabelt TLS-certifikat"
 
-#: tls/base/gtlsconnection-base.c:1884
+#: tls/base/gtlsconnection-base.c:1932
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Modtagelsesflag understøttes ikke"
 
-#: tls/base/gtlsconnection-base.c:2019
+#: tls/base/gtlsconnection-base.c:2076
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Sendeflag understøttes ikke"
@@ -100,7 +101,7 @@ msgid "No certificate data provided"
 msgstr "Ingen certifikatdata angivet"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:522
+#: tls/openssl/gtlsclientconnection-openssl.c:520
 #: tls/openssl/gtlsserverconnection-openssl.c:399
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -109,13 +110,13 @@ msgstr "Kunne ikke oprette TLS-forbindelse: %s"
 #: tls/gnutls/gtlsconnection-gnutls.c:353
 #: tls/gnutls/gtlsconnection-gnutls.c:364
 #: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:139
+#: tls/openssl/gtlsconnection-openssl.c:151
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
-msgstr "Modpart kunne ikke udføre TLS-forhandling: %s"
+msgstr "Modpart mislykkedes i at udføre TLS-forhandling: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:248
+#: tls/openssl/gtlsconnection-openssl.c:260
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "Modpart forspurgte illegalt TLS-genforhandling"
 
@@ -124,7 +125,7 @@ msgid "TLS connection closed unexpectedly"
 msgstr "TLS-forbindelse lukkede uventet ned"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:164
+#: tls/openssl/gtlsconnection-openssl.c:176
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-modpart sendte ikke noget certifikat"
 
@@ -148,45 +149,45 @@ msgstr[1] "Meddelelsen er for lang til DTLS-forbindelse; maksimum er %u byte"
 msgid "The operation timed out"
 msgstr "Tidsudløb under operation"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:780
+#: tls/gnutls/gtlsconnection-gnutls.c:790
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Fejl under udførsel af TLS-forhandling: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:883
-#: tls/openssl/gtlsconnection-openssl.c:257
-#: tls/openssl/gtlsconnection-openssl.c:307
+#: tls/gnutls/gtlsconnection-gnutls.c:893
+#: tls/openssl/gtlsconnection-openssl.c:269
+#: tls/openssl/gtlsconnection-openssl.c:319
 msgid "Error performing TLS handshake"
 msgstr "Fejl under udførsel af TLS-forhandling: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:929
-#: tls/gnutls/gtlsconnection-gnutls.c:989
-#: tls/openssl/gtlsconnection-openssl.c:414
+#: tls/gnutls/gtlsconnection-gnutls.c:939
+#: tls/gnutls/gtlsconnection-gnutls.c:999
+#: tls/openssl/gtlsconnection-openssl.c:426
 msgid "Error reading data from TLS socket"
 msgstr "Fejl under læsning af data fra TLS-sokkel"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1011
-#: tls/gnutls/gtlsconnection-gnutls.c:1075
-#: tls/openssl/gtlsconnection-openssl.c:458
+#: tls/gnutls/gtlsconnection-gnutls.c:1021
+#: tls/gnutls/gtlsconnection-gnutls.c:1085
+#: tls/openssl/gtlsconnection-openssl.c:470
 msgid "Error writing data to TLS socket"
 msgstr "Fejl under skrivning af data til TLS-sokkel"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1045
+#: tls/gnutls/gtlsconnection-gnutls.c:1055
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Meddelelse af størrelse %lu byte er for stor til DTLS-forbindelse"
 msgstr[1] "Meddelelse af størrelse %lu byte er for stor til DTLS-forbindelse"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1047
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(maksimum er %u byte)"
 msgstr[1] "(maksimum er %u byte)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1094
+#: tls/gnutls/gtlsconnection-gnutls.c:1104
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Fejl ved lukning af TLS: %s"
@@ -209,26 +210,26 @@ msgstr "Kunne ikke indlæse systemets “trust store”: %s"
 msgid "Certificate has no private key"
 msgstr "Certifikatet har ingen privat nøgle"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:412
-#: tls/openssl/gtlsclientconnection-openssl.c:469
+#: tls/openssl/gtlsclientconnection-openssl.c:410
+#: tls/openssl/gtlsclientconnection-openssl.c:467
 #: tls/openssl/gtlsserverconnection-openssl.c:288
 #: tls/openssl/gtlsserverconnection-openssl.c:339
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Kunne ikke oprette TLS-kontekst: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:180
+#: tls/openssl/gtlsconnection-openssl.c:192
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Uacceptabel TLS-certifikatautoritet"
 
 # Digest er oversat med digest i Network-modulerne i gnome extra
 # https://en.wikipedia.org/wiki/Cryptographic_hash_function
-#: tls/openssl/gtlsconnection-openssl.c:188
+#: tls/openssl/gtlsconnection-openssl.c:200
 msgid "Digest too big for RSA key"
 msgstr "Digest er for stor til RSA-nøglen"
 
-#: tls/openssl/gtlsconnection-openssl.c:495
+#: tls/openssl/gtlsconnection-openssl.c:507
 msgid "Error performing TLS close"
 msgstr "Fejl ved lukning af TLS"
 
