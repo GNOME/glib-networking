@@ -274,7 +274,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       if (!string)
         break;
       g_return_if_fail (gnutls->have_cert == FALSE);
-      g_return_if_fail (gnutls->pkcs11_uri);
+      g_return_if_fail (!gnutls->pkcs11_uri);
 
       gnutls->pkcs11_uri = g_strdup (string);
 
@@ -297,7 +297,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       if (!string)
         break;
       g_return_if_fail (gnutls->have_key == FALSE);
-      g_return_if_fail (gnutls->private_key_pkcs11_uri);
+      g_return_if_fail (!gnutls->private_key_pkcs11_uri);
 
       gnutls->private_key_pkcs11_uri = g_strdup (string);
       break;
