@@ -1098,6 +1098,9 @@ test_client_auth_failure (TestConnection *test,
 
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
 
+// FIXME
+g_tls_connection_set_require_close_notify (G_TLS_CONNECTION (test->client_connection), FALSE);
+
   /* No Certificate set */
 
   /* All validation in this test */
