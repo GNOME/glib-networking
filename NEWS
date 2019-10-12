@@ -1,3 +1,15 @@
+2.63.1 - October 11, 2019
+=========================
+
+- Add support for new PKCS#11 APIs to facilitate use with smartcards (Patrick Griffis)
+- Disable TLS 1.0 and TLS 1.1 when using GnuTLS
+- Fix threadsafety issue (#95)
+
+2.62.1 - October 4, 2019
+========================
+
+- Fix two memory leaks (!71, !72, Claudio Saavedra)
+
 2.62.0 - September 7, 2019
 ==========================
 
