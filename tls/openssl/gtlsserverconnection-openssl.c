@@ -122,11 +122,12 @@ ssl_set_certificate (SSL              *ssl,
     {
       X509 *issuer_x;
 
-      /* Be careful here and duplicate the certificate since the context
+      issuer_x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer));
+
+      /* Be careful here and duplicate the certificate since the ssl object
        * will take the ownership
        */
-      issuer_x = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer)));
-      if (SSL_add0_chain_cert (ssl, issuer_x) == 0)
+      if (SSL_add1_chain_cert (ssl, issuer_x) == 0)
         g_warning ("There was a problem adding the chain certificate: %s",
                    ERR_error_string (ERR_get_error (), NULL));
     }
