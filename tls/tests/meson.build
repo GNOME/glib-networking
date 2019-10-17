@@ -21,15 +21,19 @@ envs = [
   'G_TEST_BUILDDIR=' + meson.current_build_dir(),
 ]
 
-mock_pkcs11_module = shared_module('mock-pkcs11',
-  sources: 'mock-pkcs11.c',
-  name_prefix: '',
-  gnu_symbol_visibility: 'hidden',
-  dependencies: [
-    gio_dep,
-    gnutls_dep,
-  ]
-)
+if backends.contains('gnutls')
+  mock_pkcs11_module = shared_module('mock-pkcs11',
+    sources: 'mock-pkcs11.c',
+    name_prefix: '',
+    gnu_symbol_visibility: 'hidden',
+    dependencies: [
+      gio_dep,
+      gnutls_dep,
+    ]
+  )
+else
+  mock_pkcs11_module = []
+endif
 
 test_programs = [
   ['certificate', [], deps, [], [mock_pkcs11_module]],
