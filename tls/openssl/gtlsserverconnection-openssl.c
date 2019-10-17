@@ -73,68 +73,6 @@ g_tls_server_connection_openssl_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_server_connection_openssl_parent_class)->finalize (object);
 }
 
-static gboolean
-ssl_set_certificate (SSL              *ssl,
-                     GTlsCertificate  *cert,
-                     GError          **error)
-{
-  EVP_PKEY *key;
-  X509 *x;
-  GTlsCertificate *issuer;
-
-  key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
-
-  if (!key)
-    {
-      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                           _("Certificate has no private key"));
-      return FALSE;
-    }
-
-  /* Note, order is important. If a certificate has been set previously,
-   * OpenSSL requires that the new certificate is set _before_ the new
-   * private key is set. */
-  x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert));
-  if (SSL_use_certificate (ssl, x) <= 0)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                   _("There is a problem with the certificate: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-  if (SSL_use_PrivateKey (ssl, key) <= 0)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                   _("There is a problem with the certificate private key: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-  if (SSL_clear_chain_certs (ssl) == 0)
-    g_warning ("There was a problem clearing the chain certificates: %s",
-               ERR_error_string (ERR_get_error (), NULL));
-
-  /* Add all the issuers to create the full certificate chain */
-  for (issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (cert));
-       issuer;
-       issuer = g_tls_certificate_get_issuer (issuer))
-    {
-      X509 *issuer_x;
-
-      issuer_x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer));
-
-      /* Be careful here and duplicate the certificate since the ssl object
-       * will take the ownership
-       */
-      if (SSL_add1_chain_cert (ssl, issuer_x) == 0)
-        g_warning ("There was a problem adding the chain certificate: %s",
-                   ERR_error_string (ERR_get_error (), NULL));
-    }
-
-  return TRUE;
-}
-
 static void
 g_tls_server_connection_openssl_get_property (GObject    *object,
                                               guint       prop_id,
@@ -216,6 +154,123 @@ g_tls_server_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection)
   return G_TLS_SERVER_CONNECTION_OPENSSL (connection)->ssl;
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x10002000L
+static gboolean
+ssl_ctx_set_certificate (SSL_CTX          *ssl_ctx,
+                         GTlsCertificate  *cert,
+                         GError          **error)
+{
+  EVP_PKEY *key;
+  X509 *x;
+  GTlsCertificate *issuer;
+
+  key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
+
+  if (!key)
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Certificate has no private key"));
+      return FALSE;
+    }
+
+  if (SSL_CTX_use_PrivateKey (ssl_ctx, key) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate private key: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+     return FALSE;
+    }
+
+  x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert));
+  if (SSL_CTX_use_certificate (ssl_ctx, x) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  /* Add all the issuers to create the full certificate chain */
+  for (issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (cert));
+       issuer;
+       issuer = g_tls_certificate_get_issuer (issuer))
+    {
+      X509 *issuer_x;
+
+      /* Be careful here and duplicate the certificate since the context
+      * will take the ownership
+       */
+      issuer_x = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer)));
+      if (!SSL_CTX_add_extra_chain_cert (ssl_ctx, issuer_x))
+        g_warning ("There was a problem adding the extra chain certificate: %s",
+                   ERR_error_string (ERR_get_error (), NULL));
+    }
+}
+#endif
+
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
+static gboolean
+ssl_set_certificate (SSL              *ssl,
+                     GTlsCertificate  *cert,
+                     GError          **error)
+{
+  EVP_PKEY *key;
+  X509 *x;
+  GTlsCertificate *issuer;
+
+  key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
+
+  if (!key)
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Certificate has no private key"));
+      return FALSE;
+    }
+
+  /* Note, order is important. If a certificate has been set previously,
+   * OpenSSL requires that the new certificate is set _before_ the new
+   * private key is set. */
+  x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert));
+  if (SSL_use_certificate (ssl, x) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  if (SSL_use_PrivateKey (ssl, key) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate private key: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  if (SSL_clear_chain_certs (ssl) == 0)
+    g_warning ("There was a problem clearing the chain certificates: %s",
+               ERR_error_string (ERR_get_error (), NULL));
+
+  /* Add all the issuers to create the full certificate chain */
+  for (issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (cert));
+       issuer;
+       issuer = g_tls_certificate_get_issuer (issuer))
+    {
+      X509 *issuer_x;
+
+      issuer_x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer));
+
+      /* Be careful here and duplicate the certificate since the ssl object
+       * will take the ownership
+       */
+      if (SSL_add1_chain_cert (ssl, issuer_x) == 0)
+        g_warning ("There was a problem adding the chain certificate: %s",
+                   ERR_error_string (ERR_get_error (), NULL));
+    }
+
+  return TRUE;
+}
+
 static void
 on_certificate_changed (GObject    *object,
                         GParamSpec *spec,
@@ -230,6 +285,7 @@ on_certificate_changed (GObject    *object,
   if (ssl && cert)
     ssl_set_certificate (ssl, cert, NULL);
 }
+#endif
 
 static void
 g_tls_server_connection_openssl_class_init (GTlsServerConnectionOpensslClass *klass)
@@ -259,7 +315,7 @@ g_tls_server_connection_openssl_server_connection_interface_init (GTlsServerConn
 {
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER >= 0x10001000L || defined (LIBRESSL_VERSION_NUMBER)
 static void
 ssl_info_callback (const SSL *ssl,
                    int        type,
@@ -328,8 +384,10 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
                                                GError         **error)
 {
   GTlsServerConnectionOpenssl *server = G_TLS_SERVER_CONNECTION_OPENSSL (initable);
-  GTlsCertificate *cert;
   long options;
+#if OPENSSL_VERSION_NUMBER >= 0x10001000L || defined (LIBRESSL_VERSION_NUMBER)
+  GTlsCertificate *cert;
+#endif
 
   server->session = SSL_SESSION_new ();
 
@@ -393,6 +451,13 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   SSL_CTX_set_info_callback (server->ssl_ctx, ssl_info_callback);
 #endif
 
+  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
+
+#if OPENSSL_VERSION_NUMBER < 0x10002000L
+  if (cert && !ssl_ctx_set_certificate (server->ssl_ctx, cert, error))
+    return FALSE;
+#endif
+
   server->ssl = SSL_new (server->ssl_ctx);
   if (!server->ssl)
     {
@@ -402,9 +467,10 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
       return FALSE;
     }
 
-  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   if (cert && !ssl_set_certificate (server->ssl, cert, error))
     return FALSE;
+#endif
 
   SSL_set_accept_state (server->ssl);
 
@@ -412,7 +478,9 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
       init (initable, cancellable, error))
     return FALSE;
 
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   g_signal_connect (server, "notify::certificate", G_CALLBACK (on_certificate_changed), NULL);
+#endif
 
   return TRUE;
 }
