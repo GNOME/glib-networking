@@ -65,8 +65,6 @@ static int     g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t
 
 static void g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface);
 
-static void g_tls_connection_gnutls_init_priorities (void);
-
 static int verify_certificate_cb (gnutls_session_t session);
 
 typedef struct
@@ -81,7 +79,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls,
                                   G_ADD_PRIVATE (GTlsConnectionGnutls);
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                          g_tls_connection_gnutls_initable_iface_init);
-                                  g_tls_connection_gnutls_init_priorities ();
                                   );
 
 static gint unique_interaction_id = 0;
@@ -100,93 +97,41 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
   priv->cancellable = g_cancellable_new ();
 }
 
-/* First field is "fallback", second is "allow unsafe rehandshaking" */
-static gnutls_priority_t priorities[2][2];
-
-/* TODO: Get rid of this in favor of gnutls_set_default_priority_append()
- * when upgrading to GnuTLS 3.6.3.
- */
-#define DEFAULT_BASE_PRIORITY "NORMAL:%COMPAT:-VERS-TLS1.1:-VERS-TLS1.0"
-
-static void
-g_tls_connection_gnutls_init_priorities (void)
-{
-  const gchar *base_priority;
-  gchar *fallback_priority, *unsafe_rehandshake_priority, *fallback_unsafe_rehandshake_priority;
-  const guint *protos;
-  int ret, i, nprotos, fallback_proto;
-
-  base_priority = g_getenv ("G_TLS_GNUTLS_PRIORITY");
-  if (!base_priority)
-    base_priority = DEFAULT_BASE_PRIORITY;
-  ret = gnutls_priority_init (&priorities[FALSE][FALSE], base_priority, NULL);
-  if (ret == GNUTLS_E_INVALID_REQUEST)
-    {
-      g_warning ("G_TLS_GNUTLS_PRIORITY is invalid; ignoring!");
-      base_priority = DEFAULT_BASE_PRIORITY;
-      ret = gnutls_priority_init (&priorities[FALSE][FALSE], base_priority, NULL);
-      g_warn_if_fail (ret == 0);
-    }
-
-  unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION", base_priority);
-  ret = gnutls_priority_init (&priorities[FALSE][TRUE], unsafe_rehandshake_priority, NULL);
-  g_warn_if_fail (ret == 0);
-  g_free (unsafe_rehandshake_priority);
-
-  /* Figure out the lowest SSl/TLS version supported by base_priority */
-  nprotos = gnutls_priority_protocol_list (priorities[FALSE][FALSE], &protos);
-  fallback_proto = G_MAXUINT;
-  for (i = 0; i < nprotos; i++)
-    {
-      if (protos[i] < fallback_proto)
-        fallback_proto = protos[i];
-    }
-  if (fallback_proto == G_MAXUINT)
-    {
-      g_warning ("All GNUTLS protocol versions disabled?");
-      fallback_priority = g_strdup (base_priority);
-    }
-  else
-    {
-      /* %COMPAT is intentionally duplicated here, to ensure it gets added for
-       * the fallback even if the default priority has been changed. */
-      fallback_priority = g_strdup_printf ("%s:%%COMPAT:!VERS-TLS-ALL:+VERS-%s:%%FALLBACK_SCSV",
-                                           DEFAULT_BASE_PRIORITY,
-                                           gnutls_protocol_get_name (fallback_proto));
-    }
-  fallback_unsafe_rehandshake_priority = g_strdup_printf ("%s:%%UNSAFE_RENEGOTIATION",
-                                                          fallback_priority);
-
-  ret = gnutls_priority_init (&priorities[TRUE][FALSE], fallback_priority, NULL);
-  g_warn_if_fail (ret == 0);
-  ret = gnutls_priority_init (&priorities[TRUE][TRUE], fallback_unsafe_rehandshake_priority, NULL);
-  g_warn_if_fail (ret == 0);
-  g_free (fallback_priority);
-  g_free (fallback_unsafe_rehandshake_priority);
-}
-
 static void
 g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  gboolean fallback, unsafe_rehandshake;
+  static gnutls_priority_t cached_priority = 0;
+  const gchar *priority_override;
+  const gchar *error_pos = NULL;
+  int ret;
 
-  if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
+  if (!cached_priority)
     {
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-      fallback = g_tls_client_connection_get_use_ssl3 (G_TLS_CLIENT_CONNECTION (gnutls));
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+      priority_override = g_getenv ("G_TLS_GNUTLS_PRIORITY");
+      if (priority_override)
+        {
+          ret = gnutls_priority_init2 (&cached_priority, priority_override, &error_pos, 0);
+          if (ret != GNUTLS_E_SUCCESS)
+            {
+              g_warning ("Failed to set GnuTLS session priority with beginning at %s: %s", error_pos, gnutls_strerror (ret));
+              return;
+            }
+        }
+      else
+        {
+          ret = gnutls_priority_init2 (&cached_priority, "%COMPAT:-VERS-TLS1.1:-VERS-TLS1.0", &error_pos, GNUTLS_PRIORITY_INIT_DEF_APPEND);
+          if (ret != GNUTLS_E_SUCCESS)
+            {
+              g_warning ("Failed to set GnuTLS session priority with error beginning at %s: %s", error_pos, gnutls_strerror (ret));
+              return;
+            }
+        }
     }
-  else
-    fallback = FALSE;
-  unsafe_rehandshake = g_tls_connection_get_rehandshake_mode (G_TLS_CONNECTION (gnutls)) == G_TLS_REHANDSHAKE_UNSAFELY;
-  gnutls_priority_set (priv->session,
-                       priorities[fallback][unsafe_rehandshake]);
+
+  ret = gnutls_priority_set (priv->session, cached_priority);
+  if (ret != GNUTLS_E_SUCCESS)
+    g_warning ("Failed to set GnuTLS session priority: %s", gnutls_strerror (ret));
 }
 
 static gboolean
