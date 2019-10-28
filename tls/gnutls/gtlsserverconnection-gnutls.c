@@ -107,7 +107,6 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   GTlsCertificate *cert;
-  gnutls_session_t session;
   gnutls_certificate_credentials_t creds;
 
   if (!g_tls_server_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
