@@ -115,6 +115,7 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
 {
   GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (initable);
   GTlsCertificate *cert;
+  gnutls_session_t session;
   gnutls_certificate_credentials_t creds;
   int ret;
 
@@ -123,6 +124,8 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
 
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function2 (creds, g_tls_server_connection_gnutls_handshake_thread_retrieve_function);
+
+  session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
   if (cert && !g_tls_certificate_gnutls_has_key (G_TLS_CERTIFICATE_GNUTLS (cert)))
