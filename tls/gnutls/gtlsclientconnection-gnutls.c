@@ -120,6 +120,7 @@ get_server_identity (GTlsClientConnectionGnutls *gnutls)
     return NULL;
 }
 
+#if 0
 static void
 g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *gnutls)
 {
@@ -200,6 +201,7 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
     }
   g_clear_object (&base_conn);
 }
+#endif
 
 static int
 handshake_thread_session_ticket_received_cb (gnutls_session_t      session,
@@ -450,6 +452,7 @@ static void
 g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
                                                   gchar              **advertised_protocols)
 {
+#if 0
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
 
   g_tls_client_connection_gnutls_compute_session_id (gnutls);
@@ -475,6 +478,7 @@ g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
           gnutls->session_data = g_steal_pointer (&session_data);
         }
     }
+#endif
 
   G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->
     prepare_handshake (tls, advertised_protocols);
