@@ -2306,20 +2306,33 @@ handshake_thread_completed (GObject      *object,
     need_finish_handshake = FALSE;
   g_mutex_unlock (&priv->op_mutex);
 
+  /* We have to clear handshake_context before g_task_return_* because it can
+   * return immediately to application code inside g_task_return_*,
+   * and the application code could then start a new TLS operation.
+   *
+   * But we can't clear until after finish_handshake().
+   */
   if (need_finish_handshake)
     {
       success = finish_handshake (gnutls, G_TASK (result), &error);
+
+      g_clear_pointer (&priv->handshake_context, g_main_context_unref);
+
       if (success)
         g_task_return_boolean (caller_task, TRUE);
       else
         g_task_return_error (caller_task, error);
     }
-  else if (priv->handshake_error)
-    g_task_return_error (caller_task, g_error_copy (priv->handshake_error));
   else
-    g_task_return_boolean (caller_task, TRUE);
+    {
+      g_clear_pointer (&priv->handshake_context, g_main_context_unref);
 
-  g_clear_pointer (&priv->handshake_context, g_main_context_unref);
+      if (priv->handshake_error)
+        g_task_return_error (caller_task, g_error_copy (priv->handshake_error));
+      else
+        g_task_return_boolean (caller_task, TRUE);
+    }
+
   g_object_unref (caller_task);
 }
 
