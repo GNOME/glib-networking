@@ -74,6 +74,13 @@ gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required
 
 backends = []
 
+libsystemd_dep = dependency('libsystemd', version: '>= 209', required: false)
+enable_systemd_journal = get_option('systemd_journal')
+if enable_systemd_journal
+  assert(libsystemd_dep.found(), 'Missing systemd journal support while requires it')
+endif
+config_h.set10('SYSTEMD_JOURNAL', enable_systemd_journal)
+
 # *** Checks for GnuTLS     ***
 gnutls_dep = dependency('gnutls', version: '>= 3.4.6', required: get_option('gnutls'))
 
@@ -188,8 +195,9 @@ if gio_querymodules.found()
 endif
 
 output = '\n\n'
-output += '  gnutls support:      ' + backends.contains('gnutls').to_string() + '\n'
-output += '  openssl support:     ' + backends.contains('openssl').to_string() + '\n'
-output += '  libproxy support:    ' + libproxy_dep.found().to_string() + '\n'
-output += '  GNOME proxy support: ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
+output += '  gnutls support:             ' + backends.contains('gnutls').to_string() + '\n'
+output += '  openssl support:            ' + backends.contains('openssl').to_string() + '\n'
+output += '  libproxy support:           ' + libproxy_dep.found().to_string() + '\n'
+output += '  GNOME proxy support:        ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
+output += '  systemd journal support:    ' + enable_systemd_journal.to_string() + '\n'
 message(output)
