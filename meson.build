@@ -188,8 +188,8 @@ if gio_querymodules.found()
 endif
 
 output = '\n\n'
-output += '  gnutls support:      ' + backends.contains('gnutls').to_string() + '\n'
-output += '  openssl support:     ' + backends.contains('openssl').to_string() + '\n'
-output += '  libproxy support:    ' + libproxy_dep.found().to_string() + '\n'
-output += '  GNOME proxy support: ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
+output += '  gnutls support:             ' + backends.contains('gnutls').to_string() + '\n'
+output += '  openssl support:            ' + backends.contains('openssl').to_string() + '\n'
+output += '  libproxy support:           ' + libproxy_dep.found().to_string() + '\n'
+output += '  GNOME proxy support:        ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
 message(output)
