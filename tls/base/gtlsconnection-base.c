@@ -1547,7 +1547,7 @@ finish_handshake (GTlsConnectionBase  *tls,
     return TRUE;
   }
 
-  g_tls_log_error (tls, "TLS handshake has finished with error: %s", my_error->message);
+  //g_tls_log_error (tls, "TLS handshake has finished with error: %s", my_error->message);
   g_propagate_error (error, my_error);
   return FALSE;
 }
@@ -1895,7 +1895,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
       return nread;
     }
 
-  g_tls_log_warning (tls, "reading data from TLS connection has failed with status %u", status);
+  //g_tls_log_warning (tls, "reading data from TLS connection has failed with status %u", status);
   return -1;
 }
 
@@ -2275,7 +2275,7 @@ g_tls_connection_base_close_internal (GIOStream      *stream,
   /* Propagate errors. */
   if (status != G_TLS_CONNECTION_BASE_OK)
     {
-      g_tls_log_warning (tls, "the TLS connection could not be closed: %s", close_error->message);
+      //g_tls_log_warning (tls, "the TLS connection could not be closed: %s", close_error->message);
       g_propagate_error (error, close_error);
       g_clear_error (&stream_error);
     }
