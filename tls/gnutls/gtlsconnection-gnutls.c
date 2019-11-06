@@ -90,9 +90,7 @@ static void
 g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  gint unique_id;
-
-  gnutls_certificate_allocate_credentials (&priv->creds);
+  int unique_id;
 
   unique_id = g_atomic_int_add (&unique_interaction_id, 1);
   priv->interaction_id = g_strdup_printf ("gtls:%d", unique_id);
@@ -201,6 +199,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   gboolean client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
   guint flags = client ? GNUTLS_CLIENT : GNUTLS_SERVER;
   int status;
+  int ret;
 
   g_object_get (gnutls,
                 "base-io-stream", &base_io_stream,
@@ -212,6 +211,10 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
 
   if (base_socket)
     flags |= GNUTLS_DATAGRAM;
+
+  ret = gnutls_certificate_allocate_credentials (&priv->creds);
+  if (ret != GNUTLS_E_SUCCESS)
+    return FALSE;
 
   gnutls_init (&priv->session, flags);
 
@@ -555,10 +558,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
 
 #define END_GNUTLS_IO(gnutls, direction, ret, status, errmsg, err)      \
     status = end_gnutls_io (gnutls, direction, ret, err, errmsg);       \
-  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);                  \
-                                                                        \
-  if (status == G_TLS_CONNECTION_BASE_ERROR)                            \
-    G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls)->failed (gnutls);
+  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
 static void
 set_gnutls_error (GTlsConnectionGnutls *gnutls,

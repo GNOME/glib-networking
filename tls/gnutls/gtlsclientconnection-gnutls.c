@@ -52,10 +52,15 @@ struct _GTlsClientConnectionGnutls
   GTlsCertificateFlags validation_flags;
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
-  gboolean session_data_override;
 
+  /* session_data is either the session ticket that was used to resume this
+   * connection, or the most recent session ticket received from the server.
+   * Because session ticket reuse is generally undesirable, it should only be
+   * accessed if session_data_override is set.
+   */
   GBytes *session_id;
   GBytes *session_data;
+  gboolean session_data_override;
 
   GPtrArray *accepted_cas;
   gboolean accepted_cas_changed;
@@ -65,7 +70,7 @@ struct _GTlsClientConnectionGnutls
   gnutls_privkey_t pkey;
 };
 
-static void     g_tls_client_connection_gnutls_initable_interface_init (GInitableIface  *iface);
+static void g_tls_client_connection_gnutls_initable_interface_init (GInitableIface  *iface);
 
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
 static void g_tls_client_connection_gnutls_dtls_client_connection_interface_init (GDtlsClientConnectionInterface *iface);
@@ -102,10 +107,6 @@ clear_gnutls_certificate_copy (GTlsClientConnectionGnutls *gnutls)
 static void
 g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
 {
-  gnutls_certificate_credentials_t creds;
-
-  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 }
 
 static const gchar *
@@ -127,12 +128,31 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
   GInetAddress *iaddr;
   guint port;
 
-  /* Create a TLS session ID. We base it on the IP address since
+  /* The testsuite expects handshakes to actually happen. E.g. a test might
+   * check to see that a handshake succeeds and then later check that a new
+   * handshake fails. If we get really unlucky and the same port number is
+   * reused for the server socket between connections, then we'll accidentally
+   * resume the old session and skip certificate verification. Such failures
+   * are difficult to debug because they require running the tests hundreds of
+   * times simultaneously to reproduce (the port number does not get reused
+   * quickly enough if the tests are run sequentially).
+   *
+   * So session resumption will just need to be tested manually.
+   */
+  if (g_test_initialized ())
+    return;
+
+  /* Create a TLS "session ID." We base it on the IP address since
    * different hosts serving the same hostname/service will probably
    * not share the same session cache. We base it on the
    * server-identity because at least some servers will fail (rather
    * than just failing to resume the session) if we don't.
    * (https://bugs.launchpad.net/bugs/823325)
+   *
+   * Note that our session IDs have no relation to TLS protocol
+   * session IDs, e.g. as provided by gnutls_session_get_id2(). Unlike
+   * our session IDs, actual TLS session IDs can no longer be used for
+   * session resumption.
    */
   g_object_get (G_OBJECT (gnutls), "base-io-stream", &base_conn, NULL);
   if (G_IS_SOCKET_CONNECTION (base_conn))
@@ -154,7 +174,8 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
 
           /* If we have a certificate, make its hash part of the session ID, so
            * that different connections to the same server can use different
-           * certificates. */
+           * certificates.
+           */
           g_object_get (G_OBJECT (gnutls), "certificate", &cert, NULL);
           if (cert)
             {
@@ -180,6 +201,32 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
   g_clear_object (&base_conn);
 }
 
+static int
+handshake_thread_session_ticket_received_cb (gnutls_session_t      session,
+                                             guint                 htype,
+                                             guint                 when,
+                                             guint                 incoming,
+                                             const gnutls_datum_t *msg)
+{
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls_session_get_ptr (session));
+  gnutls_datum_t session_datum;
+
+  if (gnutls_session_get_data2 (session, &session_datum) == GNUTLS_E_SUCCESS)
+    {
+      g_clear_pointer (&gnutls->session_data, g_bytes_unref);
+      gnutls->session_data = g_bytes_new_with_free_func (session_datum.data,
+                                                         session_datum.size,
+                                                         (GDestroyNotify)gnutls_free,
+                                                         session_datum.data);
+
+      if (gnutls->session_id)
+        g_tls_backend_gnutls_store_session_data (gnutls->session_id,
+                                                 gnutls->session_data);
+    }
+
+  return 0;
+}
+
 static void
 g_tls_client_connection_gnutls_finalize (GObject *object)
 {
@@ -203,10 +250,13 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   gnutls_session_t session;
   const gchar *hostname;
+  gnutls_certificate_credentials_t creds;
 
-  if (!g_tls_client_connection_gnutls_parent_initable_iface->
-      init (initable, cancellable, error))
+  if (!g_tls_client_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
+
+  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
+  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 
   session = g_tls_connection_gnutls_get_session (gnutls);
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
@@ -222,6 +272,9 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
 
       g_free (normalized_hostname);
     }
+
+  gnutls_handshake_set_hook_function (session, GNUTLS_HANDSHAKE_NEW_SESSION_TICKET,
+                                      GNUTLS_HOOK_POST, handshake_thread_session_ticket_received_cb);
 
   return TRUE;
 }
@@ -394,21 +447,6 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
 }
 
 static void
-g_tls_client_connection_gnutls_clear_session_data (GTlsClientConnectionGnutls *gnutls)
-{
-  gnutls->session_data_override = FALSE;
-  g_clear_pointer (&gnutls->session_data, g_bytes_unref);
-  if (gnutls->session_id)
-    g_tls_backend_gnutls_remove_session (GNUTLS_CLIENT, gnutls->session_id);
-}
-
-static void
-g_tls_client_connection_gnutls_failed (GTlsConnectionGnutls *gnutls)
-{
-  g_tls_client_connection_gnutls_clear_session_data (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
-}
-
-static void
 g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
                                                   gchar              **advertised_protocols)
 {
@@ -416,9 +454,9 @@ g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
 
   g_tls_client_connection_gnutls_compute_session_id (gnutls);
 
-  /* Try to get a cached session */
   if (gnutls->session_data_override)
     {
+      g_assert (gnutls->session_data);
       gnutls_session_set_data (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
                                g_bytes_get_data (gnutls->session_data, NULL),
                                g_bytes_get_size (gnutls->session_data));
@@ -427,14 +465,14 @@ g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
     {
       GBytes *session_data;
 
-      session_data = g_tls_backend_gnutls_lookup_session (GNUTLS_CLIENT, gnutls->session_id);
+      session_data = g_tls_backend_gnutls_lookup_session_data (gnutls->session_id);
       if (session_data)
         {
           gnutls_session_set_data (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
                                    g_bytes_get_data (session_data, NULL),
                                    g_bytes_get_size (session_data));
           g_clear_pointer (&gnutls->session_data, g_bytes_unref);
-          gnutls->session_data = session_data;
+          gnutls->session_data = g_steal_pointer (&session_data);
         }
     }
 
@@ -448,7 +486,6 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
                                                    GError             **error)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
-  int resumed;
 
   G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->complete_handshake (tls, negotiated_protocol, error);
 
@@ -457,28 +494,6 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
    */
   if (gnutls->accepted_cas_changed)
     g_object_notify (G_OBJECT (gnutls), "accepted-cas");
-
-  resumed = gnutls_session_is_resumed (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)));
-  if (!resumed)
-    {
-      gnutls_datum_t session_datum;
-
-      g_tls_client_connection_gnutls_clear_session_data (G_TLS_CLIENT_CONNECTION_GNUTLS (tls));
-
-      if (gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
-                                    &session_datum) == 0)
-        {
-          gnutls->session_data = g_bytes_new_with_free_func (session_datum.data,
-                                                             session_datum.size,
-                                                             (GDestroyNotify)gnutls_free,
-                                                             session_datum.data);
-
-          if (gnutls->session_id)
-            g_tls_backend_gnutls_store_session (GNUTLS_CLIENT,
-                                                gnutls->session_id,
-                                                gnutls->session_data);
-        }
-    }
 }
 
 static void
@@ -488,16 +503,24 @@ g_tls_client_connection_gnutls_copy_session_state (GTlsClientConnection *conn,
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
   GTlsClientConnectionGnutls *gnutls_source = G_TLS_CLIENT_CONNECTION_GNUTLS (source);
 
-  if (gnutls_source->session_data)
-    {
-      gnutls->session_data_override = TRUE;
-      gnutls->session_data = g_bytes_ref (gnutls_source->session_data);
+  /* Precondition: source has handshaked, conn has not. */
+  g_return_if_fail (!gnutls->session_id);
+  g_return_if_fail (gnutls_source->session_id);
 
-      if (gnutls->session_id)
-        g_tls_backend_gnutls_store_session (GNUTLS_CLIENT,
-                                            gnutls->session_id,
-                                            gnutls->session_data);
+  /* Prefer to use a new session ticket, if possible. */
+  gnutls->session_data = g_tls_backend_gnutls_lookup_session_data (gnutls_source->session_id);
+
+  if (!gnutls->session_data && gnutls_source->session_data)
+    {
+      /* If it's not possible, we'll try to reuse the old ticket, even though
+       * this is a privacy risk since TLS 1.3. Applications should not use this
+       * function unless they need us to try as hard as possible to resume a
+       * session, even at the cost of privacy.
+       */
+      gnutls->session_data = g_bytes_ref (gnutls_source->session_data);
     }
+
+  gnutls->session_data_override = !!gnutls->session_data;
 }
 
 static void
@@ -505,7 +528,6 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
-  GTlsConnectionGnutlsClass *gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
   gobject_class->get_property = g_tls_client_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
@@ -513,8 +535,6 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
 
   base_class->prepare_handshake  = g_tls_client_connection_gnutls_prepare_handshake;
   base_class->complete_handshake = g_tls_client_connection_gnutls_complete_handshake;
-
-  gnutls_class->failed             = g_tls_client_connection_gnutls_failed;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
