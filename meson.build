@@ -26,6 +26,7 @@ config_h.set_quoted('GETTEXT_PACKAGE', meson.project_name())
 common_flags = [
   '-DHAVE_CONFIG_H',
   '-DG_LOG_DOMAIN="GLib-Net"',
+  '-DG_LOG_USE_STRUCTURED',
   '-DLOCALE_DIR="@0@"'.format(localedir),
   '-DG_DISABLE_DEPRECATED',
   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_56'

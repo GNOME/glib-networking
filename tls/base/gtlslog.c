@@ -33,12 +33,15 @@
 
 void g_tls_log (GLogLevelFlags level,
                 gpointer       conn,
-                const char    *format,
+                const gchar    *file,
+                const gchar    *line,
+                const gchar    *func,
+                const gchar    *format,
                 ...)
 {
   g_autofree gchar *header = NULL;
   g_autofree gchar *message = NULL;
-  g_autofree gchar* thread = g_strdup_printf("%p",g_thread_self());
+  g_autofree gchar *thread = g_strdup_printf ("%p", g_thread_self ());
   va_list args;
   int ret;
 
@@ -51,17 +54,19 @@ void g_tls_log (GLogLevelFlags level,
 
   if (conn && G_IS_TLS_CONNECTION (conn)) {
     if (G_IS_TLS_CLIENT_CONNECTION (conn))
-        header = g_strdup_printf("CLIENT[%p]: ", conn);
+        header = g_strdup_printf ("CLIENT[%p]: ", conn);
     else if (G_IS_TLS_SERVER_CONNECTION (conn))
-        header = g_strdup_printf("SERVER[%p]: ", conn);
+        header = g_strdup_printf ("SERVER[%p]: ", conn);
     else
-        g_assert_not_reached();
+        g_assert_not_reached ();
   } else {
-    header = g_strdup("");
+    header = g_strdup ("");
   }
 
   g_log_structured (G_LOG_DOMAIN, level,
-                    "MESSAGE_ID", "39b8021584f146948e892f1f18cdbdf4", // Generated with systemd-id128 new
                     "GLIB_NET_THREAD", thread,
+                    "CODE_FILE", file,
+                    "CODE_LINE", line,
+                    "CODE_FUNC", func,
                     "MESSAGE", "%s%s", header, message);
 }
