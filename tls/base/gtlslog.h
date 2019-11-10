@@ -29,15 +29,26 @@
 
 G_BEGIN_DECLS
 
-void g_tls_log (GLogLevelFlags level,
-                gpointer       conn,
-                const char     *format,
-                ...);
+void g_tls_log (GLogLevelFlags  level,
+                gpointer        conn,
+                const gchar    *file,
+                const gchar    *line,
+                const gchar    *func,
+                const gchar    *format,
+                ...) G_GNUC_PRINTF (6, 7);
 
-#define g_tls_log_debug(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_DEBUG, _conn, _format, ## _args)
-#define g_tls_log_info(_conn, _format, _args...)    g_tls_log (G_LOG_LEVEL_INFO, _conn, _format, ## _args)
-#define g_tls_log_warning(_conn, _format, _args...) g_tls_log (G_LOG_LEVEL_WARNING, _conn, _format, ## _args)
-#define g_tls_log_error(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_ERROR, _conn, _format, ## _args)
+#define g_tls_log_debug(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_DEBUG, _conn, \
+                                                               __FILE__, G_STRINGIFY (__LINE__), \
+                                                               G_STRFUNC, _format, ## _args)
+#define g_tls_log_info(_conn, _format, _args...)    g_tls_log (G_LOG_LEVEL_INFO, _conn, \
+                                                               __FILE__, G_STRINGIFY (__LINE__), \
+                                                               G_STRFUNC, _format, ## _args)
+#define g_tls_log_warning(_conn, _format, _args...) g_tls_log (G_LOG_LEVEL_WARNING, _conn, \
+                                                               __FILE__, G_STRINGIFY (__LINE__), \
+                                                               G_STRFUNC, _format, ## _args)
+#define g_tls_log_error(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_ERROR, _conn, \
+                                                               __FILE__, G_STRINGIFY (__LINE__), \
+                                                               G_STRFUNC, _format, ## _args)
 
 G_END_DECLS
 
