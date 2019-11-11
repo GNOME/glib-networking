@@ -1,6 +1,7 @@
 tlsbase_sources = files(
   'gtlsconnection-base.c',
   'gtlsinputstream.c',
+  'gtlslog.c',
   'gtlsoutputstream.c',
 )
 
