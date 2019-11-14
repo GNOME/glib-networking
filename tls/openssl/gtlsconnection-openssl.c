@@ -254,13 +254,6 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
 #pragma GCC diagnostic pop
 #endif
 
-  if (rehandshake_mode == G_TLS_REHANDSHAKE_NEVER)
-    {
-      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                           _("Peer requested illegal TLS rehandshake"));
-      return G_TLS_CONNECTION_BASE_ERROR;
-    }
-
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
