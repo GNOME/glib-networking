@@ -373,17 +373,7 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     }
 
   if (ret == GNUTLS_E_REHANDSHAKE)
-    {
-      if (g_tls_connection_get_rehandshake_mode (G_TLS_CONNECTION (gnutls)) == G_TLS_REHANDSHAKE_NEVER)
-        {
-          g_clear_error (&my_error);
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                               _("Peer requested illegal TLS rehandshake"));
-          return G_TLS_CONNECTION_BASE_ERROR;
-        }
-
-      return G_TLS_CONNECTION_BASE_REHANDSHAKE;
-    }
+    return G_TLS_CONNECTION_BASE_REHANDSHAKE;
 
   if (ret == GNUTLS_E_PREMATURE_TERMINATION)
     {
