@@ -172,14 +172,13 @@ g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface)
  */
 
 G_LOCK_DEFINE_STATIC (session_cache_lock);
-GHashTable *client_session_cache, *server_session_cache;
+GHashTable *client_session_cache; /* (owned) GBytes -> (owned) GTlsBackendGnutlsCacheData */
 
 #define SESSION_CACHE_MAX_SIZE 50
 #define SESSION_CACHE_MAX_AGE (60ll * 60ll * G_USEC_PER_SEC) /* one hour */
 
 typedef struct {
-  GBytes *session_id;
-  GBytes *session_data;
+  GQueue *session_tickets; /* (owned) GBytes */
   gint64  last_used;
 } GTlsBackendGnutlsCacheData;
 
@@ -189,96 +188,63 @@ session_cache_cleanup (GHashTable *cache)
   GHashTableIter iter;
   gpointer key, value;
   GTlsBackendGnutlsCacheData *cache_data;
-  gint64 expired = g_get_monotonic_time () - SESSION_CACHE_MAX_AGE;
 
   g_hash_table_iter_init (&iter, cache);
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
       cache_data = value;
-      if (cache_data->last_used < expired)
+      if (cache_data->last_used + SESSION_CACHE_MAX_AGE < g_get_monotonic_time ())
         g_hash_table_iter_remove (&iter);
     }
 }
 
 static void
-cache_data_free (gpointer data)
+cache_data_free (GTlsBackendGnutlsCacheData *data)
 {
-  GTlsBackendGnutlsCacheData *cache_data = data;
-
-  g_bytes_unref (cache_data->session_id);
-  g_bytes_unref (cache_data->session_data);
-  g_free (cache_data);
+  g_queue_free_full (data->session_tickets, (GDestroyNotify)g_bytes_unref);
+  g_free (data);
 }
 
 static GHashTable *
-get_session_cache (unsigned int type,
-                   gboolean     create)
+get_session_cache (gboolean create)
 {
-  GHashTable **cache_p;
-
-  cache_p = (type == GNUTLS_CLIENT) ? &client_session_cache : &server_session_cache;
-  if (!*cache_p && create)
+  if (!client_session_cache && create)
     {
-      *cache_p = g_hash_table_new_full (g_bytes_hash, g_bytes_equal,
-                                        NULL, cache_data_free);
+      client_session_cache = g_hash_table_new_full (g_bytes_hash, g_bytes_equal,
+                                                    (GDestroyNotify)g_bytes_unref, (GDestroyNotify)cache_data_free);
     }
-  return *cache_p;
+  return client_session_cache;
 }
 
 void
-g_tls_backend_gnutls_store_session (unsigned int  type,
-                                    GBytes       *session_id,
-                                    GBytes       *session_data)
+g_tls_backend_gnutls_store_session_data (GBytes *session_id,
+                                         GBytes *session_data)
 {
   GTlsBackendGnutlsCacheData *cache_data;
   GHashTable *cache;
 
   G_LOCK (session_cache_lock);
 
-  cache = get_session_cache (type, TRUE);
+  cache = get_session_cache (TRUE);
   cache_data = g_hash_table_lookup (cache, session_id);
-  if (cache_data)
-    {
-      if (!g_bytes_equal (cache_data->session_data, session_data))
-        {
-          g_bytes_unref (cache_data->session_data);
-          cache_data->session_data = g_bytes_ref (session_data);
-        }
-    }
-  else
+  if (!cache_data)
     {
       if (g_hash_table_size (cache) >= SESSION_CACHE_MAX_SIZE)
         session_cache_cleanup (cache);
 
       cache_data = g_new (GTlsBackendGnutlsCacheData, 1);
-      cache_data->session_id = g_bytes_ref (session_id);
-      cache_data->session_data = g_bytes_ref (session_data);
-
-      g_hash_table_insert (cache, cache_data->session_id, cache_data);
+      cache_data->session_tickets = g_queue_new ();
+      g_hash_table_insert (cache, g_bytes_ref (session_id), cache_data);
     }
+
+  g_queue_push_tail (cache_data->session_tickets, g_bytes_ref (session_data));
   cache_data->last_used = g_get_monotonic_time ();
 
   G_UNLOCK (session_cache_lock);
 }
 
-void
-g_tls_backend_gnutls_remove_session (unsigned int  type,
-                                     GBytes       *session_id)
-{
-  GHashTable *cache;
-
-  G_LOCK (session_cache_lock);
-
-  cache = get_session_cache (type, FALSE);
-  if (cache)
-    g_hash_table_remove (cache, session_id);
-
-  G_UNLOCK (session_cache_lock);
-}
-
 GBytes *
-g_tls_backend_gnutls_lookup_session (unsigned int  type,
-                                     GBytes       *session_id)
+g_tls_backend_gnutls_lookup_session_data (GBytes *session_id)
 {
   GTlsBackendGnutlsCacheData *cache_data;
   GBytes *session_data = NULL;
@@ -286,14 +252,17 @@ g_tls_backend_gnutls_lookup_session (unsigned int  type,
 
   G_LOCK (session_cache_lock);
 
-  cache = get_session_cache (type, FALSE);
+  cache = get_session_cache (FALSE);
   if (cache)
     {
       cache_data = g_hash_table_lookup (cache, session_id);
       if (cache_data)
         {
+          /* Note that session tickets should be used only once since TLS 1.3,
+           * so we remove from the queue after retrieval. See RFC 8446 §C.4.
+           */
+          session_data = g_queue_pop_head (cache_data->session_tickets);
           cache_data->last_used = g_get_monotonic_time ();
-          session_data = g_bytes_ref (cache_data->session_data);
         }
     }
 
