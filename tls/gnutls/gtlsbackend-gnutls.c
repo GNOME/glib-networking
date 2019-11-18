@@ -175,12 +175,12 @@ G_LOCK_DEFINE_STATIC (session_cache_lock);
 GHashTable *client_session_cache, *server_session_cache;
 
 #define SESSION_CACHE_MAX_SIZE 50
-#define SESSION_CACHE_MAX_AGE (60 * 60) /* one hour */
+#define SESSION_CACHE_MAX_AGE (60ll * 60ll * G_USEC_PER_SEC) /* one hour */
 
 typedef struct {
   GBytes *session_id;
   GBytes *session_data;
-  time_t  last_used;
+  gint64  last_used;
 } GTlsBackendGnutlsCacheData;
 
 static void
@@ -189,7 +189,7 @@ session_cache_cleanup (GHashTable *cache)
   GHashTableIter iter;
   gpointer key, value;
   GTlsBackendGnutlsCacheData *cache_data;
-  time_t expired = time (NULL) - SESSION_CACHE_MAX_AGE;
+  gint64 expired = g_get_monotonic_time () - SESSION_CACHE_MAX_AGE;
 
   g_hash_table_iter_init (&iter, cache);
   while (g_hash_table_iter_next (&iter, &key, &value))
@@ -256,7 +256,7 @@ g_tls_backend_gnutls_store_session (unsigned int  type,
 
       g_hash_table_insert (cache, cache_data->session_id, cache_data);
     }
-  cache_data->last_used = time (NULL);
+  cache_data->last_used = g_get_monotonic_time ();
 
   G_UNLOCK (session_cache_lock);
 }
@@ -292,7 +292,7 @@ g_tls_backend_gnutls_lookup_session (unsigned int  type,
       cache_data = g_hash_table_lookup (cache, session_id);
       if (cache_data)
         {
-          cache_data->last_used = time (NULL);
+          cache_data->last_used = g_get_monotonic_time ();
           session_data = g_bytes_ref (cache_data->session_data);
         }
     }
