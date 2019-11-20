@@ -2532,6 +2532,7 @@ main (int   argc,
   int ret;
 #ifdef BACKEND_IS_GNUTLS
   char *module_path;
+  const char *spy_path;
 #endif
 
   g_test_init (&argc, &argv, NULL);
@@ -2544,6 +2545,20 @@ main (int   argc,
 
 #ifdef BACKEND_IS_GNUTLS
   module_path = g_build_filename (g_getenv ("G_TEST_BUILDDIR"), "mock-pkcs11.so", NULL);
+
+  /* This just adds extra logging which is useful for debugging */
+  spy_path = g_getenv ("PKCS11SPY_PATH");
+  if (!spy_path)
+    spy_path = "/usr/lib64/pkcs11-spy.so"; /* Fedora's path */
+
+  if (g_file_test (spy_path, G_FILE_TEST_EXISTS))
+    {
+      g_debug ("Using PKCS #11 Spy");
+      g_setenv ("PKCS11SPY", module_path, TRUE);
+      g_free (module_path);
+      module_path = g_strdup (spy_path);
+    }
+
   ret = gnutls_pkcs11_init (GNUTLS_PKCS11_FLAG_MANUAL, NULL);
   g_assert_cmpint (ret, ==, GNUTLS_E_SUCCESS);
   ret = gnutls_pkcs11_add_provider (module_path, NULL);
