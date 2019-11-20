@@ -2,17 +2,17 @@
 
 set -e
 
-TAG="registry.gitlab.gnome.org/gnome/glib-networking/master:v6"
+TAG="registry.gitlab.gnome.org/gnome/glib-networking/master:v7"
 
 cd "$(dirname "$0")"
 
-sudo docker build --build-arg HOST_USER_ID="$UID" --tag "${TAG}" --file "Dockerfile" .
+docker build --build-arg HOST_USER_ID="$UID" --tag "${TAG}" --file "Dockerfile" .
 
 if [ "$1" = "--push" ]; then
-  sudo docker login registry.gitlab.gnome.org
-  sudo docker push $TAG
+  docker login registry.gitlab.gnome.org
+  docker push $TAG
 else
-  sudo docker run --rm \
+  docker run --rm \
       --volume "$(pwd)/..:/home/user/app" --workdir "/home/user/app" \
       --tty --interactive "${TAG}" bash
 fi
