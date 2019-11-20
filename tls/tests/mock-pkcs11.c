@@ -183,6 +183,7 @@ static char *mock_search_template_label;
 static CK_ULONG mock_search_iterator = 0;
 static gboolean mock_logged_in_state = FALSE;
 static size_t mock_login_attempts = 0;
+static CK_ULONG mock_sign_algo = 0;
 
 static CK_FUNCTION_LIST pkcs11_mock_functions = 
 {
@@ -1976,8 +1977,9 @@ CK_DEFINE_FUNCTION(CK_RV, C_SignInit)(CK_SESSION_HANDLE hSession, CK_MECHANISM_P
         if (NULL == pMechanism)
                 return CKR_ARGUMENTS_BAD;
 
+        mock_sign_algo = pMechanism->mechanism;
 
-        // TODO: Hardcoded
+        // TODO: Hardcoded list
         if (CKM_RSA_PKCS_PSS == pMechanism->mechanism)
         {
                 CK_RSA_PKCS_PSS_PARAMS *params;
@@ -1991,6 +1993,10 @@ CK_DEFINE_FUNCTION(CK_RV, C_SignInit)(CK_SESSION_HANDLE hSession, CK_MECHANISM_P
                 g_assert (params->mgf == CKG_MGF1_SHA256);
                 // if (PKCS11_MOCK_CK_OBJECT_HANDLE_PRIVATE_KEY != hKey)
                 //         return CKR_KEY_TYPE_INCONSISTENT;
+        }
+        else if (CKM_RSA_PKCS == pMechanism->mechanism)
+        {
+                // FIXME: Also assert SHA256?
         }
         else
         {
@@ -2038,9 +2044,16 @@ CK_DEFINE_FUNCTION(CK_RV, C_Sign)(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
 
         // TODO: Handle user not logged in
 
-        // TODO: Hardcoded algo
-        status = gnutls_privkey_sign_hash2 (mock_objects[pkcs11_mock_sign_key].key, GNUTLS_SIGN_RSA_PSS_SHA256,
-                                            GNUTLS_PRIVKEY_SIGN_FLAG_RSA_PSS, &data, &signature);
+        // TODO: Hardcoded algo list
+        if (mock_sign_algo == CKM_RSA_PKCS_PSS)
+                status = gnutls_privkey_sign_hash2 (mock_objects[pkcs11_mock_sign_key].key, GNUTLS_SIGN_RSA_PSS_SHA256,
+                                                    GNUTLS_PRIVKEY_SIGN_FLAG_RSA_PSS, &data, &signature);
+        else if (mock_sign_algo == CKM_RSA_PKCS)
+                status = gnutls_privkey_sign_hash2 (mock_objects[pkcs11_mock_sign_key].key, GNUTLS_SIGN_RSA_SHA256,
+                                                    GNUTLS_PRIVKEY_SIGN_FLAG_TLS1_RSA, &data, &signature);
+        else
+                g_assert_not_reached ();
+
         // g_assert (status == GNUTLS_E_SUCCESS);
         if (status != GNUTLS_E_SUCCESS)
                 return CKR_FUNCTION_FAILED; // TODO: Best return code?
