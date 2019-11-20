@@ -77,6 +77,7 @@ g_tls_certificate_gnutls_finalize (GObject *object)
   g_clear_pointer (&gnutls->key, gnutls_privkey_deinit);
 
   g_clear_pointer (&gnutls->pkcs11_uri, g_free);
+  g_clear_pointer (&gnutls->private_key_pkcs11_uri, g_free);
 
   g_clear_object (&gnutls->issuer);
 
