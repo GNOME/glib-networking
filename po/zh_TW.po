@@ -8,171 +8,185 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking 2.31.6\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-02-03 13:01+0000\n"
-"PO-Revision-Date: 2019-02-17 23:32+0800\n"
+"POT-Creation-Date: 2019-10-05 11:22+0000\n"
+"PO-Revision-Date: 2019-11-23 12:13+0800\n"
 "Last-Translator: pan93412 <pan93412@gmail.com>\n"
 "Language-Team: Chinese <zh-l10n@linux.org.tw>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 18.12.2\n"
+"X-Generator: Lokalize 19.11.80\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "代理伺服器解析器內部錯誤。"
 
-#: tls/base/gtlsconnection-base.c:282 tls/base/gtlsinputstream-base.c:74
-#: tls/base/gtlsoutputstream-base.c:74 tls/gnutls/gtlsconnection-gnutls.c:740
-#: tls/gnutls/gtlsinputstream-gnutls.c:78
-#: tls/gnutls/gtlsinputstream-gnutls.c:141
-#: tls/gnutls/gtlsoutputstream-gnutls.c:78
-#: tls/gnutls/gtlsoutputstream-gnutls.c:143
+#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
 msgstr "連線已關閉"
 
-#: tls/base/gtlsconnection-base.c:355 tls/base/gtlsconnection-base.c:1015
-msgid "Operation would block"
-msgstr "操作會阻擋"
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:560
+#| msgid "Error performing TLS handshake"
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "無法在 TLS 交握期間執行封鎖動作"
 
-#: tls/base/gtlsconnection-base.c:809
-#: tls/gnutls/gtlsclientconnection-gnutls.c:454
+#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1161
+msgid "Socket I/O timed out"
+msgstr "I/O 接口逾時"
+
+#: tls/base/gtlsconnection-base.c:787
 msgid "Server required TLS certificate"
 msgstr "伺服器要求的 TLS 憑證"
 
+#: tls/base/gtlsconnection-base.c:1383
+msgid "Peer does not support safe renegotiation"
+msgstr "目標主機不支援 safe renegotiation"
+
+#: tls/base/gtlsconnection-base.c:1511 tls/gnutls/gtlsconnection-gnutls.c:419
+#: tls/openssl/gtlsconnection-openssl.c:184
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "不接受的 TLS 憑證"
+
+#: tls/base/gtlsconnection-base.c:1932
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "接收旗標不被支援"
+
+#: tls/base/gtlsconnection-base.c:2076
+#, c-format
+msgid "Send flags are not supported"
+msgstr "傳送旗標不被支援"
+
 #: tls/gnutls/gtlscertificate-gnutls.c:178
-#: tls/openssl/gtlscertificate-openssl.c:177
+#: tls/openssl/gtlscertificate-openssl.c:170
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "無法解析 DER 編碼的憑證：%s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:199
-#: tls/openssl/gtlscertificate-openssl.c:197
+#: tls/openssl/gtlscertificate-openssl.c:190
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "無法解析 PEM 編碼的憑證：%s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:230
-#: tls/openssl/gtlscertificate-openssl.c:216
+#: tls/openssl/gtlscertificate-openssl.c:209
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "無法解析 DER 編碼的私鑰：%s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:261
-#: tls/openssl/gtlscertificate-openssl.c:235
+#: tls/openssl/gtlscertificate-openssl.c:228
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "無法解析 PEM 編碼的私鑰：%s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:297
-#: tls/openssl/gtlscertificate-openssl.c:273
+#: tls/openssl/gtlscertificate-openssl.c:263
 msgid "No certificate data provided"
 msgstr "沒有提供憑證資料"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:405
-#: tls/openssl/gtlsclientconnection-openssl.c:537
-#: tls/openssl/gtlsserverconnection-openssl.c:401
+#: tls/gnutls/gtlsconnection-gnutls.c:224
+#: tls/openssl/gtlsclientconnection-openssl.c:520
+#: tls/openssl/gtlsserverconnection-openssl.c:399
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "無法建立 TLS 連線：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:858
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-msgid "Socket I/O timed out"
-msgstr "I/O 接口逾時"
+#: tls/gnutls/gtlsconnection-gnutls.c:353
+#: tls/gnutls/gtlsconnection-gnutls.c:364
+#: tls/gnutls/gtlsconnection-gnutls.c:388
+#: tls/openssl/gtlsconnection-openssl.c:151
+#, c-format
+#| msgid "Peer failed to perform TLS handshake"
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "目標主機執行 TLS 交握時失敗：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1003
-#: tls/gnutls/gtlsconnection-gnutls.c:1036
-#: tls/openssl/gtlsconnection-openssl.c:150
-msgid "Peer failed to perform TLS handshake"
-msgstr "目標主機執行 TLS 交握時失敗"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/openssl/gtlsconnection-openssl.c:234
+#: tls/gnutls/gtlsconnection-gnutls.c:375
+#: tls/openssl/gtlsconnection-openssl.c:260
 msgid "Peer requested illegal TLS rehandshake"
 msgstr "目標主機要求了不合法的 TLS 重新交握"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1042
+#: tls/gnutls/gtlsconnection-gnutls.c:396
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS 連線無預警的關閉了"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1052
-#: tls/openssl/gtlsconnection-openssl.c:171
+#: tls/gnutls/gtlsconnection-gnutls.c:411
+#: tls/openssl/gtlsconnection-openssl.c:176
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS 連線目標主機沒有傳回憑證"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1058
-#: tls/gnutls/gtlsconnection-gnutls.c:2160
-#: tls/openssl/gtlsconnection-openssl.c:416
-#, c-format
-msgid "Unacceptable TLS certificate"
-msgstr "不接受的 TLS 憑證"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1064
+#: tls/gnutls/gtlsconnection-gnutls.c:427
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "目標主機送出了重大 TLS 警告：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1076
+#: tls/gnutls/gtlsconnection-gnutls.c:437
 msgid "Protocol version downgrade attack detected"
 msgstr "偵測到協定版本降級攻擊"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1083
+#: tls/gnutls/gtlsconnection-gnutls.c:446
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "對於 DTLS 來說，訊息太大；最大值為 %u 位元組"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1090
+#: tls/gnutls/gtlsconnection-gnutls.c:455
 msgid "The operation timed out"
 msgstr "動作逾時"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1981
-msgid "Peer does not support safe renegotiation"
-msgstr "目標主機不支援 safe renegotiation"
+#: tls/gnutls/gtlsconnection-gnutls.c:790
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "執行 TLS 交握時發生錯誤：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2008
-#: tls/gnutls/gtlsconnection-gnutls.c:2058
+#: tls/gnutls/gtlsconnection-gnutls.c:893
+#: tls/openssl/gtlsconnection-openssl.c:269
+#: tls/openssl/gtlsconnection-openssl.c:319
 msgid "Error performing TLS handshake"
 msgstr "執行 TLS 交握時發生錯誤"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2510
-#: tls/gnutls/gtlsconnection-gnutls.c:2602
+#: tls/gnutls/gtlsconnection-gnutls.c:939
+#: tls/gnutls/gtlsconnection-gnutls.c:999
+#: tls/openssl/gtlsconnection-openssl.c:426
 msgid "Error reading data from TLS socket"
 msgstr "從 TLS socket 讀取資料時發生錯誤"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2632
-#, c-format
-msgid "Receive flags are not supported"
-msgstr "接收旗標不被支援"
-
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:2709
-#: tls/gnutls/gtlsconnection-gnutls.c:2781
+#: tls/gnutls/gtlsconnection-gnutls.c:1021
+#: tls/gnutls/gtlsconnection-gnutls.c:1085
+#: tls/openssl/gtlsconnection-openssl.c:470
 msgid "Error writing data to TLS socket"
 msgstr "寫入資料到 TLS socket 時發生錯誤"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2751
+#: tls/gnutls/gtlsconnection-gnutls.c:1055
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "訊息大小 %lu 位元組對於 DTLS 連線來說太大"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2753
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "（最大值為 %u 位元組）"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:2812
+#: tls/gnutls/gtlsconnection-gnutls.c:1104
 #, c-format
-msgid "Send flags are not supported"
-msgstr "傳送旗標不被支援"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:2915
-msgid "Error performing TLS close"
-msgstr "執行 TLS 關閉時發生錯誤"
+msgid "Error performing TLS close: %s"
+msgstr "執行 TLS 關閉時發生錯誤：%s"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:553
 msgid ""
@@ -180,65 +194,72 @@ msgid ""
 "trust"
 msgstr "載入系統信任儲存區失敗：GnuTLS 沒透過系統信任設定"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:558
+#: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:187
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "載入系統信任儲存區失敗：%s"
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:328
+#: tls/openssl/gtlsserverconnection-openssl.c:90
 msgid "Certificate has no private key"
 msgstr "憑證沒有私鑰"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:486
-#: tls/openssl/gtlsserverconnection-openssl.c:292
+#: tls/openssl/gtlsclientconnection-openssl.c:410
+#: tls/openssl/gtlsclientconnection-openssl.c:467
+#: tls/openssl/gtlsserverconnection-openssl.c:288
+#: tls/openssl/gtlsserverconnection-openssl.c:339
 #, c-format
-#| msgid "Could not create TLS connection: %s"
 msgid "Could not create TLS context: %s"
 msgstr "無法建立 TLS 上下文：%s"
 
-#: tls/openssl/gtlsconnection-openssl.c:179
+#: tls/openssl/gtlsconnection-openssl.c:192
+#, c-format
+#| msgid "Unacceptable TLS certificate"
+msgid "Unacceptable TLS certificate authority"
+msgstr "無法接受的 TLS 憑證授權"
+
+#: tls/openssl/gtlsconnection-openssl.c:200
 msgid "Digest too big for RSA key"
 msgstr "RSA 金鑰的摘要過長"
 
-#: tls/openssl/gtlsconnection-openssl.c:243
-#: tls/openssl/gtlsconnection-openssl.c:376
+#: tls/openssl/gtlsconnection-openssl.c:507
+msgid "Error performing TLS close"
+msgstr "執行 TLS 關閉時發生錯誤"
+
+#: tls/openssl/gtlsdatabase-openssl.c:227
+#| msgid "Could not create TLS context: %s"
+msgid "Could not create CA store"
+msgstr "無法建立 CA 儲存區"
+
+#: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
-#| msgid "Error performing TLS handshake"
-msgid "Error performing TLS handshake: %s"
-msgstr "執行 TLS 交握時發生錯誤：%s"
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to load file path: %s"
+msgstr "無法載入檔案路徑：%s"
 
-#: tls/openssl/gtlsconnection-openssl.c:386
-msgid "Server did not return a valid TLS certificate"
-msgstr "伺服器沒有回傳有效的 TLS 憑證"
-
-#: tls/openssl/gtlsconnection-openssl.c:500
+#: tls/openssl/gtlsserverconnection-openssl.c:101
 #, c-format
-#| msgid "Error reading data from TLS socket"
-msgid "Error reading data from TLS socket: %s"
-msgstr "從 TLS socket 讀取資料時發生錯誤：%s"
+msgid "There is a problem with the certificate: %s"
+msgstr "憑證發現問題：%s"
 
-#: tls/openssl/gtlsconnection-openssl.c:526
-#, c-format
-#| msgid "Error writing data to TLS socket"
-msgid "Error writing data to TLS socket: %s"
-msgstr "寫入資料到 TLS socket 時發生錯誤：%s"
-
-#: tls/openssl/gtlsconnection-openssl.c:552
-#, c-format
-#| msgid "Error performing TLS close"
-msgid "Error performing TLS close: %s"
-msgstr "執行 TLS 關閉時發生錯誤：%s"
-
-#: tls/openssl/gtlsserverconnection-openssl.c:335
+#: tls/openssl/gtlsserverconnection-openssl.c:109
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "憑證私鑰發現問題：%s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:344
-#, c-format
-msgid "There is a problem with the certificate: %s"
-msgstr "憑證發現問題：%s"
+#~ msgid "Operation would block"
+#~ msgstr "操作會阻擋"
+
+#~ msgid "Server did not return a valid TLS certificate"
+#~ msgstr "伺服器沒有回傳有效的 TLS 憑證"
+
+#~| msgid "Error reading data from TLS socket"
+#~ msgid "Error reading data from TLS socket: %s"
+#~ msgstr "從 TLS socket 讀取資料時發生錯誤：%s"
+
+#~| msgid "Error writing data to TLS socket"
+#~ msgid "Error writing data to TLS socket: %s"
+#~ msgstr "寫入資料到 TLS socket 時發生錯誤：%s"
 
 #~ msgid ""
 #~ "This is the last chance to enter the PIN correctly before the token is "
