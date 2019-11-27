@@ -128,20 +128,6 @@ g_tls_client_connection_gnutls_compute_session_id (GTlsClientConnectionGnutls *g
   GInetAddress *iaddr;
   guint port;
 
-  /* The testsuite expects handshakes to actually happen. E.g. a test might
-   * check to see that a handshake succeeds and then later check that a new
-   * handshake fails. If we get really unlucky and the same port number is
-   * reused for the server socket between connections, then we'll accidentally
-   * resume the old session and skip certificate verification. Such failures
-   * are difficult to debug because they require running the tests hundreds of
-   * times simultaneously to reproduce (the port number does not get reused
-   * quickly enough if the tests are run sequentially).
-   *
-   * So session resumption will just need to be tested manually.
-   */
-  if (g_test_initialized ())
-    return;
-
   /* Create a TLS "session ID." We base it on the IP address since
    * different hosts serving the same hostname/service will probably
    * not share the same session cache. We base it on the
