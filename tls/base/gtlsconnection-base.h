@@ -197,8 +197,4 @@ void                      g_tls_connection_base_handshake_thread_buffer_applicat
                                                                          guint8             *data,
                                                                          gsize               length);
 
-void                      GTLS_DEBUG                                    (gpointer    connection,
-                                                                         const char *message,
-                                                                         ...);
-
 G_END_DECLS
