@@ -1521,10 +1521,16 @@ crank_sync_handshake_context (GTlsConnectionBase *tls,
   /* need_finish_handshake will be set inside sync_handshake_thread_completed(),
    * which should only ever be invoked while iterating the handshake context
    * here. So need_finish_handshake should only change on this thread.
+   *
+   * FIXME: This function is not cancellable. We should figure out how to
+   * support cancellation. We must not return from this function before it is
+   * safe to destroy handshake_context, but it's not safe to destroy
+   * handshake_context until after the handshake has completed. And the
+   * handshake operation is not cancellable, so we have a problem.
    */
   g_mutex_lock (&priv->op_mutex);
   priv->sync_handshake_in_progress = TRUE;
-  while (priv->sync_handshake_in_progress && !g_cancellable_is_cancelled (cancellable))
+  while (priv->sync_handshake_in_progress)
     {
       g_mutex_unlock (&priv->op_mutex);
       g_main_context_iteration (priv->handshake_context, TRUE);
