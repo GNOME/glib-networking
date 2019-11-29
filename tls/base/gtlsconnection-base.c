@@ -1264,7 +1264,7 @@ verify_peer_certificate (GTlsConnectionBase *tls,
                                              NULL, &error);
       if (error)
         {
-          g_tls_log_warning (tls, "failure verifying certificate chain: %s", error->message);
+          g_tls_log_debug (tls, "failure verifying certificate chain: %s", error->message);
           g_assert (errors != 0);
           g_clear_error (&error);
         }
