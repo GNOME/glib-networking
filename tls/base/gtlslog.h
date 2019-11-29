@@ -40,6 +40,9 @@ void g_tls_log (GLogLevelFlags  level,
 #define g_tls_log_debug(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_DEBUG, _conn, \
                                                                __FILE__, G_STRINGIFY (__LINE__), \
                                                                G_STRFUNC, _format, ## _args)
+
+/* The following functions are for local debugging only. */
+#if 0
 #define g_tls_log_info(_conn, _format, _args...)    g_tls_log (G_LOG_LEVEL_INFO, _conn, \
                                                                __FILE__, G_STRINGIFY (__LINE__), \
                                                                G_STRFUNC, _format, ## _args)
@@ -49,6 +52,7 @@ void g_tls_log (GLogLevelFlags  level,
 #define g_tls_log_error(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_ERROR, _conn, \
                                                                __FILE__, G_STRINGIFY (__LINE__), \
                                                                G_STRFUNC, _format, ## _args)
+#endif
 
 G_END_DECLS
 
