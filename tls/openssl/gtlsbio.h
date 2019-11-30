@@ -32,22 +32,10 @@ G_BEGIN_DECLS
 
 BIO       *g_tls_bio_new                   (GIOStream    *io_stream);
 
-void       g_tls_bio_set_read_cancellable  (BIO          *bio,
+void       g_tls_bio_set_cancellable       (BIO          *bio,
                                             GCancellable *cancellable);
 
-void       g_tls_bio_set_read_blocking     (BIO          *bio,
-                                            gboolean      blocking);
-
-void       g_tls_bio_set_read_error        (BIO          *bio,
-                                            GError      **error);
-
-void       g_tls_bio_set_write_cancellable (BIO          *bio,
-                                            GCancellable *cancellable);
-
-void       g_tls_bio_set_write_blocking    (BIO          *bio,
-                                            gboolean      blocking);
-
-void       g_tls_bio_set_write_error       (BIO          *bio,
+void       g_tls_bio_set_error             (BIO          *bio,
                                             GError      **error);
 
 void       g_tls_bio_wait_available        (BIO          *bio,
