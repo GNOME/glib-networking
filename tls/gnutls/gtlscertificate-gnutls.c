@@ -464,11 +464,11 @@ g_tls_certificate_gnutls_has_key (GTlsCertificateGnutls *gnutls)
 }
 
 void
-g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
-                                const gchar            *interaction_id,
-                                gnutls_pcert_st       **pcert,
-                                unsigned int           *pcert_length,
-                                gnutls_privkey_t       *pkey)
+g_tls_certificate_gnutls_copy_internals (GTlsCertificateGnutls  *gnutls,
+                                         const gchar            *interaction_id,
+                                         gnutls_pcert_st       **pcert,
+                                         unsigned int           *pcert_length,
+                                         gnutls_privkey_t       *pkey)
 {
   GTlsCertificateGnutls *chain;
   guint num_certs = 0;
@@ -538,9 +538,9 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
 }
 
 void
-g_tls_certificate_gnutls_copy_free (gnutls_pcert_st  *pcert,
-                                    unsigned int      pcert_length,
-                                    gnutls_privkey_t  pkey)
+g_tls_certificate_gnutls_internals_free (gnutls_pcert_st  *pcert,
+                                         unsigned int      pcert_length,
+                                         gnutls_privkey_t  pkey)
 {
   if (pcert)
     {
@@ -743,7 +743,7 @@ error:
   return NULL;
 }
 
-GTlsCertificateGnutls *
+GTlsCertificate *
 g_tls_certificate_gnutls_build_chain (const gnutls_datum_t  *certs,
                                       guint                  num_certs,
                                       gnutls_x509_crt_fmt_t  format)
@@ -805,5 +805,5 @@ g_tls_certificate_gnutls_build_chain (const gnutls_datum_t  *certs,
     gnutls_x509_crt_deinit (gnutls_certs[i]);
   g_free (gnutls_certs);
 
-  return result;
+  return G_TLS_CERTIFICATE (result);
 }
