@@ -39,12 +39,6 @@ G_DECLARE_DERIVABLE_TYPE (GTlsConnectionOpenssl, g_tls_connection_openssl, G, TL
 struct _GTlsConnectionOpensslClass
 {
   GTlsConnectionBaseClass parent_class;
-
-  SSL *(*get_ssl) (GTlsConnectionOpenssl *connection);
 };
-
-SSL *g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection);
-
-GTlsConnectionOpenssl *g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl);
 
 G_END_DECLS
