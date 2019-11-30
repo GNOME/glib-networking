@@ -46,13 +46,13 @@ const gnutls_x509_crt_t      g_tls_certificate_gnutls_get_cert        (GTlsCerti
 gboolean                     g_tls_certificate_gnutls_has_key         (GTlsCertificateGnutls *gnutls);
 gboolean                     g_tls_certificate_gnutls_is_pkcs11_backed (GTlsCertificateGnutls *gnutls);
 
-void                         g_tls_certificate_gnutls_copy            (GTlsCertificateGnutls  *gnutls,
+void                         g_tls_certificate_gnutls_copy_internals  (GTlsCertificateGnutls  *gnutls,
                                                                        const gchar            *interaction_id,
                                                                        gnutls_pcert_st       **pcert,
                                                                        unsigned int           *pcert_length,
                                                                        gnutls_privkey_t       *pkey);
 
-void                         g_tls_certificate_gnutls_copy_free       (gnutls_pcert_st        *pcert,
+void                         g_tls_certificate_gnutls_internals_free  (gnutls_pcert_st        *pcert,
                                                                        unsigned int            pcert_length,
                                                                        gnutls_privkey_t        pkey);
 
@@ -66,7 +66,7 @@ void                         g_tls_certificate_gnutls_set_issuer      (GTlsCerti
 
 GTlsCertificateGnutls*       g_tls_certificate_gnutls_steal_issuer    (GTlsCertificateGnutls *gnutls);
 
-GTlsCertificateGnutls*       g_tls_certificate_gnutls_build_chain     (const gnutls_datum_t  *certs,
+GTlsCertificate *            g_tls_certificate_gnutls_build_chain     (const gnutls_datum_t  *certs,
                                                                        guint                  num_certs,
                                                                        gnutls_x509_crt_fmt_t  format);
 

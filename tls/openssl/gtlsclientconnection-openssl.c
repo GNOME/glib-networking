@@ -3,6 +3,8 @@
  * gtlsclientconnection-openssl.c
  *
  * Copyright (C) 2015 NICE s.r.l.
+ * Copyright 2019 Igalia S.L.
+ * Copyright 2019 Metrological Group B.V.
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -207,6 +209,10 @@ g_tls_client_connection_openssl_constructed (GObject *object)
    * server-identity because at least some servers will fail (rather
    * than just failing to resume the session) if we don't.
    * (https://bugs.launchpad.net/bugs/823325)
+   *
+   * FIXME: this logic is broken because it doesn't consider the client
+   * certificate when computing the session ID. The GnuTLS version of this
+   * code has this problem fixed. Eliminate this code duplication.
    */
   g_object_get (G_OBJECT (openssl), "base-io-stream", &base_conn, NULL);
   if (G_IS_SOCKET_CONNECTION (base_conn))
@@ -234,22 +240,6 @@ g_tls_client_connection_openssl_constructed (GObject *object)
   g_object_unref (base_conn);
 
   G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->constructed (object);
-}
-
-static void
-g_tls_client_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
-                                                    gchar              **negotiated_protocol,
-                                                    GError             **error)
-{
-  GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
-
-  G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->complete_handshake (tls, negotiated_protocol, error);
-
-  /* It may have changed during the handshake, but we have to wait until here
-   * because we can't emit notifies on the handshake thread.
-   */
-  if (client->ca_list_changed)
-    g_object_notify (G_OBJECT (client), "accepted-cas");
 }
 
 static GTlsCertificateFlags
@@ -320,7 +310,6 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
   gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
   gobject_class->constructed          = g_tls_client_connection_openssl_constructed;
 
-  base_class->complete_handshake      = g_tls_client_connection_openssl_complete_handshake;
   base_class->verify_peer_certificate = g_tls_client_connection_openssl_verify_peer_certificate;
 
   openssl_class->get_ssl              = g_tls_client_connection_openssl_get_ssl;
@@ -560,8 +549,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
     SSL_set_tlsext_status_type (client->ssl, TLSEXT_STATUSTYPE_ocsp);
 #endif
 
-  if (!g_tls_client_connection_openssl_parent_initable_iface->
-      init (initable, cancellable, error))
+  if (!g_tls_client_connection_openssl_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
 
   return TRUE;

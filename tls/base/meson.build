@@ -1,9 +1,18 @@
-tlsbase_sources = files(
+enums_headers = [
+  'gtlsoperationsthread-base.h'
+]
+
+enums = gnome.mkenums_simple('tls-base-builtins',
+                             sources: enums_headers)
+
+tlsbase_sources = [
   'gtlsconnection-base.c',
   'gtlsinputstream.c',
   'gtlslog.c',
+  'gtlsoperationsthread-base.c',
   'gtlsoutputstream.c',
-)
+  enums
+]
 
 tlsbase = static_library('tlsbase',
                          tlsbase_sources,

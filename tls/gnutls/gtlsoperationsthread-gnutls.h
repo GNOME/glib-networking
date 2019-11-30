@@ -2,7 +2,7 @@
 /*
  * GIO - GLib Input, Output and Streaming Library
  *
- * Copyright 2009 Red Hat, Inc.
+ * Copyright 2019 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,21 +24,20 @@
 
 #pragma once
 
-#include <gio/gio.h>
-#include <gnutls/abstract.h>
-#include <gnutls/gnutls.h>
+#include "gtlsconnection-gnutls.h"
+#include "gtlsoperationsthread-base.h"
 
-#include "gtlsconnection-base.h"
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
-#define G_TYPE_TLS_CONNECTION_GNUTLS            (g_tls_connection_gnutls_get_type ())
+#define G_TYPE_TLS_OPERATIONS_THREAD_GNUTLS (g_tls_operations_thread_gnutls_get_type ())
 
-G_DECLARE_DERIVABLE_TYPE (GTlsConnectionGnutls, g_tls_connection_gnutls, G, TLS_CONNECTION_GNUTLS, GTlsConnectionBase)
+G_DECLARE_FINAL_TYPE (GTlsOperationsThreadGnutls, g_tls_operations_thread_gnutls, G, TLS_OPERATIONS_THREAD_GNUTLS, GTlsOperationsThreadBase)
 
-struct _GTlsConnectionGnutlsClass
-{
-  GTlsConnectionBaseClass parent_class;
-};
+GTlsOperationsThreadBase *g_tls_operations_thread_gnutls_new (GTlsConnectionGnutls *connection,
+                                                              GIOStream            *base_iostream,
+                                                              GDatagramBased       *base_socket,
+                                                              guint                 flags);
 
 G_END_DECLS
