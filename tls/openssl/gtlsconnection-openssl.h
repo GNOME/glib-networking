@@ -40,9 +40,11 @@ struct _GTlsConnectionOpensslClass
 {
   GTlsConnectionBaseClass parent_class;
 
-  SSL *(*get_ssl) (GTlsConnectionOpenssl *connection);
+  /* FIXME: remove this, or entire refactor is a failure */
+  SSL      *(*get_ssl)          (GTlsConnectionOpenssl *connection);
 };
 
+/* FIXME: remove this, or entire refactor is a failure */
 SSL *g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection);
 
 GTlsConnectionOpenssl *g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl);
