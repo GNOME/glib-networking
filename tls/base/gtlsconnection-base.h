@@ -3,6 +3,7 @@
  * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2009-2011 Red Hat, Inc
+ * Copyright 2019 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -54,9 +55,13 @@ typedef enum {
 
 #define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
 
+typedef struct _GTlsOperationsThreadBase GTlsOperationsThreadBase;
+
 struct _GTlsConnectionBaseClass
 {
   GTlsConnectionClass parent_class;
+
+  GTlsOperationsThreadBase   *(*create_op_thread)           (GTlsConnectionBase   *tls);
 
   void                        (*prepare_handshake)          (GTlsConnectionBase   *tls,
                                                              gchar               **advertised_protocols);
@@ -90,10 +95,10 @@ struct _GTlsConnectionBaseClass
                                                              gboolean              success,
                                                              GError              **error);
 
+  /* FIXME: must remove timeout parameters from all vfuncs, including handshake vfuncs */
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsConnectionBase   *tls,
                                                              void                 *buffer,
-                                                             gsize                 count,
-                                                             gint64                timeout,
+                                                             gsize                 size,
                                                              gssize               *nread,
                                                              GCancellable         *cancellable,
                                                              GError              **error);
@@ -107,8 +112,7 @@ struct _GTlsConnectionBaseClass
 
   GTlsConnectionBaseStatus    (*write_fn)                   (GTlsConnectionBase   *tls,
                                                              const void           *buffer,
-                                                             gsize                 count,
-                                                             gint64                timeout,
+                                                             gsize                 size,
                                                              gssize               *nwrote,
                                                              GCancellable         *cancellable,
                                                              GError              **error);
@@ -156,6 +160,9 @@ gboolean                  g_tls_connection_base_check                   (GTlsCon
 gboolean                  g_tls_connection_base_base_check              (GTlsConnectionBase  *tls,
                                                                          GIOCondition         condition);
 GSource                  *g_tls_connection_base_create_source           (GTlsConnectionBase  *tls,
+                                                                         GIOCondition         condition,
+                                                                         GCancellable        *cancellable);
+GSource                  *g_tls_connection_base_create_base_source      (GTlsConnectionBase  *tls,
                                                                          GIOCondition         condition,
                                                                          GCancellable        *cancellable);
 
