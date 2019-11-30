@@ -4,6 +4,7 @@
  *
  * Copyright 2009 Red Hat, Inc
  * Copyright 2015, 2016 Collabora, Ltd.
+ * Copyright 2019 Igalia S.L.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,6 +37,7 @@
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
 #include "gtlsclientconnection-gnutls.h"
+#include "gtlsoperationsthread-gnutls.h"
 
 #ifdef G_OS_WIN32
 #include <winsock2.h>
@@ -63,6 +65,8 @@ static ssize_t g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transp
 static int     g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data,
                                                           unsigned int           ms);
 
+static GInitableIface *g_tls_connection_gnutls_parent_initable_iface;
+
 static void g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface);
 
 static int verify_certificate_cb (gnutls_session_t session);
@@ -72,7 +76,7 @@ static gnutls_priority_t priority;
 typedef struct
 {
   gnutls_certificate_credentials_t creds;
-  gnutls_session_t session;
+  gnutls_session_t session; /* FIXME: should be used only by GTlsOperationsThreadGnutls */
   gchar *interaction_id;
   GCancellable *cancellable;
 } GTlsConnectionGnutlsPrivate;
@@ -159,6 +163,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
                                       g_tls_connection_gnutls_push_func);
   gnutls_transport_set_pull_function (priv->session,
                                       g_tls_connection_gnutls_pull_func);
+  /* FIXME: remove timeout func and switch to GNUTLS_NONBLOCK */
   gnutls_transport_set_pull_timeout_function (priv->session,
                                               g_tls_connection_gnutls_pull_timeout_func);
   gnutls_transport_set_ptr (priv->session, gnutls);
@@ -174,7 +179,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   if (flags & GNUTLS_DATAGRAM)
     gnutls_dtls_set_mtu (priv->session, 1400);
 
-  return TRUE;
+  return g_tls_connection_gnutls_parent_initable_iface->init (initable, cancellable, error);
 }
 
 static void
@@ -311,6 +316,7 @@ g_tls_connection_gnutls_handshake_thread_get_certificate (GTlsConnectionGnutls  
     }
 }
 
+// FIXME: remove
 static GTlsConnectionBaseStatus
 end_gnutls_io (GTlsConnectionGnutls  *gnutls,
                GIOCondition           direction,
@@ -464,6 +470,8 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
+// FIXME: remove
+
 #define BEGIN_GNUTLS_IO(gnutls, direction, timeout, cancellable)        \
   g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (gnutls),        \
                                  direction, timeout, cancellable);      \
@@ -505,6 +513,8 @@ set_gnutls_error (GTlsConnectionGnutls *gnutls,
   else
     gnutls_transport_set_errno (priv->session, EIO);
 }
+
+/* FIXME: remove timeouts, make these always nonblocking */
 
 static ssize_t
 g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transport_data,
@@ -750,6 +760,12 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
   return 0;
 }
 
+static GTlsOperationsThreadBase *
+g_tls_connection_gnutls_create_op_thread (GTlsConnectionBase *tls)
+{
+  return g_tls_operations_thread_gnutls_new (G_TLS_CONNECTION_GNUTLS (tls));
+}
+
 static GTlsSafeRenegotiationStatus
 g_tls_connection_gnutls_handshake_thread_safe_renegotiation_status (GTlsConnectionBase *tls)
 {
@@ -913,192 +929,6 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
   return gnutls_session_is_resumed (priv->session);
 }
 
-static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
-                              void                *buffer,
-                              gsize                count,
-                              gint64               timeout,
-                              gssize              *nread,
-                              GCancellable        *cancellable,
-                              GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionBaseStatus status;
-  gssize ret;
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
-  ret = gnutls_record_recv (priv->session, buffer, count);
-  END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
-
-  *nread = MAX (ret, 0);
-  return status;
-}
-
-static gsize
-input_vectors_from_gnutls_datum_t (GInputVector         *vectors,
-                                   guint                 num_vectors,
-                                   const gnutls_datum_t *datum)
-{
-  guint i;
-  gsize total = 0;
-
-  /* Copy into the receive vectors. */
-  for (i = 0; i < num_vectors && total < datum->size; i++)
-    {
-      gsize count;
-      GInputVector *vec = &vectors[i];
-
-      count = MIN (vec->size, datum->size - total);
-
-      memcpy (vec->buffer, datum->data + total, count);
-      total += count;
-    }
-
-  g_assert (total <= datum->size);
-
-  return total;
-}
-
-static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_read_message (GTlsConnectionBase  *tls,
-                                      GInputVector        *vectors,
-                                      guint                num_vectors,
-                                      gint64               timeout,
-                                      gssize              *nread,
-                                      GCancellable        *cancellable,
-                                      GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionBaseStatus status;
-  gssize ret;
-  gnutls_packet_t packet = { 0, };
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN, timeout, cancellable);
-
-  /* Receive the entire datagram (zero-copy). */
-  ret = gnutls_record_recv_packet (priv->session, &packet);
-
-  if (ret > 0)
-    {
-      gnutls_datum_t data = { 0, };
-
-      gnutls_packet_get (packet, &data, NULL);
-      ret = input_vectors_from_gnutls_datum_t (vectors, num_vectors, &data);
-      gnutls_packet_deinit (packet);
-    }
-
-  END_GNUTLS_IO (gnutls, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
-
-  *nread = MAX (ret, 0);
-  return status;
-}
-
-static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_write (GTlsConnectionBase  *tls,
-                               const void          *buffer,
-                               gsize                count,
-                               gint64               timeout,
-                               gssize              *nwrote,
-                               GCancellable        *cancellable,
-                               GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionBaseStatus status;
-  gssize ret;
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
-  ret = gnutls_record_send (priv->session, buffer, count);
-  END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
-
-  *nwrote = MAX (ret, 0);
-  return status;
-}
-
-static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_write_message (GTlsConnectionBase  *tls,
-                                       GOutputVector       *vectors,
-                                       guint                num_vectors,
-                                       gint64               timeout,
-                                       gssize              *nwrote,
-                                       GCancellable        *cancellable,
-                                       GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionBaseStatus status;
-  gssize ret;
-  guint i;
-  gsize total_message_size;
-
-  /* Calculate the total message size and check it’s not too big. */
-  for (i = 0, total_message_size = 0; i < num_vectors; i++)
-    total_message_size += vectors[i].size;
-
-  if (g_tls_connection_base_is_dtls (tls) &&
-      gnutls_dtls_get_data_mtu (priv->session) < total_message_size)
-    {
-      char *message;
-      guint mtu = gnutls_dtls_get_data_mtu (priv->session);
-
-      ret = GNUTLS_E_LARGE_PACKET;
-      message = g_strdup_printf("%s %s",
-                                ngettext ("Message of size %lu byte is too large for DTLS connection",
-                                          "Message of size %lu bytes is too large for DTLS connection", total_message_size),
-                                ngettext ("(maximum is %u byte)", "(maximum is %u bytes)", mtu));
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
-                   message,
-                   total_message_size,
-                   mtu);
-      g_free (message);
-
-      return G_TLS_CONNECTION_BASE_ERROR;
-    }
-
-  /* Queue up the data from all the vectors. */
-  gnutls_record_cork (priv->session);
-
-  for (i = 0; i < num_vectors; i++)
-    {
-      ret = gnutls_record_send (priv->session,
-                                vectors[i].buffer, vectors[i].size);
-
-      if (ret < 0 || ret < vectors[i].size)
-        {
-          /* Uncork to restore state, then bail. The peer will receive a
-           * truncated datagram. */
-          break;
-        }
-    }
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_OUT, timeout, cancellable);
-  ret = gnutls_record_uncork (priv->session, 0  /* flags */);
-  END_GNUTLS_IO (gnutls, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
-
-  *nwrote = MAX (ret, 0);
-  return status;
-}
-
-static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_close (GTlsConnectionBase  *tls,
-                               gint64               timeout,
-                               GCancellable        *cancellable,
-                               GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionBaseStatus status;
-  int ret;
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = gnutls_bye (priv->session, GNUTLS_SHUT_WR);
-  END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret, status, _("Error performing TLS close: %s"), error);
-
-  return status;
-}
-
 static void
 initialize_gnutls_priority (void)
 {
@@ -1130,6 +960,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 
   gobject_class->finalize                                = g_tls_connection_gnutls_finalize;
 
+  base_class->create_op_thread                           = g_tls_connection_gnutls_create_op_thread;
   base_class->prepare_handshake                          = g_tls_connection_gnutls_prepare_handshake;
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_gnutls_handshake_thread_safe_renegotiation_status;
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_gnutls_handshake_thread_request_rehandshake;
@@ -1137,11 +968,6 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
-  base_class->read_fn                                    = g_tls_connection_gnutls_read;
-  base_class->read_message_fn                            = g_tls_connection_gnutls_read_message;
-  base_class->write_fn                                   = g_tls_connection_gnutls_write;
-  base_class->write_message_fn                           = g_tls_connection_gnutls_write_message;
-  base_class->close_fn                                   = g_tls_connection_gnutls_close;
 
   initialize_gnutls_priority ();
 }
@@ -1149,5 +975,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 static void
 g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface)
 {
+  g_tls_connection_gnutls_parent_initable_iface = g_type_interface_peek_parent (iface);
+
   iface->init = g_tls_connection_gnutls_initable_init;
 }
