@@ -7,6 +7,7 @@ sources = files(
   'gtlsclientconnection-openssl.c',
   'gtlsdatabase-openssl.c',
   'gtlsfiledatabase-openssl.c',
+  'gtlsoperationsthread-openssl.c',
   'gtlsbio.c',
   'openssl-util.c',
 )
