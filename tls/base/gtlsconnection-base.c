@@ -2042,9 +2042,7 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
       }
     else
       {
-        g_assert (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->read_message_fn);
-        status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-          read_message_fn (tls, vectors, num_vectors, timeout, &nread, cancellable, error);
+        status = g_tls_operations_thread_base_read_message (priv->thread, vectors, num_vectors, timeout, &nread, cancellable, error);
       }
 
     yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
@@ -2193,9 +2191,7 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
                    timeout, cancellable, error))
       return -1;
 
-    g_assert (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->read_message_fn);
-    status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-      write_message_fn (tls, vectors, num_vectors, timeout, &nwrote, cancellable, error);
+    status = g_tls_operations_thread_base_write_message (priv->thread, vectors, num_vectors, timeout, &nwrote, cancellable, error);
 
     yield_op (tls, G_TLS_CONNECTION_BASE_OP_WRITE, status);
   } while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);

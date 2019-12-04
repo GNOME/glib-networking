@@ -35,8 +35,6 @@ typedef struct {
   gboolean write_blocking;
   GError **read_error;
   GError **write_error;
-  GMainContext *context;
-  GMainLoop *loop;
 } GTlsBio;
 
 static void
@@ -45,8 +43,6 @@ free_gbio (gpointer user_data)
   GTlsBio *bio = (GTlsBio *)user_data;
 
   g_object_unref (bio->io_stream);
-  g_main_context_unref (bio->context);
-  g_main_loop_unref (bio->loop);
   g_free (bio);
 }
 
@@ -294,8 +290,6 @@ g_tls_bio_new (GIOStream *io_stream)
 
   gbio = g_new0 (GTlsBio, 1);
   gbio->io_stream = g_object_ref (io_stream);
-  gbio->context = g_main_context_new ();
-  gbio->loop = g_main_loop_new (gbio->context, FALSE);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
   ret->ptr = gbio;
@@ -402,50 +396,4 @@ g_tls_bio_set_write_error (BIO     *bio,
   gbio = BIO_get_data (bio);
 #endif
   gbio->write_error = error;
-}
-
-static gboolean
-on_source_ready (GObject *pollable_stream,
-                 gpointer user_data)
-{
-  GMainLoop *loop = user_data;
-
-  g_main_loop_quit (loop);
-
-  return G_SOURCE_REMOVE;
-}
-
-void
-g_tls_bio_wait_available (BIO          *bio,
-                          GIOCondition  condition,
-                          GCancellable *cancellable)
-{
-  GTlsBio *gbio;
-  GSource *source;
-
-  g_return_if_fail (bio);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
-  gbio = BIO_get_data (bio);
-#endif
-
-  g_main_context_push_thread_default (gbio->context);
-
-  if (condition & G_IO_IN)
-    source = g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (g_io_stream_get_input_stream (gbio->io_stream)),
-                                                    cancellable);
-  else
-    source = g_pollable_output_stream_create_source (G_POLLABLE_OUTPUT_STREAM (g_io_stream_get_output_stream (gbio->io_stream)),
-                                                     cancellable);
-
-  g_source_set_callback (source, (GSourceFunc)on_source_ready, gbio->loop, NULL);
-  g_source_attach (source, gbio->context);
-
-  g_main_loop_run (gbio->loop);
-  g_main_context_pop_thread_default (gbio->context);
-
-  g_source_destroy (source);
-  g_source_unref (source);
 }

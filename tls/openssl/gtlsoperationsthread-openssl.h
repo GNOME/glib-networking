@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <gio/gio.h>
+
+#include "gtlsconnection-openssl.h"
 #include "gtlsoperationsthread-base.h"
 
 G_BEGIN_DECLS
