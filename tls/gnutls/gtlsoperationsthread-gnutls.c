@@ -26,12 +26,12 @@
  */
 
 #include "config.h"
+#include "gtlsoperationsthread-gnutls.h"
+
+#include "gtlsconnection-gnutls.h"
 
 #include <glib/gi18n-lib.h>
 #include <gnutls/dtls.h>
-
-#include "gtlsoperationsthread-gnutls.h"
-#include "gtlsconnection-gnutls.h"
 
 struct _GTlsOperationsThreadGnutls {
   GTlsOperationsThreadBase parent_instance;
@@ -372,7 +372,7 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
 static void
 g_tls_operations_thread_gnutls_constructed (GObject *object)
 {
-  GTlsOperationsThreadGnutls *self = G_TYPE_TLS_OPERATIONS_THREAD_GNUTLS (object);
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (object);
   GTlsConnectionBase *tls;
 
   G_OBJECT_CLASS (g_tls_operations_thread_gnutls_parent_class)->constructed (object);
