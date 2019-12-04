@@ -6,6 +6,7 @@ RUN dnf update -y \
     && dnf install -y gsettings-desktop-schemas \
                       gcc \
                       libasan \
+                      opensc \
                       openssl-devel \
     && dnf clean all
 
