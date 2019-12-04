@@ -25,11 +25,11 @@
  */
 
 #include "config.h"
-
-#include <glib/gi18n-lib.h>
+#include "gtlsoperationsthread-openssl.h"
 
 #include "gtlsconnection-openssl.h"
-#include "gtlsoperationsthread-openssl.h"
+
+#include <glib/gi18n-lib.h>
 
 struct _GTlsOperationsThreadOpenssl {
   GTlsOperationsThreadBase parent_instance;
@@ -170,6 +170,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
+// FIXME: remove timeout params
 #define BEGIN_OPENSSL_IO(self, direction, timeout, cancellable)          \
   do {                                                                   \
     char error_str[256];                                                 \
@@ -189,14 +190,14 @@ g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
                                       GCancellable               *cancellable,
                                       GError                    **error)
 {
-  GTlsOperationsThreadOpenssl *self = G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL (base);
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_OPENSSL_IO (self, G_IO_OUT, timeout, cancellable);
-  ret = SSL_write (self->ssl, buffer, count);
-  END_OPENSSL_IO (self, G_IO_OUT, ret, status,
-                  _("Error writing data to TLS socket"), error);
+  BEGIN_OPENSSL_IO (self, G_IO_OUT, 0, cancellable);
+  ret = SSL_read (self->ssl, buffer, size);
+  END_OPENSSL_IO (self, G_IO_OUT, ret, 0, status,
+                  _("Error reading data from TLS socket"), error);
 
 
   *nread = MAX (ret, 0);
@@ -204,44 +205,21 @@ g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
 }
 
 static GTlsConnectionBaseStatus
-g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
-                                const void            *buffer,
-                                gsize                  size,
-                                gssize                *nwrote,
-                                GCancellable          *cancellable,
-                                GError               **error)
+g_tls_operations_thread_openssl_write (GTlsOperationsThreadBase  *base,
+                                       const void                *buffer,
+                                       gsize                      size,
+                                       gssize                    *nwrote,
+                                       GCancellable              *cancellable,
+                                       GError                   **error)
 {
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
   GTlsConnectionBaseStatus status;
-  SSL *ssl;
   gssize ret;
 
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-
-  while (TRUE)
-    {
-      char error_str[256];
-
-      /* We want to always be non blocking here to avoid deadlocks */
-      g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),
-                                     G_IO_OUT, 0, cancellable);
-
-      ret = SSL_write (ssl, buffer, size);
-
-      ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof (error_str));
-      status = end_openssl_io (openssl, G_IO_OUT, ret, FALSE, error,
-                               _("Error writing data to TLS socket"), error_str);
-
-      if (status != G_TLS_CONNECTION_BASE_TRY_AGAIN)
-        break;
-
-      /* Wait for the socket to be available again to avoid an infinite loop */
-      g_tls_bio_wait_available (priv->bio, G_IO_OUT, cancellable);
-    }
-
+  BEGIN_OPENSSL_IO (self, G_IO_OUT, 0, cancellable);
+  ret = SSL_write (self->ssl, buffer, size);
+  END_OPENSSL_IO (self, G_IO_OUT, ret, 0, status,
+                  _("Error writing data to TLS socket"), error);
   *nwrote = MAX (ret, 0);
   return status;
 }
@@ -249,13 +227,13 @@ g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
 static void
 g_tls_operations_thread_openssl_constructed (GObject *object)
 {
-  GTlsOperationsThreadOpenssl *self = G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL (object);
-  GTlsConnectionOpenssl *openssl;
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (object);
+  GTlsConnectionBase *openssl;
 
   G_OBJECT_CLASS (g_tls_operations_thread_openssl_parent_class)->constructed (object);
 
   openssl = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
-  self->ssl = g_tls_connection_openssl_get_ssl (openssl);
+  self->ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
 }
 
 static void

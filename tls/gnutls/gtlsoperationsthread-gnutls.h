@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <gio/gio.h>
-
 #include "gtlsconnection-gnutls.h"
 #include "gtlsoperationsthread-base.h"
+
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 

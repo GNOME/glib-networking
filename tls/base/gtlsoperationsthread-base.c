@@ -24,7 +24,6 @@
  */
 
 #include "config.h"
-
 #include "gtlsoperationsthread-base.h"
 
 #include <glib/gi18n-lib.h>

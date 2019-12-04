@@ -187,6 +187,8 @@ static gboolean g_tls_connection_base_handshake (GTlsConnection   *conn,
                                                  GCancellable     *cancellable,
                                                  GError          **error);
 
+static GInitableIface *g_tls_connection_base_parent_initable_iface;
+
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionBase, g_tls_connection_base, G_TYPE_TLS_CONNECTION,
                                   G_ADD_PRIVATE (GTlsConnectionBase);
                                   G_IMPLEMENT_INTERFACE (G_TYPE_DATAGRAM_BASED,
@@ -240,15 +242,20 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
   priv->waiting_for_op = g_cancellable_new ();
 }
 
-static void
-g_tls_connection_base_constructed (GObject *object)
+static gboolean
+g_tls_connection_base_initable_init (GInitable    *initable,
+                                     GCancellable *cancellable,
+                                     GError       **error)
 {
-  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (initable);
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
-  G_OBJECT_CLASS (g_tls_connection_base_parent_class)->constructed (object);
-
   priv->thread = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->create_op_thread (tls);
+
+  if (!g_tls_connection_base_parent_initable_iface->init (initable, cancellable, error))
+    return FALSE;
+
+  return TRUE;
 }
 
 static void
@@ -2691,7 +2698,6 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
 
   gobject_class->get_property = g_tls_connection_base_get_property;
   gobject_class->set_property = g_tls_connection_base_set_property;
-  gobject_class->constructed  = g_tls_connection_base_constructed;
   gobject_class->finalize     = g_tls_connection_base_finalize;
 
   connection_class->handshake        = g_tls_connection_base_handshake;
@@ -2743,4 +2749,12 @@ g_tls_connection_base_datagram_based_iface_init (GDatagramBasedInterface *iface)
   iface->create_source = g_tls_connection_base_dtls_create_source;
   iface->condition_check = g_tls_connection_base_condition_check;
   iface->condition_wait = g_tls_connection_base_condition_wait;
+}
+
+static void
+g_tls_client_connection_base_initable_interface_init (GInitableIface *iface)
+{
+  g_tls_connection_base_parent_initable_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = g_tls_connection_base_initable_init;
 }

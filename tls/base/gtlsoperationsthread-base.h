@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <gio/gio.h>
-
 #include "gtlsconnection-base.h"
+
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
