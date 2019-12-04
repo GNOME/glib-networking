@@ -42,7 +42,6 @@
 typedef struct _GTlsConnectionOpensslPrivate
 {
   BIO *bio;
-  GMutex ssl_mutex;
 
   gboolean shutting_down;
 } GTlsConnectionOpensslPrivate;
@@ -53,19 +52,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionOpenssl, g_tls_connection_openss
                                   G_ADD_PRIVATE (GTlsConnectionOpenssl)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                          g_tls_connection_openssl_initable_iface_init))
-
-static void
-g_tls_connection_openssl_finalize (GObject *object)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (object);
-  GTlsConnectionOpensslPrivate *priv;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  g_mutex_clear (&priv->ssl_mutex);
-
-  G_OBJECT_CLASS (g_tls_connection_openssl_parent_class)->finalize (object);
-}
 
 static GTlsOperationsThreadBase *
 g_tls_connection_openssl_create_op_thread (GTlsConnectionBase *tls)
@@ -352,8 +338,6 @@ g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
       g_clear_error (error);
       g_tls_bio_set_write_error (priv->bio, error);
     }
-
-  g_mutex_lock (&priv->ssl_mutex);
 }
 
 static GTlsConnectionBaseStatus
@@ -367,8 +351,6 @@ g_tls_connection_openssl_pop_io (GTlsConnectionBase  *tls,
 
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
-  g_mutex_unlock (&priv->ssl_mutex);
-
   if (direction & G_IO_IN)
     g_tls_bio_set_read_cancellable (priv->bio, NULL);
 
@@ -377,95 +359,6 @@ g_tls_connection_openssl_pop_io (GTlsConnectionBase  *tls,
 
   return G_TLS_CONNECTION_BASE_CLASS (g_tls_connection_openssl_parent_class)->pop_io (tls, direction,
                                                                                       success, error);
-}
-
-static GTlsConnectionBaseStatus
-g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
-                               void                  *buffer,
-                               gsize                  size,
-                               gssize                *nread,
-                               GCancellable          *cancellable,
-                               GError               **error)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
-  GTlsConnectionBaseStatus status;
-  SSL *ssl;
-  gssize ret;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-
-  /* FIXME: revert back to use BEGIN/END_OPENSSL_IO once we move all the ssl
-   * operations into a worker thread
-   */
-  while (TRUE)
-    {
-      char error_str[256];
-
-      /* We want to always be non blocking here to avoid deadlocks */
-      g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),
-                                     G_IO_IN, 0, cancellable);
-
-      ret = SSL_read (ssl, buffer, size);
-
-      ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof (error_str));
-      status = end_openssl_io (openssl, G_IO_IN, ret, FALSE, error,
-                               _("Error reading data from TLS socket"), error_str);
-
-      if (status != G_TLS_CONNECTION_BASE_TRY_AGAIN)
-        break;
-
-      /* Wait for the socket to be available again to avoid an infinite loop */
-      g_tls_bio_wait_available (priv->bio, G_IO_IN, cancellable);
-    }
-
-  *nread = MAX (ret, 0);
-  return status;
-}
-
-static GTlsConnectionBaseStatus
-g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
-                                const void            *buffer,
-                                gsize                  size,
-                                gssize                *nwrote,
-                                GCancellable          *cancellable,
-                                GError               **error)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
-  GTlsConnectionBaseStatus status;
-  SSL *ssl;
-  gssize ret;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-
-  while (TRUE)
-    {
-      char error_str[256];
-
-      /* We want to always be non blocking here to avoid deadlocks */
-      g_tls_connection_base_push_io (G_TLS_CONNECTION_BASE (openssl),
-                                     G_IO_OUT, 0, cancellable);
-
-      ret = SSL_write (ssl, buffer, size);
-
-      ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof (error_str));
-      status = end_openssl_io (openssl, G_IO_OUT, ret, FALSE, error,
-                               _("Error writing data to TLS socket"), error_str);
-
-      if (status != G_TLS_CONNECTION_BASE_TRY_AGAIN)
-        break;
-
-      /* Wait for the socket to be available again to avoid an infinite loop */
-      g_tls_bio_wait_available (priv->bio, G_IO_OUT, cancellable);
-    }
-
-  *nwrote = MAX (ret, 0);
-  return status;
 }
 
 static GTlsConnectionBaseStatus
@@ -497,13 +390,19 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
   return status;
 }
 
+/* FIXME: remove */
+gboolean
+g_tls_connection_openssl_get_shutting_down (GTlsConnectionOpenssl *openssl)
+{
+  GTlsConnectionOpensslPrivate *priv = g_tls_connection_openssl_get_instance_private (openssl);
+
+  return priv->shutting_down;
+}
+
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
-
-  object_class->finalize                                 = g_tls_connection_openssl_finalize;
 
   base_class->create_op_thread                           = g_tls_connection_openssl_create_op_thread;
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_openssl_handshake_thread_safe_renegotiation_status;
@@ -512,8 +411,6 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
   base_class->push_io                                    = g_tls_connection_openssl_push_io;
   base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
-  base_class->read_fn                                    = g_tls_connection_openssl_read;
-  base_class->write_fn                                   = g_tls_connection_openssl_write;
   base_class->close_fn                                   = g_tls_connection_openssl_close;
 }
 
@@ -561,11 +458,6 @@ g_tls_connection_openssl_initable_iface_init (GInitableIface *iface)
 static void
 g_tls_connection_openssl_init (GTlsConnectionOpenssl *openssl)
 {
-  GTlsConnectionOpensslPrivate *priv;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  g_mutex_init (&priv->ssl_mutex);
 }
 
 SSL *

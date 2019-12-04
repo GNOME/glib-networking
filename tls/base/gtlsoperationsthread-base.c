@@ -28,7 +28,6 @@
 #include "gtlsoperationsthread-base.h"
 
 #include <glib/gi18n-lib.h>
-#include <glib/gstdio.h>
 
 /* The purpose of this class is to ensure the underlying TLS library is only
  * ever used on a single thread. There are multiple benefits of this:
@@ -70,20 +69,23 @@
  * write operations on one thread without either one blocking the other.
  */
 typedef struct {
+  /* FIXME: remove to prevent misuse? */
   GTlsConnectionBase *connection; /* unowned */
 
   GThread *op_thread;
   GMainContext *op_thread_context;
 
-  /* When pushing ops onto the queue, call g_main_context_wakeup() on
-   * op_thread_context to ensure the op is noticed.
+  /* Important: when pushing ops onto the queue, call g_main_context_wakeup()
+   * on op_thread_context to ensure the op is noticed.
    */
   GAsyncQueue *queue;
 } GTlsOperationsThreadBasePrivate;
 
 typedef enum {
   G_TLS_THREAD_OP_READ,
+  G_TLS_THREAD_OP_READ_MESSAGE,
   G_TLS_THREAD_OP_WRITE,
+  G_TLS_THREAD_OP_WRITE_MESSAGE,
   G_TLS_THREAD_OP_SHUTDOWN
 } GTlsThreadOperationType;
 
@@ -91,6 +93,7 @@ typedef struct {
   GTlsThreadOperationType type;
   GIOCondition io_condition;
 
+  GTlsOperationsThreadBase *thread;
   GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
 
   /* Input */
@@ -127,17 +130,19 @@ static GParamSpec *obj_properties[LAST_PROP];
 G_DEFINE_TYPE_WITH_PRIVATE (GTlsOperationsThreadBase, g_tls_operations_thread_base, G_TYPE_OBJECT)
 
 static GTlsThreadOperation *
-g_tls_thread_operation_new (GTlsThreadOperationType  type,
-                            GTlsConnectionBase      *connection,
-                            void                    *data,
-                            gsize                    size,
-                            gint64                   timeout,
-                            GCancellable            *cancellable)
+g_tls_thread_operation_new (GTlsThreadOperationType   type,
+                            GTlsOperationsThreadBase *thread,
+                            GTlsConnectionBase       *connection,
+                            void                     *data,
+                            gsize                     size,
+                            gint64                    timeout,
+                            GCancellable             *cancellable)
 {
   GTlsThreadOperation *op;
 
   op = g_new0 (GTlsThreadOperation, 1);
   op->type = type;
+  op->thread = thread; /* FIXME: use a weak ref? */
   op->connection = g_object_ref (connection);
   op->data = data;
   op->size = size;
@@ -150,9 +155,13 @@ g_tls_thread_operation_new (GTlsThreadOperationType  type,
   switch (type)
     {
     case G_TLS_THREAD_OP_READ:
+      /* fallthrough */
+    case G_TLS_THREAD_OP_READ_MESSAGE:
       op->io_condition = G_IO_IN;
       break;
     case G_TLS_THREAD_OP_WRITE:
+      /* fallthough */
+    case G_TLS_THREAD_OP_WRITE_MESSAGE:
       op->io_condition = G_IO_OUT;
       break;
     /* FIXME: more pls */
@@ -198,6 +207,14 @@ wait_for_op_completion (GTlsThreadOperation *op)
   g_mutex_unlock (&op->finished_mutex);
 }
 
+GTlsConnectionBase *
+g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  return priv->connection;
+}
+
 GTlsConnectionBaseStatus
 g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
                                    void                      *buffer,
@@ -212,6 +229,7 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
   GTlsConnectionBaseStatus result;
 
   op = g_tls_thread_operation_new (G_TLS_THREAD_OP_READ,
+                                   self,
                                    priv->connection,
                                    buffer, size, timeout,
                                    cancellable);
@@ -236,6 +254,19 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
 }
 
 GTlsConnectionBaseStatus
+g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
+                                           GInputVector              *vectors,
+                                           guint                      num_vectors,
+                                           gint64                     timeout,
+                                           gssize                    *nread,
+                                           GCancellable              *cancellable,
+                                           GError                   **error)
+{
+  /* FIXME: not enough room in GTlsThreadOperation to store the parameters */
+  g_assert_not_reached ();
+}
+
+GTlsConnectionBaseStatus
 g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
                                     const void                *buffer,
                                     gsize                      size,
@@ -249,6 +280,7 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
   GTlsConnectionBaseStatus result;
 
   op = g_tls_thread_operation_new (G_TLS_THREAD_OP_WRITE,
+                                   self,
                                    priv->connection,
                                    (void *)buffer, size, timeout,
                                    cancellable);
@@ -270,6 +302,19 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
   g_tls_thread_operation_free (op);
 
   return result;
+}
+
+GTlsConnectionBaseStatus
+g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
+                                            GOutputVector             *vectors,
+                                            guint                      num_vectors,
+                                            gint64                     timeout,
+                                            gssize                    *nwrote,
+                                            GCancellable              *cancellable,
+                                            GError                   **error)
+{
+  /* FIXME: not enough room in GTlsThreadOperation to store the parameters */
+  g_assert_not_reached ();
 }
 
 typedef struct {
@@ -580,18 +625,26 @@ process_op (GAsyncQueue         *queue,
     {
     /* FIXME: handle all op types, including handshake and directional closes */
     case G_TLS_THREAD_OP_READ:
-      op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->read_fn (op->connection,
-                                                                              op->data, op->size,
-                                                                              &op->count,
-                                                                              op->cancellable,
-                                                                              &op->error);
+      op->result = G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (op->thread)->read_fn (op->thread,
+                                                                                 op->data, op->size,
+                                                                                 &op->count,
+                                                                                 op->cancellable,
+                                                                                 &op->error);
+      break;
+    case G_TLS_THREAD_OP_READ_MESSAGE:
+      g_assert (G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (op->thread)->read_message_fn);
+      g_assert_not_reached (); /* FIXME */
       break;
     case G_TLS_THREAD_OP_WRITE:
-      op->result = G_TLS_CONNECTION_BASE_GET_CLASS (op->connection)->write_fn (op->connection,
-                                                                               op->data, op->size,
-                                                                               &op->count,
-                                                                               op->cancellable,
-                                                                               &op->error);
+      op->result = G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (op->thread)->write_fn (op->thread,
+                                                                                  op->data, op->size,
+                                                                                  &op->count,
+                                                                                  op->cancellable,
+                                                                                  &op->error);
+      break;
+    case G_TLS_THREAD_OP_WRITE_MESSAGE:
+      g_assert (G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (op->thread)->write_message_fn);
+      g_assert_not_reached (); /* FIXME */
       break;
     case G_TLS_THREAD_OP_SHUTDOWN:
       g_assert_not_reached ();
