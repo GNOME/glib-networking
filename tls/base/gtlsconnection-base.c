@@ -168,6 +168,8 @@ static void g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInt
 
 static void g_tls_connection_base_datagram_based_iface_init  (GDatagramBasedInterface  *iface);
 
+static void g_tls_connection_base_initable_iface_init (GInitableIface *iface);
+
 static gboolean do_implicit_handshake (GTlsConnectionBase  *tls,
                                        gint64               timeout,
                                        GCancellable        *cancellable,
@@ -187,14 +189,14 @@ static gboolean g_tls_connection_base_handshake (GTlsConnection   *conn,
                                                  GCancellable     *cancellable,
                                                  GError          **error);
 
-static GInitableIface *g_tls_connection_base_parent_initable_iface;
-
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionBase, g_tls_connection_base, G_TYPE_TLS_CONNECTION,
                                   G_ADD_PRIVATE (GTlsConnectionBase);
                                   G_IMPLEMENT_INTERFACE (G_TYPE_DATAGRAM_BASED,
                                                          g_tls_connection_base_datagram_based_iface_init);
                                   G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CONNECTION,
                                                          g_tls_connection_base_dtls_connection_iface_init);
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                         g_tls_connection_base_initable_iface_init);
                                   );
 
 
@@ -251,9 +253,6 @@ g_tls_connection_base_initable_init (GInitable    *initable,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
   priv->thread = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->create_op_thread (tls);
-
-  if (!g_tls_connection_base_parent_initable_iface->init (initable, cancellable, error))
-    return FALSE;
 
   return TRUE;
 }
@@ -2752,9 +2751,7 @@ g_tls_connection_base_datagram_based_iface_init (GDatagramBasedInterface *iface)
 }
 
 static void
-g_tls_client_connection_base_initable_interface_init (GInitableIface *iface)
+g_tls_connection_base_initable_iface_init (GInitableIface *iface)
 {
-  g_tls_connection_base_parent_initable_iface = g_type_interface_peek_parent (iface);
-
   iface->init = g_tls_connection_base_initable_init;
 }
