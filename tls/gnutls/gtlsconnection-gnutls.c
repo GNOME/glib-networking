@@ -65,6 +65,8 @@ static ssize_t g_tls_connection_gnutls_pull_func (gnutls_transport_ptr_t  transp
 static int     g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data,
                                                           unsigned int           ms);
 
+static GInitableIface *g_tls_connection_gnutls_parent_initable_iface;
+
 static void g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface);
 
 static int verify_certificate_cb (gnutls_session_t session);
@@ -176,7 +178,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   if (flags & GNUTLS_DATAGRAM)
     gnutls_dtls_set_mtu (priv->session, 1400);
 
-  return TRUE;
+  return g_tls_connection_gnutls_parent_initable_iface->init (initable, cancellable, error);
 }
 
 static void
@@ -991,5 +993,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 static void
 g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface)
 {
+  g_tls_connection_gnutls_parent_initable_iface = g_type_interface_peek_parent (iface);
+
   iface->init = g_tls_connection_gnutls_initable_init;
 }

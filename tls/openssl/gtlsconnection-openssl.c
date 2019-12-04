@@ -46,6 +46,8 @@ typedef struct _GTlsConnectionOpensslPrivate
   gboolean shutting_down;
 } GTlsConnectionOpensslPrivate;
 
+static GInitableIface *g_tls_connection_openssl_parent_initable_iface;
+
 static void g_tls_connection_openssl_initable_iface_init (GInitableIface *iface);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionOpenssl, g_tls_connection_openssl, G_TYPE_TLS_CONNECTION_BASE,
@@ -446,12 +448,14 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
 
   SSL_set_bio (ssl, priv->bio, priv->bio);
 
-  return TRUE;
+  return g_tls_connection_openssl_parent_initable_iface->init (initable, cancellable, error);
 }
 
 static void
 g_tls_connection_openssl_initable_iface_init (GInitableIface *iface)
 {
+  g_tls_connection_openssl_parent_initable_iface = g_type_interface_peek_parent (iface);
+
   iface->init = g_tls_connection_openssl_initable_init;
 }
 
