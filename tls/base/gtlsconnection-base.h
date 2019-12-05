@@ -107,7 +107,7 @@ gboolean                  g_tls_connection_base_handshake_thread_verify_certific
 
 void                      g_tls_connection_base_push_io                 (GTlsConnectionBase *tls,
                                                                          GIOCondition        direction,
-                                                                         gint64              timeout,
+                                                                         gint64              timeout, /* FIXME: remove timeout */
                                                                          GCancellable       *cancellable);
 GTlsConnectionBaseStatus  g_tls_connection_base_pop_io                  (GTlsConnectionBase  *tls,
                                                                          GIOCondition         direction,
