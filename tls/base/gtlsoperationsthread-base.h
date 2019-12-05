@@ -38,7 +38,6 @@ struct _GTlsOperationsThreadBaseClass
 {
   GObjectClass parent_class;
 
-  /* FIXME: must remove timeout parameters from all vfuncs, including handshake vfuncs */
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsOperationsThreadBase  *self,
                                                              void                      *buffer,
                                                              gsize                      size,
@@ -48,7 +47,6 @@ struct _GTlsOperationsThreadBaseClass
   GTlsConnectionBaseStatus    (*read_message_fn)            (GTlsOperationsThreadBase  *self,
                                                              GInputVector              *vectors,
                                                              guint                      num_vectors,
-                                                             gint64                     timeout,
                                                              gssize                    *nread,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
@@ -62,7 +60,6 @@ struct _GTlsOperationsThreadBaseClass
   GTlsConnectionBaseStatus    (*write_message_fn)           (GTlsOperationsThreadBase  *self,
                                                              GOutputVector             *vectors,
                                                              guint                      num_vectors,
-                                                             gint64                     timeout,
                                                              gssize                    *nwrote,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);

@@ -88,7 +88,7 @@ struct _GTlsConnectionBaseClass
 
   void                        (*push_io)                    (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,
-                                                             gint64                timeout,
+                                                             gint64                timeout, /* FIXME: remove timeout */
                                                              GCancellable         *cancellable);
   GTlsConnectionBaseStatus    (*pop_io)                     (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,
