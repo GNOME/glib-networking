@@ -43,7 +43,6 @@ static GTlsConnectionBaseStatus
 end_openssl_io (GTlsOperationsThreadOpenssl  *self,
                 GIOCondition                  direction,
                 int                           ret,
-                gboolean                      blocking,
                 GError                      **error,
                 const char                   *err_prefix,
                 const char                   *err_str)
@@ -58,15 +57,6 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   err_code = SSL_get_error (self->ssl, ret);
 
   status = g_tls_connection_base_pop_io (tls, direction, ret > 0, &my_error);
-
-  if ((err_code == SSL_ERROR_WANT_READ ||
-       err_code == SSL_ERROR_WANT_WRITE) &&
-      blocking)
-    {
-      if (my_error)
-        g_error_free (my_error);
-      return G_TLS_CONNECTION_BASE_TRY_AGAIN;
-    }
 
   if (err_code == SSL_ERROR_ZERO_RETURN)
     return G_TLS_CONNECTION_BASE_OK;
@@ -170,16 +160,15 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
-// FIXME: remove timeout params
-#define BEGIN_OPENSSL_IO(self, direction, timeout, cancellable)          \
-  do {                                                                   \
-    char error_str[256];                                                 \
+#define BEGIN_OPENSSL_IO(self, direction, cancellable)          \
+  do {                                                          \
+    char error_str[256];                                        \
     g_tls_connection_base_push_io (g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self)), \
-                                   direction, timeout, cancellable);
+                                   direction, 0, cancellable);
 
-#define END_OPENSSL_IO(self, direction, ret, timeout, status, errmsg, err) \
+#define END_OPENSSL_IO(self, direction, ret, status, errmsg, err) \
     ERR_error_string_n (SSL_get_error (self->ssl, ret), error_str, sizeof (error_str)); \
-    status = end_openssl_io (self, direction, ret, timeout == -1, err, errmsg, error_str); \
+    status = end_openssl_io (self, direction, ret, err, errmsg, error_str); \
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
 static GTlsConnectionBaseStatus
@@ -194,9 +183,9 @@ g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_OPENSSL_IO (self, G_IO_OUT, 0, cancellable);
+  BEGIN_OPENSSL_IO (self, G_IO_OUT, cancellable);
   ret = SSL_read (self->ssl, buffer, size);
-  END_OPENSSL_IO (self, G_IO_OUT, ret, 0, status,
+  END_OPENSSL_IO (self, G_IO_OUT, ret, status,
                   _("Error reading data from TLS socket"), error);
 
 
@@ -216,9 +205,9 @@ g_tls_operations_thread_openssl_write (GTlsOperationsThreadBase  *base,
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_OPENSSL_IO (self, G_IO_OUT, 0, cancellable);
+  BEGIN_OPENSSL_IO (self, G_IO_OUT, cancellable);
   ret = SSL_write (self->ssl, buffer, size);
-  END_OPENSSL_IO (self, G_IO_OUT, ret, 0, status,
+  END_OPENSSL_IO (self, G_IO_OUT, ret, status,
                   _("Error writing data to TLS socket"), error);
   *nwrote = MAX (ret, 0);
   return status;

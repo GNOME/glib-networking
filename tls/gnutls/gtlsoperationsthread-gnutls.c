@@ -127,11 +127,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       return G_TLS_CONNECTION_BASE_OK;
     }
 
-  if (ret == GNUTLS_E_NO_CERTIFICATE_FOUND
-#ifdef GNUTLS_E_CERTIFICATE_REQUIRED
-           || ret == GNUTLS_E_CERTIFICATE_REQUIRED /* Added in GnuTLS 3.6.7 */
-#endif
-          )
+  if (ret == GNUTLS_E_NO_CERTIFICATE_FOUND || ret == GNUTLS_E_CERTIFICATE_REQUIRED)
     {
       g_clear_error (&my_error);
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
@@ -195,9 +191,9 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
-#define BEGIN_GNUTLS_IO(self, direction, timeout, cancellable)        \
+#define BEGIN_GNUTLS_IO(self, direction, cancellable)          \
   g_tls_connection_base_push_io (g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self)),        \
-                                 direction, timeout, cancellable);    \
+                                 direction, 0, cancellable);    \
   do {
 
 #define END_GNUTLS_IO(self, direction, ret, status, errmsg, err)      \
@@ -216,7 +212,7 @@ g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_GNUTLS_IO (self, G_IO_IN, 0, cancellable);
+  BEGIN_GNUTLS_IO (self, G_IO_IN, cancellable);
   ret = gnutls_record_recv (self->session, buffer, size);
   END_GNUTLS_IO (self, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 
@@ -253,7 +249,6 @@ static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
                                              GInputVector              *vectors,
                                              guint                      num_vectors,
-                                             gint64                     timeout,
                                              gssize                    *nread,
                                              GCancellable              *cancellable,
                                              GError                   **error)
@@ -263,7 +258,7 @@ g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
   gssize ret;
   gnutls_packet_t packet = { 0, };
 
-  BEGIN_GNUTLS_IO (self, G_IO_IN, timeout, cancellable);
+  BEGIN_GNUTLS_IO (self, G_IO_IN, cancellable);
 
   /* Receive the entire datagram (zero-copy). */
   ret = gnutls_record_recv_packet (self->session, &packet);
@@ -295,7 +290,7 @@ g_tls_operations_thread_gnutls_write (GTlsOperationsThreadBase  *base,
   GTlsConnectionBaseStatus status;
   gssize ret;
 
-  BEGIN_GNUTLS_IO (self, G_IO_OUT, 0, cancellable);
+  BEGIN_GNUTLS_IO (self, G_IO_OUT, cancellable);
   ret = gnutls_record_send (self->session, buffer, size);
   END_GNUTLS_IO (self, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
@@ -307,7 +302,6 @@ static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
                                               GOutputVector             *vectors,
                                               guint                      num_vectors,
-                                              gint64                     timeout,
                                               gssize                    *nwrote,
                                               GCancellable              *cancellable,
                                               GError                   **error)
@@ -361,7 +355,7 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
         }
     }
 
-  BEGIN_GNUTLS_IO (self, G_IO_OUT, timeout, cancellable);
+  BEGIN_GNUTLS_IO (self, G_IO_OUT, cancellable);
   ret = gnutls_record_uncork (self->session, 0  /* flags */);
   END_GNUTLS_IO (self, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
