@@ -163,6 +163,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
                                       g_tls_connection_gnutls_push_func);
   gnutls_transport_set_pull_function (priv->session,
                                       g_tls_connection_gnutls_pull_func);
+  /* FIXME: remove timeout func and switch to GNUTLS_NONBLOCK */
   gnutls_transport_set_pull_timeout_function (priv->session,
                                               g_tls_connection_gnutls_pull_timeout_func);
   gnutls_transport_set_ptr (priv->session, gnutls);
