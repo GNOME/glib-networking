@@ -12,7 +12,7 @@ fedora-x86_64:
             -Dwerror=true
             build/
     - ninja -C build/
-    - ASAN_OPTIONS=fast_unwind_on_malloc=0 meson test --verbose --timeout-multiplier=3 -C build/
+    - ASAN_OPTIONS=fast_unwind_on_malloc=0 meson test --verbose --timeout-multiplier=10 -C build/
     - rm -rf build/
 
     # Now again, this time without asan. We will additionally test installation.
