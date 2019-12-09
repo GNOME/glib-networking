@@ -1,4 +1,4 @@
-2.26.2 - December 9, 2019
+2.62.2 - December 9, 2019
 =========================
 
 - Fix handshake_context crashes (#97)
