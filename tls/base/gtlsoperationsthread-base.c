@@ -82,7 +82,10 @@ typedef enum {
   G_TLS_THREAD_OP_READ_MESSAGE,
   G_TLS_THREAD_OP_WRITE,
   G_TLS_THREAD_OP_WRITE_MESSAGE,
-  G_TLS_THREAD_OP_SHUTDOWN
+  G_TLS_THREAD_OP_CLOSE_READ,
+  G_TLS_THREAD_OP_CLOSE_WRITE,
+  G_TLS_THREAD_OP_CLOSE_BOTH,
+  G_TLS_THREAD_OP_SHUTDOWN /* FIXME: redundant with CLOSE_BOTH op? */
 } GTlsThreadOperationType;
 
 typedef struct {
@@ -158,11 +161,18 @@ g_tls_thread_operation_new (GTlsThreadOperationType   type,
   switch (type)
     {
     case G_TLS_THREAD_OP_READ:
+      /* fallthrough */
+    case G_TLS_THREAD_OP_CLOSE_READ:
       op->io_condition = G_IO_IN;
       break;
     case G_TLS_THREAD_OP_WRITE:
+      /* fallthrough */
+    case G_TLS_THREAD_OP_CLOSE_WRITE:
       op->io_condition = G_IO_OUT;
       break;
+    case G_TLS_THREAD_OP_CLOSE_BOTH:
+      op->io_condition = G_IO_IN | G_IO_OUT;
+      break
     default:
       g_assert_not_reached ();
     }
