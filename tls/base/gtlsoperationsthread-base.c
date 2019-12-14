@@ -172,7 +172,7 @@ g_tls_thread_operation_new (GTlsThreadOperationType   type,
       break;
     case G_TLS_THREAD_OP_CLOSE_BOTH:
       op->io_condition = G_IO_IN | G_IO_OUT;
-      break
+      break;
     default:
       g_assert_not_reached ();
     }
