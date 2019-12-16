@@ -78,6 +78,7 @@ typedef struct {
 } GTlsOperationsThreadBasePrivate;
 
 typedef enum {
+  G_TLS_THREAD_OP_HANDSHAKE,
   G_TLS_THREAD_OP_READ,
   G_TLS_THREAD_OP_READ_MESSAGE,
   G_TLS_THREAD_OP_WRITE,
@@ -138,6 +139,14 @@ static GParamSpec *obj_properties[LAST_PROP];
 
 G_DEFINE_TYPE_WITH_PRIVATE (GTlsOperationsThreadBase, g_tls_operations_thread_base, G_TYPE_OBJECT)
 
+GTlsConnectionBase *
+g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  return priv->connection;
+}
+
 static GTlsThreadOperation *
 g_tls_thread_operation_new (GTlsThreadOperationType   type,
                             GTlsOperationsThreadBase *thread,
@@ -164,13 +173,13 @@ g_tls_thread_operation_new (GTlsThreadOperationType   type,
   switch (type)
     {
     case G_TLS_THREAD_OP_READ:
-      /* fallthrough */
       op->io_condition = G_IO_IN;
       break;
     case G_TLS_THREAD_OP_WRITE:
-      /* fallthrough */
       op->io_condition = G_IO_OUT;
       break;
+    case G_TLS_THREAD_OP_HANDSHAKE:
+      /* fallthrough */
     case G_TLS_THREAD_OP_CLOSE:
       op->io_condition = G_IO_IN | G_IO_OUT;
       break;
@@ -181,6 +190,7 @@ g_tls_thread_operation_new (GTlsThreadOperationType   type,
   return op;
 }
 
+#if 0
 static GTlsThreadOperation *
 g_tls_thread_operation_new_async (GTlsThreadOperationType   type,
                                   GTlsOperationsThreadBase *thread,
@@ -205,6 +215,7 @@ g_tls_thread_operation_new_async (GTlsThreadOperationType   type,
 
   return op;
 }
+#endif
 
 static GTlsThreadOperation *
 g_tls_thread_operation_new_with_input_vectors (GTlsOperationsThreadBase *thread,
@@ -293,14 +304,6 @@ wait_for_op_completion (GTlsThreadOperation *op)
   g_mutex_unlock (&op->finished_mutex);
 }
 
-GTlsConnectionBase *
-g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
-{
-  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-
-  return priv->connection;
-}
-
 static GTlsConnectionBaseStatus
 execute_sync_op (GTlsOperationsThreadBase *self,
                  GTlsThreadOperation      *op /* owned */,
@@ -333,6 +336,7 @@ execute_sync_op (GTlsOperationsThreadBase *self,
   return result;
 }
 
+#if 0
 static void
 execute_async_op (GTlsOperationsThreadBase *self,
                   GTlsThreadOperation      *op)
@@ -341,8 +345,33 @@ execute_async_op (GTlsOperationsThreadBase *self,
 
   g_assert (op->task);
 
+  /* FIXME: Design flaw? Here the queue owns the ops only for async tasks.
+   * But it doesn't free them when destroyed (though there should not be any
+   * when destroyed anyway?). It's confusing to have both owned and unowned ops
+   * stored in the same queue. Do we need ops to be refcounted?
+   */
   g_async_queue_push (priv->queue, g_steal_pointer (&op));
   g_main_context_wakeup (priv->op_thread_context);
+}
+#endif
+
+GTlsConnectionBaseStatus
+g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
+                                        gint64                     timeout,
+                                        GCancellable              *cancellable,
+                                        GError                   **error)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsThreadOperation *op;
+
+  op = g_tls_thread_operation_new (G_TLS_THREAD_OP_HANDSHAKE,
+                                   self,
+                                   priv->connection,
+                                   NULL, 0,
+                                   timeout,
+                                   cancellable);
+
+  return execute_sync_op (self, g_steal_pointer (&op), NULL, error);
 }
 
 GTlsConnectionBaseStatus
@@ -795,8 +824,13 @@ process_op (GAsyncQueue         *queue,
 
   switch (op->type)
     {
+    case G_TLS_THREAD_OP_HANDSHAKE:
+      op->result = base_class->handshake_fn (op->thread,
+                                             op->timeout,
+                                             op->cancellable,
+                                             &op->error);
+      break;
     case G_TLS_THREAD_OP_READ:
-      g_assert (base_class->read_fn);
       op->result = base_class->read_fn (op->thread,
                                         op->data, op->size,
                                         &op->count,
@@ -812,7 +846,6 @@ process_op (GAsyncQueue         *queue,
                                                 &op->error);
       break;
     case G_TLS_THREAD_OP_WRITE:
-      g_assert (base_class->write_fn);
       op->result = base_class->write_fn (op->thread,
                                          op->data, op->size,
                                          &op->count,
@@ -828,7 +861,6 @@ process_op (GAsyncQueue         *queue,
                                                  &op->error);
       break;
     case G_TLS_THREAD_OP_CLOSE:
-      g_assert (base_class->close_fn);
       op->result = base_class->close_fn (op->thread,
                                          op->cancellable,
                                          &op->error);
@@ -882,6 +914,9 @@ finished:
         g_task_return_error (op->task, op->error);
       else
         g_task_return_int (op->task, op->result);
+
+      /* The op is owned only for async ops, not for sync ops. */
+      g_tls_thread_operation_free (op);
     }
   else /* sync op */
     {

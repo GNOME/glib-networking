@@ -39,6 +39,8 @@ struct _GTlsOperationsThreadGnutls {
   gnutls_session_t         session;
 };
 
+static gnutls_priority_t priority;
+
 G_DEFINE_TYPE (GTlsOperationsThreadGnutls, g_tls_operations_thread_gnutls, G_TYPE_TLS_OPERATIONS_THREAD_BASE)
 
 static GTlsConnectionBaseStatus
@@ -199,6 +201,90 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
 #define END_GNUTLS_IO(self, direction, ret, status, errmsg, err)      \
     status = end_gnutls_io (self, direction, ret, err, errmsg);       \
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
+
+static void
+initialize_gnutls_priority (void)
+{
+  const gchar *priority_override;
+  const gchar *error_pos = NULL;
+  int ret;
+
+  g_assert (!priority);
+
+  priority_override = g_getenv ("G_TLS_GNUTLS_PRIORITY");
+  if (priority_override)
+    {
+      ret = gnutls_priority_init2 (&priority, priority_override, &error_pos, 0);
+      if (ret != GNUTLS_E_SUCCESS)
+        g_warning ("Failed to set GnuTLS session priority with beginning at %s: %s", error_pos, gnutls_strerror (ret));
+      return;
+    }
+
+  ret = gnutls_priority_init2 (&priority, "%COMPAT:-VERS-TLS1.1:-VERS-TLS1.0", &error_pos, GNUTLS_PRIORITY_INIT_DEF_APPEND);
+  if (ret != GNUTLS_E_SUCCESS)
+    g_warning ("Failed to set GnuTLS session priority with error beginning at %s: %s", error_pos, gnutls_strerror (ret));
+}
+
+static void
+set_handshake_priority (GTlsOperationsThreadGnutls *self)
+{
+  int ret;
+
+  g_assert (priority);
+
+  ret = gnutls_priority_set (self->session, priority);
+  if (ret != GNUTLS_E_SUCCESS)
+    g_warning ("Failed to set GnuTLS session priority: %s", gnutls_strerror (ret));
+}
+
+static GTlsConnectionBaseStatus
+g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase *base,
+                                          gint64                    timeout,
+                                          GCancellable             *cancellable,
+                                          GError                  **error)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
+  GTlsConnectionBase *tls;
+  GTlsConnectionBaseStatus status;
+  int ret;
+
+  tls = g_tls_operations_thread_base_get_connection (base);
+
+  if (!g_tls_connection_base_ever_handshaked (tls))
+    set_handshake_priority (self);
+
+  if (timeout > 0)
+    {
+      unsigned int timeout_ms;
+
+      /* Convert from microseconds to milliseconds, but ensure the timeout
+       * remains positive. */
+      timeout_ms = (timeout + 999) / 1000;
+
+      gnutls_handshake_set_timeout (self->session, timeout_ms);
+      gnutls_dtls_set_timeouts (self->session, 1000 /* default */, timeout_ms);
+    }
+
+  BEGIN_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  ret = gnutls_handshake (self->session);
+  if (ret == GNUTLS_E_GOT_APPLICATION_DATA)
+    {
+      guint8 buf[1024];
+
+      /* Got app data while waiting for rehandshake; buffer it and try again */
+      ret = gnutls_record_recv (self->session, buf, sizeof (buf));
+      if (ret > -1)
+        {
+          /* FIXME: no longer belongs in GTlsConnectionBase? */
+          g_tls_connection_base_handshake_thread_buffer_application_data (tls, buf, ret);
+          ret = GNUTLS_E_AGAIN;
+        }
+    }
+  END_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, ret, status,
+                 _("Error performing TLS handshake"), error);
+
+  return status;
+}
 
 static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
@@ -404,11 +490,14 @@ g_tls_operations_thread_gnutls_class_init (GTlsOperationsThreadGnutlsClass *klas
 
   gobject_class->constructed   = g_tls_operations_thread_gnutls_constructed;
 
+  base_class->handshake_fn     = g_tls_operations_thread_gnutls_handshake;
   base_class->read_fn          = g_tls_operations_thread_gnutls_read;
   base_class->read_message_fn  = g_tls_operations_thread_gnutls_read_message;
   base_class->write_fn         = g_tls_operations_thread_gnutls_write;
   base_class->write_message_fn = g_tls_operations_thread_gnutls_write_message;
   base_class->close_fn         = g_tls_operations_thread_gnutls_close;
+
+  initialize_gnutls_priority ();
 }
 
 GTlsOperationsThreadBase *

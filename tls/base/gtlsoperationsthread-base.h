@@ -38,6 +38,11 @@ struct _GTlsOperationsThreadBaseClass
 {
   GObjectClass parent_class;
 
+  GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
+                                                             gint64                     timeout,
+                                                             GCancellable              *cancellable,
+                                                             GError                   **error);
+
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsOperationsThreadBase  *self,
                                                              void                      *buffer,
                                                              gsize                      size,
@@ -64,13 +69,18 @@ struct _GTlsOperationsThreadBaseClass
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
 
-  GTlsConnectionBaseStatus    (*close_fn)                   (GTlsOperationsThreadBase  *tls,
+  GTlsConnectionBaseStatus    (*close_fn)                   (GTlsOperationsThreadBase  *self,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
 };
 
 /* FIXME: remove? */
-GTlsConnectionBase       *g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self);
+GTlsConnectionBase       *g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase  *self);
+
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake      (GTlsOperationsThreadBase  *self,
+                                                                       gint64                     timeout,
+                                                                       GCancellable              *cancellable,
+                                                                       GError                   **error);
 
 GTlsConnectionBaseStatus  g_tls_operations_thread_base_read           (GTlsOperationsThreadBase  *self,
                                                                        void                      *buffer,

@@ -54,7 +54,7 @@
  *    communications.
  *  • Implements GDtlsConnection and GDatagramBased, for DTLS and datagram
  *    communications.
- *  • Implements GInitable for failable initialisation.
+ *  • Implements GInitable for failable initialization.
  */
 
 typedef struct
@@ -95,6 +95,7 @@ typedef struct
   GTlsCertificate       *peer_certificate;
   GTlsCertificateFlags   peer_certificate_errors;
 
+  /* FIXME: remove */
   GMutex                 verify_certificate_mutex;
   GCond                  verify_certificate_condition;
   gboolean               peer_certificate_accepted;
@@ -124,6 +125,7 @@ typedef struct
    * future operations). ever_handshaked indicates that TLS has been
    * successfully negotiated at some point.
    */
+  /* FIXME: remove a few of these */
   gboolean       need_handshake;
   gboolean       need_finish_handshake;
   gboolean       sync_handshake_in_progress;
@@ -1445,6 +1447,85 @@ g_tls_connection_base_handshake_thread_verify_certificate (GTlsConnectionBase *t
   return accepted;
 }
 
+static gboolean /* FIXME rename */
+op_thread_handshake (GTlsConnectionBase  *tls,
+                     gint64               timeout,
+                     GCancellable        *cancellable,
+                     GError             **error)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
+  gint64 start_time;
+
+  g_tls_log_debug (tls, "TLS handshake starts");
+
+  start_time = g_get_monotonic_time ();
+
+  priv->started_handshake = FALSE;
+  priv->missing_requested_client_certificate = FALSE;
+
+  if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
+                 timeout, cancellable, error))
+    {
+      g_tls_log_debug (tls, "TLS handshake failed: claiming op failed");
+      return FALSE;
+    }
+
+  g_clear_error (&priv->handshake_error);
+
+  if (priv->ever_handshaked && !priv->need_handshake)
+    {
+      GTlsConnectionBaseStatus status;
+
+      /* FIXME: no longer handshake thread */
+      if (tls_class->handshake_thread_safe_renegotiation_status (tls) != G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER)
+        {
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                               _("Peer does not support safe renegotiation"));
+          g_tls_log_debug (tls, "TLS handshake failed: peer does not support safe renegotiation");
+          return FALSE;
+        }
+
+      /* Adjust the timeout for the next operation in the sequence. */
+      if (timeout > 0)
+        {
+          timeout -= (g_get_monotonic_time () - start_time);
+          if (timeout <= 0)
+            timeout = 1;
+        }
+
+      /* FIXME: no longer handshake thread */
+      status = tls_class->handshake_thread_request_rehandshake (tls, timeout, cancellable, error);
+      if (status != G_TLS_CONNECTION_BASE_OK)
+        {
+          g_tls_log_debug (tls, "TLS handshake failed: %s", *error ? (*error)->message : "no error");
+          return FALSE;
+        }
+    }
+
+  /* Adjust the timeout for the next operation in the sequence. */
+  if (timeout > 0)
+    {
+      timeout -= (g_get_monotonic_time () - start_time);
+      if (timeout <= 0)
+        timeout = 1;
+    }
+
+  priv->started_handshake = TRUE;
+  g_tls_operations_thread_base_handshake (priv->thread, timeout, cancellable, error);
+  priv->need_handshake = FALSE;
+
+  if (error && *error)
+    {
+      g_tls_log_debug (tls, "TLS handshake failed: %s", (*error)->message);
+      return FALSE;
+    }
+
+  priv->ever_handshaked = TRUE;
+  g_tls_log_debug (tls, "TLS handshake succeeded");
+  return TRUE;
+}
+
 static void
 handshake_thread (GTask        *task,
                   gpointer      object,
@@ -1583,7 +1664,7 @@ crank_sync_handshake_context (GTlsConnectionBase *tls,
   g_mutex_unlock (&priv->op_mutex);
 }
 
-static gboolean
+static gboolean /* FIXME remove */
 finish_handshake (GTlsConnectionBase  *tls,
                   GTask               *task,
                   GError             **error)
@@ -1647,6 +1728,70 @@ finish_handshake (GTlsConnectionBase  *tls,
   return FALSE;
 }
 
+static gboolean /* FIXME rename */
+finish_op_thread_handshake (GTlsConnectionBase  *tls,
+                            gboolean             success,
+                            GError             **error)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
+  gchar *original_negotiated_protocol;
+  GError *my_error = NULL;
+
+  g_tls_log_debug (tls, "finishing TLS handshake");
+
+  original_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
+
+  if (success)
+    {
+      if (tls_class->is_session_resumed && tls_class->is_session_resumed (tls))
+        {
+          /* Because this session was resumed, we skipped certificate
+           * verification on this handshake, so we missed our earlier
+           * chance to set peer_certificate and peer_certificate_errors.
+           * Do so here instead.
+           *
+           * The certificate has already been accepted, so we don't do
+           * anything with the result here.
+           */
+          g_mutex_lock (&priv->verify_certificate_mutex);
+          update_peer_certificate_and_compute_errors (tls);
+          priv->peer_certificate_examined = TRUE;
+          priv->peer_certificate_accepted = TRUE;
+          g_mutex_unlock (&priv->verify_certificate_mutex);
+        }
+
+      /* FIXME: Return an error from the handshake thread instead? */
+      if (priv->peer_certificate && !priv->peer_certificate_accepted)
+        {
+          g_set_error_literal (&my_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                               _("Unacceptable TLS certificate"));
+        }
+    }
+
+  if (tls_class->complete_handshake)
+    {
+      /* If we already have an error, ignore further errors. */
+      tls_class->complete_handshake (tls, &priv->negotiated_protocol, my_error ? NULL : &my_error);
+
+      if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
+        g_object_notify (G_OBJECT (tls), "negotiated-protocol");
+    }
+  g_free (original_negotiated_protocol);
+
+  if (my_error && priv->started_handshake)
+    priv->handshake_error = g_error_copy (my_error);
+
+  if (!my_error) {
+    g_tls_log_debug (tls, "TLS handshake has finished successfully");
+    return TRUE;
+  }
+
+  g_tls_log_debug (tls, "TLS handshake has finished with error: %s", my_error->message);
+  g_propagate_error (error, my_error);
+  return FALSE;
+}
+
 static gboolean
 g_tls_connection_base_handshake (GTlsConnection   *conn,
                                  GCancellable     *cancellable,
@@ -1655,9 +1800,7 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
-  GTask *task;
   gboolean success;
-  gint64 *timeout = NULL;
   GError *my_error = NULL;
 
   g_tls_log_debug (tls, "Starting synchronous TLS handshake");
@@ -1670,20 +1813,15 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
   if (tls_class->prepare_handshake)
     tls_class->prepare_handshake (tls, priv->advertised_protocols);
 
-  task = g_task_new (conn, cancellable, sync_handshake_thread_completed, NULL);
-  g_task_set_source_tag (task, g_tls_connection_base_handshake);
-  g_task_set_name (task, "[glib-networking] g_tls_connection_base_handshake");
-  g_task_set_return_on_cancel (task, TRUE);
+  success = op_thread_handshake (tls, -1 /* blocking */, cancellable, error);
 
-  timeout = g_new0 (gint64, 1);
-  *timeout = -1; /* blocking */
-  g_task_set_task_data (task, timeout, g_free);
+  g_mutex_lock (&priv->op_mutex);
+  priv->sync_handshake_in_progress = FALSE;
+  g_mutex_unlock (&priv->op_mutex);
 
-  g_task_run_in_thread (task, handshake_thread);
-  crank_sync_handshake_context (tls, cancellable);
+  g_main_context_wakeup (priv->handshake_context);
 
-  success = finish_handshake (tls, task, &my_error);
-  g_object_unref (task);
+  success = finish_op_thread_handshake (tls, success, &my_error);
 
   g_main_context_pop_thread_default (priv->handshake_context);
   g_clear_pointer (&priv->handshake_context, g_main_context_unref);
@@ -1873,7 +2011,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   gint64 *thread_timeout = NULL;
 
-  g_tls_log_debug (tls, "Implcit TLS handshaking starts");
+  g_tls_log_debug (tls, "Implicit TLS handshaking starts");
 
   /* We have op_mutex */
 

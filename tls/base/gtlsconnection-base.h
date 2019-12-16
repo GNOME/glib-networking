@@ -63,6 +63,7 @@ struct _GTlsConnectionBaseClass
 
   GTlsOperationsThreadBase   *(*create_op_thread)           (GTlsConnectionBase   *tls);
 
+  /* FIXME: deal with all the handshaking stuff */
   void                        (*prepare_handshake)          (GTlsConnectionBase   *tls,
                                                              gchar               **advertised_protocols);
   GTlsSafeRenegotiationStatus (*handshake_thread_safe_renegotiation_status)
