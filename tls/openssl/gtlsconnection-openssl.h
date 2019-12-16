@@ -40,14 +40,11 @@ struct _GTlsConnectionOpensslClass
 {
   GTlsConnectionBaseClass parent_class;
 
-  SSL *(*get_ssl) (GTlsConnectionOpenssl *connection);
+  SSL      *(*get_ssl)          (GTlsConnectionOpenssl *connection);
 };
 
 SSL *g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection);
 
 GTlsConnectionOpenssl *g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl);
-
-/* FIXME: remove */
-gboolean g_tls_connection_openssl_get_shutting_down (GTlsConnectionOpenssl *connection);
 
 G_END_DECLS

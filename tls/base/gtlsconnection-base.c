@@ -2333,8 +2333,7 @@ g_tls_connection_base_close_internal (GIOStream      *stream,
   if (priv->ever_handshaked && !priv->write_closed &&
       direction & G_TLS_DIRECTION_WRITE)
     {
-      status = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->
-        close_fn (tls, timeout, cancellable, &close_error);
+      status = g_tls_operations_thread_base_close (priv->thread, cancellable, &close_error);
 
       priv->write_closed = TRUE;
     }

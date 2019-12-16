@@ -929,24 +929,6 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
   return gnutls_session_is_resumed (priv->session);
 }
 
-static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_close (GTlsConnectionBase  *tls,
-                               gint64               timeout,
-                               GCancellable        *cancellable,
-                               GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionBaseStatus status;
-  int ret;
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = gnutls_bye (priv->session, GNUTLS_SHUT_WR);
-  END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret, status, _("Error performing TLS close: %s"), error);
-
-  return status;
-}
-
 static void
 initialize_gnutls_priority (void)
 {
@@ -986,7 +968,6 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
-  base_class->close_fn                                   = g_tls_connection_gnutls_close;
 
   initialize_gnutls_priority ();
 }

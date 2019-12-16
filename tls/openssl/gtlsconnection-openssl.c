@@ -42,8 +42,6 @@
 typedef struct _GTlsConnectionOpensslPrivate
 {
   BIO *bio;
-
-  gboolean shutting_down;
 } GTlsConnectionOpensslPrivate;
 
 static GInitableIface *g_tls_connection_openssl_parent_initable_iface;
@@ -83,13 +81,10 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
                 const char             *err_str)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (openssl);
-  GTlsConnectionOpensslPrivate *priv;
   int err_code, err, err_lib, reason;
   GError *my_error = NULL;
   GTlsConnectionBaseStatus status;
   SSL *ssl;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
 
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
@@ -119,9 +114,9 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     }
 
   /* This case is documented that it may happen and that is perfectly fine */
+  /* FIXME: broke this, but entire func should be deleted so OK */
   if (err_code == SSL_ERROR_SYSCALL &&
-      ((priv->shutting_down && !my_error) ||
-       g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)))
+      g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
     {
       g_clear_error (&my_error);
       return G_TLS_CONNECTION_BASE_OK;
@@ -363,44 +358,6 @@ g_tls_connection_openssl_pop_io (GTlsConnectionBase  *tls,
                                                                                       success, error);
 }
 
-static GTlsConnectionBaseStatus
-g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
-                                gint64               timeout,
-                                GCancellable        *cancellable,
-                                GError             **error)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
-  GTlsConnectionBaseStatus status;
-  SSL *ssl;
-  int ret;
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  priv->shutting_down = TRUE;
-
-  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = SSL_shutdown (ssl);
-  /* Note it is documented that getting 0 is correct when shutting down since
-   * it means it will close the write direction
-   */
-  ret = ret == 0 ? 1 : ret;
-  END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, timeout, status,
-                  _("Error performing TLS close"), error);
-
-  return status;
-}
-
-/* FIXME: remove */
-gboolean
-g_tls_connection_openssl_get_shutting_down (GTlsConnectionOpenssl *openssl)
-{
-  GTlsConnectionOpensslPrivate *priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  return priv->shutting_down;
-}
-
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
@@ -413,7 +370,6 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
   base_class->push_io                                    = g_tls_connection_openssl_push_io;
   base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
-  base_class->close_fn                                   = g_tls_connection_openssl_close;
 }
 
 static int data_index = -1;

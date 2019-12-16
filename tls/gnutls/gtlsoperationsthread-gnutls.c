@@ -363,6 +363,22 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
   return status;
 }
 
+static GTlsConnectionBaseStatus
+g_tls_operations_thread_gnutls_close (GTlsOperationsThreadBase  *base,
+                                      GCancellable              *cancellable,
+                                      GError                   **error)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
+  GTlsConnectionBaseStatus status;
+  int ret;
+
+  BEGIN_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  ret = gnutls_bye (self->session, GNUTLS_SHUT_WR);
+  END_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, ret, status, _("Error performing TLS close: %s"), error);
+
+  return status;
+}
+
 static void
 g_tls_operations_thread_gnutls_constructed (GObject *object)
 {
@@ -392,6 +408,7 @@ g_tls_operations_thread_gnutls_class_init (GTlsOperationsThreadGnutlsClass *klas
   base_class->read_message_fn  = g_tls_operations_thread_gnutls_read_message;
   base_class->write_fn         = g_tls_operations_thread_gnutls_write;
   base_class->write_message_fn = g_tls_operations_thread_gnutls_write_message;
+  base_class->close_fn         = g_tls_operations_thread_gnutls_close;
 }
 
 GTlsOperationsThreadBase *

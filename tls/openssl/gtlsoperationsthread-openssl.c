@@ -35,6 +35,8 @@ struct _GTlsOperationsThreadOpenssl {
   GTlsOperationsThreadBase parent_instance;
 
   SSL *ssl;
+
+  gboolean shutting_down;
 };
 
 G_DEFINE_TYPE (GTlsOperationsThreadOpenssl, g_tls_operations_thread_openssl, G_TYPE_TLS_OPERATIONS_THREAD_BASE)
@@ -72,8 +74,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
 
   /* This case is documented that it may happen and that is perfectly fine */
   if (err_code == SSL_ERROR_SYSCALL &&
-      ((g_tls_connection_openssl_get_shutting_down (G_TLS_CONNECTION_OPENSSL (tls)) && !my_error) ||
-       g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)))
+      ((self->shutting_down && !my_error) || g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)))
     {
       g_clear_error (&my_error);
       return G_TLS_CONNECTION_BASE_OK;
@@ -213,6 +214,29 @@ g_tls_operations_thread_openssl_write (GTlsOperationsThreadBase  *base,
   return status;
 }
 
+static GTlsConnectionBaseStatus
+g_tls_operations_thread_openssl_close (GTlsOperationsThreadBase  *base,
+                                       GCancellable              *cancellable,
+                                       GError                   **error)
+{
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
+  GTlsConnectionBaseStatus status;
+  int ret;
+
+  self->shutting_down = TRUE;
+
+  BEGIN_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  ret = SSL_shutdown (self->ssl);
+  /* Note it is documented that getting 0 is correct when shutting down since
+   * it means it will close the write direction
+   */
+  ret = ret == 0 ? 1 : ret;
+  END_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, ret, status,
+                  _("Error performing TLS close"), error);
+
+  return status;
+}
+
 static void
 g_tls_operations_thread_openssl_constructed (GObject *object)
 {
@@ -240,6 +264,7 @@ g_tls_operations_thread_openssl_class_init (GTlsOperationsThreadOpensslClass *kl
 
   base_class->read_fn        = g_tls_operations_thread_openssl_read;
   base_class->write_fn       = g_tls_operations_thread_openssl_write;
+  base_class->close_fn       = g_tls_operations_thread_openssl_close;
 }
 
 GTlsOperationsThreadBase *

@@ -63,6 +63,10 @@ struct _GTlsOperationsThreadBaseClass
                                                              gssize                    *nwrote,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
+
+  GTlsConnectionBaseStatus    (*close_fn)                   (GTlsOperationsThreadBase  *tls,
+                                                             GCancellable              *cancellable,
+                                                             GError                   **error);
 };
 
 /* FIXME: remove? */
@@ -97,6 +101,10 @@ GTlsConnectionBaseStatus  g_tls_operations_thread_base_write_message  (GTlsOpera
                                                                        guint                      num_vectors,
                                                                        gint64                     timeout,
                                                                        gssize                    *nwrote,
+                                                                       GCancellable              *cancellable,
+                                                                       GError                   **error);
+
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_close          (GTlsOperationsThreadBase  *self,
                                                                        GCancellable              *cancellable,
                                                                        GError                   **error);
 

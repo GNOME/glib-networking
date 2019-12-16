@@ -40,7 +40,7 @@ typedef enum {
   G_TLS_CONNECTION_BASE_REHANDSHAKE,
   G_TLS_CONNECTION_BASE_TRY_AGAIN,
   G_TLS_CONNECTION_BASE_ERROR,
-} GTlsConnectionBaseStatus;
+} GTlsConnectionBaseStatus; /* FIXME: move? rename? GTlsOperationsThreadBaseStatus */
 
 typedef enum {
   G_TLS_DIRECTION_NONE = 0,
@@ -93,12 +93,6 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionBaseStatus    (*pop_io)                     (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,
                                                              gboolean              success,
-                                                             GError              **error);
-
-  /* FIXME: must remove timeout parameters from all vfuncs, including handshake vfuncs */
-  GTlsConnectionBaseStatus    (*close_fn)                   (GTlsConnectionBase   *tls,
-                                                             gint64                timeout,
-                                                             GCancellable         *cancellable,
                                                              GError              **error);
 };
 
