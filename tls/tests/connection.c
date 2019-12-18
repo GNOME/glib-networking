@@ -92,7 +92,7 @@ typedef struct {
   gboolean server_ever_handshaked;
   GTlsCertificate *server_certificate;
   const gchar * const *server_protocols;
-  guint64 incoming_connection_delay;
+  gulong incoming_connection_delay;
 
   char buf[128];
   gssize nread, nwrote;
@@ -2502,7 +2502,7 @@ test_socket_timeout (TestConnection *test,
   GSocketClient *client;
   GError *error = NULL;
 
-  test->incoming_connection_delay = 1.1 * G_USEC_PER_SEC;
+  test->incoming_connection_delay = (gulong)(1.1 * G_USEC_PER_SEC);
 
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_CLOSE);
 
