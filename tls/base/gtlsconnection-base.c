@@ -594,6 +594,7 @@ claim_op (GTlsConnectionBase    *tls,
             }
         }
 
+      /* Performed async implicit handshake? */
       if (priv->need_finish_handshake &&
           priv->implicit_handshake)
         {
@@ -624,6 +625,7 @@ claim_op (GTlsConnectionBase    *tls,
     }
 
   if (priv->handshaking &&
+      op != G_TLS_CONNECTION_BASE_OP_HANDSHAKE &&
       timeout != 0 &&
       g_main_context_is_owner (priv->handshake_context))
     {
@@ -634,7 +636,7 @@ claim_op (GTlsConnectionBase    *tls,
        * the handshake (forever, if there's no timeout). Even a close
        * op would deadlock here.
        */
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, _("Cannot perform blocking operation during TLS handshake"));
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, _("Cannot perform blocking operation during TLS handshake"));
       g_mutex_unlock (&priv->op_mutex);
       g_tls_log_debug (tls, "claim_op failed: %s", (*error)->message);
       return FALSE;
@@ -656,7 +658,8 @@ claim_op (GTlsConnectionBase    *tls,
       if (timeout == 0)
         {
           /* Intentionally not translated because this is not a fatal error to be
-           * presented to the user, and to avoid this showing up in profiling. */
+           * presented to the user, and to avoid this showing up in profiling.
+           */
           g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, "Operation would block");
           g_tls_log_debug (tls, "claim_op failed: %s", (*error)->message);
           return FALSE;
@@ -1336,8 +1339,11 @@ update_peer_certificate_and_compute_errors (GTlsConnectionBase *tls)
    *
    * verify_certificate_mutex should be locked.
    */
+#if 0
+  /* FIXME: sabotage */
   g_assert (priv->handshake_context);
   g_assert (g_main_context_is_owner (priv->handshake_context));
+#endif
 
   peer_certificate = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->retrieve_peer_certificate (tls);
   if (peer_certificate)
@@ -1359,7 +1365,10 @@ accept_or_reject_peer_certificate (gpointer user_data)
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   gboolean accepted = FALSE;
 
+#if 0
+  /* FIXME: sabotage */
   g_assert (g_main_context_is_owner (priv->handshake_context));
+#endif
 
   g_mutex_lock (&priv->verify_certificate_mutex);
 
@@ -1421,6 +1430,11 @@ g_tls_connection_base_handshake_thread_verify_certificate (GTlsConnectionBase *t
 
   g_tls_log_debug (tls, "verifying peer certificate");
 
+  /* FIXME: sabotage */
+  accept_or_reject_peer_certificate (tls);
+  accepted = priv->peer_certificate_accepted;
+  return accepted;
+#if 0
   g_mutex_lock (&priv->verify_certificate_mutex);
   priv->peer_certificate_examined = FALSE;
   priv->peer_certificate_accepted = FALSE;
@@ -1443,6 +1457,7 @@ g_tls_connection_base_handshake_thread_verify_certificate (GTlsConnectionBase *t
   g_mutex_unlock (&priv->verify_certificate_mutex);
 
   return accepted;
+#endif
 }
 
 static gboolean /* FIXME rename */
@@ -1462,6 +1477,9 @@ op_thread_handshake (GTlsConnectionBase  *tls,
   priv->started_handshake = FALSE;
   priv->missing_requested_client_certificate = FALSE;
 
+  /* FIXME: I don't like this mismatch. If we claim here, let's yield at the
+   * bottom. Otherwise, move claim to the caller.
+   */
   if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
                  timeout, cancellable, error))
     {
@@ -1731,7 +1749,7 @@ finish_op_thread_handshake (GTlsConnectionBase  *tls,
 
   if (!my_error) {
     g_tls_log_debug (tls, "TLS handshake has finished successfully");
-    return TRUE;
+    return success;
   }
 
   g_tls_log_debug (tls, "TLS handshake has finished with error: %s", my_error->message);
@@ -1981,14 +1999,16 @@ do_async_implicit_handshake (GTlsConnectionBase  *tls,
   /* In the non-blocking case, start the asynchronous handshake operation
    * and return EWOULDBLOCK to the caller, who will handle polling for
    * completion of the handshake and whatever operation they actually cared
-   * about. Run the actual operation as blocking in its thread. */
+   * about. Run the actual operation as blocking in its thread.
+   */
   *thread_timeout = -1; /* blocking */
 
   g_task_run_in_thread (priv->implicit_handshake,
                         async_handshake_thread);
 
   /* Intentionally not translated because this is not a fatal error to be
-   * presented to the user, and to avoid this showing up in profiling. */
+   * presented to the user, and to avoid this showing up in profiling.
+   */
   g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, "Operation would block");
   return FALSE;
 }
