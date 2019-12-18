@@ -886,6 +886,7 @@ g_tls_connection_base_base_check (GTlsConnectionBase *tls,
     return g_pollable_output_stream_is_writable (priv->base_ostream);
 
   g_assert_not_reached ();
+  return FALSE;
 }
 
 /* Checks whether the (D)TLS stream meets @condition; not the underlying base
