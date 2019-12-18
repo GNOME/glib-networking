@@ -132,7 +132,7 @@ typedef struct
   gboolean       started_handshake;
   gboolean       handshaking;
   gboolean       ever_handshaked;
-  GMainContext  *handshake_context;
+  GMainContext  *handshake_context; /* FIXME remove */
   GTask         *implicit_handshake;
   GError        *handshake_error;
   GByteArray    *app_data_buf;
@@ -1613,57 +1613,6 @@ handshake_thread (GTask        *task,
     }
 }
 
-static void
-sync_handshake_thread_completed (GObject      *object,
-                                 GAsyncResult *result,
-                                 gpointer      user_data)
-{
-  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  gpointer source_tag;
-
-  g_tls_log_debug (tls, "synchronous TLS handshake thread completed");
-
-  source_tag = g_task_get_source_tag (G_TASK (result));
-  g_assert (source_tag == do_implicit_handshake || source_tag == g_tls_connection_base_handshake);
-  g_assert (g_task_is_valid (result, object));
-
-  g_assert (g_main_context_is_owner (priv->handshake_context));
-
-  g_mutex_lock (&priv->op_mutex);
-  priv->sync_handshake_in_progress = FALSE;
-  g_mutex_unlock (&priv->op_mutex);
-
-  g_main_context_wakeup (priv->handshake_context);
-}
-
-static void
-crank_sync_handshake_context (GTlsConnectionBase *tls,
-                              GCancellable       *cancellable)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  /* need_finish_handshake will be set inside sync_handshake_thread_completed(),
-   * which should only ever be invoked while iterating the handshake context
-   * here. So need_finish_handshake should only change on this thread.
-   *
-   * FIXME: This function is not cancellable. We should figure out how to
-   * support cancellation. We must not return from this function before it is
-   * safe to destroy handshake_context, but it's not safe to destroy
-   * handshake_context until after the handshake has completed. And the
-   * handshake operation is not cancellable, so we have a problem.
-   */
-  g_mutex_lock (&priv->op_mutex);
-  priv->sync_handshake_in_progress = TRUE;
-  while (priv->sync_handshake_in_progress)
-    {
-      g_mutex_unlock (&priv->op_mutex);
-      g_main_context_iteration (priv->handshake_context, TRUE);
-      g_mutex_lock (&priv->op_mutex);
-    }
-  g_mutex_unlock (&priv->op_mutex);
-}
-
 static gboolean /* FIXME remove */
 finish_handshake (GTlsConnectionBase  *tls,
                   GTask               *task,
@@ -1821,7 +1770,8 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
 
   g_main_context_wakeup (priv->handshake_context);
 
-  success = finish_op_thread_handshake (tls, success, &my_error);
+  /* If we already have an error, ignore further errors. */
+  success = finish_op_thread_handshake (tls, success, my_error ? NULL : &my_error);
 
   g_main_context_pop_thread_default (priv->handshake_context);
   g_clear_pointer (&priv->handshake_context, g_main_context_unref);
@@ -2001,11 +1951,10 @@ g_tls_connection_base_dtls_handshake_finish (GDtlsConnection  *conn,
                                                  result, error);
 }
 
-static gboolean
-do_implicit_handshake (GTlsConnectionBase  *tls,
-                       gint64               timeout,
-                       GCancellable        *cancellable,
-                       GError             **error)
+static gboolean /* FIXME remove? */
+do_async_implicit_handshake (GTlsConnectionBase  *tls,
+                             GCancellable        *cancellable,
+                             GError             **error)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
@@ -2016,20 +1965,11 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
   /* We have op_mutex */
 
   g_assert (!priv->handshake_context);
-  if (timeout != 0)
-    {
-      priv->handshake_context = g_main_context_new ();
-      g_main_context_push_thread_default (priv->handshake_context);
-    }
-  else
-    {
-      priv->handshake_context = g_main_context_ref_thread_default ();
-    }
+  priv->handshake_context = g_main_context_ref_thread_default ();
 
   g_assert (!priv->implicit_handshake);
   priv->implicit_handshake = g_task_new (tls, cancellable,
-                                        timeout ? sync_handshake_thread_completed : NULL,
-                                        NULL);
+                                        NULL, NULL);
   g_task_set_source_tag (priv->implicit_handshake, do_implicit_handshake);
   g_task_set_name (priv->implicit_handshake, "[glib-networking] do_implicit_handshake");
 
@@ -2040,58 +1980,73 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
   if (tls_class->prepare_handshake)
     tls_class->prepare_handshake (tls, priv->advertised_protocols);
 
-  if (timeout != 0)
-    {
-      GError *my_error = NULL;
-      gboolean success;
+  /* In the non-blocking case, start the asynchronous handshake operation
+   * and return EWOULDBLOCK to the caller, who will handle polling for
+   * completion of the handshake and whatever operation they actually cared
+   * about. Run the actual operation as blocking in its thread. */
+  *thread_timeout = -1; /* blocking */
 
-      /* In the blocking case, run the handshake operation synchronously in
-       * another thread, and delegate handling the timeout to that thread; it
-       * should return G_IO_ERROR_TIMED_OUT iff (timeout > 0) and the operation
-       * times out. If (timeout < 0) it should block indefinitely until the
-       * operation is complete or errors. */
-      *thread_timeout = timeout;
+  g_task_run_in_thread (priv->implicit_handshake,
+                        async_handshake_thread);
 
-      g_mutex_unlock (&priv->op_mutex);
+  /* Intentionally not translated because this is not a fatal error to be
+   * presented to the user, and to avoid this showing up in profiling. */
+  g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, "Operation would block");
+  return FALSE;
+}
 
-      g_task_set_return_on_cancel (priv->implicit_handshake, TRUE);
-      g_task_run_in_thread (priv->implicit_handshake, handshake_thread);
+static gboolean
+do_implicit_handshake (GTlsConnectionBase  *tls,
+                       gint64               timeout,
+                       GCancellable        *cancellable,
+                       GError             **error)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
+  GError *my_error = NULL;
+  gboolean success;
 
-      crank_sync_handshake_context (tls, cancellable);
+  if (timeout == 0) /* FIXME: code duplication */
+    return do_async_implicit_handshake (tls, cancellable, error);
 
-      success = finish_handshake (tls,
-                                  priv->implicit_handshake,
-                                  &my_error);
+  g_tls_log_debug (tls, "Implicit TLS handshaking starts");
 
-      g_main_context_pop_thread_default (priv->handshake_context);
-      g_clear_pointer (&priv->handshake_context, g_main_context_unref);
-      g_clear_object (&priv->implicit_handshake);
+  /* We have op_mutex */
 
-      yield_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
-                G_TLS_CONNECTION_BASE_OK);
+  g_assert (!priv->handshake_context);
+  priv->handshake_context = g_main_context_new ();
+  g_main_context_push_thread_default (priv->handshake_context);
 
-      g_mutex_lock (&priv->op_mutex);
+  if (tls_class->prepare_handshake)
+    tls_class->prepare_handshake (tls, priv->advertised_protocols);
 
-      if (my_error)
-        g_propagate_error (error, my_error);
-      return success;
-    }
-  else
-    {
-      /* In the non-blocking case, start the asynchronous handshake operation
-       * and return EWOULDBLOCK to the caller, who will handle polling for
-       * completion of the handshake and whatever operation they actually cared
-       * about. Run the actual operation as blocking in its thread. */
-      *thread_timeout = -1; /* blocking */
+  g_mutex_unlock (&priv->op_mutex);
 
-      g_task_run_in_thread (priv->implicit_handshake,
-                            async_handshake_thread);
+  success = op_thread_handshake (tls, timeout, cancellable, &my_error);
 
-      /* Intentionally not translated because this is not a fatal error to be
-       * presented to the user, and to avoid this showing up in profiling. */
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, "Operation would block");
-      return FALSE;
-    }
+  g_mutex_lock (&priv->op_mutex);
+  priv->sync_handshake_in_progress = FALSE;
+  g_mutex_unlock (&priv->op_mutex);
+
+  g_main_context_wakeup (priv->handshake_context);
+
+  /* If we already have an error, ignore further errors. */
+  success = finish_op_thread_handshake (tls,
+                                        success,
+                                        my_error ? NULL : &my_error);
+
+  g_main_context_pop_thread_default (priv->handshake_context);
+  g_clear_pointer (&priv->handshake_context, g_main_context_unref);
+  g_clear_object (&priv->implicit_handshake);
+
+  yield_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
+            G_TLS_CONNECTION_BASE_OK);
+
+  g_mutex_lock (&priv->op_mutex);
+
+  if (my_error)
+    g_propagate_error (error, my_error);
+  return success;
 }
 
 gssize
