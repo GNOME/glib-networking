@@ -110,10 +110,6 @@ typedef struct {
 
   GCancellable *cancellable;
 
-  /* Async ops */
-  GTask *task;
-
-  /* Sync ops */
   GMutex finished_mutex;
   GCond finished_condition;
   gboolean finished;
@@ -189,33 +185,6 @@ g_tls_thread_operation_new (GTlsThreadOperationType   type,
 
   return op;
 }
-
-#if 0
-static GTlsThreadOperation *
-g_tls_thread_operation_new_async (GTlsThreadOperationType   type,
-                                  GTlsOperationsThreadBase *thread,
-                                  GTlsConnectionBase       *connection,
-                                  GCancellable             *cancellable,
-                                  GAsyncReadyCallback       callback,
-                                  gpointer                  user_data)
-{
-  GTlsThreadOperation *op;
-
-  op = g_new0 (GTlsThreadOperation, 1);
-  op->type = type;
-  op->thread = thread; /* FIXME: use a weak ref? */
-  op->connection = g_object_ref (connection);
-  op->timeout = -1 /* blocking on the thread */;
-  op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
-
-  g_assert (type == G_TLS_THREAD_OP_CLOSE /* FIXME: || type == G_TLS_THREAD_OP_HANDSHAKE*/);
-  op->io_condition = G_IO_IN | G_IO_OUT;
-
-  op->task = g_task_new (thread, cancellable, callback, user_data);
-
-  return op;
-}
-#endif
 
 static GTlsThreadOperation *
 g_tls_thread_operation_new_with_input_vectors (GTlsOperationsThreadBase *thread,
@@ -305,15 +274,13 @@ wait_for_op_completion (GTlsThreadOperation *op)
 }
 
 static GTlsConnectionBaseStatus
-execute_sync_op (GTlsOperationsThreadBase *self,
+execute_op (GTlsOperationsThreadBase *self,
                  GTlsThreadOperation      *op /* owned */,
                  gssize                   *count,
                  GError                  **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsConnectionBaseStatus result;
-
-  g_assert (!op->task);
 
   g_async_queue_push (priv->queue, op);
   g_main_context_wakeup (priv->op_thread_context);
@@ -336,25 +303,6 @@ execute_sync_op (GTlsOperationsThreadBase *self,
   return result;
 }
 
-#if 0
-static void
-execute_async_op (GTlsOperationsThreadBase *self,
-                  GTlsThreadOperation      *op)
-{
-  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-
-  g_assert (op->task);
-
-  /* FIXME: Design flaw? Here the queue owns the ops only for async tasks.
-   * But it doesn't free them when destroyed (though there should not be any
-   * when destroyed anyway?). It's confusing to have both owned and unowned ops
-   * stored in the same queue. Do we need ops to be refcounted?
-   */
-  g_async_queue_push (priv->queue, g_steal_pointer (&op));
-  g_main_context_wakeup (priv->op_thread_context);
-}
-#endif
-
 GTlsConnectionBaseStatus
 g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
                                         gint64                     timeout,
@@ -371,7 +319,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
                                    timeout,
                                    cancellable);
 
-  return execute_sync_op (self, g_steal_pointer (&op), NULL, error);
+  return execute_op (self, g_steal_pointer (&op), NULL, error);
 }
 
 GTlsConnectionBaseStatus
@@ -393,7 +341,7 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
                                    timeout,
                                    cancellable);
 
-  return execute_sync_op (self, g_steal_pointer (&op), nread, error);
+  return execute_op (self, g_steal_pointer (&op), nread, error);
 }
 
 GTlsConnectionBaseStatus
@@ -414,7 +362,7 @@ g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
                                                       timeout,
                                                       cancellable);
 
-  return execute_sync_op (self, g_steal_pointer (&op), nread, error);
+  return execute_op (self, g_steal_pointer (&op), nread, error);
 }
 
 GTlsConnectionBaseStatus
@@ -436,7 +384,7 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
                                    timeout,
                                    cancellable);
 
-  return execute_sync_op (self, g_steal_pointer (&op), nwrote, error);
+  return execute_op (self, g_steal_pointer (&op), nwrote, error);
 }
 
 GTlsConnectionBaseStatus
@@ -457,7 +405,7 @@ g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
                                                        timeout,
                                                        cancellable);
 
-  return execute_sync_op (self, g_steal_pointer (&op), nwrote, error);
+  return execute_op (self, g_steal_pointer (&op), nwrote, error);
 }
 
 GTlsConnectionBaseStatus
@@ -475,41 +423,8 @@ g_tls_operations_thread_base_close (GTlsOperationsThreadBase  *self,
                                    -1 /* blocking */,
                                    cancellable);
 
-  return execute_sync_op (self, g_steal_pointer (&op), NULL, error);
+  return execute_op (self, g_steal_pointer (&op), NULL, error);
 }
-
-#if 0
-FIXME: needs removed, but good template for handshake?
-
-void
-g_tls_operations_thread_base_close_async (GTlsOperationsThreadBase  *self,
-                                          GCancellable              *cancellable,
-                                          GAsyncReadyCallback        callback,
-                                          gpointer                   user_data)
-{
-  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsThreadOperation *op;
-
-  op = g_tls_thread_operation_new_async (G_TLS_THREAD_OP_CLOSE,
-                                         self,
-                                         priv->connection,
-                                         cancellable,
-                                         callback,
-                                         user_data);
-
-  return execute_async_op (self, g_steal_pointer (&op));
-}
-
-GTlsConnectionBaseStatus
-g_tls_operations_thread_base_close_finish (GTlsOperationsThreadBase  *self,
-                                           GAsyncResult              *result,
-                                           GError                   **error)
-{
-  g_assert (g_task_is_valid (result, self));
-
-  return g_task_propagate_int (G_TASK (result), error);
-}
-#endif
 
 typedef struct {
   GSource source;
@@ -908,23 +823,10 @@ wait:
     }
 
 finished:
-  if (op->task) /* async op */
-    {
-      if (op->error)
-        g_task_return_error (op->task, op->error);
-      else
-        g_task_return_int (op->task, op->result);
-
-      /* The op is owned only for async ops, not for sync ops. */
-      g_tls_thread_operation_free (op);
-    }
-  else /* sync op */
-    {
-      g_mutex_lock (&op->finished_mutex);
-      op->finished = TRUE;
-      g_cond_signal (&op->finished_condition);
-      g_mutex_unlock (&op->finished_mutex);
-    }
+  g_mutex_lock (&op->finished_mutex);
+  op->finished = TRUE;
+  g_cond_signal (&op->finished_condition);
+  g_mutex_unlock (&op->finished_mutex);
 
   return G_SOURCE_CONTINUE;
 }
