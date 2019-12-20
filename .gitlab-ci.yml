@@ -26,7 +26,20 @@ fedora-x86_64:
     - ninja -C build/
     - meson test -v -C build/ --repeat=500
     - meson install -C build/
+    - gnome-desktop-testing-runner -d $HOME/glib-networking-installed/share
   artifacts:
     paths:
       - build/test-results
     when: on_failure
+
+installed-tests:
+  script:
+    - meson -Dgnutls=enabled
+            -Dopenssl=enabled
+            -Dlibproxy=enabled
+            -Dgnome_proxy=enabled
+            -Dwerror=true
+            build/
+    - ninja -C build/
+    - meson install -C build/
+    - gnome-desktop-testing-runner glib-networking
