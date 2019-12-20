@@ -283,7 +283,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_Initialize)(CK_VOID_PTR pInitArgs)
         IGNORE(pInitArgs);
 
         // client.pem
-        path = g_build_filename(g_getenv("G_TEST_SRCDIR"), "files", "client.pem", NULL);
+        path = g_test_build_filename(G_TEST_DIST, "files", "client.pem", NULL);
         status = gnutls_load_file(path, &data);
         g_debug("Loading %s - %s", path, gnutls_strerror(status));
         g_assert(status == GNUTLS_E_SUCCESS);
@@ -298,7 +298,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_Initialize)(CK_VOID_PTR pInitArgs)
         g_free(path);
 
         // client-key.pem
-        path = g_build_filename(g_getenv("G_TEST_SRCDIR"), "files", "client-key.pem", NULL);
+        path = g_test_build_filename(G_TEST_DIST, "files", "client-key.pem", NULL);
         status = gnutls_load_file(path, &data);
         g_debug("Loading %s - %s", path, gnutls_strerror(status));
         g_assert(status == GNUTLS_E_SUCCESS);
@@ -313,7 +313,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_Initialize)(CK_VOID_PTR pInitArgs)
         g_free(path);
 
         // client2-key.pem
-        path = g_build_filename(g_getenv("G_TEST_SRCDIR"), "files", "client2-key.pem", NULL);
+        path = g_test_build_filename(G_TEST_DIST, "files", "client2-key.pem", NULL);
         status = gnutls_load_file(path, &data);
         g_debug("Loading %s - %s", path, gnutls_strerror(status));
         g_assert(status == GNUTLS_E_SUCCESS);
@@ -328,7 +328,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_Initialize)(CK_VOID_PTR pInitArgs)
         g_free(path);
 
         // client2.pem
-        path = g_build_filename(g_getenv("G_TEST_SRCDIR"), "files", "client2.pem", NULL);
+        path = g_test_build_filename(G_TEST_DIST, "files", "client2.pem", NULL);
         status = gnutls_load_file(path, &data);
         g_debug("Loading %s - %s", path, gnutls_strerror(status));
         g_assert(status == GNUTLS_E_SUCCESS);

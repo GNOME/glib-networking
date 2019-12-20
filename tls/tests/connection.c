@@ -2548,7 +2548,8 @@ main (int   argc,
   g_assert_true (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
 #ifdef BACKEND_IS_GNUTLS
-  module_path = g_build_filename (g_getenv ("G_TEST_BUILDDIR"), "mock-pkcs11.so", NULL);
+  module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.so", NULL);
+  g_assert_true (g_file_test (module_path, G_FILE_TEST_EXISTS));
 
   /* This just adds extra logging which is useful for debugging */
   spy_path = g_getenv ("PKCS11SPY_PATH");
