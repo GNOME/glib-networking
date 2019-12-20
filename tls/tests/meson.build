@@ -29,10 +29,16 @@ if backends.contains('gnutls')
     dependencies: [
       gio_dep,
       gnutls_dep,
-    ]
+    ],
+    install: enable_installed_tests,
+    install_dir: installed_tests_execdir
   )
 else
   mock_pkcs11_module = []
+endif
+
+if enable_installed_tests
+  install_subdir('files', install_dir: installed_tests_execdir)
 endif
 
 test_programs = [
@@ -85,7 +91,9 @@ foreach backend: backends
     )
 
     test_envs = envs + [
-      'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend)
+      'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend),
+      'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
+      'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
     ]
 
     # FIXME: OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
