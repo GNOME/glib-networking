@@ -105,6 +105,9 @@ typedef struct {
     guint num_vectors;
   };
 
+  /* For handshakes */
+  gchar **advertised_protocols;
+
   gint64 timeout;
   gint64 start_time;
 
@@ -143,12 +146,20 @@ g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
   return priv->connection;
 }
 
+void
+g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
+                                                        GTlsOperationsThreadBase  *source)
+{
+
+}
+
 static GTlsThreadOperation *
 g_tls_thread_operation_new (GTlsThreadOperationType   type,
                             GTlsOperationsThreadBase *thread,
                             GTlsConnectionBase       *connection,
                             void                     *data,
                             gsize                     size,
+                            const gchar             **advertised_protocols,
                             gint64                    timeout,
                             GCancellable             *cancellable)
 {
@@ -160,6 +171,7 @@ g_tls_thread_operation_new (GTlsThreadOperationType   type,
   op->connection = g_object_ref (connection);
   op->data = data;
   op->size = size;
+  op->advertised_protocols = g_strdupv ((gchar **)advertised_protocols);
   op->timeout = timeout;
   op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
 
@@ -261,6 +273,8 @@ g_tls_thread_operation_free (GTlsThreadOperation *op)
       g_cond_clear (&op->finished_condition);
     }
 
+  g_strfreev (op->advertised_protocols);
+
   g_free (op);
 }
 
@@ -275,9 +289,9 @@ wait_for_op_completion (GTlsThreadOperation *op)
 
 static GTlsConnectionBaseStatus
 execute_op (GTlsOperationsThreadBase *self,
-                 GTlsThreadOperation      *op /* owned */,
-                 gssize                   *count,
-                 GError                  **error)
+            GTlsThreadOperation      *op /* owned */,
+            gssize                   *count,
+            GError                  **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsConnectionBaseStatus result;
@@ -305,6 +319,7 @@ execute_op (GTlsOperationsThreadBase *self,
 
 GTlsConnectionBaseStatus
 g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
+                                        const gchar              **advertised_protocols,
                                         gint64                     timeout,
                                         GCancellable              *cancellable,
                                         GError                   **error)
@@ -316,6 +331,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
                                    self,
                                    priv->connection,
                                    NULL, 0,
+                                   advertised_protocols,
                                    timeout,
                                    cancellable);
 
@@ -338,6 +354,7 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
                                    self,
                                    priv->connection,
                                    buffer, size,
+                                   NULL,
                                    timeout,
                                    cancellable);
 
@@ -381,6 +398,7 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
                                    self,
                                    priv->connection,
                                    (void *)buffer, size,
+                                   NULL,
                                    timeout,
                                    cancellable);
 
@@ -420,6 +438,7 @@ g_tls_operations_thread_base_close (GTlsOperationsThreadBase  *self,
                                    self,
                                    priv->connection,
                                    NULL, 0,
+                                   NULL,
                                    -1 /* blocking */,
                                    cancellable);
 
@@ -741,6 +760,7 @@ process_op (GAsyncQueue         *queue,
     {
     case G_TLS_THREAD_OP_HANDSHAKE:
       op->result = base_class->handshake_fn (op->thread,
+                                             (const gchar **)op->advertised_protocols,
                                              op->timeout,
                                              op->cancellable,
                                              &op->error);
