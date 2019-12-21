@@ -38,9 +38,18 @@ struct _GTlsOperationsThreadBaseClass
 {
   GObjectClass parent_class;
 
+/* FIXME: working on these... */
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
+                                                             gchar                    **advertised_protocols,
                                                              gint64                     timeout,
                                                              GCancellable              *cancellable,
+                                                             GError                   **error);
+  GTlsCertificate            *(*retrieve_peer_certificate)  (GTlsOperationsThreadBase  *self);
+  GTlsCertificateFlags        (*verify_peer_certificate)    (GTlsOperationsThreadBase  *self,
+                                                             GTlsCertificate           *certificate,
+                                                             GTlsCertificateFlags       flags);
+  void                        (*complete_handshake)         (GTlsOperationsThreadBase  *self,
+                                                             gchar                    **negotiated_protocol,
                                                              GError                   **error);
 
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsOperationsThreadBase  *self,
@@ -74,10 +83,11 @@ struct _GTlsOperationsThreadBaseClass
                                                              GError                   **error);
 };
 
-/* FIXME: remove? */
+/* FIXME: remove!!! */
 GTlsConnectionBase       *g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase  *self);
 
 GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake      (GTlsOperationsThreadBase  *self,
+                                                                       gchar                    **advertised_protocols,
                                                                        gint64                     timeout,
                                                                        GCancellable              *cancellable,
                                                                        GError                   **error);

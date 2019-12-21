@@ -48,11 +48,6 @@ typedef enum {
   G_TLS_DIRECTION_WRITE = 1 << 1,
 } GTlsDirection;
 
-typedef enum {
-  G_TLS_SAFE_RENEGOTIATION_SUPPORTED_BY_PEER,
-  G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED
-} GTlsSafeRenegotiationStatus;
-
 #define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
 
 typedef struct _GTlsOperationsThreadBase GTlsOperationsThreadBase;
@@ -62,28 +57,6 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionClass parent_class;
 
   GTlsOperationsThreadBase   *(*create_op_thread)           (GTlsConnectionBase   *tls);
-
-  /* FIXME: deal with all the handshaking stuff */
-  void                        (*prepare_handshake)          (GTlsConnectionBase   *tls,
-                                                             gchar               **advertised_protocols);
-  GTlsSafeRenegotiationStatus (*handshake_thread_safe_renegotiation_status)
-                                                            (GTlsConnectionBase    *tls);
-  GTlsConnectionBaseStatus    (*handshake_thread_request_rehandshake)
-                                                            (GTlsConnectionBase   *tls,
-                                                             gint64                timeout,
-                                                             GCancellable         *cancellable,
-                                                             GError              **error);
-  GTlsConnectionBaseStatus    (*handshake_thread_handshake) (GTlsConnectionBase   *tls,
-                                                             gint64                timeout,
-                                                             GCancellable         *cancellable,
-                                                             GError              **error);
-  GTlsCertificate            *(*retrieve_peer_certificate)  (GTlsConnectionBase   *tls);
-  GTlsCertificateFlags        (*verify_peer_certificate)    (GTlsConnectionBase   *tls,
-                                                             GTlsCertificate      *certificate,
-                                                             GTlsCertificateFlags  flags);
-  void                        (*complete_handshake)         (GTlsConnectionBase   *tls,
-                                                             gchar               **negotiated_protocol,
-                                                             GError              **error);
 
   gboolean                    (*is_session_resumed)         (GTlsConnectionBase   *tls);
 
@@ -139,6 +112,8 @@ gboolean                  g_tls_connection_base_close_internal          (GIOStre
                                                                          GCancellable   *cancellable,
                                                                          GError        **error);
 
+/* FIXME: audit, which are still needed? */
+
 gboolean                  g_tls_connection_base_is_dtls                 (GTlsConnectionBase *tls);
 
 GDatagramBased           *g_tls_connection_base_get_base_socket         (GTlsConnectionBase *tls);
@@ -150,19 +125,6 @@ GPollableOutputStream    *g_tls_connection_base_get_base_ostream        (GTlsCon
 void                      g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate
                                                                         (GTlsConnectionBase *tls);
 
-GError                  **g_tls_connection_base_get_read_error          (GTlsConnectionBase *tls);
-GError                  **g_tls_connection_base_get_write_error         (GTlsConnectionBase *tls);
-
-gint64                    g_tls_connection_base_get_read_timeout        (GTlsConnectionBase *tls);
-gint64                    g_tls_connection_base_get_write_timeout       (GTlsConnectionBase *tls);
-
-GCancellable             *g_tls_connection_base_get_read_cancellable    (GTlsConnectionBase *tls);
-GCancellable             *g_tls_connection_base_get_write_cancellable   (GTlsConnectionBase *tls);
-
-gboolean                  g_tls_connection_base_is_handshaking          (GTlsConnectionBase *tls);
-
-gboolean                  g_tls_connection_base_ever_handshaked         (GTlsConnectionBase *tls);
-
 gboolean                  g_tls_connection_base_handshake_thread_request_certificate
                                                                         (GTlsConnectionBase  *tls);
 
@@ -170,5 +132,8 @@ void                      g_tls_connection_base_handshake_thread_buffer_applicat
                                                                         (GTlsConnectionBase *tls,
                                                                          guint8             *data,
                                                                          gsize               length);
+
+/* FIXME: needed? */
+GTlsOperationsThreadBase *g_tls_connection_base_get_op_thread           (GTlsConnectionBase *tls);
 
 G_END_DECLS

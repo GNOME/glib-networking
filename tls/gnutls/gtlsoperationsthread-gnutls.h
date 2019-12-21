@@ -35,6 +35,12 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GTlsOperationsThreadGnutls, g_tls_operations_thread_gnutls, G, TLS_OPERATIONS_THREAD_GNUTLS, GTlsOperationsThreadBase)
 
-GTlsOperationsThreadBase *g_tls_operations_thread_gnutls_new (GTlsConnectionGnutls *tls);
+GTlsOperationsThreadBase *g_tls_operations_thread_gnutls_new (GTlsConnectionGnutls *connection,
+                                                              GIOStream            *base_iostream,
+                                                              GDatagramBased       *base_socket,
+                                                              guint                 flags);
+
+/* FIXME: must remove this!!! */
+gnutls_session_t g_tls_operations_thread_gnutls_get_session (GTlsOperationsThreadGnutls *self);
 
 G_END_DECLS
