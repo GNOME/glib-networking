@@ -133,7 +133,7 @@ enum
 
 static GParamSpec *obj_properties[LAST_PROP];
 
-G_DEFINE_TYPE_WITH_PRIVATE (GTlsOperationsThreadBase, g_tls_operations_thread_base, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GTlsOperationsThreadBase, g_tls_operations_thread_base, G_TYPE_OBJECT)
 
 GTlsConnectionBase *
 g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
@@ -898,7 +898,7 @@ g_tls_operations_thread_base_set_property (GObject      *object,
 
       /* This weak pointer is not required for correctness, because the
        * thread should never outlive its GTlsConnection. It's only here
-       * as a sanity-check and debugging aid, to ensure self->connection
+       * as a sanity-check and debugging aid, to ensure priv->connection
        * isn't ever dangling.
        */
       g_object_add_weak_pointer (G_OBJECT (priv->connection),
@@ -952,6 +952,9 @@ g_tls_operations_thread_base_class_init (GTlsOperationsThreadBaseClass *klass)
   gobject_class->get_property = g_tls_operations_thread_base_get_property;
   gobject_class->set_property = g_tls_operations_thread_base_set_property;
 
+  /* FIXME: remove this. subclass has been designed to not need it!
+   * Move base_iostream and base_socket up to this level.
+   */
   obj_properties[PROP_TLS_CONNECTION] =
     g_param_spec_object ("tls-connection",
                          "TLS Connection",
