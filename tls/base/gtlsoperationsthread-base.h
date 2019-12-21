@@ -41,12 +41,14 @@ struct _GTlsOperationsThreadBaseClass
   void                        (*copy_client_session_state)  (GTlsOperationsThreadBase  *self,
                                                              GTlsOperationsThreadBase  *source);
 
-/* FIXME: working on these... */
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
                                                              const gchar              **advertised_protocols,
                                                              gint64                     timeout,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
+
+/* FIXME: working on these... */
+#if 0
   GTlsCertificate            *(*retrieve_peer_certificate)  (GTlsOperationsThreadBase  *self);
   GTlsCertificateFlags        (*verify_peer_certificate)    (GTlsOperationsThreadBase  *self,
                                                              GTlsCertificate           *certificate,
@@ -54,6 +56,7 @@ struct _GTlsOperationsThreadBaseClass
   void                        (*complete_handshake)         (GTlsOperationsThreadBase  *self,
                                                              gchar                    **negotiated_protocol,
                                                              GError                   **error);
+#endif
 
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsOperationsThreadBase  *self,
                                                              void                      *buffer,

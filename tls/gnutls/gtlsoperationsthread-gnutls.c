@@ -333,7 +333,7 @@ compute_session_id (GTlsOperationsThreadGnutls *self)
           port = g_inet_socket_address_get_port (isaddr);
 
           addrstr = g_inet_address_to_string (iaddr);
-          server_hostname = get_server_identity (gnutls);
+          server_hostname = get_server_identity (self);
 
           /* If we have a certificate, make its hash part of the session ID, so
            * that different connections to the same server can use different
