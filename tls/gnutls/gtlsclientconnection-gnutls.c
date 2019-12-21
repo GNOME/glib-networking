@@ -23,18 +23,19 @@
  */
 
 #include "config.h"
-#include "glib.h"
+#include "gtlsclientconnection-gnutls.h"
+
+#include "gtlsbackend-gnutls.h"
+#include "gtlsconnection-base.h"
+#include "gtlscertificate-gnutls.h"
+#include "gtlsoperationsthread-base.h"
 
 #include <errno.h>
+#include <glib.h>
+#include <glib/gi18n-lib.h>
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #include <string.h>
-
-#include "gtlsconnection-base.h"
-#include "gtlsclientconnection-gnutls.h"
-#include "gtlsbackend-gnutls.h"
-#include "gtlscertificate-gnutls.h"
-#include <glib/gi18n-lib.h>
 
 enum
 {
@@ -52,15 +53,6 @@ struct _GTlsClientConnectionGnutls
   GTlsCertificateFlags validation_flags;
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
-
-  /* session_data is either the session ticket that was used to resume this
-   * connection, or the most recent session ticket received from the server.
-   * Because session ticket reuse is generally undesirable, it should only be
-   * accessed if session_data_override is set.
-   */
-  GBytes *session_id;
-  GBytes *session_data;
-  gboolean session_data_override;
 
   GPtrArray *accepted_cas;
   gboolean accepted_cas_changed;
@@ -155,8 +147,6 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
 
   g_clear_object (&gnutls->server_identity);
   g_clear_pointer (&gnutls->accepted_cas, g_ptr_array_unref);
-  g_clear_pointer (&gnutls->session_id, g_bytes_unref);
-  g_clear_pointer (&gnutls->session_data, g_bytes_unref);
 
   clear_gnutls_certificate_copy (gnutls);
 
@@ -366,39 +356,6 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
 
   return 0;
 }
-
-static void
-g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
-                                                  gchar              **advertised_protocols)
-{
-  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
-
-  g_tls_client_connection_gnutls_compute_session_id (gnutls);
-
-  if (gnutls->session_data_override)
-    {
-      g_assert (gnutls->session_data);
-      gnutls_session_set_data (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
-                               g_bytes_get_data (gnutls->session_data, NULL),
-                               g_bytes_get_size (gnutls->session_data));
-    }
-  else if (gnutls->session_id)
-    {
-      GBytes *session_data;
-
-      session_data = g_tls_backend_gnutls_lookup_session_data (gnutls->session_id);
-      if (session_data)
-        {
-          gnutls_session_set_data (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
-                                   g_bytes_get_data (session_data, NULL),
-                                   g_bytes_get_size (session_data));
-          g_clear_pointer (&gnutls->session_data, g_bytes_unref);
-          gnutls->session_data = g_steal_pointer (&session_data);
-        }
-    }
-
-}
-
 static void
 g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
                                                    gchar              **negotiated_protocol,
@@ -419,27 +376,10 @@ static void
 g_tls_client_connection_gnutls_copy_session_state (GTlsClientConnection *conn,
                                                    GTlsClientConnection *source)
 {
-  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
-  GTlsClientConnectionGnutls *gnutls_source = G_TLS_CLIENT_CONNECTION_GNUTLS (source);
+  GTlsOperationsThreadBase *thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (conn));
+  GTlsOperationsThreadBase *source_thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (source));
 
-  /* Precondition: source has handshaked, conn has not. */
-  g_return_if_fail (!gnutls->session_id);
-  g_return_if_fail (gnutls_source->session_id);
-
-  /* Prefer to use a new session ticket, if possible. */
-  gnutls->session_data = g_tls_backend_gnutls_lookup_session_data (gnutls_source->session_id);
-
-  if (!gnutls->session_data && gnutls_source->session_data)
-    {
-      /* If it's not possible, we'll try to reuse the old ticket, even though
-       * this is a privacy risk since TLS 1.3. Applications should not use this
-       * function unless they need us to try as hard as possible to resume a
-       * session, even at the cost of privacy.
-       */
-      gnutls->session_data = g_bytes_ref (gnutls_source->session_data);
-    }
-
-  gnutls->session_data_override = !!gnutls->session_data;
+  g_tls_operations_thread_base_copy_client_session_state (thread, source_thread);
 }
 
 static void
