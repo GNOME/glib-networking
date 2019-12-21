@@ -38,9 +38,12 @@ struct _GTlsOperationsThreadBaseClass
 {
   GObjectClass parent_class;
 
+  void                        (*copy_client_session_state)  (GTlsOperationsThreadBase  *self,
+                                                             GTlsOperationsThreadBase  *source);
+
 /* FIXME: working on these... */
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
-                                                             gchar                    **advertised_protocols,
+                                                             const gchar              **advertised_protocols,
                                                              gint64                     timeout,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
@@ -86,8 +89,12 @@ struct _GTlsOperationsThreadBaseClass
 /* FIXME: remove!!! */
 GTlsConnectionBase       *g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase  *self);
 
+void                      g_tls_operations_thread_base_copy_client_session_state
+                                                                      (GTlsOperationsThreadBase  *self,
+                                                                       GTlsOperationsThreadBase  *source);
+
 GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake      (GTlsOperationsThreadBase  *self,
-                                                                       gchar                    **advertised_protocols,
+                                                                       const gchar              **advertised_protocols,
                                                                        gint64                     timeout,
                                                                        GCancellable              *cancellable,
                                                                        GError                   **error);

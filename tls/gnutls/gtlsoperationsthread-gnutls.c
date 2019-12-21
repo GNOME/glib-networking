@@ -28,6 +28,7 @@
 #include "config.h"
 #include "gtlsoperationsthread-gnutls.h"
 
+#include "gtlsbackend-gnutls.h"
 #include "gtlsconnection-gnutls.h"
 
 #include <errno.h>
@@ -39,7 +40,16 @@ struct _GTlsOperationsThreadGnutls {
   GTlsOperationsThreadBase parent_instance;
 
   guint                            init_flags;
-  gnutls_certificate_credentials_t creds; /* owned by GTlsConnectionGnutls */
+  gnutls_certificate_credentials_t creds;
+
+  /* session_data is either the session ticket that was used to resume this
+   * connection, or the most recent session ticket received from the server.
+   * Because session ticket reuse is generally undesirable, it should only be
+   * accessed if session_data_override is set.
+   */
+  GBytes                  *session_id;
+  GBytes                  *session_data;
+  gboolean                 session_data_override; /* FIXME: sort this all out */
 
   gnutls_session_t         session;
 
@@ -345,18 +355,90 @@ compute_session_id (GTlsOperationsThreadGnutls *self)
                                         server_hostname ? server_hostname : "",
                                         port,
                                         cert_hash ? cert_hash : "");
-          gnutls->session_id = g_bytes_new_take (session_id, strlen (session_id));
+          self->session_id = g_bytes_new_take (session_id, strlen (session_id));
           g_free (addrstr);
           g_free (cert_hash);
         }
       g_object_unref (remote_addr);
     }
-  g_clear_object (&base_conn);
+}
+
+static void
+set_advertised_protocols (GTlsOperationsThreadGnutls  *self,
+                          const gchar                **advertised_protocols)
+{
+  gnutls_datum_t *protocols;
+  int n_protos, i;
+
+  n_protos = g_strv_length ((gchar **)advertised_protocols);
+  protocols = g_new (gnutls_datum_t, n_protos);
+  for (i = 0; advertised_protocols[i]; i++)
+    {
+      protocols[i].size = strlen (advertised_protocols[i]);
+      protocols[i].data = (guchar *)advertised_protocols[i];
+    }
+  gnutls_alpn_set_protocols (self->session, protocols, n_protos, 0);
+  g_free (protocols);
+}
+
+static void
+set_session_data (GTlsOperationsThreadGnutls *self)
+{
+  compute_session_id (self);
+
+  if (self->session_data_override)
+    {
+      g_assert (self->session_data);
+      gnutls_session_set_data (self->session,
+                               g_bytes_get_data (self->session_data, NULL),
+                               g_bytes_get_size (self->session_data));
+    }
+  else if (self->session_id)
+    {
+      GBytes *session_data;
+
+      session_data = g_tls_backend_gnutls_lookup_session_data (self->session_id);
+      if (session_data)
+        {
+          gnutls_session_set_data (self->session,
+                                   g_bytes_get_data (session_data, NULL),
+                                   g_bytes_get_size (session_data));
+          g_clear_pointer (&self->session_data, g_bytes_unref);
+          self->session_data = g_steal_pointer (&session_data);
+        }
+    }
+}
+
+static void
+g_tls_operations_thread_gnutls_copy_client_session_state (GTlsOperationsThreadBase *base,
+                                                          GTlsOperationsThreadBase *base_source)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
+  GTlsOperationsThreadGnutls *source = G_TLS_OPERATIONS_THREAD_GNUTLS (base_source);
+
+  /* Precondition: source has handshaked, conn has not. */
+  g_return_if_fail (!self->session_id);
+  g_return_if_fail (source->session_id);
+
+  /* Prefer to use a new session ticket, if possible. */
+  self->session_data = g_tls_backend_gnutls_lookup_session_data (source->session_id);
+
+  if (!self->session_data && source->session_data)
+    {
+      /* If it's not possible, we'll try to reuse the old ticket, even though
+       * this is a privacy risk since TLS 1.3. Applications should not use this
+       * function unless they need us to try as hard as possible to resume a
+       * session, even at the cost of privacy.
+       */
+      self->session_data = g_bytes_ref (source->session_data);
+    }
+
+  self->session_data_override = !!self->session_data;
 }
 
 static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
-                                          gchar                    **advertised_protocols,
+                                          const gchar              **advertised_protocols,
                                           gint64                     timeout,
                                           GCancellable              *cancellable,
                                           GError                   **error)
@@ -385,20 +467,9 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
     }
 
   if (advertised_protocols)
-    {
-      gnutls_datum_t *protocols;
-      int n_protos, i;
+    set_advertised_protocols (self, advertised_protocols);
 
-      n_protos = g_strv_length (advertised_protocols);
-      protocols = g_new (gnutls_datum_t, n_protos);
-      for (i = 0; advertised_protocols[i]; i++)
-        {
-          protocols[i].size = strlen (advertised_protocols[i]);
-          protocols[i].data = (guchar *)advertised_protocols[i];
-        }
-      gnutls_alpn_set_protocols (self->session, protocols, n_protos, 0);
-      g_free (protocols);
-    }
+  set_session_data (self);
 
   self->handshaking = TRUE;
 
@@ -938,10 +1009,16 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (object);
 
-  if (self->session)
-    gnutls_deinit (self->session);
-  if (self->creds)
-    gnutls_certificate_free_credentials (self->creds);
+  g_clear_pointer (&self->session, gnutls_deinit);
+  g_clear_pointer (&self->creds, gnutls_certificate_free_credentials);
+  g_clear_pointer (&self->session_id, g_bytes_unref);
+  g_clear_pointer (&self->session_data, g_bytes_unref);
+
+  g_clear_object (&self->base_iostream);
+  g_clear_object (&self->base_socket);
+
+  g_assert (!self->op_cancellable);
+  g_assert (!self->op_error);
 
   G_OBJECT_CLASS (g_tls_operations_thread_gnutls_parent_class)->finalize (object);
 }
@@ -1019,12 +1096,13 @@ g_tls_operations_thread_gnutls_class_init (GTlsOperationsThreadGnutlsClass *klas
   gobject_class->get_property  = g_tls_operations_thread_gnutls_get_property;
   gobject_class->set_property  = g_tls_operations_thread_gnutls_set_property;
 
-  base_class->handshake_fn     = g_tls_operations_thread_gnutls_handshake;
-  base_class->read_fn          = g_tls_operations_thread_gnutls_read;
-  base_class->read_message_fn  = g_tls_operations_thread_gnutls_read_message;
-  base_class->write_fn         = g_tls_operations_thread_gnutls_write;
-  base_class->write_message_fn = g_tls_operations_thread_gnutls_write_message;
-  base_class->close_fn         = g_tls_operations_thread_gnutls_close;
+  base_class->copy_client_session_state = g_tls_operations_thread_gnutls_copy_client_session_state;
+  base_class->handshake_fn              = g_tls_operations_thread_gnutls_handshake;
+  base_class->read_fn                   = g_tls_operations_thread_gnutls_read;
+  base_class->read_message_fn           = g_tls_operations_thread_gnutls_read_message;
+  base_class->write_fn                  = g_tls_operations_thread_gnutls_write;
+  base_class->write_message_fn          = g_tls_operations_thread_gnutls_write_message;
+  base_class->close_fn                  = g_tls_operations_thread_gnutls_close;
 
   obj_properties[PROP_BASE_IO_STREAM] =
     g_param_spec_object ("base-io-stream",
