@@ -68,8 +68,8 @@
  * write operations on one thread without either one blocking the other.
  */
 typedef struct {
-  /* FIXME: remove to prevent misuse? */
-  GTlsConnectionBase *connection; /* unowned */
+  /* FIXME: remove to prevent misuse */
+  GTlsConnectionBase *connection;
 
   GThread *op_thread;
   GMainContext *op_thread_context;
@@ -78,6 +78,7 @@ typedef struct {
 } GTlsOperationsThreadBasePrivate;
 
 typedef enum {
+  G_TLS_THREAD_OP_COPY_CLIENT_SESSION_STATE,
   G_TLS_THREAD_OP_HANDSHAKE,
   G_TLS_THREAD_OP_READ,
   G_TLS_THREAD_OP_READ_MESSAGE,
@@ -95,18 +96,20 @@ typedef struct {
   GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
 
   union {
-    void *data;
-    GInputVector *input_vectors;
-    GOutputVector *output_vectors;
-  } /* unowned */;
-
-  union {
-    gsize size; /* for non-vectored data buffer */
-    guint num_vectors;
+    GTlsOperationsThreadBase *source; /* for copy client session state */
+    gchar **advertised_protocols;     /* for handshake */
   };
 
-  /* For handshakes */
-  gchar **advertised_protocols;
+  union {
+    void *data;                    /* for read/write */
+    GInputVector *input_vectors;   /* for read message */
+    GOutputVector *output_vectors; /* for write message */
+  };
+
+  union {
+    gsize size;        /* for read/write */
+    guint num_vectors; /* for read/write message */
+  };
 
   gint64 timeout;
   gint64 start_time;
@@ -146,77 +149,94 @@ g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
   return priv->connection;
 }
 
-void
-g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
-                                                        GTlsOperationsThreadBase  *source)
-{
-
-}
-
 static GTlsThreadOperation *
-g_tls_thread_operation_new (GTlsThreadOperationType   type,
-                            GTlsOperationsThreadBase *thread,
-                            GTlsConnectionBase       *connection,
-                            void                     *data,
-                            gsize                     size,
-                            const gchar             **advertised_protocols,
-                            gint64                    timeout,
-                            GCancellable             *cancellable)
+g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *thread,
+                                                      GTlsConnectionBase       *connection,
+                                                      GTlsOperationsThreadBase *source)
 {
   GTlsThreadOperation *op;
 
   op = g_new0 (GTlsThreadOperation, 1);
-  op->type = type;
-  op->thread = thread; /* FIXME: use a weak ref? */
-  op->connection = g_object_ref (connection);
-  op->data = data;
-  op->size = size;
-  op->advertised_protocols = g_strdupv ((gchar **)advertised_protocols);
-  op->timeout = timeout;
-  op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+  op->type = G_TLS_THREAD_OP_COPY_CLIENT_SESSION_STATE;
+  op->thread = thread;
+  op->connection = connection;
+  op->source = source;
 
   g_mutex_init (&op->finished_mutex);
   g_cond_init (&op->finished_condition);
-
-  switch (type)
-    {
-    case G_TLS_THREAD_OP_READ:
-      op->io_condition = G_IO_IN;
-      break;
-    case G_TLS_THREAD_OP_WRITE:
-      op->io_condition = G_IO_OUT;
-      break;
-    case G_TLS_THREAD_OP_HANDSHAKE:
-      /* fallthrough */
-    case G_TLS_THREAD_OP_CLOSE:
-      op->io_condition = G_IO_IN | G_IO_OUT;
-      break;
-    default:
-      g_assert_not_reached ();
-    }
 
   return op;
 }
 
 static GTlsThreadOperation *
-g_tls_thread_operation_new_with_input_vectors (GTlsOperationsThreadBase *thread,
-                                               GTlsConnectionBase       *connection,
-                                               GInputVector             *vectors,
-                                               guint                     num_vectors,
-                                               gint64                    timeout,
-                                               GCancellable             *cancellable)
+g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
+                                      GTlsConnectionBase        *connection,
+                                      const gchar              **advertised_protocols,
+                                      gint64                     timeout,
+                                      GCancellable              *cancellable)
+{
+  GTlsThreadOperation *op;
+
+  op = g_new0 (GTlsThreadOperation, 1);
+  op->type = G_TLS_THREAD_OP_HANDSHAKE;
+  op->io_condition = G_IO_IN | G_IO_OUT;
+  op->thread = thread;
+  op->connection = connection;
+  op->advertised_protocols = g_strdupv ((gchar **)advertised_protocols);
+  op->timeout = timeout;
+  op->cancellable = cancellable;
+
+  g_mutex_init (&op->finished_mutex);
+  g_cond_init (&op->finished_condition);
+
+  return op;
+}
+
+static GTlsThreadOperation *
+g_tls_thread_read_operation_new (GTlsOperationsThreadBase *thread,
+                                 GTlsConnectionBase       *connection,
+                                 void                     *data,
+                                 gsize                     size,
+                                 gint64                    timeout,
+                                 GCancellable             *cancellable)
+{
+  GTlsThreadOperation *op;
+
+  op = g_new0 (GTlsThreadOperation, 1);
+  op->type = G_TLS_THREAD_OP_READ;
+  op->io_condition = G_IO_IN;
+  op->thread = thread;
+  op->connection = connection;
+  op->data = data;
+  op->size = size;
+  op->timeout = timeout;
+  op->cancellable = cancellable;
+
+  g_mutex_init (&op->finished_mutex);
+  g_cond_init (&op->finished_condition);
+
+  return op;
+}
+
+static GTlsThreadOperation *
+g_tls_thread_read_message_operation_new (GTlsOperationsThreadBase *thread,
+                                         GTlsConnectionBase       *connection,
+                                         GInputVector             *vectors,
+                                         guint                     num_vectors,
+                                         gint64                    timeout,
+                                         GCancellable             *cancellable)
 {
   GTlsThreadOperation *op;
 
   op = g_new0 (GTlsThreadOperation, 1);
   op->type = G_TLS_THREAD_OP_READ_MESSAGE;
   op->io_condition = G_IO_IN;
-  op->thread = thread; /* FIXME: use a weak ref? */
-  op->connection = g_object_ref (connection);
+  op->thread = thread;
+  op->connection = connection;
   op->input_vectors = vectors;
   op->num_vectors = num_vectors;
   op->timeout = timeout;
-  op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+  op->cancellable = cancellable;
 
   g_mutex_init (&op->finished_mutex);
   g_cond_init (&op->finished_condition);
@@ -225,24 +245,71 @@ g_tls_thread_operation_new_with_input_vectors (GTlsOperationsThreadBase *thread,
 }
 
 static GTlsThreadOperation *
-g_tls_thread_operation_new_with_output_vectors (GTlsOperationsThreadBase *thread,
-                                                GTlsConnectionBase       *connection,
-                                                GOutputVector            *vectors,
-                                                guint                     num_vectors,
-                                                gint64                    timeout,
-                                                GCancellable             *cancellable)
+g_tls_thread_write_operation_new (GTlsOperationsThreadBase *thread,
+                                  GTlsConnectionBase       *connection,
+                                  const void               *data,
+                                  gsize                     size,
+                                  gint64                    timeout,
+                                  GCancellable             *cancellable)
+{
+  GTlsThreadOperation *op;
+
+  op = g_new0 (GTlsThreadOperation, 1);
+  op->type = G_TLS_THREAD_OP_WRITE;
+  op->io_condition = G_IO_OUT;
+  op->thread = thread;
+  op->connection = connection;
+  op->data = (void *)data;
+  op->size = size;
+  op->timeout = timeout;
+  op->cancellable = cancellable;
+
+  g_mutex_init (&op->finished_mutex);
+  g_cond_init (&op->finished_condition);
+
+  return op;
+}
+
+static GTlsThreadOperation *
+g_tls_thread_write_message_operation_new (GTlsOperationsThreadBase *thread,
+                                          GTlsConnectionBase       *connection,
+                                          GOutputVector            *vectors,
+                                          guint                     num_vectors,
+                                          gint64                    timeout,
+                                          GCancellable             *cancellable)
 {
   GTlsThreadOperation *op;
 
   op = g_new0 (GTlsThreadOperation, 1);
   op->type = G_TLS_THREAD_OP_WRITE_MESSAGE;
   op->io_condition = G_IO_OUT;
-  op->thread = thread; /* FIXME: use a weak ref? */
-  op->connection = g_object_ref (connection);
+  op->thread = thread;
+  op->connection = connection;
   op->output_vectors = vectors;
   op->num_vectors = num_vectors;
   op->timeout = timeout;
-  op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+  op->cancellable = cancellable;
+
+  g_mutex_init (&op->finished_mutex);
+  g_cond_init (&op->finished_condition);
+
+  return op;
+}
+
+static GTlsThreadOperation *
+g_tls_thread_close_operation_new (GTlsOperationsThreadBase *thread,
+                                  GTlsConnectionBase       *connection,
+                                  GCancellable             *cancellable)
+{
+  GTlsThreadOperation *op;
+
+  op = g_new0 (GTlsThreadOperation, 1);
+  op->type = G_TLS_THREAD_OP_CLOSE;
+  op->io_condition = G_IO_IN | G_IO_OUT;
+  op->thread = thread;
+  op->connection = connection;
+  op->timeout = -1;
+  op->cancellable = cancellable;
 
   g_mutex_init (&op->finished_mutex);
   g_cond_init (&op->finished_condition);
@@ -264,16 +331,14 @@ g_tls_thread_shutdown_operation_new (void)
 static void
 g_tls_thread_operation_free (GTlsThreadOperation *op)
 {
-  g_clear_object (&op->connection);
-  g_clear_object (&op->cancellable);
+  if (op->type == G_TLS_THREAD_OP_HANDSHAKE)
+    g_strfreev (op->advertised_protocols);
 
   if (op->type != G_TLS_THREAD_OP_SHUTDOWN_THREAD)
     {
       g_mutex_clear (&op->finished_mutex);
       g_cond_clear (&op->finished_condition);
     }
-
-  g_strfreev (op->advertised_protocols);
 
   g_free (op);
 }
@@ -317,6 +382,19 @@ execute_op (GTlsOperationsThreadBase *self,
   return result;
 }
 
+void
+g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
+                                                        GTlsOperationsThreadBase  *source)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsThreadOperation *op;
+
+  op = g_tls_thread_copy_client_session_state_operation_new (self,
+                                                             priv->connection,
+                                                             source);
+  execute_op (self, g_steal_pointer (&op), NULL, NULL);
+}
+
 GTlsConnectionBaseStatus
 g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
                                         const gchar              **advertised_protocols,
@@ -327,14 +405,11 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
-  op = g_tls_thread_operation_new (G_TLS_THREAD_OP_HANDSHAKE,
-                                   self,
-                                   priv->connection,
-                                   NULL, 0,
-                                   advertised_protocols,
-                                   timeout,
-                                   cancellable);
-
+  op = g_tls_thread_handshake_operation_new (self,
+                                             priv->connection,
+                                             advertised_protocols,
+                                             timeout,
+                                             cancellable);
   return execute_op (self, g_steal_pointer (&op), NULL, error);
 }
 
@@ -350,14 +425,11 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
-  op = g_tls_thread_operation_new (G_TLS_THREAD_OP_READ,
-                                   self,
-                                   priv->connection,
-                                   buffer, size,
-                                   NULL,
-                                   timeout,
-                                   cancellable);
-
+  op = g_tls_thread_read_operation_new (self,
+                                        priv->connection,
+                                        buffer, size,
+                                        timeout,
+                                        cancellable);
   return execute_op (self, g_steal_pointer (&op), nread, error);
 }
 
@@ -373,12 +445,11 @@ g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
-  op = g_tls_thread_operation_new_with_input_vectors (self,
-                                                      priv->connection,
-                                                      vectors, num_vectors,
-                                                      timeout,
-                                                      cancellable);
-
+  op = g_tls_thread_read_message_operation_new (self,
+                                                priv->connection,
+                                                vectors, num_vectors,
+                                                timeout,
+                                                cancellable);
   return execute_op (self, g_steal_pointer (&op), nread, error);
 }
 
@@ -394,14 +465,11 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
-  op = g_tls_thread_operation_new (G_TLS_THREAD_OP_WRITE,
-                                   self,
-                                   priv->connection,
-                                   (void *)buffer, size,
-                                   NULL,
-                                   timeout,
-                                   cancellable);
-
+  op = g_tls_thread_write_operation_new (self,
+                                         priv->connection,
+                                         buffer, size,
+                                         timeout,
+                                         cancellable);
   return execute_op (self, g_steal_pointer (&op), nwrote, error);
 }
 
@@ -417,12 +485,11 @@ g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
-  op = g_tls_thread_operation_new_with_output_vectors (self,
-                                                       priv->connection,
-                                                       vectors, num_vectors,
-                                                       timeout,
-                                                       cancellable);
-
+  op = g_tls_thread_write_message_operation_new (self,
+                                                 priv->connection,
+                                                 vectors, num_vectors,
+                                                 timeout,
+                                                 cancellable);
   return execute_op (self, g_steal_pointer (&op), nwrote, error);
 }
 
@@ -434,14 +501,9 @@ g_tls_operations_thread_base_close (GTlsOperationsThreadBase  *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
-  op = g_tls_thread_operation_new (G_TLS_THREAD_OP_CLOSE,
-                                   self,
-                                   priv->connection,
-                                   NULL, 0,
-                                   NULL,
-                                   -1 /* blocking */,
-                                   cancellable);
-
+  op = g_tls_thread_close_operation_new (self,
+                                         priv->connection,
+                                         cancellable);
   return execute_op (self, g_steal_pointer (&op), NULL, error);
 }
 
@@ -709,6 +771,7 @@ process_op (GAsyncQueue         *queue,
           op->timeout = MAX (op->timeout, 0);
         }
 
+      g_assert (op->io_condition != 0);
       if (!g_tls_connection_base_base_check (op->connection, op->io_condition))
         {
           /* Not ready for I/O. Either we timed out, or were cancelled, or we
@@ -758,6 +821,10 @@ process_op (GAsyncQueue         *queue,
 
   switch (op->type)
     {
+    case G_TLS_THREAD_OP_COPY_CLIENT_SESSION_STATE:
+      if (base_class->copy_client_session_state)
+        base_class->copy_client_session_state (op->thread, op->source);
+      break;
     case G_TLS_THREAD_OP_HANDSHAKE:
       op->result = base_class->handshake_fn (op->thread,
                                              (const gchar **)op->advertised_protocols,
