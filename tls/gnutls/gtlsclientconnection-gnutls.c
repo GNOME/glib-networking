@@ -297,8 +297,15 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
            * initialization */
           if (session)
             {
+              gchar *normalized_hostname = g_strdup (hostname);
+
+              if (hostname[strlen (hostname) - 1] == '.')
+                normalized_hostname[strlen (hostname) - 1] = '\0';
+
               gnutls_server_name_set (session, GNUTLS_NAME_DNS,
-                                      hostname, strlen (hostname));
+                                      normalized_hostname, strlen (normalized_hostname));
+
+              g_free (normalized_hostname);
             }
         }
       break;
