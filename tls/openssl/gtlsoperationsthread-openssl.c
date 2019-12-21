@@ -173,6 +173,35 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
 static GTlsConnectionBaseStatus
+g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
+                                           gint64                     timeout,
+                                           GCancellable              *cancellable,
+                                           GError                   **error)
+{
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
+  GTlsConnectionBaseStatus status;
+  int ret;
+
+  /* FIXME: doesn't respect timeout */
+
+  BEGIN_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  ret = SSL_do_handshake (ssl);
+  END_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, ret, status,
+                  _("Error performing TLS handshake"), error);
+
+  /* FIXME: sabotage */
+#if 0
+  if (ret > 0)
+    {
+      if (!g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl)))
+        return G_TLS_CONNECTION_BASE_ERROR;
+    }
+#endif
+
+  return status;
+}
+
+static GTlsConnectionBaseStatus
 g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
                                       void                       *buffer,
                                       gsize                       size,
@@ -262,6 +291,7 @@ g_tls_operations_thread_openssl_class_init (GTlsOperationsThreadOpensslClass *kl
 
   gobject_class->constructed = g_tls_operations_thread_openssl_constructed;
 
+  base_class->handshake_fn   = g_tls_operations_thread_openssl_handshake;
   base_class->read_fn        = g_tls_operations_thread_openssl_read;
   base_class->write_fn       = g_tls_operations_thread_openssl_write;
   base_class->close_fn       = g_tls_operations_thread_openssl_close;
