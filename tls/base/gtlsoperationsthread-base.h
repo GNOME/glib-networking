@@ -95,6 +95,10 @@ struct _GTlsOperationsThreadBaseClass
 /* FIXME: remove!!! */
 GTlsConnectionBase       *g_tls_operations_thread_base_get_connection            (GTlsOperationsThreadBase  *self);
 
+void                      g_tls_operations_thread_base_set_own_certificate       (GTlsOperationsThreadBase  *self,
+                                                                                  GTlsCertificate           *cert);
+gchar                    *g_tls_operations_thread_base_get_own_certificate_pem   (GTlsOperationsThreadBase  *self);
+
 void                      g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
                                                                                   GTlsOperationsThreadBase  *source);
 

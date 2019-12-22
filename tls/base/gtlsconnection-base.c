@@ -248,6 +248,8 @@ g_tls_connection_base_initable_init (GInitable    *initable,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
   priv->thread = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->create_op_thread (tls);
+  if (priv->certificate)
+    g_tls_operations_thread_base_set_own_certificate (priv->certificate);
 
   return TRUE;
 }
@@ -453,6 +455,9 @@ g_tls_connection_base_set_property (GObject      *object,
       if (priv->certificate)
         g_object_unref (priv->certificate);
       priv->certificate = g_value_dup_object (value);
+
+      if (priv->thread)
+        g_tls_operations_thread_base_set_own_certificate (priv->certificate);
       break;
 
     case PROP_INTERACTION:
@@ -2442,26 +2447,6 @@ g_tls_connection_base_get_base_iostream (GTlsConnectionBase *tls)
  g_assert (!g_tls_connection_base_is_dtls (tls));
 
   return priv->base_io_stream;
-}
-
-GPollableInputStream *
-g_tls_connection_base_get_base_istream (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  g_assert (!g_tls_connection_base_is_dtls (tls));
-
-  return priv->base_istream;
-}
-
-GPollableOutputStream *
-g_tls_connection_base_get_base_ostream (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  g_assert (!g_tls_connection_base_is_dtls (tls));
-
-  return priv->base_ostream;
 }
 
 void

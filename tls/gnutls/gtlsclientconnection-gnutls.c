@@ -55,26 +55,12 @@ struct _GTlsClientConnectionGnutls
   gboolean use_ssl3;
 
   GPtrArray *accepted_cas;
-  gboolean accepted_cas_changed;
-
-  gnutls_pcert_st *pcert;
-  unsigned int pcert_length;
-  gnutls_privkey_t pkey;
 };
 
 static void g_tls_client_connection_gnutls_initable_interface_init (GInitableIface  *iface);
 
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
 static void g_tls_client_connection_gnutls_dtls_client_connection_interface_init (GDtlsClientConnectionInterface *iface);
-
-static int g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
-                                                                              const gnutls_datum_t         *req_ca_rdn,
-                                                                              int                           nreqs,
-                                                                              const gnutls_pk_algorithm_t  *pk_algos,
-                                                                              int                           pk_algos_length,
-                                                                              gnutls_pcert_st             **pcert,
-                                                                              unsigned int                 *pcert_length,
-                                                                              gnutls_privkey_t             *pkey);
 
 static GInitableIface *g_tls_client_connection_gnutls_parent_initable_iface;
 
@@ -85,16 +71,6 @@ G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionGnutls, g_tls_client_connection_gnu
                                                 g_tls_client_connection_gnutls_client_connection_interface_init);
                          G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CLIENT_CONNECTION,
                                                 g_tls_client_connection_gnutls_dtls_client_connection_interface_init));
-
-static void
-clear_gnutls_certificate_copy (GTlsClientConnectionGnutls *gnutls)
-{
-  g_tls_certificate_gnutls_copy_free (gnutls->pcert, gnutls->pcert_length, gnutls->pkey);
-
-  gnutls->pcert = NULL;
-  gnutls->pcert_length = 0;
-  gnutls->pkey = NULL;
-}
 
 static void
 g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
@@ -120,8 +96,6 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
   g_clear_object (&gnutls->server_identity);
   g_clear_pointer (&gnutls->accepted_cas, g_ptr_array_unref);
 
-  clear_gnutls_certificate_copy (gnutls);
-
   G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->finalize (object);
 }
 
@@ -133,13 +107,9 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   GTlsOperationsThreadBase *thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (gnutls));
   const gchar *hostname;
-  gnutls_certificate_credentials_t creds;
 
   if (!g_tls_client_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
-
-  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
   if (hostname)
@@ -178,8 +148,7 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
         {
           for (i = 0; i < gnutls->accepted_cas->len; ++i)
             {
-              accepted_cas = g_list_prepend (accepted_cas, g_byte_array_ref (
-                                             gnutls->accepted_cas->pdata[i]));
+              accepted_cas = g_list_prepend (accepted_cas, g_byte_array_ref (gnutls->accepted_cas->pdata[i]));
             }
           accepted_cas = g_list_reverse (accepted_cas);
         }
@@ -228,86 +197,6 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
-}
-
-static int
-g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
-                                                                   const gnutls_datum_t         *req_ca_rdn,
-                                                                   int                           nreqs,
-                                                                   const gnutls_pk_algorithm_t  *pk_algos,
-                                                                   int                           pk_algos_length,
-                                                                   gnutls_pcert_st             **pcert,
-                                                                   unsigned int                 *pcert_length,
-                                                                   gnutls_privkey_t             *pkey)
-{
-  GTlsConnectionBase *tls = gnutls_transport_get_ptr (session);
-  GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
-  GTlsConnectionGnutls *conn = G_TLS_CONNECTION_GNUTLS (gnutls);
-  GPtrArray *accepted_cas;
-  gboolean had_accepted_cas;
-  GByteArray *dn;
-  int i;
-
-  /* FIXME: Here we are supposed to ensure that the certificate supports one of
-   * the algorithms given in pk_algos.
-   */
-
-  had_accepted_cas = gnutls->accepted_cas != NULL;
-
-  accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
-  for (i = 0; i < nreqs; i++)
-    {
-      dn = g_byte_array_new ();
-      g_byte_array_append (dn, req_ca_rdn[i].data, req_ca_rdn[i].size);
-      g_ptr_array_add (accepted_cas, dn);
-    }
-
-  if (gnutls->accepted_cas)
-    g_ptr_array_unref (gnutls->accepted_cas);
-  gnutls->accepted_cas = accepted_cas;
-
-  gnutls->accepted_cas_changed = gnutls->accepted_cas || had_accepted_cas;
-
-  clear_gnutls_certificate_copy (gnutls);
-  g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
-
-  if (*pcert_length == 0)
-    {
-      g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
-
-      if (g_tls_connection_base_handshake_thread_request_certificate (tls))
-        g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
-
-      if (*pcert_length == 0)
-        {
-          g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
-
-          /* If there is still no client certificate, this connection will
-           * probably fail, but we must not give up yet. The certificate might
-           * be optional, e.g. if the server is using
-           * G_TLS_AUTHENTICATION_REQUESTED, not G_TLS_AUTHENTICATION_REQUIRED.
-           */
-          g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
-          return 0;
-        }
-    }
-
-  if (!*pkey)
-    {
-      g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
-
-      /* No private key. GnuTLS expects it to be non-null if pcert_length is
-       * nonzero, so we have to abort now.
-       */
-      g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
-      return -1;
-    }
-
-  gnutls->pcert = *pcert;
-  gnutls->pcert_length = *pcert_length;
-  gnutls->pkey = *pkey;
-
-  return 0;
 }
 
 static void
