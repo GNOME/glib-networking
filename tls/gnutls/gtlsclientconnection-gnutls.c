@@ -112,34 +112,6 @@ get_server_identity (GTlsClientConnectionGnutls *gnutls)
     return NULL;
 }
 
-static int
-handshake_thread_session_ticket_received_cb (gnutls_session_t      session,
-                                             guint                 htype,
-                                             guint                 when,
-                                             guint                 incoming,
-                                             const gnutls_datum_t *msg)
-{
-  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls_session_get_ptr (session));
-  gnutls_datum_t session_datum;
-
-  if (gnutls_session_get_data2 (session, &session_datum) == GNUTLS_E_SUCCESS)
-    {
-      g_clear_pointer (&gnutls->session_data, g_bytes_unref);
-      gnutls->session_data = g_bytes_new_with_free_func (session_datum.data,
-                                                         session_datum.size,
-                                                         (GDestroyNotify)gnutls_free,
-                                                         session_datum.data);
-
-      if (gnutls->session_id)
-        {
-          g_tls_backend_gnutls_store_session_data (gnutls->session_id,
-                                                   gnutls->session_data);
-        }
-    }
-
-  return 0;
-}
-
 static void
 g_tls_client_connection_gnutls_finalize (GObject *object)
 {
@@ -159,7 +131,7 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
                                               GError         **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
-  gnutls_session_t session;
+  GTlsOperationsThreadBase *thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (gnutls));
   const gchar *hostname;
   gnutls_certificate_credentials_t creds;
 
@@ -169,23 +141,10 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 
-  session = g_tls_connection_gnutls_get_session (gnutls);
+
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
   if (hostname)
-    {
-      gchar *normalized_hostname = g_strdup (hostname);
-
-      if (hostname[strlen (hostname) - 1] == '.')
-        normalized_hostname[strlen (hostname) - 1] = '\0';
-
-      gnutls_server_name_set (session, GNUTLS_NAME_DNS,
-                              normalized_hostname, strlen (normalized_hostname));
-
-      g_free (normalized_hostname);
-    }
-
-  gnutls_handshake_set_hook_function (session, GNUTLS_HANDSHAKE_NEW_SESSION_TICKET,
-                                      GNUTLS_HOOK_POST, handshake_thread_session_ticket_received_cb);
+    g_tls_operations_thread_base_set_server_identity (thread, hostname);
 
   return TRUE;
 }
@@ -256,22 +215,10 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
       hostname = get_server_identity (gnutls);
       if (hostname)
         {
-          gnutls_session_t session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
+          GTlsOperationsThreadBase *thread;
 
-          /* This will only be triggered if the identity is set after
-           * initialization */
-          if (session)
-            {
-              gchar *normalized_hostname = g_strdup (hostname);
-
-              if (hostname[strlen (hostname) - 1] == '.')
-                normalized_hostname[strlen (hostname) - 1] = '\0';
-
-              gnutls_server_name_set (session, GNUTLS_NAME_DNS,
-                                      normalized_hostname, strlen (normalized_hostname));
-
-              g_free (normalized_hostname);
-            }
+          thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (gnutls));
+          g_tls_operations_thread_base_set_server_identity (thread, hostname);
         }
       break;
 
@@ -363,6 +310,7 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
 
   return 0;
 }
+
 static void
 g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
                                                    gchar              **negotiated_protocol,
