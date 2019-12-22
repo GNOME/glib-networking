@@ -54,7 +54,7 @@ struct _GTlsClientConnectionGnutls
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
 
-  GPtrArray *accepted_cas;
+  GList *accepted_cas;
 };
 
 static void g_tls_client_connection_gnutls_initable_interface_init (GInitableIface  *iface);
@@ -94,7 +94,12 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
 
   g_clear_object (&gnutls->server_identity);
-  g_clear_pointer (&gnutls->accepted_cas, g_ptr_array_unref);
+
+  if (gnutls->accepted_cas)
+    {
+      g_list_free_full (gnutls->accepted_cas, (GDestroyNotify)g_byte_array_unref);
+      gnutls->accepted_cas = NULL;
+    }
 
   G_OBJECT_CLASS (g_tls_client_connection_gnutls_parent_class)->finalize (object);
 }
@@ -125,8 +130,6 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
                                              GParamSpec *pspec)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
-  GList *accepted_cas;
-  gint i;
 
   switch (prop_id)
     {
@@ -143,16 +146,7 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
       break;
 
     case PROP_ACCEPTED_CAS:
-      accepted_cas = NULL;
-      if (gnutls->accepted_cas)
-        {
-          for (i = 0; i < gnutls->accepted_cas->len; ++i)
-            {
-              accepted_cas = g_list_prepend (accepted_cas, g_byte_array_ref (gnutls->accepted_cas->pdata[i]));
-            }
-          accepted_cas = g_list_reverse (accepted_cas);
-        }
-      g_value_set_pointer (value, accepted_cas);
+      g_value_set_pointer (value, g_list_copy (gnutls->accepted_cas));
       break;
 
     default:
@@ -200,19 +194,15 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 }
 
 static void
-g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
-                                                   gchar              **negotiated_protocol,
-                                                   GError             **error)
+g_tls_client_connection_gnutls_set_accepted_cas (GTlsConnectionBase *tls,
+                                                 GList              *accepted_cas)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
 
-  G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->complete_handshake (tls, negotiated_protocol, error);
+  if (gnutls->accepted_cas)
+    g_list_free_full (gnutls->accepted_cas, (GDestroyNotify)g_byte_array_unref);
 
-  /* It may have changed during the handshake, but we have to wait until here
-   * because we can't emit notifies on the handshake thread.
-   */
-  if (gnutls->accepted_cas_changed)
-    g_object_notify (G_OBJECT (gnutls), "accepted-cas");
+  gnutls->accepted_cas = g_steal_pointer (&accepted_cas);
 }
 
 static void
@@ -235,7 +225,7 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
   gobject_class->set_property = g_tls_client_connection_gnutls_set_property;
   gobject_class->finalize     = g_tls_client_connection_gnutls_finalize;
 
-  base_class->complete_handshake = g_tls_client_connection_gnutls_complete_handshake;
+  base_class->set_accepted_cas = g_tls_client_connection_gnutls_set_accepted_cas;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");

@@ -58,13 +58,10 @@ static GInitableIface *g_tls_connection_gnutls_parent_initable_iface;
 
 static void g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface);
 
-static gnutls_priority_t priority;
-
 typedef struct
 {
   gnutls_session_t session; /* FIXME: should be used only by GTlsOperationsThreadGnutls */
-  gchar *interaction_id;
-  GCancellable *cancellable;
+
 } GTlsConnectionGnutlsPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls, G_TYPE_TLS_CONNECTION_BASE,
@@ -73,18 +70,9 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionGnutls, g_tls_connection_gnutls,
                                                          g_tls_connection_gnutls_initable_iface_init);
                                   );
 
-static gint unique_interaction_id = 0;
-
 static void
 g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
 {
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  int unique_id;
-
-  unique_id = g_atomic_int_add (&unique_interaction_id, 1);
-  priv->interaction_id = g_strdup_printf ("gtls:%d", unique_id);
-
-  priv->cancellable = g_cancellable_new ();
 }
 
 static gboolean
@@ -102,120 +90,6 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   priv->session = g_tls_operations_thread_gnutls_get_session (G_TLS_OPERATIONS_THREAD_GNUTLS (g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (gnutls))));
 
   return TRUE;
-}
-
-static void
-g_tls_connection_gnutls_finalize (GObject *object)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-
-  if (priv->cancellable)
-    {
-      g_cancellable_cancel (priv->cancellable);
-      g_clear_object (&priv->cancellable);
-    }
-
-  g_free (priv->interaction_id);
-
-  G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
-}
-
-static int
-on_pin_request (void         *userdata,
-                int           attempt,
-                const char   *token_url,
-                const char   *token_label,
-                unsigned int  callback_flags,
-                char         *pin,
-                size_t        pin_max)
-{
-  GTlsConnection *connection = G_TLS_CONNECTION (userdata);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (G_TLS_CONNECTION_GNUTLS (connection));
-  GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
-  GTlsInteractionResult result;
-  GTlsPassword *password;
-  GTlsPasswordFlags password_flags = 0;
-  GError *error = NULL;
-  gchar *description;
-  int ret = -1;
-
-  if (!interaction)
-    return -1;
-
-  if (callback_flags & GNUTLS_PIN_WRONG)
-    password_flags |= G_TLS_PASSWORD_RETRY;
-  if (callback_flags & GNUTLS_PIN_COUNT_LOW)
-    password_flags |= G_TLS_PASSWORD_MANY_TRIES;
-  if (callback_flags & GNUTLS_PIN_FINAL_TRY || attempt > 5) /* Give up at some point */
-    password_flags |= G_TLS_PASSWORD_FINAL_TRY;
-
-  description = g_strdup_printf (" %s (%s)", token_label, token_url);
-  password = g_tls_password_new (password_flags, description);
-  result = g_tls_interaction_invoke_ask_password (interaction, password,
-                                                  priv->cancellable,
-                                                  &error);
-  g_free (description);
-
-  switch (result)
-    {
-    case G_TLS_INTERACTION_FAILED:
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("Error getting PIN: %s", error->message);
-      g_error_free (error);
-      break;
-    case G_TLS_INTERACTION_UNHANDLED:
-      break;
-    case G_TLS_INTERACTION_HANDLED:
-      {
-        gsize password_size;
-        const guchar *password_data = g_tls_password_get_value (password, &password_size);
-        if (password_size > pin_max)
-          g_warning ("PIN is larger than max PIN size");
-
-        memcpy (pin, password_data, MIN (password_size, pin_max));
-        ret = GNUTLS_E_SUCCESS;
-        break;
-      }
-    default:
-      g_assert_not_reached ();
-    }
-
-  g_object_unref (password);
-
-  return ret;
-}
-
-void
-g_tls_connection_gnutls_handshake_thread_get_certificate (GTlsConnectionGnutls  *gnutls,
-                                                          gnutls_pcert_st      **pcert,
-                                                          unsigned int          *pcert_length,
-                                                          gnutls_privkey_t      *pkey)
-{
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsCertificate *cert;
-
-  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (gnutls));
-
-  if (cert)
-    {
-      /* Send along a pre-initialized privkey so we can handle the callback here. */
-      /* FIXME: this was never safe, we're not on the right thread here */
-      gnutls_privkey_t privkey;
-      gnutls_privkey_init (&privkey);
-      gnutls_privkey_set_pin_function (privkey, on_pin_request, gnutls);
-
-      g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
-                                     priv->interaction_id,
-                                     pcert, pcert_length, &privkey);
-      *pkey = privkey;
-    }
-  else
-    {
-      *pcert = NULL;
-      *pcert_length = 0;
-      *pkey = NULL;
-    }
 }
 
 static GTlsOperationsThreadBase *
@@ -272,22 +146,6 @@ g_tls_connection_gnutls_retrieve_peer_certificate (GTlsConnectionBase *tls)
   return G_TLS_CERTIFICATE (chain);
 }
 
-static void
-g_tls_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
-                                            gchar              **negotiated_protocol,
-                                            GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  gnutls_datum_t protocol;
-
-  if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
-    {
-      g_assert (!*negotiated_protocol);
-      *negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
-    }
-}
-
 static gboolean
 g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
 {
@@ -303,11 +161,8 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  gobject_class->finalize                                = g_tls_connection_gnutls_finalize;
-
   base_class->create_op_thread                           = g_tls_connection_gnutls_create_op_thread;
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
-  base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
 }
 

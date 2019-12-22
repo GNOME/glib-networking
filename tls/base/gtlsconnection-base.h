@@ -68,6 +68,9 @@ struct _GTlsConnectionBaseClass
                                                              GIOCondition          direction,
                                                              gboolean              success,
                                                              GError              **error);
+
+  void                        (*set_accepted_cas)           (GTlsConnectionBase    *tls,
+                                                             GList                 *accepted_cas);
 };
 
 gboolean                  g_tls_connection_base_handshake_thread_verify_certificate

@@ -101,9 +101,13 @@ typedef struct {
   GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
 
   GTlsOperationsThreadBase *source; /* for copy client session state */
+
   gchar *server_identity;           /* for set server identity */
+
+  gchar *negotiated_protocol;       /* for handshake */
   gchar **advertised_protocols;     /* for handshake */
   GTlsAuthenticationMode auth_mode; /* for handshake */
+  GList *accepted_cas;              /* for handshake */
 
   union {
     void *data;                    /* for read/write */
@@ -173,7 +177,6 @@ g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *
   return op;
 }
 
-/* FIXME: dumb, move this into handshake operation as is done for authentication mode */
 static GTlsThreadOperation *
 g_tls_thread_set_server_identity_operation_new (GTlsOperationsThreadBase *thread,
                                                 GTlsConnectionBase       *connection,
@@ -362,7 +365,11 @@ g_tls_thread_operation_free (GTlsThreadOperation *op)
     g_free (op->server_identity);
 
   if (op->type == G_TLS_THREAD_OP_HANDSHAKE)
-    g_strfreev (op->advertised_protocols);
+    {
+      g_strfreev (op->advertised_protocols);
+      g_assert (!op->accepted_cas);
+      g_assert (!op->negotiated_protocol);
+    }
 
   if (op->type != G_TLS_THREAD_OP_SHUTDOWN_THREAD)
     {
@@ -470,10 +477,13 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
                                         const gchar              **advertised_protocols,
                                         GTlsAuthenticationMode     auth_mode,
                                         gint64                     timeout,
+                                        gchar                    **negotiated_protocol,
+                                        GList                    **accepted_cas,
                                         GCancellable              *cancellable,
                                         GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
 
   op = g_tls_thread_handshake_operation_new (self,
@@ -482,7 +492,10 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
                                              auth_mode,
                                              timeout,
                                              cancellable);
-  return execute_op (self, g_steal_pointer (&op), NULL, error);
+  status = execute_op (self, g_steal_pointer (&op), NULL, error);
+  *negotiated_protocol = g_steal_pointer (&op->negotiated_protocol);
+  *accepted_cas = g_steal_pointer (&op->accepted_cas);
+  return status;
 }
 
 GTlsConnectionBaseStatus
@@ -907,6 +920,8 @@ process_op (GAsyncQueue         *queue,
                                              (const gchar **)op->advertised_protocols,
                                              op->auth_mode,
                                              op->timeout,
+                                             &op->negotiated_protocol,
+                                             &op->accepted_cas,
                                              op->cancellable,
                                              &op->error);
       break;
@@ -1015,9 +1030,7 @@ tls_op_thread (gpointer data)
 
   g_main_loop_run (main_loop);
 
-  /* FIXME FIXME: what happens if there are still ops in progress?
-   * They should be cancelled somehow. Figure out how.
-   */
+  g_assert (!queue_has_pending_op (priv->queue));
 
   g_main_context_pop_thread_default (priv->op_thread_context);
 
