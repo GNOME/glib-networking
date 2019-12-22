@@ -101,6 +101,17 @@ void                      g_tls_operations_thread_base_set_own_certificate      
                                                                                   GTlsCertificate           *cert);
 gchar                    *g_tls_operations_thread_base_get_own_certificate_pem   (GTlsOperationsThreadBase  *self);
 
+void                      g_tls_operations_thread_base_set_interaction           (GTlsOperationsThreadBase  *self,
+                                                                                  GTlsInteraction           *interaction);
+GTlsInteraction          *g_tls_operations_thread_base_ref_interaction           (GTlsOperationsThreadBase  *self);
+GError                   *g_tls_operations_thread_base_take_interaction_error    (GTlsOperationsThreadBase  *self);
+
+gboolean                  g_tls_operations_thread_base_request_certificate       (GTlsOperationsThreadBase  *self,
+                                                                                  GCancellable              *cancellable);
+
+void                      g_tls_operations_thread_base_set_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self);
+gboolean                  g_tls_operations_thread_base_get_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self);
+
 void                      g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
                                                                                   GTlsOperationsThreadBase  *source);
 

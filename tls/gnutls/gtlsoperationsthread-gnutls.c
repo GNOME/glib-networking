@@ -1100,7 +1100,7 @@ pin_request_cb (void         *userdata,
                 size_t        pin_max)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (userdata);
-  GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
+  GTlsInteraction *interaction = g_tls_operations_thread_base_ref_interaction (G_TLS_OPERATIONS_THREAD_BASE (self));
   GTlsInteractionResult result;
   GTlsPassword *password;
   GTlsPasswordFlags password_flags = 0;
@@ -1124,6 +1124,7 @@ pin_request_cb (void         *userdata,
                                                   self->op_cancellable,
                                                   &error);
   g_free (description);
+  g_object_unref (interaction);
 
   switch (result)
     {
@@ -1244,7 +1245,8 @@ retrieve_certificate_cb (gnutls_session_t              session,
         {
           g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
 
-          if (g_tls_connection_base_handshake_thread_request_certificate (tls))
+          if (g_tls_operations_thread_base_request_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                                                self->op_cancellable))
             get_own_certificate (self, pcert, pcert_length, pkey);
 
           if (*pcert_length == 0)
@@ -1256,7 +1258,7 @@ retrieve_certificate_cb (gnutls_session_t              session,
                * be optional, e.g. if the server is using
                * G_TLS_AUTHENTICATION_REQUESTED, not G_TLS_AUTHENTICATION_REQUIRED.
                */
-              g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
+              g_tls_operations_thread_base_set_is_missing_requested_client_certificate (G_TLS_OPERATIONS_THREAD_BASE (self));
               return 0;
             }
         }
@@ -1268,7 +1270,7 @@ retrieve_certificate_cb (gnutls_session_t              session,
           /* No private key. GnuTLS expects it to be non-null if pcert_length is
            * nonzero, so we have to abort now.
            */
-          g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
+          g_tls_operations_thread_base_set_is_missing_requested_client_certificate (G_TLS_OPERATIONS_THREAD_BASE (self));
           return -1;
         }
     }

@@ -73,6 +73,7 @@ struct _GTlsConnectionBaseClass
                                                              GList                 *accepted_cas);
 };
 
+/* FIXME: no handshake_thread stuff */
 gboolean                  g_tls_connection_base_handshake_thread_verify_certificate
                                                                         (GTlsConnectionBase *tls);
 
@@ -123,11 +124,7 @@ GDatagramBased           *g_tls_connection_base_get_base_socket         (GTlsCon
 
 GIOStream                *g_tls_connection_base_get_base_iostream       (GTlsConnectionBase *tls);
 
-void                      g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate
-                                                                        (GTlsConnectionBase *tls);
-
-gboolean                  g_tls_connection_base_handshake_thread_request_certificate
-                                                                        (GTlsConnectionBase  *tls);
+/* FIXME: no handshake_thread stuff */
 
 void                      g_tls_connection_base_handshake_thread_buffer_application_data
                                                                         (GTlsConnectionBase *tls,
