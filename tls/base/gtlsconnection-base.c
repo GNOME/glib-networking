@@ -90,8 +90,6 @@ typedef struct
   GTlsInteraction       *interaction;
 
   GTlsCertificate       *certificate;
-  gboolean               missing_requested_client_certificate;
-  GError                *interaction_error;
   GTlsCertificate       *peer_certificate;
   GTlsCertificateFlags   peer_certificate_errors;
 
@@ -248,7 +246,9 @@ g_tls_connection_base_initable_init (GInitable    *initable,
 
   priv->thread = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->create_op_thread (tls);
   if (priv->certificate)
-    g_tls_operations_thread_base_set_own_certificate (priv->certificate);
+    g_tls_operations_thread_base_set_own_certificate (priv->thread, priv->certificate);
+  if (priv->interaction)
+    g_tls_operations_thread_base_set_interaction (priv->thread, priv->interaction);
 
   return TRUE;
 }
@@ -269,7 +269,6 @@ g_tls_connection_base_finalize (GObject *object)
 
   g_clear_object (&priv->database);
   g_clear_object (&priv->certificate);
-  g_clear_error (&priv->interaction_error);
   g_clear_object (&priv->peer_certificate);
 
   g_mutex_clear (&priv->verify_certificate_mutex);
@@ -454,12 +453,17 @@ g_tls_connection_base_set_property (GObject      *object,
       priv->certificate = g_value_dup_object (value);
 
       if (priv->thread)
-        g_tls_operations_thread_base_set_own_certificate (priv->certificate);
+        g_tls_operations_thread_base_set_own_certificate (priv->thread,
+                                                          priv->certificate);
       break;
 
     case PROP_INTERACTION:
       g_clear_object (&priv->interaction);
       priv->interaction = g_value_dup_object (value);
+
+      if (priv->thread)
+        g_tls_operations_thread_base_set_interaction (priv->thread,
+                                                      priv->interaction);
       break;
 
     case PROP_ADVERTISED_PROTOCOLS:
@@ -798,10 +802,14 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
       return G_TLS_CONNECTION_BASE_TIMED_OUT;
     }
 
-  if (priv->missing_requested_client_certificate &&
+  if (g_tls_operations_thread_base_get_is_missing_requested_client_certificate (priv->thread) &&
       !priv->successful_posthandshake_op)
     {
+      GError *interaction_error;
+
       g_assert (G_IS_TLS_CLIENT_CONNECTION (tls));
+
+      interaction_error = g_tls_operations_thread_base_take_interaction_error (priv->thread);
 
       /* Probably the server requires a client certificate, but we failed to
        * provide one. With TLS 1.3 the server is no longer able to tell us
@@ -812,10 +820,9 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
        * connections where a client cert is requested but not provided, and then
        * then only if the client has never successfully read or written.
        */
-      if (priv->interaction_error)
+      if (interaction_error)
         {
-          g_propagate_error (error, priv->interaction_error);
-          priv->interaction_error = NULL;
+          g_propagate_error (error, interaction_error);
         }
       else
         {
@@ -1436,7 +1443,6 @@ handshake (GTlsConnectionBase  *tls,
   g_tls_log_debug (tls, "TLS handshake starts");
 
   priv->started_handshake = FALSE;
-  priv->missing_requested_client_certificate = FALSE;
 
   /* FIXME: I don't like this mismatch. If we claim here, let's yield at the
    * bottom. Otherwise, move claim to the caller.
@@ -2426,38 +2432,6 @@ g_tls_connection_base_get_base_iostream (GTlsConnectionBase *tls)
  g_assert (!g_tls_connection_base_is_dtls (tls));
 
   return priv->base_io_stream;
-}
-
-void
-g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  priv->missing_requested_client_certificate = TRUE;
-}
-
-gboolean
-g_tls_connection_base_handshake_thread_request_certificate (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;
-  GTlsInteraction *interaction;
-  GTlsConnection *conn;
-
-  g_return_val_if_fail (G_IS_TLS_CONNECTION_BASE (tls), FALSE);
-
-  conn = G_TLS_CONNECTION (tls);
-
-  g_clear_error (&priv->interaction_error);
-
-  interaction = g_tls_connection_get_interaction (conn);
-  if (!interaction)
-    return FALSE;
-
-  res = g_tls_interaction_invoke_request_certificate (interaction, conn, 0,
-                                                      /* FIXME: priv->read_cancellable */ NULL,
-                                                      &priv->interaction_error);
-  return res != G_TLS_INTERACTION_FAILED;
 }
 
 GTlsOperationsThreadBase *
