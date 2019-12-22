@@ -135,7 +135,6 @@ typedef struct
   GMainContext  *handshake_context; /* FIXME remove */
   GTask         *async_implicit_handshake;
   GError        *handshake_error;
-  GByteArray    *app_data_buf;
 
   /* read_closed means the read direction has closed; write_closed similarly.
    * If (and only if) both are set, the entire GTlsConnection is closed. */
@@ -289,8 +288,6 @@ g_tls_connection_base_finalize (GObject *object)
 
   g_clear_object (&priv->waiting_for_op);
   g_mutex_clear (&priv->op_mutex);
-
-  g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
 
   g_clear_pointer (&priv->advertised_protocols, g_strfreev);
   g_clear_pointer (&priv->negotiated_protocol, g_free);
@@ -1426,6 +1423,15 @@ handshake (GTlsConnectionBase  *tls,
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsAuthenticationMode auth_mode = G_TLS_AUTHENTICATION_NONE;
+  gchar *original_negotiated_protocol;
+  GList *accepted_cas;
+
+  /* FIXME: in async codepaths, this function is still called on a secondary
+   * handshake thread. That means use of priv members here needs to be guarded
+   * by a mutex. Additionally, it is SUPER UNSAFE to notify negotiated-protocol
+   * on this thread. We need to either eliminate this extra thread, or tighten
+   * up the threadsafety of this function.
+   */
 
   g_tls_log_debug (tls, "TLS handshake starts");
 
@@ -1462,9 +1468,30 @@ handshake (GTlsConnectionBase  *tls,
                     NULL);
     }
 
+  original_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
+
   priv->started_handshake = TRUE;
-  g_tls_operations_thread_base_handshake (priv->thread, (const gchar **)priv->advertised_protocols, auth_mode, timeout, cancellable, error);
+
+  g_tls_operations_thread_base_handshake (priv->thread,
+                                          (const gchar **)priv->advertised_protocols,
+                                          auth_mode,
+                                          timeout,
+                                          &priv->negotiated_protocol,
+                                          &accepted_cas,
+                                          cancellable,
+                                          error);
+
   priv->need_handshake = FALSE;
+
+  /* FIXME: notify should be next to accepted-cas? */
+  if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
+    g_object_notify (G_OBJECT (tls), "negotiated-protocol");
+  g_free (original_negotiated_protocol);
+
+  if (G_IS_TLS_CLIENT_CONNECTION (tls))
+    G_TLS_CONNECTION_BASE_GET_CLASS (tls)->set_accepted_cas (tls, accepted_cas);
+  else
+    g_assert (!accepted_cas);
 
   if (error && *error)
     {
@@ -1484,12 +1511,9 @@ finish_handshake (GTlsConnectionBase  *tls,
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
-  gchar *original_negotiated_protocol;
   GError *my_error = NULL;
 
   g_tls_log_debug (tls, "finishing TLS handshake");
-
-  original_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
 
   if (success)
     {
@@ -1519,15 +1543,9 @@ finish_handshake (GTlsConnectionBase  *tls,
         }
     }
 
-  if (tls_class->complete_handshake)
-    {
-      /* If we already have an error, ignore further errors. */
-      tls_class->complete_handshake (tls, &priv->negotiated_protocol, my_error ? NULL : &my_error);
-
-      if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
-        g_object_notify (G_OBJECT (tls), "negotiated-protocol");
-    }
-  g_free (original_negotiated_protocol);
+  /* FIXME: notify only when accepted-cas has actually changed. */
+  if (G_IS_TLS_CLIENT_CONNECTION (tls))
+    g_object_notify (G_OBJECT (tls), "accepted-cas");
 
   if (my_error && priv->started_handshake)
     priv->handshake_error = g_error_copy (my_error);
@@ -1549,7 +1567,6 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   gboolean success;
   GError *my_error = NULL;
 
@@ -1867,20 +1884,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
                      timeout, cancellable, error))
         return -1;
 
-      if (priv->app_data_buf && !priv->handshaking)
-        {
-          nread = MIN (size, priv->app_data_buf->len);
-          memcpy (buffer, priv->app_data_buf->data, nread);
-          if (nread == priv->app_data_buf->len)
-            g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
-          else
-            g_byte_array_remove_range (priv->app_data_buf, 0, nread);
-          status = G_TLS_CONNECTION_BASE_OK;
-        }
-      else
-        {
-          status = g_tls_operations_thread_base_read (priv->thread, buffer, size, timeout, &nread, cancellable, error);
-        }
+      status = g_tls_operations_thread_base_read (priv->thread, buffer, size, timeout, &nread, cancellable, error);
 
       yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
     }
@@ -1916,32 +1920,7 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
                    timeout, cancellable, error))
       return -1;
 
-    /* Copy data out of the app data buffer first. */
-    if (priv->app_data_buf && !priv->handshaking)
-      {
-        nread = 0;
-
-        for (guint i = 0; i < num_vectors; i++)
-          {
-            gsize count;
-            GInputVector *vec = &vectors[i];
-
-            count = MIN (vec->size, priv->app_data_buf->len);
-            nread += count;
-
-            memcpy (vec->buffer, priv->app_data_buf->data, count);
-            if (count == priv->app_data_buf->len)
-              g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
-            else
-              g_byte_array_remove_range (priv->app_data_buf, 0, count);
-            status = G_TLS_CONNECTION_BASE_OK;
-          }
-      }
-    else
-      {
-        status = g_tls_operations_thread_base_read_message (priv->thread, vectors, num_vectors, timeout, &nread, cancellable, error);
-      }
-
+    status = g_tls_operations_thread_base_read_message (priv->thread, vectors, num_vectors, timeout, &nread, cancellable, error);
     yield_op (tls, G_TLS_CONNECTION_BASE_OP_READ, status);
   } while (status == G_TLS_CONNECTION_BASE_REHANDSHAKE);
 
@@ -2479,19 +2458,6 @@ g_tls_connection_base_handshake_thread_request_certificate (GTlsConnectionBase *
                                                       /* FIXME: priv->read_cancellable */ NULL,
                                                       &priv->interaction_error);
   return res != G_TLS_INTERACTION_FAILED;
-}
-
-void
-g_tls_connection_base_handshake_thread_buffer_application_data (GTlsConnectionBase *tls,
-                                                                guint8             *data,
-                                                                gsize               length)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  if (!priv->app_data_buf)
-    priv->app_data_buf = g_byte_array_new ();
-
-  g_byte_array_append (priv->app_data_buf, data, length);
 }
 
 GTlsOperationsThreadBase *

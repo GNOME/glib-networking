@@ -52,8 +52,6 @@ struct _GTlsOperationsThreadGnutls {
   GBytes                  *session_data;
   gboolean                 session_data_override; /* FIXME: sort this all out */
 
-  gchar                   *server_identity;
-
   gnutls_session_t         session;
 
   GIOStream               *base_iostream;
@@ -71,8 +69,13 @@ struct _GTlsOperationsThreadGnutls {
   unsigned int             pcert_length;
   gnutls_privkey_t         pkey;
 
-  GPtrArray               *accepted_cas;
-  gboolean                 accepted_cas_changed;
+  GList                   *accepted_cas;
+
+  gchar                   *server_identity;
+
+  gchar                   *interaction_id;
+
+  GByteArray              *application_data_buffer;
 };
 
 enum
@@ -531,12 +534,15 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                                           const gchar              **advertised_protocols,
                                           GTlsAuthenticationMode     auth_mode,
                                           gint64                     timeout,
+                                          gchar                    **negotiated_protocol,
+                                          GList                    **accepted_cas,
                                           GCancellable              *cancellable,
                                           GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
   GTlsConnectionBase *tls;
   GTlsConnectionBaseStatus status;
+  gnutls_datum_t protocol;
   int ret;
 
   tls = g_tls_operations_thread_base_get_connection (base);
@@ -568,8 +574,9 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
       ret = gnutls_record_recv (self->session, buf, sizeof (buf));
       if (ret > -1)
         {
-          /* FIXME: no longer belongs in GTlsConnectionBase, don't use GTlsConnectionBase */
-          g_tls_connection_base_handshake_thread_buffer_application_data (tls, buf, ret);
+          if (!self->application_data_buffer)
+            self->application_data_buffer = g_byte_array_new ();
+          g_byte_array_append (self->application_data_buffer, buf, ret);
           ret = GNUTLS_E_AGAIN;
         }
     }
@@ -578,6 +585,11 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
 
   self->handshaking = FALSE;
   self->ever_handshaked = TRUE;
+
+  if (gnutls_alpn_get_selected_protocol (self->session, &protocol) == 0 && protocol.size > 0)
+    *negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
+
+  *accepted_cas = g_list_copy (self->accepted_cas);
 
   return status;
 }
@@ -593,6 +605,17 @@ g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
   GTlsConnectionBaseStatus status;
   gssize ret;
+
+  if (self->application_data_buffer)
+    {
+      *nread = MIN (size, self->application_data_buffer->len);
+      memcpy (buffer, self->application_data_buffer->data, nread);
+      if (*nread == self->application_data_buffer->len)
+        g_clear_pointer (&self->application_data_buffer, g_byte_array_unref);
+      else
+        g_byte_array_remove_range (self->application_data_buffer, 0, *nread);
+      return G_TLS_CONNECTION_BASE_OK;
+    }
 
   BEGIN_GNUTLS_IO (self, G_IO_IN, cancellable);
   ret = gnutls_record_recv (self->session, buffer, size);
@@ -639,6 +662,28 @@ g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
   GTlsConnectionBaseStatus status;
   gssize ret;
   gnutls_packet_t packet = { 0, };
+
+    /* Copy data out of the app data buffer first. */
+    if (self->application_data_buffer)
+      {
+        *nread = 0;
+
+        for (guint i = 0; i < num_vectors; i++)
+          {
+            gsize count;
+            GInputVector *vec = &vectors[i];
+
+            count = MIN (vec->size, self->application_data_buffer->len);
+            *nread += count;
+
+            memcpy (vec->buffer, self->application_data_buffer->data, count);
+            if (count == self->application_data_buffer->len)
+              g_clear_pointer (&self->application_data_buffer, g_byte_array_unref);
+            else
+              g_byte_array_remove_range (self->application_data_buffer, 0, count);
+            return G_TLS_CONNECTION_BASE_OK;
+          }
+      }
 
   BEGIN_GNUTLS_IO (self, G_IO_IN, cancellable);
 
@@ -1045,6 +1090,70 @@ verify_certificate_cb (gnutls_session_t session)
   return !g_tls_connection_base_handshake_thread_verify_certificate (tls);
 }
 
+static int
+pin_request_cb (void         *userdata,
+                int           attempt,
+                const char   *token_url,
+                const char   *token_label,
+                unsigned int  callback_flags,
+                char         *pin,
+                size_t        pin_max)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (userdata);
+  GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
+  GTlsInteractionResult result;
+  GTlsPassword *password;
+  GTlsPasswordFlags password_flags = 0;
+  GError *error = NULL;
+  gchar *description;
+  int ret = -1;
+
+  if (!interaction)
+    return -1;
+
+  if (callback_flags & GNUTLS_PIN_WRONG)
+    password_flags |= G_TLS_PASSWORD_RETRY;
+  if (callback_flags & GNUTLS_PIN_COUNT_LOW)
+    password_flags |= G_TLS_PASSWORD_MANY_TRIES;
+  if (callback_flags & GNUTLS_PIN_FINAL_TRY || attempt > 5) /* Give up at some point */
+    password_flags |= G_TLS_PASSWORD_FINAL_TRY;
+
+  description = g_strdup_printf (" %s (%s)", token_label, token_url);
+  password = g_tls_password_new (password_flags, description);
+  result = g_tls_interaction_invoke_ask_password (interaction, password,
+                                                  self->op_cancellable,
+                                                  &error);
+  g_free (description);
+
+  switch (result)
+    {
+    case G_TLS_INTERACTION_FAILED:
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Error getting PIN: %s", error->message);
+      g_error_free (error);
+      break;
+    case G_TLS_INTERACTION_UNHANDLED:
+      break;
+    case G_TLS_INTERACTION_HANDLED:
+      {
+        gsize password_size;
+        const guchar *password_data = g_tls_password_get_value (password, &password_size);
+        if (password_size > pin_max)
+          g_warning ("PIN is larger than max PIN size");
+
+        memcpy (pin, password_data, MIN (password_size, pin_max));
+        ret = GNUTLS_E_SUCCESS;
+        break;
+      }
+    default:
+      g_assert_not_reached ();
+    }
+
+  g_object_unref (password);
+
+  return ret;
+}
+
 static void
 clear_gnutls_certificate_copy (GTlsOperationsThreadGnutls *self)
 {
@@ -1053,6 +1162,41 @@ clear_gnutls_certificate_copy (GTlsOperationsThreadGnutls *self)
   self->pcert = NULL;
   self->pcert_length = 0;
   self->pkey = NULL;
+}
+
+static void
+get_own_certificate (GTlsOperationsThreadGnutls  *self,
+                     gnutls_pcert_st            **pcert,
+                     unsigned int                *pcert_length,
+                     gnutls_privkey_t            *pkey)
+{
+  char *pem;
+  GTlsCertificate *cert = NULL;
+
+  pem = g_tls_operations_thread_base_get_own_certificate_pem (G_TLS_OPERATIONS_THREAD_BASE (self));
+  if (pem)
+    {
+      cert = g_tls_certificate_new_from_pem (pem, -1, NULL);
+      g_free (pem);
+    }
+
+  if (cert)
+    {
+      gnutls_privkey_t privkey;
+      gnutls_privkey_init (&privkey);
+      gnutls_privkey_set_pin_function (privkey, pin_request_cb, self);
+
+      g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (cert),
+                                     self->interaction_id,
+                                     pcert, pcert_length, &privkey);
+      *pkey = privkey;
+    }
+  else
+    {
+      *pcert = NULL;
+      *pcert_length = 0;
+      *pkey = NULL;
+    }
 }
 
 static int
@@ -1066,7 +1210,6 @@ retrieve_certificate_cb (gnutls_session_t              session,
                          gnutls_privkey_t             *pkey)
 {
   GTlsOperationsThreadGnutls *self = gnutls_transport_get_ptr (session);
-  gboolean had_accepted_cas;
   GByteArray *dn;
   int i;
 
@@ -1076,22 +1219,24 @@ retrieve_certificate_cb (gnutls_session_t              session,
 
   if (is_client (self))
     {
-      had_accepted_cas = self->accepted_cas && self->accepted_cas->len != 0;
+      if (self->accepted_cas)
+        {
+          g_list_free_full (self->accepted_cas, (GDestroyNotify)g_byte_array_unref);
+          self->accepted_cas = NULL;
+        }
 
-      g_clear_pointer (&self->accepted_cas, g_ptr_array_unref);
-      self->accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
       for (i = 0; i < nreqs; i++)
         {
           dn = g_byte_array_new ();
           g_byte_array_append (dn, req_ca_rdn[i].data, req_ca_rdn[i].size);
-          g_ptr_array_add (self->accepted_cas, dn);
+          self->accepted_cas = g_list_prepend (self->accepted_cas, dn);
         }
 
-      self->accepted_cas_changed = self->accepted_cas || had_accepted_cas;
+      self->accepted_cas = g_list_reverse (self->accepted_cas);
     }
 
   clear_gnutls_certificate_copy (self);
-  g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
+  get_own_certificate (self, pcert, pcert_length, pkey);
 
   if (is_client (self))
     {
@@ -1100,7 +1245,7 @@ retrieve_certificate_cb (gnutls_session_t              session,
           g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
 
           if (g_tls_connection_base_handshake_thread_request_certificate (tls))
-            g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
+            get_own_certificate (self, pcert, pcert_length, pkey);
 
           if (*pcert_length == 0)
             {
@@ -1226,14 +1371,20 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
   g_clear_pointer (&self->creds, gnutls_certificate_free_credentials);
   g_clear_pointer (&self->session_id, g_bytes_unref);
   g_clear_pointer (&self->session_data, g_bytes_unref);
-
+  g_clear_pointer (&self->application_data_buffer, g_byte_array_unref);
   g_clear_pointer (&self->server_identity, g_free);
-  g_clear_pointer (&self->accepted_cas, g_ptr_array_unref);
+  g_clear_pointer (&self->interaction_id, g_free);
 
   g_clear_object (&self->base_iostream);
   g_clear_object (&self->base_socket);
 
   clear_gnutls_certificate_copy (self);
+
+  if (self->accepted_cas)
+    {
+      g_list_free_full (self->accepted_cas, (GDestroyNotify)g_byte_array_unref);
+      self->accepted_cas = NULL;
+    }
 
   g_assert (!self->op_cancellable);
   g_assert (!self->op_error);
@@ -1310,6 +1461,9 @@ g_tls_operations_thread_gnutls_constructed (GObject *object)
 static void
 g_tls_operations_thread_gnutls_init (GTlsOperationsThreadGnutls *self)
 {
+  static int unique_interaction_id = 0;
+
+  self->interaction_id = g_strdup_printf ("gtls:%d", unique_interaction_id++);
 }
 
 static void

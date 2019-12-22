@@ -47,6 +47,8 @@ struct _GTlsOperationsThreadBaseClass
                                                              const gchar              **advertised_protocols,
                                                              GTlsAuthenticationMode     auth_mode,
                                                              gint64                     timeout,
+                                                             gchar                    **negotiated_protocol,
+                                                             GList                    **accepted_cas,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
 
@@ -109,6 +111,8 @@ GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake                
                                                                                   const gchar              **advertised_protocols,
                                                                                   GTlsAuthenticationMode     auth_mode,
                                                                                   gint64                     timeout,
+                                                                                  gchar                    **negotiated_protocol,
+                                                                                  GList                    **accepted_cas,
                                                                                   GCancellable              *cancellable,
                                                                                   GError                   **error);
 
