@@ -136,14 +136,6 @@ g_tls_connection_gnutls_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
 }
 
-gnutls_certificate_credentials_t
-g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *gnutls)
-{
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-
-  return priv->creds; /* FIXME: get via op thread? */
-}
-
 static int
 on_pin_request (void         *userdata,
                 int           attempt,

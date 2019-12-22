@@ -55,15 +55,6 @@ static void     g_tls_server_connection_gnutls_initable_interface_init (GInitabl
 
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
 
-static int g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
-                                                                              const gnutls_datum_t         *req_ca_rdn,
-                                                                              int                           nreqs,
-                                                                              const gnutls_pk_algorithm_t  *pk_algos,
-                                                                              int                           pk_algos_length,
-                                                                              gnutls_pcert_st             **pcert,
-                                                                              unsigned int                 *pcert_length,
-                                                                              gnutls_privkey_t             *pkey);
-
 static GInitableIface *g_tls_server_connection_gnutls_parent_initable_iface;
 
 G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
@@ -98,6 +89,30 @@ g_tls_server_connection_gnutls_finalize (GObject *object)
   clear_gnutls_certificate_copy (gnutls);
 
   G_OBJECT_CLASS (g_tls_server_connection_gnutls_parent_class)->finalize (object);
+}
+
+static int
+g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+                                                                   const gnutls_datum_t         *req_ca_rdn,
+                                                                   int                           nreqs,
+                                                                   const gnutls_pk_algorithm_t  *pk_algos,
+                                                                   int                           pk_algos_length,
+                                                                   gnutls_pcert_st             **pcert,
+                                                                   unsigned int                 *pcert_length,
+                                                                   gnutls_privkey_t             *pkey)
+{
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (gnutls_transport_get_ptr (session));
+
+  clear_gnutls_certificate_copy (gnutls);
+
+  g_tls_connection_gnutls_handshake_thread_get_certificate (G_TLS_CONNECTION_GNUTLS (gnutls),
+                                                            pcert, pcert_length, pkey);
+
+  gnutls->pcert = *pcert;
+  gnutls->pcert_length = *pcert_length;
+  gnutls->pkey = *pkey;
+
+  return 0;
 }
 
 static gboolean
@@ -166,69 +181,14 @@ g_tls_server_connection_gnutls_set_property (GObject      *object,
     }
 }
 
-static int
-g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
-                                                                   const gnutls_datum_t         *req_ca_rdn,
-                                                                   int                           nreqs,
-                                                                   const gnutls_pk_algorithm_t  *pk_algos,
-                                                                   int                           pk_algos_length,
-                                                                   gnutls_pcert_st             **pcert,
-                                                                   unsigned int                 *pcert_length,
-                                                                   gnutls_privkey_t             *pkey)
-{
-  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (gnutls_transport_get_ptr (session));
-
-  clear_gnutls_certificate_copy (gnutls);
-
-  g_tls_connection_gnutls_handshake_thread_get_certificate (G_TLS_CONNECTION_GNUTLS (gnutls),
-                                                            pcert, pcert_length, pkey);
-
-  gnutls->pcert = *pcert;
-  gnutls->pcert_length = *pcert_length;
-  gnutls->pkey = *pkey;
-
-  return 0;
-}
-
-static void
-g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
-                                                  gchar              **advertised_protocols)
-{
-  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (tls);
-  gnutls_session_t session;
-  gnutls_certificate_request_t req_mode;
-
-  switch (gnutls->authentication_mode)
-    {
-    case G_TLS_AUTHENTICATION_REQUESTED:
-      req_mode = GNUTLS_CERT_REQUEST;
-      break;
-    case G_TLS_AUTHENTICATION_REQUIRED:
-      req_mode = GNUTLS_CERT_REQUIRE;
-      break;
-    case G_TLS_AUTHENTICATION_NONE:
-    default:
-      req_mode = GNUTLS_CERT_IGNORE;
-      break;
-    }
-
-  session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls));
-  gnutls_certificate_server_set_request (session, req_mode);
-
-  G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_gnutls_parent_class)->prepare_handshake (tls, advertised_protocols);
-}
-
 static void
 g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
   gobject_class->finalize     = g_tls_server_connection_gnutls_finalize;
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
-
-  base_class->prepare_handshake  = g_tls_server_connection_gnutls_prepare_handshake;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }

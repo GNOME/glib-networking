@@ -96,11 +96,10 @@ typedef struct {
   GTlsOperationsThreadBase *thread;
   GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
 
-  union {
-    GTlsOperationsThreadBase *source; /* for copy client session state */
-    gchar *server_identity;           /* for set server identity */
-    gchar **advertised_protocols;     /* for handshake */
-  };
+  GTlsOperationsThreadBase *source; /* for copy client session state */
+  gchar *server_identity;           /* for set server identity */
+  gchar **advertised_protocols;     /* for handshake */
+  GTlsAuthenticationMode auth_mode; /* for handshake */
 
   union {
     void *data;                    /* for read/write */
@@ -170,6 +169,7 @@ g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *
   return op;
 }
 
+/* FIXME: dumb, move this into handshake operation as is done for authentication mode */
 static GTlsThreadOperation *
 g_tls_thread_set_server_identity_operation_new (GTlsOperationsThreadBase *thread,
                                                 GTlsConnectionBase       *connection,
@@ -193,6 +193,7 @@ static GTlsThreadOperation *
 g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
                                       GTlsConnectionBase        *connection,
                                       const gchar              **advertised_protocols,
+                                      GTlsAuthenticationMode     auth_mode,
                                       gint64                     timeout,
                                       GCancellable              *cancellable)
 {
@@ -204,6 +205,7 @@ g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
   op->thread = thread;
   op->connection = connection;
   op->advertised_protocols = g_strdupv ((gchar **)advertised_protocols);
+  op->auth_mode = auth_mode;
   op->timeout = timeout;
   op->cancellable = cancellable;
 
@@ -870,6 +872,7 @@ process_op (GAsyncQueue         *queue,
     case G_TLS_THREAD_OP_HANDSHAKE:
       op->result = base_class->handshake_fn (op->thread,
                                              (const gchar **)op->advertised_protocols,
+                                             op->auth_mode,
                                              op->timeout,
                                              op->cancellable,
                                              &op->error);
