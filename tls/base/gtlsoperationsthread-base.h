@@ -45,6 +45,7 @@ struct _GTlsOperationsThreadBaseClass
 
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
                                                              const gchar              **advertised_protocols,
+                                                             GTlsAuthenticationMode     auth_mode,
                                                              gint64                     timeout,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
@@ -102,6 +103,7 @@ void                      g_tls_operations_thread_base_set_server_identity      
 
 GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake                 (GTlsOperationsThreadBase  *self,
                                                                                   const gchar              **advertised_protocols,
+                                                                                  GTlsAuthenticationMode     auth_mode,
                                                                                   gint64                     timeout,
                                                                                   GCancellable              *cancellable,
                                                                                   GError                   **error);
