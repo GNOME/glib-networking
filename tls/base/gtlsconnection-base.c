@@ -1421,6 +1421,7 @@ handshake (GTlsConnectionBase  *tls,
            GError             **error)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsAuthenticationMode auth_mode = G_TLS_AUTHENTICATION_NONE;
 
   g_tls_log_debug (tls, "TLS handshake starts");
 
@@ -1450,8 +1451,15 @@ handshake (GTlsConnectionBase  *tls,
       return TRUE;
     }
 
+  if (G_IS_TLS_SERVER_CONNECTION (tls))
+    {
+      g_object_get (tls,
+                    "authentication-mode", &auth_mode,
+                    NULL);
+    }
+
   priv->started_handshake = TRUE;
-  g_tls_operations_thread_base_handshake (priv->thread, priv->advertised_protocols, timeout, cancellable, error);
+  g_tls_operations_thread_base_handshake (priv->thread, (const gchar **)priv->advertised_protocols, auth_mode, timeout, cancellable, error);
   priv->need_handshake = FALSE;
 
   if (error && *error)

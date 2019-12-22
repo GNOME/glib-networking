@@ -141,7 +141,6 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
   gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 
-
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
   if (hostname)
     g_tls_operations_thread_base_set_server_identity (thread, hostname);

@@ -94,6 +94,12 @@ is_client (GTlsOperationsThreadGnutls *self)
   return self->init_flags & GNUTLS_CLIENT;
 }
 
+static inline gboolean
+is_server (GTlsOperationsThreadGnutls *self)
+{
+  return self->init_flags & GNUTLS_SERVER;
+}
+
 static GTlsConnectionBaseStatus
 end_gnutls_io (GTlsOperationsThreadGnutls  *self,
                GIOCondition                 direction,
@@ -282,18 +288,6 @@ initialize_gnutls_priority (void)
 }
 
 static void
-set_handshake_priority (GTlsOperationsThreadGnutls *self)
-{
-  int ret;
-
-  g_assert (priority);
-
-  ret = gnutls_priority_set (self->session, priority);
-  if (ret != GNUTLS_E_SUCCESS)
-    g_warning ("Failed to set GnuTLS session priority: %s", gnutls_strerror (ret));
-}
-
-static void
 compute_session_id (GTlsOperationsThreadGnutls *self)
 {
   GSocketAddress *remote_addr;
@@ -372,6 +366,88 @@ compute_session_id (GTlsOperationsThreadGnutls *self)
 }
 
 static void
+g_tls_operations_thread_gnutls_copy_client_session_state (GTlsOperationsThreadBase *base,
+                                                          GTlsOperationsThreadBase *base_source)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
+  GTlsOperationsThreadGnutls *source = G_TLS_OPERATIONS_THREAD_GNUTLS (base_source);
+
+  /* Precondition: source has handshaked, conn has not. */
+  g_return_if_fail (!self->session_id);
+  g_return_if_fail (source->session_id);
+
+  /* Prefer to use a new session ticket, if possible. */
+  self->session_data = g_tls_backend_gnutls_lookup_session_data (source->session_id);
+
+  if (!self->session_data && source->session_data)
+    {
+      /* If it's not possible, we'll try to reuse the old ticket, even though
+       * this is a privacy risk since TLS 1.3. Applications should not use this
+       * function unless they need us to try as hard as possible to resume a
+       * session, even at the cost of privacy.
+       */
+      self->session_data = g_bytes_ref (source->session_data);
+    }
+
+  self->session_data_override = !!self->session_data;
+}
+
+static void
+g_tls_operations_thread_gnutls_set_server_identity (GTlsOperationsThreadBase *base,
+                                                    const gchar              *server_identity)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
+  gchar *normalized_hostname;
+  size_t len;
+
+  g_assert (is_client (self));
+
+  normalized_hostname = g_strdup (server_identity);
+  len = strlen (server_identity);
+
+  if (server_identity[len - 1] == '.')
+    {
+      normalized_hostname[len - 1] = '\0';
+      len--;
+    }
+
+  gnutls_server_name_set (self->session, GNUTLS_NAME_DNS,
+                          normalized_hostname, len);
+
+  g_clear_pointer (&self->server_identity, g_free);
+  self->server_identity = g_steal_pointer (&normalized_hostname);
+}
+
+static void
+set_handshake_priority (GTlsOperationsThreadGnutls *self)
+{
+  int ret;
+
+  g_assert (priority);
+
+  ret = gnutls_priority_set (self->session, priority);
+  if (ret != GNUTLS_E_SUCCESS)
+    g_warning ("Failed to set GnuTLS session priority: %s", gnutls_strerror (ret));
+}
+
+static void
+set_handshake_timeout (GTlsOperationsThreadGnutls *self,
+                       gint64                      timeout)
+{
+  unsigned int timeout_ms;
+
+  /* Convert from microseconds to milliseconds, but ensure the timeout
+   * remains positive.
+   */
+  timeout_ms = (timeout + 999) / 1000;
+
+  if (is_dtls (self))
+    gnutls_dtls_set_timeouts (self->session, 1000 /* default */, timeout_ms);
+  else
+    gnutls_handshake_set_timeout (self->session, timeout_ms);
+}
+
+static void
 set_advertised_protocols (GTlsOperationsThreadGnutls  *self,
                           const gchar                **advertised_protocols)
 {
@@ -418,64 +494,32 @@ set_session_data (GTlsOperationsThreadGnutls *self)
 }
 
 static void
-g_tls_operations_thread_gnutls_copy_client_session_state (GTlsOperationsThreadBase *base,
-                                                          GTlsOperationsThreadBase *base_source)
+set_authentication_mode (GTlsOperationsThreadGnutls *self,
+                         GTlsAuthenticationMode      auth_mode)
 {
-  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsOperationsThreadGnutls *source = G_TLS_OPERATIONS_THREAD_GNUTLS (base_source);
+  gnutls_certificate_request_t req = GNUTLS_CERT_IGNORE;
 
-  /* Precondition: source has handshaked, conn has not. */
-  g_return_if_fail (!self->session_id);
-  g_return_if_fail (source->session_id);
+  g_assert (is_server (self));
 
-  /* Prefer to use a new session ticket, if possible. */
-  self->session_data = g_tls_backend_gnutls_lookup_session_data (source->session_id);
-
-  if (!self->session_data && source->session_data)
+  switch (auth_mode)
     {
-      /* If it's not possible, we'll try to reuse the old ticket, even though
-       * this is a privacy risk since TLS 1.3. Applications should not use this
-       * function unless they need us to try as hard as possible to resume a
-       * session, even at the cost of privacy.
-       */
-      self->session_data = g_bytes_ref (source->session_data);
+    case G_TLS_AUTHENTICATION_REQUESTED:
+      req = GNUTLS_CERT_REQUEST;
+      break;
+    case G_TLS_AUTHENTICATION_REQUIRED:
+      req = GNUTLS_CERT_REQUIRE;
+      break;
+    default:
+      break;
     }
 
-  self->session_data_override = !!self->session_data;
-}
-
-static void
-g_tls_operations_thread_gnutls_set_server_identity (GTlsOperationsThreadBase *base,
-                                                    const gchar              *server_identity)
-{
-  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  gchar *normalized_hostname;
-  size_t len;
-
-  /* This function sets the SNI hostname, which the client uses to tell the
-   * server which vhost it's connecting to. Clients only!
-   */
-  g_assert (is_client (self));
-
-  normalized_hostname = g_strdup (server_identity);
-  len = strlen (server_identity);
-
-  if (server_identity[len - 1] == '.')
-    {
-      normalized_hostname[len - 1] = '\0';
-      len--;
-    }
-
-  gnutls_server_name_set (self->session, GNUTLS_NAME_DNS,
-                          normalized_hostname, len);
-
-  g_clear_pointer (&self->server_identity, g_free);
-  self->server_identity = g_steal_pointer (&normalized_hostname);
+  gnutls_certificate_server_set_request (self->session, req);
 }
 
 static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                                           const gchar              **advertised_protocols,
+                                          GTlsAuthenticationMode     auth_mode,
                                           gint64                     timeout,
                                           GCancellable              *cancellable,
                                           GError                   **error)
@@ -491,23 +535,16 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
     set_handshake_priority (self);
 
   if (timeout > 0)
-    {
-      unsigned int timeout_ms;
-
-      /* Convert from microseconds to milliseconds, but ensure the timeout
-       * remains positive.
-       */
-      timeout_ms = (timeout + 999) / 1000;
-
-      gnutls_handshake_set_timeout (self->session, timeout_ms);
-      gnutls_dtls_set_timeouts (self->session, 1000 /* default */, timeout_ms);
-    }
+    set_handshake_timeout (self, timeout);
 
   if (advertised_protocols)
     set_advertised_protocols (self, advertised_protocols);
 
   if (is_client (self))
     set_session_data (self);
+
+  if (is_server (self))
+    set_authentication_mode (self, auth_mode);
 
   self->handshaking = TRUE;
 
@@ -685,7 +722,8 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
       if (ret < 0 || ret < vectors[i].size)
         {
           /* Uncork to restore state, then bail. The peer will receive a
-           * truncated datagram. */
+           * truncated datagram.
+           */
           break;
         }
     }
@@ -848,11 +886,9 @@ g_tls_operations_thread_gnutls_vec_push_func (gnutls_transport_ptr_t  transport_
   /* this entire expression will be evaluated at compile time */
   if (sizeof *iov == sizeof *vectors &&
       sizeof iov->iov_base == sizeof vectors->buffer &&
-      G_STRUCT_OFFSET (giovec_t, iov_base) ==
-      G_STRUCT_OFFSET (GOutputVector, buffer) &&
+      G_STRUCT_OFFSET (giovec_t, iov_base) == G_STRUCT_OFFSET (GOutputVector, buffer) &&
       sizeof iov->iov_len == sizeof vectors->size &&
-      G_STRUCT_OFFSET (giovec_t, iov_len) ==
-      G_STRUCT_OFFSET (GOutputVector, size))
+      G_STRUCT_OFFSET (giovec_t, iov_len) == G_STRUCT_OFFSET (GOutputVector, size))
     /* ABI is compatible */
     {
       message.vectors = (GOutputVector *)iov;
