@@ -29,6 +29,7 @@
 #include "gtlsoperationsthread-gnutls.h"
 
 #include "gtlsbackend-gnutls.h"
+#include "gtlscertificate-gnutls.h"
 #include "gtlsconnection-gnutls.h"
 
 #include <errno.h>
@@ -65,6 +66,13 @@ struct _GTlsOperationsThreadGnutls {
 
   GCancellable            *op_cancellable;
   GError                  *op_error;
+
+  gnutls_pcert_st         *pcert;
+  unsigned int             pcert_length;
+  gnutls_privkey_t         pkey;
+
+  GPtrArray               *accepted_cas;
+  gboolean                 accepted_cas_changed;
 };
 
 enum
@@ -288,89 +296,13 @@ initialize_gnutls_priority (void)
 }
 
 static void
-compute_session_id (GTlsOperationsThreadGnutls *self)
-{
-  GSocketAddress *remote_addr;
-  GInetAddress *iaddr;
-  guint port;
-
-  /* The testsuite expects handshakes to actually happen. E.g. a test might
-   * check to see that a handshake succeeds and then later check that a new
-   * handshake fails. If we get really unlucky and the same port number is
-   * reused for the server socket between connections, then we'll accidentally
-   * resume the old session and skip certificate verification. Such failures
-   * are difficult to debug because they require running the tests hundreds of
-   * times simultaneously to reproduce (the port number does not get reused
-   * quickly enough if the tests are run sequentially).
-   *
-   * So session resumption will just need to be tested manually.
-   */
-  if (g_test_initialized ())
-    return;
-
-  /* Create a TLS "session ID." We base it on the IP address since
-   * different hosts serving the same hostname/service will probably
-   * not share the same session cache. We base it on the
-   * server-identity because at least some servers will fail (rather
-   * than just failing to resume the session) if we don't.
-   * (https://bugs.launchpad.net/bugs/823325)
-   *
-   * Note that our session IDs have no relation to TLS protocol
-   * session IDs, e.g. as provided by gnutls_session_get_id2(). Unlike
-   * our session IDs, actual TLS session IDs can no longer be used for
-   * session resumption.
-   */
-  if (G_IS_SOCKET_CONNECTION (self->base_iostream))
-    {
-      remote_addr = g_socket_connection_get_remote_address (G_SOCKET_CONNECTION (self->base_iostream), NULL);
-      if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
-        {
-          GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
-          const gchar *server_hostname;
-          gchar *addrstr, *session_id;
-          GTlsCertificate *cert = NULL;
-          gchar *cert_hash = NULL;
-
-          iaddr = g_inet_socket_address_get_address (isaddr);
-          port = g_inet_socket_address_get_port (isaddr);
-
-          addrstr = g_inet_address_to_string (iaddr);
-          server_hostname = self->server_identity;
-
-          /* If we have a certificate, make its hash part of the session ID, so
-           * that different connections to the same server can use different
-           * certificates.
-           */
-          g_object_get (G_OBJECT (gnutls), "certificate", &cert, NULL);
-          if (cert)
-            {
-              GByteArray *der = NULL;
-              g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
-              if (der)
-                {
-                  cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
-                  g_byte_array_unref (der);
-                }
-              g_object_unref (cert);
-            }
-          session_id = g_strdup_printf ("%s/%s/%d/%s", addrstr,
-                                        server_hostname ? server_hostname : "",
-                                        port,
-                                        cert_hash ? cert_hash : "");
-          self->session_id = g_bytes_new_take (session_id, strlen (session_id));
-          g_free (addrstr);
-          g_free (cert_hash);
-        }
-      g_object_unref (remote_addr);
-    }
-}
-
-static void
 g_tls_operations_thread_gnutls_copy_client_session_state (GTlsOperationsThreadBase *base,
                                                           GTlsOperationsThreadBase *base_source)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
   GTlsOperationsThreadGnutls *source = G_TLS_OPERATIONS_THREAD_GNUTLS (base_source);
+
+  g_assert (is_client (self));
 
   /* Precondition: source has handshaked, conn has not. */
   g_return_if_fail (!self->session_id);
@@ -466,8 +398,86 @@ set_advertised_protocols (GTlsOperationsThreadGnutls  *self,
 }
 
 static void
+compute_session_id (GTlsOperationsThreadGnutls *self)
+{
+  GSocketAddress *remote_addr;
+  GInetAddress *iaddr;
+  guint port;
+
+  g_assert (is_client (self));
+
+  /* The testsuite expects handshakes to actually happen. E.g. a test might
+   * check to see that a handshake succeeds and then later check that a new
+   * handshake fails. If we get really unlucky and the same port number is
+   * reused for the server socket between connections, then we'll accidentally
+   * resume the old session and skip certificate verification. Such failures
+   * are difficult to debug because they require running the tests hundreds of
+   * times simultaneously to reproduce (the port number does not get reused
+   * quickly enough if the tests are run sequentially).
+   *
+   * So session resumption will just need to be tested manually.
+   */
+  if (g_test_initialized ())
+    return;
+
+  /* Create a TLS "session ID." We base it on the IP address since
+   * different hosts serving the same hostname/service will probably
+   * not share the same session cache. We base it on the
+   * server-identity because at least some servers will fail (rather
+   * than just failing to resume the session) if we don't.
+   * (https://bugs.launchpad.net/bugs/823325)
+   *
+   * Note that our session IDs have no relation to TLS protocol
+   * session IDs, e.g. as provided by gnutls_session_get_id2(). Unlike
+   * our session IDs, actual TLS session IDs can no longer be used for
+   * session resumption.
+   */
+  if (G_IS_SOCKET_CONNECTION (self->base_iostream))
+    {
+      remote_addr = g_socket_connection_get_remote_address (G_SOCKET_CONNECTION (self->base_iostream), NULL);
+      if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
+        {
+          GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
+          const gchar *server_hostname;
+          gchar *addrstr;
+          gchar *session_id;
+          gchar *pem;
+          gchar *cert_hash = NULL;
+
+          iaddr = g_inet_socket_address_get_address (isaddr);
+          port = g_inet_socket_address_get_port (isaddr);
+
+          addrstr = g_inet_address_to_string (iaddr);
+          server_hostname = self->server_identity;
+
+          /* If we have a certificate, make its hash part of the session ID, so
+           * that different connections to the same server can use different
+           * certificates.
+           */
+          pem = g_tls_operations_thread_base_get_own_certificate_pem (G_TLS_OPERATIONS_THREAD_BASE (self));
+          if (pem)
+            {
+              cert_hash = g_compute_checksum_for_string (G_CHECKSUM_SHA256, pem, -1);
+              g_free (pem);
+            }
+
+          session_id = g_strdup_printf ("%s/%s/%d/%s", addrstr,
+                                        server_hostname ? server_hostname : "",
+                                        port,
+                                        cert_hash ? cert_hash : "");
+          self->session_id = g_bytes_new_take (session_id, strlen (session_id));
+          g_free (addrstr);
+          g_free (cert_hash);
+        }
+      g_object_unref (remote_addr);
+    }
+}
+
+static void
 set_session_data (GTlsOperationsThreadGnutls *self)
 {
+  g_assert (is_client (self));
+
   compute_session_id (self);
 
   if (self->session_data_override)
@@ -1025,6 +1035,107 @@ g_tls_operations_thread_gnutls_pull_timeout_func (gnutls_transport_ptr_t transpo
 }
 
 static int
+verify_certificate_cb (gnutls_session_t session)
+{
+  GTlsOperationsThreadGnutls *self = gnutls_session_get_ptr (session);
+
+  /* Return 0 for the handshake to continue, non-zero to terminate.
+   * Complete opposite of what OpenSSL does.
+   */
+  return !g_tls_connection_base_handshake_thread_verify_certificate (tls);
+}
+
+static void
+clear_gnutls_certificate_copy (GTlsOperationsThreadGnutls *self)
+{
+  g_tls_certificate_gnutls_copy_free (self->pcert, self->pcert_length, self->pkey);
+
+  self->pcert = NULL;
+  self->pcert_length = 0;
+  self->pkey = NULL;
+}
+
+static int
+retrieve_certificate_cb (gnutls_session_t              session,
+                         const gnutls_datum_t         *req_ca_rdn,
+                         int                           nreqs,
+                         const gnutls_pk_algorithm_t  *pk_algos,
+                         int                           pk_algos_length,
+                         gnutls_pcert_st             **pcert,
+                         unsigned int                 *pcert_length,
+                         gnutls_privkey_t             *pkey)
+{
+  GTlsOperationsThreadGnutls *self = gnutls_transport_get_ptr (session);
+  gboolean had_accepted_cas;
+  GByteArray *dn;
+  int i;
+
+  /* FIXME: Here we are supposed to ensure that the certificate supports one of
+   * the algorithms given in pk_algos.
+   */
+
+  if (is_client (self))
+    {
+      had_accepted_cas = self->accepted_cas && self->accepted_cas->len != 0;
+
+      g_clear_pointer (&self->accepted_cas, g_ptr_array_unref);
+      self->accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
+      for (i = 0; i < nreqs; i++)
+        {
+          dn = g_byte_array_new ();
+          g_byte_array_append (dn, req_ca_rdn[i].data, req_ca_rdn[i].size);
+          g_ptr_array_add (self->accepted_cas, dn);
+        }
+
+      self->accepted_cas_changed = self->accepted_cas || had_accepted_cas;
+    }
+
+  clear_gnutls_certificate_copy (self);
+  g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
+
+  if (is_client (self))
+    {
+      if (*pcert_length == 0)
+        {
+          g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+
+          if (g_tls_connection_base_handshake_thread_request_certificate (tls))
+            g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
+
+          if (*pcert_length == 0)
+            {
+              g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+
+              /* If there is still no client certificate, this connection will
+               * probably fail, but we must not give up yet. The certificate might
+               * be optional, e.g. if the server is using
+               * G_TLS_AUTHENTICATION_REQUESTED, not G_TLS_AUTHENTICATION_REQUIRED.
+               */
+              g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
+              return 0;
+            }
+        }
+
+      if (!*pkey)
+        {
+          g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+
+          /* No private key. GnuTLS expects it to be non-null if pcert_length is
+           * nonzero, so we have to abort now.
+           */
+          g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
+          return -1;
+        }
+    }
+
+  self->pcert = *pcert;
+  self->pcert_length = *pcert_length;
+  self->pkey = *pkey;
+
+  return 0;
+}
+
+static int
 session_ticket_received_cb (gnutls_session_t      session,
                             guint                 htype,
                             guint                 when,
@@ -1117,9 +1228,12 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
   g_clear_pointer (&self->session_data, g_bytes_unref);
 
   g_clear_pointer (&self->server_identity, g_free);
+  g_clear_pointer (&self->accepted_cas, g_ptr_array_unref);
 
   g_clear_object (&self->base_iostream);
   g_clear_object (&self->base_socket);
+
+  clear_gnutls_certificate_copy (self);
 
   g_assert (!self->op_cancellable);
   g_assert (!self->op_error);
@@ -1144,6 +1258,7 @@ g_tls_operations_thread_gnutls_constructed (GObject *object)
   if (ret != GNUTLS_E_SUCCESS)
     return FALSE;
 #endif
+  gnutls_certificate_set_retrieve_function2 (self->creds, retrieve_certificate_cb);
 
   gnutls_init (&self->session, self->init_flags);
 

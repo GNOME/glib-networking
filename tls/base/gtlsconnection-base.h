@@ -119,8 +119,6 @@ gboolean                  g_tls_connection_base_is_dtls                 (GTlsCon
 GDatagramBased           *g_tls_connection_base_get_base_socket         (GTlsConnectionBase *tls);
 
 GIOStream                *g_tls_connection_base_get_base_iostream       (GTlsConnectionBase *tls);
-GPollableInputStream     *g_tls_connection_base_get_base_istream        (GTlsConnectionBase *tls);
-GPollableOutputStream    *g_tls_connection_base_get_base_ostream        (GTlsConnectionBase *tls);
 
 void                      g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate
                                                                         (GTlsConnectionBase *tls);
