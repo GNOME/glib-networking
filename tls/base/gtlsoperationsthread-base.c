@@ -76,9 +76,18 @@ typedef struct {
 
   GAsyncQueue *queue;
 
-  /* This mutex guards everything below. */
+  /* This mutex guards everything below. It's a bit of a failure of design.
+   * Ideally we wouldn't need to share this data between threads and would
+   * instead return data from the op thread to the calling thread using the op
+   * struct.
+   *
+   * TODO: some of this could move into the op struct?
+   */
   GMutex mutex;
   gchar *own_certificate_pem;
+  GTlsInteraction *interaction;
+  GError *interaction_error;
+  gboolean missing_requested_client_certificate;
 } GTlsOperationsThreadBasePrivate;
 
 typedef enum {
@@ -156,6 +165,114 @@ g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
 
   return priv->connection;
+}
+
+void
+g_tls_operations_thread_base_set_own_certificate (GTlsOperationsThreadBase *self,
+                                                  GTlsCertificate          *cert)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  g_mutex_lock (&priv->mutex);
+  g_clear_pointer (&priv->own_certificate_pem, g_free);
+  g_object_get (cert,
+                "certificate-pem", &priv->own_certificate_pem,
+                NULL);
+  g_mutex_unlock (&priv->mutex);
+}
+
+gchar *
+g_tls_operations_thread_base_get_own_certificate_pem (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  gchar *copy;
+
+  g_mutex_lock (&priv->mutex);
+  copy = g_strdup (priv->own_certificate_pem);
+  g_mutex_unlock (&priv->mutex);
+
+  return copy;
+}
+
+void
+g_tls_operations_thread_base_set_interaction (GTlsOperationsThreadBase *self,
+                                              GTlsInteraction          *interaction)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  g_mutex_lock (&priv->mutex);
+  g_clear_object (&priv->interaction);
+  priv->interaction = g_object_ref (interaction);
+  g_mutex_unlock (&priv->mutex);
+}
+
+GTlsInteraction *
+g_tls_operations_thread_base_ref_interaction (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsInteraction *ref = NULL;
+
+  g_mutex_lock (&priv->mutex);
+  if (priv->interaction)
+    ref = g_object_ref (priv->interaction);
+  g_mutex_unlock (&priv->mutex);
+
+  return ref;
+}
+
+GError *
+g_tls_operations_thread_base_take_interaction_error (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GError *error;
+
+  g_mutex_lock (&priv->mutex);
+  error = g_steal_pointer (&priv->interaction_error);
+  g_mutex_unlock (&priv->mutex);
+
+  return error;
+}
+
+gboolean
+g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase *self,
+                                                  GCancellable             *cancellable)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;
+
+  g_mutex_lock (&priv->mutex);
+  g_clear_error (&priv->interaction_error);
+  res = g_tls_interaction_invoke_request_certificate (priv->interaction,
+                                                      G_TLS_CONNECTION (priv->connection),
+                                                      0,
+                                                      cancellable,
+                                                      &priv->interaction_error);
+  g_mutex_unlock (&priv->mutex);
+
+  return res != G_TLS_INTERACTION_FAILED;
+}
+
+void
+g_tls_operations_thread_base_set_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  g_mutex_lock (&priv->mutex);
+  priv->missing_requested_client_certificate = TRUE;
+  g_mutex_unlock (&priv->mutex);
+}
+
+gboolean
+g_tls_operations_thread_base_get_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  gboolean ret;
+
+  g_mutex_lock (&priv->mutex);
+  ret = priv->missing_requested_client_certificate;
+  g_mutex_unlock (&priv->mutex);
+
+  return ret;
 }
 
 static GTlsThreadOperation *
@@ -420,33 +537,6 @@ execute_op (GTlsOperationsThreadBase *self,
 }
 
 void
-g_tls_operations_thread_base_set_own_certificate (GTlsOperationsThreadBase *self,
-                                                  GTlsCertificate          *cert)
-{
-  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-
-  g_mutex_lock (&priv->mutex);
-  g_clear_pointer (&priv->own_certificate_pem, g_free);
-  g_object_get (cert,
-                "certificate-pem", &priv->own_certificate_pem,
-                NULL);
-  g_mutex_unlock (&priv->mutex);
-}
-
-gchar *
-g_tls_operations_thread_base_get_own_certificate_pem (GTlsOperationsThreadBase *self)
-{
-  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  gchar *copy;
-
-  g_mutex_lock (&priv->mutex);
-  copy = g_strdup (priv->own_certificate_pem);
-  g_mutex_unlock (&priv->mutex);
-
-  return copy;
-}
-
-void
 g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase *self,
                                                         GTlsOperationsThreadBase *source)
 {
@@ -485,6 +575,10 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+
+  g_mutex_lock (&priv->mutex);
+  priv->missing_requested_client_certificate = FALSE;
+  g_mutex_unlock (&priv->mutex);
 
   op = g_tls_thread_handshake_operation_new (self,
                                              priv->connection,
@@ -1122,7 +1216,9 @@ g_tls_operations_thread_base_finalize (GObject *object)
 
   g_mutex_clear (&priv->mutex);
 
-  g_clear_pointer (&priv->own_certificate);
+  g_clear_pointer (&priv->own_certificate_pem, g_free);
+  g_clear_object (&priv->interaction);
+  g_clear_error (&priv->interaction_error);
 
   G_OBJECT_CLASS (g_tls_operations_thread_base_parent_class)->finalize (object);
 }
