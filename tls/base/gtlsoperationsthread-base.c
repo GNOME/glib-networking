@@ -79,6 +79,7 @@ typedef struct {
 
 typedef enum {
   G_TLS_THREAD_OP_COPY_CLIENT_SESSION_STATE,
+  G_TLS_THREAD_OP_SET_SERVER_IDENTITY,
   G_TLS_THREAD_OP_HANDSHAKE,
   G_TLS_THREAD_OP_READ,
   G_TLS_THREAD_OP_READ_MESSAGE,
@@ -97,6 +98,7 @@ typedef struct {
 
   union {
     GTlsOperationsThreadBase *source; /* for copy client session state */
+    gchar *server_identity;           /* for set server identity */
     gchar **advertised_protocols;     /* for handshake */
   };
 
@@ -161,6 +163,25 @@ g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *
   op->thread = thread;
   op->connection = connection;
   op->source = source;
+
+  g_mutex_init (&op->finished_mutex);
+  g_cond_init (&op->finished_condition);
+
+  return op;
+}
+
+static GTlsThreadOperation *
+g_tls_thread_set_server_identity_operation_new (GTlsOperationsThreadBase *thread,
+                                                GTlsConnectionBase       *connection,
+                                                const gchar              *server_identity)
+{
+  GTlsThreadOperation *op;
+
+  op = g_new0 (GTlsThreadOperation, 1);
+  op->type = G_TLS_THREAD_OP_SET_SERVER_IDENTITY;
+  op->thread = thread;
+  op->connection = connection;
+  op->server_identity = g_strdup (server_identity);
 
   g_mutex_init (&op->finished_mutex);
   g_cond_init (&op->finished_condition);
@@ -331,6 +352,9 @@ g_tls_thread_shutdown_operation_new (void)
 static void
 g_tls_thread_operation_free (GTlsThreadOperation *op)
 {
+  if (op->type == G_TLS_THREAD_OP_SET_SERVER_IDENTITY)
+    g_free (op->server_identity);
+
   if (op->type == G_TLS_THREAD_OP_HANDSHAKE)
     g_strfreev (op->advertised_protocols);
 
@@ -383,8 +407,8 @@ execute_op (GTlsOperationsThreadBase *self,
 }
 
 void
-g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
-                                                        GTlsOperationsThreadBase  *source)
+g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase *self,
+                                                        GTlsOperationsThreadBase *source)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
@@ -392,6 +416,19 @@ g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase
   op = g_tls_thread_copy_client_session_state_operation_new (self,
                                                              priv->connection,
                                                              source);
+  execute_op (self, g_steal_pointer (&op), NULL, NULL);
+}
+
+void
+g_tls_operations_thread_base_set_server_identity (GTlsOperationsThreadBase *self,
+                                                  const gchar              *server_identity)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsThreadOperation *op;
+
+  op = g_tls_thread_set_server_identity_operation_new (self,
+                                                       priv->connection,
+                                                       server_identity);
   execute_op (self, g_steal_pointer (&op), NULL, NULL);
 }
 
@@ -824,6 +861,11 @@ process_op (GAsyncQueue         *queue,
     case G_TLS_THREAD_OP_COPY_CLIENT_SESSION_STATE:
       if (base_class->copy_client_session_state)
         base_class->copy_client_session_state (op->thread, op->source);
+      break;
+    case G_TLS_THREAD_OP_SET_SERVER_IDENTITY:
+      g_assert (base_class->set_server_identity);
+      base_class->set_server_identity (op->thread,
+                                       op->server_identity);
       break;
     case G_TLS_THREAD_OP_HANDSHAKE:
       op->result = base_class->handshake_fn (op->thread,

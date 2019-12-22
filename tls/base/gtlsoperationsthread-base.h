@@ -40,6 +40,8 @@ struct _GTlsOperationsThreadBaseClass
 
   void                        (*copy_client_session_state)  (GTlsOperationsThreadBase  *self,
                                                              GTlsOperationsThreadBase  *source);
+  void                        (*set_server_identity)        (GTlsOperationsThreadBase  *self,
+                                                             const gchar               *server_identity);
 
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
                                                              const gchar              **advertised_protocols,
@@ -90,52 +92,54 @@ struct _GTlsOperationsThreadBaseClass
 };
 
 /* FIXME: remove!!! */
-GTlsConnectionBase       *g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase  *self);
+GTlsConnectionBase       *g_tls_operations_thread_base_get_connection            (GTlsOperationsThreadBase  *self);
 
-void                      g_tls_operations_thread_base_copy_client_session_state
-                                                                      (GTlsOperationsThreadBase  *self,
-                                                                       GTlsOperationsThreadBase  *source);
+void                      g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
+                                                                                  GTlsOperationsThreadBase  *source);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake      (GTlsOperationsThreadBase  *self,
-                                                                       const gchar              **advertised_protocols,
-                                                                       gint64                     timeout,
-                                                                       GCancellable              *cancellable,
-                                                                       GError                   **error);
+void                      g_tls_operations_thread_base_set_server_identity       (GTlsOperationsThreadBase  *self,
+                                                                                  const gchar               *server_identity);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_read           (GTlsOperationsThreadBase  *self,
-                                                                       void                      *buffer,
-                                                                       gsize                      size,
-                                                                       gint64                     timeout,
-                                                                       gssize                    *nread,
-                                                                       GCancellable              *cancellable,
-                                                                       GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake                 (GTlsOperationsThreadBase  *self,
+                                                                                  const gchar              **advertised_protocols,
+                                                                                  gint64                     timeout,
+                                                                                  GCancellable              *cancellable,
+                                                                                  GError                   **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_read_message   (GTlsOperationsThreadBase  *self,
-                                                                       GInputVector              *vectors,
-                                                                       guint                      num_vectors,
-                                                                       gint64                     timeout,
-                                                                       gssize                    *nread,
-                                                                       GCancellable              *cancellable,
-                                                                       GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_read                      (GTlsOperationsThreadBase  *self,
+                                                                                  void                      *buffer,
+                                                                                  gsize                      size,
+                                                                                  gint64                     timeout,
+                                                                                  gssize                    *nread,
+                                                                                  GCancellable              *cancellable,
+                                                                                  GError                   **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_write          (GTlsOperationsThreadBase  *self,
-                                                                       const void                *buffer,
-                                                                       gsize                      size,
-                                                                       gint64                     timeout,
-                                                                       gssize                    *nwrote,
-                                                                       GCancellable              *cancellable,
-                                                                       GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_read_message              (GTlsOperationsThreadBase  *self,
+                                                                                  GInputVector              *vectors,
+                                                                                  guint                      num_vectors,
+                                                                                  gint64                     timeout,
+                                                                                  gssize                    *nread,
+                                                                                  GCancellable              *cancellable,
+                                                                                  GError                   **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_write_message  (GTlsOperationsThreadBase  *self,
-                                                                       GOutputVector             *vectors,
-                                                                       guint                      num_vectors,
-                                                                       gint64                     timeout,
-                                                                       gssize                    *nwrote,
-                                                                       GCancellable              *cancellable,
-                                                                       GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_write                     (GTlsOperationsThreadBase  *self,
+                                                                                  const void                *buffer,
+                                                                                  gsize                      size,
+                                                                                  gint64                     timeout,
+                                                                                  gssize                    *nwrote,
+                                                                                  GCancellable              *cancellable,
+                                                                                  GError                   **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_close          (GTlsOperationsThreadBase  *self,
-                                                                       GCancellable              *cancellable,
-                                                                       GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_write_message             (GTlsOperationsThreadBase  *self,
+                                                                                  GOutputVector             *vectors,
+                                                                                  guint                      num_vectors,
+                                                                                  gint64                     timeout,
+                                                                                  gssize                    *nwrote,
+                                                                                  GCancellable              *cancellable,
+                                                                                  GError                   **error);
+
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_close                     (GTlsOperationsThreadBase  *self,
+                                                                                  GCancellable              *cancellable,
+                                                                                  GError                   **error);
 
 G_END_DECLS

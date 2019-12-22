@@ -51,6 +51,8 @@ struct _GTlsOperationsThreadGnutls {
   GBytes                  *session_data;
   gboolean                 session_data_override; /* FIXME: sort this all out */
 
+  gchar                   *server_identity;
+
   gnutls_session_t         session;
 
   GIOStream               *base_iostream;
@@ -84,6 +86,12 @@ static inline gboolean
 is_dtls (GTlsOperationsThreadGnutls *self)
 {
   return self->init_flags & GNUTLS_DATAGRAM;
+}
+
+static inline gboolean
+is_client (GTlsOperationsThreadGnutls *self)
+{
+  return self->init_flags & GNUTLS_CLIENT;
 }
 
 static GTlsConnectionBaseStatus
@@ -333,7 +341,7 @@ compute_session_id (GTlsOperationsThreadGnutls *self)
           port = g_inet_socket_address_get_port (isaddr);
 
           addrstr = g_inet_address_to_string (iaddr);
-          server_hostname = get_server_identity (self);
+          server_hostname = self->server_identity;
 
           /* If we have a certificate, make its hash part of the session ID, so
            * that different connections to the same server can use different
@@ -436,6 +444,35 @@ g_tls_operations_thread_gnutls_copy_client_session_state (GTlsOperationsThreadBa
   self->session_data_override = !!self->session_data;
 }
 
+static void
+g_tls_operations_thread_gnutls_set_server_identity (GTlsOperationsThreadBase *base,
+                                                    const gchar              *server_identity)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
+  gchar *normalized_hostname;
+  size_t len;
+
+  /* This function sets the SNI hostname, which the client uses to tell the
+   * server which vhost it's connecting to. Clients only!
+   */
+  g_assert (is_client (self));
+
+  normalized_hostname = g_strdup (server_identity);
+  len = strlen (server_identity);
+
+  if (server_identity[len - 1] == '.')
+    {
+      normalized_hostname[len - 1] = '\0';
+      len--;
+    }
+
+  gnutls_server_name_set (self->session, GNUTLS_NAME_DNS,
+                          normalized_hostname, len);
+
+  g_clear_pointer (&self->server_identity, g_free);
+  self->server_identity = g_steal_pointer (&normalized_hostname);
+}
+
 static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                                           const gchar              **advertised_protocols,
@@ -469,7 +506,8 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   if (advertised_protocols)
     set_advertised_protocols (self, advertised_protocols);
 
-  set_session_data (self);
+  if (is_client (self))
+    set_session_data (self);
 
   self->handshaking = TRUE;
 
@@ -950,6 +988,34 @@ g_tls_operations_thread_gnutls_pull_timeout_func (gnutls_transport_ptr_t transpo
   return 0;
 }
 
+static int
+session_ticket_received_cb (gnutls_session_t      session,
+                            guint                 htype,
+                            guint                 when,
+                            guint                 incoming,
+                            const gnutls_datum_t *msg)
+{
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (gnutls_session_get_ptr (session));
+  gnutls_datum_t session_datum;
+
+  if (gnutls_session_get_data2 (session, &session_datum) == GNUTLS_E_SUCCESS)
+    {
+      g_clear_pointer (&self->session_data, g_bytes_unref);
+      self->session_data = g_bytes_new_with_free_func (session_datum.data,
+                                                       session_datum.size,
+                                                       (GDestroyNotify)gnutls_free,
+                                                       session_datum.data);
+
+      if (self->session_id)
+        {
+          g_tls_backend_gnutls_store_session_data (self->session_id,
+                                                   self->session_data);
+        }
+    }
+
+  return 0;
+}
+
 static void
 g_tls_operations_thread_gnutls_get_property (GObject    *object,
                                              guint       prop_id,
@@ -1013,6 +1079,8 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
   g_clear_pointer (&self->creds, gnutls_certificate_free_credentials);
   g_clear_pointer (&self->session_id, g_bytes_unref);
   g_clear_pointer (&self->session_data, g_bytes_unref);
+
+  g_clear_pointer (&self->server_identity, g_free);
 
   g_clear_object (&self->base_iostream);
   g_clear_object (&self->base_socket);
@@ -1078,6 +1146,14 @@ g_tls_operations_thread_gnutls_constructed (GObject *object)
       /* Set reasonable MTU */
       gnutls_dtls_set_mtu (self->session, 1400);
     }
+
+  if (is_client (self))
+    {
+      gnutls_handshake_set_hook_function (self->session,
+                                          GNUTLS_HANDSHAKE_NEW_SESSION_TICKET,
+                                          GNUTLS_HOOK_POST,
+                                          session_ticket_received_cb);
+    }
 }
 
 static void
@@ -1097,6 +1173,7 @@ g_tls_operations_thread_gnutls_class_init (GTlsOperationsThreadGnutlsClass *klas
   gobject_class->set_property  = g_tls_operations_thread_gnutls_set_property;
 
   base_class->copy_client_session_state = g_tls_operations_thread_gnutls_copy_client_session_state;
+  base_class->set_server_identity       = g_tls_operations_thread_gnutls_set_server_identity;
   base_class->handshake_fn              = g_tls_operations_thread_gnutls_handshake;
   base_class->read_fn                   = g_tls_operations_thread_gnutls_read;
   base_class->read_message_fn           = g_tls_operations_thread_gnutls_read_message;
