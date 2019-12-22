@@ -58,8 +58,6 @@ static GInitableIface *g_tls_connection_gnutls_parent_initable_iface;
 
 static void g_tls_connection_gnutls_initable_iface_init (GInitableIface *iface);
 
-static int verify_certificate_cb (gnutls_session_t session);
-
 static gnutls_priority_t priority;
 
 typedef struct
@@ -87,19 +85,6 @@ g_tls_connection_gnutls_init (GTlsConnectionGnutls *gnutls)
   priv->interaction_id = g_strdup_printf ("gtls:%d", unique_id);
 
   priv->cancellable = g_cancellable_new ();
-}
-
-static void
-g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
-{
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  int ret;
-
-  g_assert (priority);
-
-  ret = gnutls_priority_set (priv->session, priority);
-  if (ret != GNUTLS_E_SUCCESS)
-    g_warning ("Failed to set GnuTLS session priority: %s", gnutls_strerror (ret));
 }
 
 static gboolean
@@ -215,6 +200,7 @@ g_tls_connection_gnutls_handshake_thread_get_certificate (GTlsConnectionGnutls  
   if (cert)
     {
       /* Send along a pre-initialized privkey so we can handle the callback here. */
+      /* FIXME: this was never safe, we're not on the right thread here */
       gnutls_privkey_t privkey;
       gnutls_privkey_init (&privkey);
       gnutls_privkey_set_pin_function (privkey, on_pin_request, gnutls);
@@ -239,7 +225,7 @@ g_tls_connection_gnutls_create_op_thread (GTlsConnectionBase *tls)
   GDatagramBased *base_socket = NULL;
   gboolean client = G_IS_TLS_CLIENT_CONNECTION (tls);
   guint flags = client ? GNUTLS_CLIENT : GNUTLS_SERVER;
-  GTlsOperationsThreadGnutls *thread;
+  GTlsOperationsThreadBase *thread;
 
   g_object_get (tls,
                 "base-io-stream", &base_io_stream,
@@ -286,16 +272,6 @@ g_tls_connection_gnutls_retrieve_peer_certificate (GTlsConnectionBase *tls)
   return G_TLS_CERTIFICATE (chain);
 }
 
-static int
-verify_certificate_cb (gnutls_session_t session)
-{
-  GTlsConnectionBase *tls = gnutls_session_get_ptr (session);
-
-  /* Return 0 for the handshake to continue, non-zero to terminate.
-   * Complete opposite of what OpenSSL does. */
-  return !g_tls_connection_base_handshake_thread_verify_certificate (tls);
-}
-
 static void
 g_tls_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
                                             gchar              **negotiated_protocol,
@@ -322,29 +298,6 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
 }
 
 static void
-initialize_gnutls_priority (void)
-{
-  const gchar *priority_override;
-  const gchar *error_pos = NULL;
-  int ret;
-
-  g_assert (!priority);
-
-  priority_override = g_getenv ("G_TLS_GNUTLS_PRIORITY");
-  if (priority_override)
-    {
-      ret = gnutls_priority_init2 (&priority, priority_override, &error_pos, 0);
-      if (ret != GNUTLS_E_SUCCESS)
-        g_warning ("Failed to set GnuTLS session priority with beginning at %s: %s", error_pos, gnutls_strerror (ret));
-      return;
-    }
-
-  ret = gnutls_priority_init2 (&priority, "%COMPAT:-VERS-TLS1.1:-VERS-TLS1.0", &error_pos, GNUTLS_PRIORITY_INIT_DEF_APPEND);
-  if (ret != GNUTLS_E_SUCCESS)
-    g_warning ("Failed to set GnuTLS session priority with error beginning at %s: %s", error_pos, gnutls_strerror (ret));
-}
-
-static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -353,12 +306,9 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   gobject_class->finalize                                = g_tls_connection_gnutls_finalize;
 
   base_class->create_op_thread                           = g_tls_connection_gnutls_create_op_thread;
-  base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_gnutls_handshake_thread_safe_renegotiation_status;
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
-
-  initialize_gnutls_priority ();
 }
 
 static void

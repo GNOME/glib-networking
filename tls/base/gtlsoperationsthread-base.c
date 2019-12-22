@@ -75,6 +75,10 @@ typedef struct {
   GMainContext *op_thread_context;
 
   GAsyncQueue *queue;
+
+  /* This mutex guards everything below. */
+  GMutex mutex;
+  gchar *own_certificate_pem;
 } GTlsOperationsThreadBasePrivate;
 
 typedef enum {
@@ -409,6 +413,33 @@ execute_op (GTlsOperationsThreadBase *self,
 }
 
 void
+g_tls_operations_thread_base_set_own_certificate (GTlsOperationsThreadBase *self,
+                                                  GTlsCertificate          *cert)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  g_mutex_lock (&priv->mutex);
+  g_clear_pointer (&priv->own_certificate_pem, g_free);
+  g_object_get (cert,
+                "certificate-pem", &priv->own_certificate_pem,
+                NULL);
+  g_mutex_unlock (&priv->mutex);
+}
+
+gchar *
+g_tls_operations_thread_base_get_own_certificate_pem (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  gchar *copy;
+
+  g_mutex_lock (&priv->mutex);
+  copy = g_strdup (priv->own_certificate_pem);
+  g_mutex_unlock (&priv->mutex);
+
+  return copy;
+}
+
+void
 g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase *self,
                                                         GTlsOperationsThreadBase *source)
 {
@@ -437,6 +468,7 @@ g_tls_operations_thread_base_set_server_identity (GTlsOperationsThreadBase *self
 GTlsConnectionBaseStatus
 g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
                                         const gchar              **advertised_protocols,
+                                        GTlsAuthenticationMode     auth_mode,
                                         gint64                     timeout,
                                         GCancellable              *cancellable,
                                         GError                   **error)
@@ -447,6 +479,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
   op = g_tls_thread_handshake_operation_new (self,
                                              priv->connection,
                                              advertised_protocols,
+                                             auth_mode,
                                              timeout,
                                              cancellable);
   return execute_op (self, g_steal_pointer (&op), NULL, error);
@@ -1052,6 +1085,8 @@ g_tls_operations_thread_base_init (GTlsOperationsThreadBase *self)
   priv->op_thread = g_thread_new ("[glib-networking] GTlsOperationsThreadBase TLS operations thread",
                                   tls_op_thread,
                                   self);
+
+  g_mutex_init (&priv->mutex);
 }
 
 static void
@@ -1071,6 +1106,10 @@ g_tls_operations_thread_base_finalize (GObject *object)
   g_tls_thread_operation_free (op);
 
   g_clear_weak_pointer (&priv->connection);
+
+  g_mutex_clear (&priv->mutex);
+
+  g_clear_pointer (&priv->own_certificate);
 
   G_OBJECT_CLASS (g_tls_operations_thread_base_parent_class)->finalize (object);
 }
