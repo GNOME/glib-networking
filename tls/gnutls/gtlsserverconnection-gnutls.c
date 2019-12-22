@@ -73,7 +73,6 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
                                               GError         **error)
 {
   GTlsCertificate *cert;
-  gnutls_certificate_credentials_t creds;
 
   if (!g_tls_server_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
