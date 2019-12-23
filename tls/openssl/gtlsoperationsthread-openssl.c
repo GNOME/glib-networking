@@ -39,7 +39,14 @@ struct _GTlsOperationsThreadOpenssl {
   gboolean shutting_down;
 };
 
-G_DEFINE_TYPE (GTlsOperationsThreadOpenssl, g_tls_operations_thread_openssl, G_TYPE_TLS_OPERATIONS_THREAD_BASE)
+static GInitableIface *g_tls_operations_thread_openssl_parent_initable_iface;
+
+static void g_tls_operations_thread_openssl_initable_iface_init (GInitableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GTlsOperationsThreadOpenssl, g_tls_operations_thread_openssl, G_TYPE_TLS_OPERATIONS_THREAD_BASE,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                g_tls_operations_thread_openssl_initable_iface_init);
+                         )
 
 static GTlsConnectionBaseStatus
 end_openssl_io (GTlsOperationsThreadOpenssl  *self,
@@ -266,16 +273,21 @@ g_tls_operations_thread_openssl_close (GTlsOperationsThreadBase  *base,
   return status;
 }
 
-static void
-g_tls_operations_thread_openssl_constructed (GObject *object)
+static gboolean
+g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
+                                               GCancellable  *cancellable,
+                                               GError       **error)
 {
-  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (object);
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (initable);
   GTlsConnectionBase *openssl;
 
-  G_OBJECT_CLASS (g_tls_operations_thread_openssl_parent_class)->constructed (object);
+  if (!g_tls_operations_thread_openssl_parent_initable_iface->init (initable, cancellable, error))
+    return FALSE;
 
   openssl = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
   self->ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
+
+  return TRUE;
 }
 
 static void
@@ -289,18 +301,25 @@ g_tls_operations_thread_openssl_class_init (GTlsOperationsThreadOpensslClass *kl
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsOperationsThreadBaseClass *base_class = G_TLS_OPERATIONS_THREAD_BASE_CLASS (klass);
 
-  gobject_class->constructed = g_tls_operations_thread_openssl_constructed;
-
   base_class->handshake_fn   = g_tls_operations_thread_openssl_handshake;
   base_class->read_fn        = g_tls_operations_thread_openssl_read;
   base_class->write_fn       = g_tls_operations_thread_openssl_write;
   base_class->close_fn       = g_tls_operations_thread_openssl_close;
 }
 
+static void
+g_tls_operations_thread_openssl_initable_iface_init (GInitableIface *iface)
+{
+  g_tls_operations_thread_openssl_parent_initable_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = g_tls_operations_thread_openssl_initable_init;
+}
+
 GTlsOperationsThreadBase *
 g_tls_operations_thread_openssl_new (GTlsConnectionOpenssl *tls)
 {
-  return G_TLS_OPERATIONS_THREAD_BASE (g_object_new (G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL,
-                                       "tls-connection", tls,
-                                       NULL));
+  return g_initable_init (G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL,
+                          NULL, NULL,
+                          "tls-connection", tls,
+                          NULL);
 }

@@ -1724,7 +1724,6 @@ g_tls_connection_base_handshake_async (GTlsConnection      *conn,
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GTask *thread_task, *caller_task;
 
   g_tls_log_debug (tls, "Starting asynchronous TLS handshake");
@@ -1783,7 +1782,6 @@ start_async_implicit_handshake (GTlsConnectionBase  *tls,
                                 GError             **error)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
 
   g_tls_log_debug (tls, "Starting async implicit handshake");
 
@@ -1820,7 +1818,6 @@ do_sync_implicit_handshake (GTlsConnectionBase  *tls,
                             GError             **error)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GError *my_error = NULL;
   gboolean success;
 

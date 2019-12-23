@@ -91,7 +91,14 @@ static GParamSpec *obj_properties[LAST_PROP];
 
 static gnutls_priority_t priority;
 
-G_DEFINE_TYPE (GTlsOperationsThreadGnutls, g_tls_operations_thread_gnutls, G_TYPE_TLS_OPERATIONS_THREAD_BASE)
+static GInitableIface *g_tls_operations_thread_gnutls_parent_initable_iface;
+
+static void g_tls_operations_thread_gnutls_initable_iface_init (GInitableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GTlsOperationsThreadGnutls, g_tls_operations_thread_gnutls, G_TYPE_TLS_OPERATIONS_THREAD_BASE,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                g_tls_operations_thread_gnutls_initable_iface_init);
+                         )
 
 static inline gboolean
 is_dtls (GTlsOperationsThreadGnutls *self)
@@ -540,7 +547,6 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                                           GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBase *tls;
   GTlsConnectionBaseStatus status;
   gnutls_datum_t protocol;
   int ret;
@@ -609,7 +615,7 @@ g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
   if (self->application_data_buffer)
     {
       *nread = MIN (size, self->application_data_buffer->len);
-      memcpy (buffer, self->application_data_buffer->data, nread);
+      memcpy (buffer, self->application_data_buffer->data, *nread);
       if (*nread == self->application_data_buffer->len)
         g_clear_pointer (&self->application_data_buffer, g_byte_array_unref);
       else
@@ -1394,23 +1400,28 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
   G_OBJECT_CLASS (g_tls_operations_thread_gnutls_parent_class)->finalize (object);
 }
 
-static void
-g_tls_operations_thread_gnutls_constructed (GObject *object)
+static gboolean
+g_tls_operations_thread_gnutls_initable_init (GInitable     *initable,
+                                              GCancellable  *cancellable,
+                                              GError       **error)
 {
-  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (object);
+  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (initable);
   GTlsConnectionBase *tls;
   int ret;
 
-  G_OBJECT_CLASS (g_tls_operations_thread_gnutls_parent_class)->constructed (object);
+  if (!g_tls_operations_thread_gnutls_parent_initable_iface->init (initable, cancellable, error))
+    return FALSE;
 
   tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
 
   ret = gnutls_certificate_allocate_credentials (&self->creds);
-  /* FIXME: GInitable? */
-#if 0
-  if (ret != GNUTLS_E_SUCCESS)
-    return FALSE;
-#endif
+  if (ret != 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Failed to allocate credentials: %s"),
+                   gnutls_strerror (ret));
+      return FALSE;
+    }
   gnutls_certificate_set_retrieve_function2 (self->creds, retrieve_certificate_cb);
 
   gnutls_init (&self->session, self->init_flags);
@@ -1421,16 +1432,13 @@ g_tls_operations_thread_gnutls_constructed (GObject *object)
   ret = gnutls_credentials_set (self->session,
                                 GNUTLS_CRD_CERTIFICATE,
                                 self->creds);
-  /* FIXME: GInitable? */
-#if 0
   if (ret != 0)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS connection: %s"),
-                   gnutls_strerror (status));
+                   gnutls_strerror (ret));
       return FALSE;
     }
-#endif
 
   gnutls_transport_set_push_function (self->session,
                                       g_tls_operations_thread_gnutls_push_func);
@@ -1458,6 +1466,8 @@ g_tls_operations_thread_gnutls_constructed (GObject *object)
                                           GNUTLS_HOOK_POST,
                                           session_ticket_received_cb);
     }
+
+  return TRUE;
 }
 
 static void
@@ -1474,7 +1484,6 @@ g_tls_operations_thread_gnutls_class_init (GTlsOperationsThreadGnutlsClass *klas
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsOperationsThreadBaseClass *base_class = G_TLS_OPERATIONS_THREAD_BASE_CLASS (klass);
 
-  gobject_class->constructed   = g_tls_operations_thread_gnutls_constructed;
   gobject_class->finalize      = g_tls_operations_thread_gnutls_finalize;
   gobject_class->get_property  = g_tls_operations_thread_gnutls_get_property;
   gobject_class->set_property  = g_tls_operations_thread_gnutls_set_property;
@@ -1520,12 +1529,21 @@ g_tls_operations_thread_gnutls_new (GTlsConnectionGnutls *connection,
                                     GDatagramBased       *base_socket,
                                     guint                 flags)
 {
-  return G_TLS_OPERATIONS_THREAD_BASE (g_object_new (G_TYPE_TLS_OPERATIONS_THREAD_GNUTLS,
-                                                     "base-iostream", base_iostream,
-                                                     "base-socket", base_socket,
-                                                     "gnutls-flags", flags,
-                                                     "tls-connection", connection,
-                                                     NULL));
+  return g_initable_new (G_TYPE_TLS_OPERATIONS_THREAD_GNUTLS,
+                         NULL, NULL,
+                         "base-iostream", base_iostream,
+                         "base-socket", base_socket,
+                         "gnutls-flags", flags,
+                         "tls-connection", connection,
+                         NULL);
+}
+
+static void
+g_tls_operations_thread_gnutls_initable_iface_init (GInitableIface *iface)
+{
+  g_tls_operations_thread_gnutls_parent_initable_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = g_tls_operations_thread_gnutls_initable_init;
 }
 
 /* FIXME: must remove this! */
