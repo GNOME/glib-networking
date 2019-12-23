@@ -106,7 +106,7 @@ struct _HandshakeContext
 {
   GMainContext *caller_context;
   GTlsVerifyCertificateFunc verify_callback;
-  gboolean certificate_verified;
+  gboolean certificate_verified; /* FIXME: remove and track is_session_resumed instead */
   gpointer user_data;
 };
 
@@ -631,38 +631,91 @@ g_tls_operations_thread_base_set_server_identity (GTlsOperationsThreadBase *self
   g_tls_thread_operation_free (op);
 }
 
-#if 0
-static gboolean
-invoke_verify_certificate_callback_cb (gpointer user_data)
-{
+typedef struct {
+  GTlsOperationsThreadBase *thread;
+  GTlsCertificate *peer_certificate;
+  HandshakeContext *context;
 
+  gboolean result;
+  gboolean complete;
+  GMutex mutex;
+  GCond condition;
+} VerifyCertificateData;
+
+static VerifyCertificateData *
+verify_certificate_data_new (GTlsOperationsThreadBase *thread,
+                             GTlsCertificate          *peer_certificate,
+                             HandshakeContext         *context)
+{
+  VerifyCertificateData *data;
+
+  data = g_new0 (VerifyCertificateData, 1);
+  data->thread = g_object_ref (thread);
+  data->peer_certificate = g_object_ref (peer_certificate);
+  data->context = context;
+
+  g_mutex_init (&data->mutex);
+  g_cond_init (&data->condition);
+
+  return data;
 }
-#endif
+
+static void
+verify_certificate_data_free (VerifyCertificateData *data)
+{
+  g_object_unref (data->thread);
+  g_object_unref (data->peer_certificate);
+
+  g_mutex_clear (&data->mutex);
+  g_cond_clear (&data->condition);
+
+  g_free (data);
+}
+
+static gboolean
+execute_verify_certificate_callback_cb (VerifyCertificateData *data)
+{
+  data->result = data->context->verify_callback (data->thread,
+                                                 data->peer_certificate,
+                                                 data->context->user_data);
+
+  g_mutex_lock (&data->mutex);
+  data->complete = TRUE;
+  g_mutex_unlock (&data->mutex);
+
+  return G_SOURCE_REMOVE;
+}
 
 gboolean
 g_tls_operations_thread_base_verify_certificate (GTlsOperationsThreadBase *self,
+                                                 GTlsCertificate          *peer_certificate,
                                                  HandshakeContext         *context)
 {
-#if 0
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  VerifyCertificateData *data;
   gboolean accepted;
 
   g_assert (g_main_context_is_owner (priv->op_thread_context));
 
+  data = verify_certificate_data_new (self, peer_certificate, context);
+
   /* Invoke the caller's callback on the calling thread, not the op thread. */
-  g_main_context_invoke (context->caller_context, accept_or_reject_peer_certificate, tls);
+  g_main_context_invoke (context->caller_context,
+                         (GSourceFunc)execute_verify_certificate_callback_cb,
+                         data);
 
   /* Block the op thread until the calling thread's callback finishes. */
-  g_mutex_lock (&priv->verify_certificate_mutex);
-  while (!priv->peer_certificate_examined)
-    g_cond_wait (&priv->verify_certificate_condition, &priv->verify_certificate_mutex);
-  accepted = priv->peer_certificate_accepted;
-  g_mutex_unlock (&priv->verify_certificate_mutex);
+  g_mutex_lock (&data->mutex);
+  while (!data->complete)
+    g_cond_wait (&data->condition, &data->mutex);
+  g_mutex_unlock (&data->mutex);
 
-  context->certificate_verified = TRUE;
+  context->certificate_verified = TRUE; /* FIXME: not good, not accurate */
+  accepted = data->result;
+
+  verify_certificate_data_free (data);
 
   return accepted;
-#endif
 }
 
 GTlsConnectionBaseStatus
