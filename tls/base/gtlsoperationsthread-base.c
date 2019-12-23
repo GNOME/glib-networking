@@ -157,7 +157,12 @@ enum
 
 static GParamSpec *obj_properties[LAST_PROP];
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GTlsOperationsThreadBase, g_tls_operations_thread_base, G_TYPE_OBJECT)
+static void g_tls_operations_thread_base_initable_iface_init (GInitableIface *iface);
+
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsOperationsThreadBase, g_tls_operations_thread_base, G_TYPE_OBJECT,
+                                  G_ADD_PRIVATE (GTlsOperationsThreadBase);
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                         g_tls_operations_thread_base_initable_iface_init);)
 
 GTlsConnectionBase *
 g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
@@ -1182,6 +1187,14 @@ g_tls_operations_thread_base_set_property (GObject      *object,
     }
 }
 
+static gboolean
+g_tls_operations_thread_base_initable_init (GInitable     *initable,
+                                            GCancellable  *cancellable,
+                                            GError       **error)
+{
+  return TRUE;
+}
+
 static void
 g_tls_operations_thread_base_init (GTlsOperationsThreadBase *self)
 {
@@ -1243,4 +1256,10 @@ g_tls_operations_thread_base_class_init (GTlsOperationsThreadBaseClass *klass)
                          G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (gobject_class, LAST_PROP, obj_properties);
+}
+
+static void
+g_tls_operations_thread_base_initable_iface_init (GInitableIface *iface)
+{
+  iface->init = g_tls_operations_thread_base_initable_init;
 }

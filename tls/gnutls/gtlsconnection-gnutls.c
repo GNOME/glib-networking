@@ -158,7 +158,6 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
 static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
   base_class->create_op_thread                           = g_tls_connection_gnutls_create_op_thread;
