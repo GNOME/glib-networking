@@ -65,6 +65,7 @@ struct _GTlsConnectionBaseClass
   GTlsConnectionBaseStatus    (*pop_io)                     (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,
                                                              gboolean              success,
+                                                             GError               *op_error,
                                                              GError              **error);
 
   void                        (*set_accepted_cas)           (GTlsConnectionBase    *tls,
@@ -78,6 +79,7 @@ void                      g_tls_connection_base_push_io                 (GTlsCon
 GTlsConnectionBaseStatus  g_tls_connection_base_pop_io                  (GTlsConnectionBase  *tls,
                                                                          GIOCondition         direction,
                                                                          gboolean             success,
+                                                                         GError              *op_error,
                                                                          GError             **error);
 
 gssize                    g_tls_connection_base_read                    (GTlsConnectionBase  *tls,

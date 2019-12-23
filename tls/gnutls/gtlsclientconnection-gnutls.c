@@ -110,11 +110,13 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
                                               GError         **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
-  GTlsOperationsThreadBase *thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (gnutls));
+  GTlsOperationsThreadBase *thread;
   const gchar *hostname;
 
   if (!g_tls_client_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
+
+  thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (gnutls));
 
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
   if (hostname)
@@ -180,7 +182,8 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
           GTlsOperationsThreadBase *thread;
 
           thread = g_tls_connection_base_get_op_thread (G_TLS_CONNECTION_BASE (gnutls));
-          g_tls_operations_thread_base_set_server_identity (thread, hostname);
+          if (thread)
+            g_tls_operations_thread_base_set_server_identity (thread, hostname);
         }
       break;
 
