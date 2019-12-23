@@ -68,7 +68,7 @@
  * write operations on one thread without either one blocking the other.
  */
 typedef struct {
-  /* FIXME: remove to prevent misuse */
+  /* FIXME: remove to prevent misuse? */
   GTlsConnectionBase *connection;
 
   GThread *op_thread;
@@ -102,6 +102,23 @@ typedef enum {
   G_TLS_THREAD_OP_SHUTDOWN_THREAD
 } GTlsThreadOperationType;
 
+struct _HandshakeContext
+{
+  GMainContext *caller_context;
+  GTlsVerifyCertificateFunc verify_callback;
+  gboolean certificate_verified;
+  gpointer user_data;
+};
+
+typedef struct {
+  HandshakeContext *context;
+  gchar **advertised_protocols;
+  GTlsAuthenticationMode auth_mode;
+  gchar *negotiated_protocol;
+  GList *accepted_cas;
+  GTlsCertificate *peer_certificate;
+} HandshakeData;
+
 typedef struct {
   GTlsThreadOperationType type;
   GIOCondition io_condition;
@@ -109,39 +126,32 @@ typedef struct {
   GTlsOperationsThreadBase *thread;
   GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
 
-  GTlsOperationsThreadBase *source; /* for copy client session state */
-
-  gchar *server_identity;           /* for set server identity */
-
-  gchar *negotiated_protocol;       /* for handshake */
-  gchar **advertised_protocols;     /* for handshake */
-  GTlsAuthenticationMode auth_mode; /* for handshake */
-  GList *accepted_cas;              /* for handshake */
-
+  /* Op input */
   union {
-    void *data;                    /* for read/write */
-    GInputVector *input_vectors;   /* for read message */
-    GOutputVector *output_vectors; /* for write message */
+    GTlsOperationsThreadBase *source; /* for copy client session state */
+    gchar *server_identity;           /* for set server identity */
+    HandshakeData *handshake_data;    /* for handshake */
+    void *data;                       /* for read/write */
+    GInputVector *input_vectors;      /* for read message */
+    GOutputVector *output_vectors;    /* for write message */
   };
-
   union {
     gsize size;        /* for read/write */
     guint num_vectors; /* for read/write message */
   };
-
   gint64 timeout;
   gint64 start_time;
 
   GCancellable *cancellable;
 
-  GMutex finished_mutex;
-  GCond finished_condition;
-  gboolean finished;
-
-  /* Result */
+  /* Op output */
   GTlsConnectionBaseStatus result;
   gssize count; /* Bytes read or written */
   GError *error;
+
+  GMutex finished_mutex;
+  GCond finished_condition;
+  gboolean finished;
 } GTlsThreadOperation;
 
 static gboolean process_op (GAsyncQueue         *queue,
@@ -280,6 +290,57 @@ g_tls_operations_thread_base_get_is_missing_requested_client_certificate (GTlsOp
   return ret;
 }
 
+static HandshakeContext *
+handshake_context_new (GMainContext              *caller_context,
+                       GTlsVerifyCertificateFunc  verify_callback,
+                       gpointer                   user_data)
+{
+  HandshakeContext *context;
+
+  context = g_new0 (HandshakeContext, 1);
+  context->caller_context = g_main_context_ref (caller_context);
+  context->verify_callback = verify_callback;
+  context->user_data = user_data;
+
+  return context;
+}
+
+static void
+handshake_context_free (HandshakeContext *context)
+{
+  g_main_context_unref (context->caller_context);
+
+  g_free (context);
+}
+
+static HandshakeData *
+handshake_data_new (HandshakeContext        *context,
+                    const gchar            **advertised_protocols,
+                    GTlsAuthenticationMode   mode)
+{
+  HandshakeData *data;
+
+  data = g_new0 (HandshakeData, 1);
+  data->context = context;
+  data->advertised_protocols = g_strdupv ((gchar **)advertised_protocols);
+  data->auth_mode = mode;
+
+  return data;
+}
+
+static void
+handshake_data_free (HandshakeData *data)
+{
+  g_strfreev (data->advertised_protocols);
+
+  g_clear_object (&data->peer_certificate);
+
+  g_assert (!data->accepted_cas);
+  g_assert (!data->negotiated_protocol);
+
+  g_free (data);
+}
+
 static GTlsThreadOperation *
 g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *thread,
                                                       GTlsConnectionBase       *connection,
@@ -320,6 +381,7 @@ g_tls_thread_set_server_identity_operation_new (GTlsOperationsThreadBase *thread
 
 static GTlsThreadOperation *
 g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
+                                      HandshakeContext          *context,
                                       GTlsConnectionBase        *connection,
                                       const gchar              **advertised_protocols,
                                       GTlsAuthenticationMode     auth_mode,
@@ -333,10 +395,12 @@ g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
   op->io_condition = G_IO_IN | G_IO_OUT;
   op->thread = thread;
   op->connection = connection;
-  op->advertised_protocols = g_strdupv ((gchar **)advertised_protocols);
-  op->auth_mode = auth_mode;
   op->timeout = timeout;
   op->cancellable = cancellable;
+
+  op->handshake_data = handshake_data_new (context,
+                                           advertised_protocols,
+                                           auth_mode);
 
   g_mutex_init (&op->finished_mutex);
   g_cond_init (&op->finished_condition);
@@ -487,11 +551,7 @@ g_tls_thread_operation_free (GTlsThreadOperation *op)
     g_free (op->server_identity);
 
   if (op->type == G_TLS_THREAD_OP_HANDSHAKE)
-    {
-      g_strfreev (op->advertised_protocols);
-      g_assert (!op->accepted_cas);
-      g_assert (!op->negotiated_protocol);
-    }
+    handshake_data_free (op->handshake_data);
 
   if (op->type != G_TLS_THREAD_OP_SHUTDOWN_THREAD)
     {
@@ -513,7 +573,7 @@ wait_for_op_completion (GTlsThreadOperation *op)
 
 static GTlsConnectionBaseStatus
 execute_op (GTlsOperationsThreadBase *self,
-            GTlsThreadOperation      *op /* owned */,
+            GTlsThreadOperation      *op,
             gssize                   *count,
             GError                  **error)
 {
@@ -536,8 +596,6 @@ execute_op (GTlsOperationsThreadBase *self,
       op->error = NULL;
     }
 
-  g_tls_thread_operation_free (op);
-
   return result;
 }
 
@@ -548,10 +606,13 @@ g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
+
   op = g_tls_thread_copy_client_session_state_operation_new (self,
                                                              priv->connection,
                                                              source);
-  execute_op (self, g_steal_pointer (&op), NULL, NULL);
+  execute_op (self, op, NULL, NULL);
+  g_tls_thread_operation_free (op);
 }
 
 void
@@ -561,39 +622,96 @@ g_tls_operations_thread_base_set_server_identity (GTlsOperationsThreadBase *self
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsThreadOperation *op;
 
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
+
   op = g_tls_thread_set_server_identity_operation_new (self,
                                                        priv->connection,
                                                        server_identity);
-  execute_op (self, g_steal_pointer (&op), NULL, NULL);
+  execute_op (self, op, NULL, NULL);
+  g_tls_thread_operation_free (op);
+}
+
+#if 0
+static gboolean
+invoke_verify_certificate_callback_cb (gpointer user_data)
+{
+
+}
+#endif
+
+gboolean
+g_tls_operations_thread_base_verify_certificate (GTlsOperationsThreadBase *self,
+                                                 HandshakeContext         *context)
+{
+#if 0
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  gboolean accepted;
+
+  g_assert (g_main_context_is_owner (priv->op_thread_context));
+
+  /* Invoke the caller's callback on the calling thread, not the op thread. */
+  g_main_context_invoke (context->caller_context, accept_or_reject_peer_certificate, tls);
+
+  /* Block the op thread until the calling thread's callback finishes. */
+  g_mutex_lock (&priv->verify_certificate_mutex);
+  while (!priv->peer_certificate_examined)
+    g_cond_wait (&priv->verify_certificate_condition, &priv->verify_certificate_mutex);
+  accepted = priv->peer_certificate_accepted;
+  g_mutex_unlock (&priv->verify_certificate_mutex);
+
+  context->certificate_verified = TRUE;
+
+  return accepted;
+#endif
 }
 
 GTlsConnectionBaseStatus
-g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase  *self,
-                                        const gchar              **advertised_protocols,
-                                        GTlsAuthenticationMode     auth_mode,
-                                        gint64                     timeout,
-                                        gchar                    **negotiated_protocol,
-                                        GList                    **accepted_cas,
-                                        GCancellable              *cancellable,
-                                        GError                   **error)
+g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
+                                        const gchar               **advertised_protocols,
+                                        GTlsAuthenticationMode      auth_mode,
+                                        gint64                      timeout,
+                                        GTlsVerifyCertificateFunc   verify_callback,
+                                        GTlsSessionResumedFunc      resumed_callback,
+                                        gchar                     **negotiated_protocol,
+                                        GList                     **accepted_cas,
+                                        GCancellable               *cancellable,
+                                        gpointer                    user_data,
+                                        GError                    **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+  HandshakeContext *context;
+
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   g_mutex_lock (&priv->mutex);
   priv->missing_requested_client_certificate = FALSE;
   g_mutex_unlock (&priv->mutex);
 
+  context = handshake_context_new (g_main_context_get_thread_default (),
+                                   verify_callback,
+                                   user_data);
+
   op = g_tls_thread_handshake_operation_new (self,
+                                             context,
                                              priv->connection,
                                              advertised_protocols,
                                              auth_mode,
                                              timeout,
                                              cancellable);
-  status = execute_op (self, g_steal_pointer (&op), NULL, error);
-  *negotiated_protocol = g_steal_pointer (&op->negotiated_protocol);
-  *accepted_cas = g_steal_pointer (&op->accepted_cas);
+  status = execute_op (self, op, NULL, error);
+
+  /* FIXME: is this right? Probably we should really check for session resumption? is_session_resumed? */
+  if (!context->certificate_verified)
+    resumed_callback (self, op->handshake_data->peer_certificate, user_data);
+
+  *negotiated_protocol = g_steal_pointer (&op->handshake_data->negotiated_protocol);
+  *accepted_cas = g_steal_pointer (&op->handshake_data->accepted_cas);
+
+  handshake_context_free (context);
+  g_tls_thread_operation_free (op);
+
   return status;
 }
 
@@ -607,14 +725,20 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
                                    GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_read_operation_new (self,
                                         priv->connection,
                                         buffer, size,
                                         timeout,
                                         cancellable);
-  return execute_op (self, g_steal_pointer (&op), nread, error);
+  status = execute_op (self, op, nread, error);
+  g_tls_thread_operation_free (op);
+
+  return status;
 }
 
 GTlsConnectionBaseStatus
@@ -627,14 +751,20 @@ g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
                                            GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_read_message_operation_new (self,
                                                 priv->connection,
                                                 vectors, num_vectors,
                                                 timeout,
                                                 cancellable);
-  return execute_op (self, g_steal_pointer (&op), nread, error);
+  status = execute_op (self, op, nread, error);
+  g_tls_thread_operation_free (op);
+
+  return status;
 }
 
 GTlsConnectionBaseStatus
@@ -647,14 +777,20 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
                                     GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_write_operation_new (self,
                                          priv->connection,
                                          buffer, size,
                                          timeout,
                                          cancellable);
-  return execute_op (self, g_steal_pointer (&op), nwrote, error);
+  status = execute_op (self, op, nwrote, error);
+  g_tls_thread_operation_free (op);
+
+  return status;
 }
 
 GTlsConnectionBaseStatus
@@ -667,14 +803,20 @@ g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
                                             GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_write_message_operation_new (self,
                                                  priv->connection,
                                                  vectors, num_vectors,
                                                  timeout,
                                                  cancellable);
-  return execute_op (self, g_steal_pointer (&op), nwrote, error);
+  status = execute_op (self, op, nwrote, error);
+  g_tls_thread_operation_free (op);
+
+  return status;
 }
 
 GTlsConnectionBaseStatus
@@ -683,12 +825,18 @@ g_tls_operations_thread_base_close (GTlsOperationsThreadBase  *self,
                                     GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+
+  g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_close_operation_new (self,
                                          priv->connection,
                                          cancellable);
-  return execute_op (self, g_steal_pointer (&op), NULL, error);
+  status = execute_op (self, op, NULL, error);
+  g_tls_thread_operation_free (op);
+
+  return status;
 }
 
 typedef struct {
@@ -1016,11 +1164,13 @@ process_op (GAsyncQueue         *queue,
       break;
     case G_TLS_THREAD_OP_HANDSHAKE:
       op->result = base_class->handshake_fn (op->thread,
-                                             (const gchar **)op->advertised_protocols,
-                                             op->auth_mode,
+                                             op->handshake_data->context,
+                                             (const gchar **)op->handshake_data->advertised_protocols,
+                                             op->handshake_data->auth_mode,
                                              op->timeout,
-                                             &op->negotiated_protocol,
-                                             &op->accepted_cas,
+                                             &op->handshake_data->negotiated_protocol,
+                                             &op->handshake_data->accepted_cas,
+                                             &op->handshake_data->peer_certificate,
                                              op->cancellable,
                                              &op->error);
       break;
