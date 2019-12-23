@@ -291,14 +291,13 @@ g_tls_operations_thread_base_get_is_missing_requested_client_certificate (GTlsOp
 }
 
 static HandshakeContext *
-handshake_context_new (GMainContext              *caller_context,
-                       GTlsVerifyCertificateFunc  verify_callback,
+handshake_context_new (GTlsVerifyCertificateFunc  verify_callback,
                        gpointer                   user_data)
 {
   HandshakeContext *context;
 
   context = g_new0 (HandshakeContext, 1);
-  context->caller_context = g_main_context_ref (caller_context);
+  context->caller_context = g_main_context_ref_thread_default ();
   context->verify_callback = verify_callback;
   context->user_data = user_data;
 
@@ -742,8 +741,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
   priv->missing_requested_client_certificate = FALSE;
   g_mutex_unlock (&priv->mutex);
 
-  context = handshake_context_new (g_main_context_get_thread_default (),
-                                   verify_callback,
+  context = handshake_context_new (verify_callback,
                                    user_data);
 
   op = g_tls_thread_handshake_operation_new (self,

@@ -3,6 +3,7 @@
  * GIO - GLib Input, Output and Streaming Library
  *
  * Copyright 2019 Igalia S.L.
+ * Copyright 2019 Metrological Group B.V.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,6 +36,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GTlsOperationsThreadOpenssl, g_tls_operations_thread_openssl, G, TLS_OPERATIONS_THREAD_OPENSSL, GTlsOperationsThreadBase)
 
-GTlsOperationsThreadBase *g_tls_operations_thread_openssl_new (GTlsConnectionOpenssl *tls);
+GTlsOperationsThreadBase *g_tls_operations_thread_openssl_new (GTlsConnectionOpenssl *tls,
+                                                               GIOStream             *base_iostream);
 
 G_END_DECLS

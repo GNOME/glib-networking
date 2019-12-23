@@ -107,7 +107,7 @@ g_tls_connection_gnutls_create_op_thread (GTlsConnectionBase *tls)
                 NULL);
 
   /* Ensure we are in TLS mode or DTLS mode. */
-  g_return_val_if_fail (!!base_io_stream != !!base_socket, FALSE);
+  g_assert (!!base_io_stream != !!base_socket);
 
   if (base_socket)
     flags |= GNUTLS_DATAGRAM;

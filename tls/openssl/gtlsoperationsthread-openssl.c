@@ -316,10 +316,12 @@ g_tls_operations_thread_openssl_initable_iface_init (GInitableIface *iface)
 }
 
 GTlsOperationsThreadBase *
-g_tls_operations_thread_openssl_new (GTlsConnectionOpenssl *tls)
+g_tls_operations_thread_openssl_new (GTlsConnectionOpenssl *tls,
+                                     GIOStream             *base_iostream)
 {
-  return g_initable_init (G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL,
-                          NULL, NULL,
-                          "tls-connection", tls,
-                          NULL);
+  return g_initable_new (G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL,
+                         NULL, NULL,
+                         "base-iostream", base_iostream,
+                         "tls-connection", tls,
+                         NULL);
 }

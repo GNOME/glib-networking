@@ -121,6 +121,22 @@ is_server (GTlsOperationsThreadGnutls *self)
   return self->init_flags & GNUTLS_SERVER;
 }
 
+static void
+begin_gnutls_io (GTlsOperationsThreadGnutls *self,
+                 GIOCondition                direction,
+                 GCancellable               *cancellable)
+{
+  GTlsConnectionBase *tls;
+
+  tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
+
+  g_assert (!self->op_error);
+  g_assert (!self->op_cancellable);
+  self->op_cancellable = cancellable;
+
+  g_tls_connection_base_push_io (tls, direction, 0, cancellable);
+}
+
 static GTlsConnectionBaseStatus
 end_gnutls_io (GTlsOperationsThreadGnutls  *self,
                GIOCondition                 direction,
@@ -131,6 +147,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
   GTlsConnectionBase *tls;
   GTlsConnectionBaseStatus status;
   GError *my_error = NULL;
+  GError *op_error = NULL;
 
   /* We intentionally do not check for GNUTLS_E_INTERRUPTED here
    * Instead, the caller may poll for the source to become ready again.
@@ -142,9 +159,12 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       ret == GNUTLS_E_WARNING_ALERT_RECEIVED)
     return G_TLS_CONNECTION_BASE_TRY_AGAIN;
 
+  self->op_cancellable = NULL;
+  op_error = g_steal_pointer (&self->op_error);
+
   tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
 
-  status = g_tls_connection_base_pop_io (tls, direction, ret >= 0, &my_error);
+  status = g_tls_connection_base_pop_io (tls, direction, ret >= 0, op_error, &my_error);
   if (status == G_TLS_CONNECTION_BASE_OK ||
       status == G_TLS_CONNECTION_BASE_WOULD_BLOCK ||
       status == G_TLS_CONNECTION_BASE_TIMED_OUT)
@@ -269,21 +289,12 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
 /* FIXME: do not use GTlsConnectionBase at all. */
 
 #define BEGIN_GNUTLS_IO(self, direction, cancellable)          \
-  g_assert (!self->op_error);                                  \
-  g_assert (!self->op_cancellable);                            \
-  self->op_cancellable = cancellable;                          \
-  g_tls_connection_base_push_io (g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self)),        \
-                                 direction, 0, cancellable);   \
+  begin_gnutls_io (self, direction, cancellable);              \
   do {
 
 #define END_GNUTLS_IO(self, direction, ret, status, errmsg, err)      \
     status = end_gnutls_io (self, direction, ret, err, errmsg);       \
-  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);                \
-  self->op_cancellable = NULL;                                        \
-  if (self->op_error) {                                               \
-    g_propagate_error (err, self->op_error);                          \
-    self->op_error = NULL;                                            \
-  }
+  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
 static void
 initialize_gnutls_priority (void)
@@ -1386,15 +1397,19 @@ g_tls_operations_thread_gnutls_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_BASE_IO_STREAM:
-      g_assert (!self->base_socket);
       self->base_iostream = g_value_get_object (value);
-      self->base_istream = g_io_stream_get_input_stream (self->base_iostream);
-      self->base_ostream = g_io_stream_get_output_stream (self->base_iostream);
+      if (self->base_iostream)
+        {
+          self->base_istream = g_io_stream_get_input_stream (self->base_iostream);
+          self->base_ostream = g_io_stream_get_output_stream (self->base_iostream);
+          g_assert (!self->base_socket);
+        }
       break;
 
     case PROP_BASE_SOCKET:
-      g_assert (!self->base_iostream);
       self->base_socket = g_value_get_object (value);
+      if (self->base_socket)
+        g_assert (!self->base_iostream);
       break;
 
     case PROP_GNUTLS_FLAGS:
@@ -1566,7 +1581,7 @@ g_tls_operations_thread_gnutls_new (GTlsConnectionGnutls *connection,
 {
   return g_initable_new (G_TYPE_TLS_OPERATIONS_THREAD_GNUTLS,
                          NULL, NULL,
-                         "base-iostream", base_iostream,
+                         "base-io-stream", base_iostream,
                          "base-socket", base_socket,
                          "gnutls-flags", flags,
                          "tls-connection", connection,
