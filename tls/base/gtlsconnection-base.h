@@ -40,7 +40,7 @@ typedef enum {
   G_TLS_CONNECTION_BASE_REHANDSHAKE,
   G_TLS_CONNECTION_BASE_TRY_AGAIN,
   G_TLS_CONNECTION_BASE_ERROR,
-} GTlsConnectionBaseStatus; /* FIXME: move? rename? GTlsOperationsThreadBaseStatus */
+} GTlsConnectionBaseStatus; /* FIXME: move? rename? GTlsOperationsThreadBaseStatus? */
 
 typedef enum {
   G_TLS_DIRECTION_NONE = 0,
@@ -58,8 +58,6 @@ struct _GTlsConnectionBaseClass
 
   GTlsOperationsThreadBase   *(*create_op_thread)           (GTlsConnectionBase   *tls);
 
-  gboolean                    (*is_session_resumed)         (GTlsConnectionBase   *tls);
-
   void                        (*push_io)                    (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,
                                                              gint64                timeout, /* FIXME: remove timeout */
@@ -72,10 +70,6 @@ struct _GTlsConnectionBaseClass
   void                        (*set_accepted_cas)           (GTlsConnectionBase    *tls,
                                                              GList                 *accepted_cas);
 };
-
-/* FIXME: no handshake_thread stuff */
-gboolean                  g_tls_connection_base_handshake_thread_verify_certificate
-                                                                        (GTlsConnectionBase *tls);
 
 void                      g_tls_connection_base_push_io                 (GTlsConnectionBase *tls,
                                                                          GIOCondition        direction,
@@ -116,20 +110,13 @@ gboolean                  g_tls_connection_base_close_internal          (GIOStre
                                                                          GCancellable   *cancellable,
                                                                          GError        **error);
 
-/* FIXME: audit, which are still needed? */
+/* FIXME: audit, which are still needed? in public header? */
 
 gboolean                  g_tls_connection_base_is_dtls                 (GTlsConnectionBase *tls);
 
 GDatagramBased           *g_tls_connection_base_get_base_socket         (GTlsConnectionBase *tls);
 
 GIOStream                *g_tls_connection_base_get_base_iostream       (GTlsConnectionBase *tls);
-
-/* FIXME: no handshake_thread stuff */
-
-void                      g_tls_connection_base_handshake_thread_buffer_application_data
-                                                                        (GTlsConnectionBase *tls,
-                                                                         guint8             *data,
-                                                                         gsize               length);
 
 /* FIXME: needed? */
 GTlsOperationsThreadBase *g_tls_connection_base_get_op_thread           (GTlsConnectionBase *tls);

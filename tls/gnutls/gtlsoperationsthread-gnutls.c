@@ -59,6 +59,7 @@ struct _GTlsOperationsThreadGnutls {
   GOutputStream           *base_ostream;
   GDatagramBased          *base_socket;
 
+  HandshakeContext        *handshake_context;
   gboolean                 handshaking;
   gboolean                 ever_handshaked;
 
@@ -538,20 +539,23 @@ set_authentication_mode (GTlsOperationsThreadGnutls *self,
 
 static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
+                                          HandshakeContext          *context,
                                           const gchar              **advertised_protocols,
                                           GTlsAuthenticationMode     auth_mode,
                                           gint64                     timeout,
                                           gchar                    **negotiated_protocol,
                                           GList                    **accepted_cas,
+                                          GTlsCertificate          **peer_certificate,
                                           GCancellable              *cancellable,
                                           GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
   GTlsConnectionBaseStatus status;
+  GTlsCertificateGnutls *chain;
+  const gnutls_datum_t *certs;
+  unsigned int num_certs;
   gnutls_datum_t protocol;
   int ret;
-
-  tls = g_tls_operations_thread_base_get_connection (base);
 
   if (!self->ever_handshaked)
     set_handshake_priority (self);
@@ -569,6 +573,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
     set_authentication_mode (self, auth_mode);
 
   self->handshaking = TRUE;
+  self->handshake_context = context;
 
   BEGIN_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, cancellable);
   ret = gnutls_handshake (self->session);
@@ -589,13 +594,28 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   END_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, ret, status,
                  _("Error performing TLS handshake"), error);
 
+  self->handshake_context = NULL;
   self->handshaking = FALSE;
   self->ever_handshaked = TRUE;
 
   if (gnutls_alpn_get_selected_protocol (self->session, &protocol) == 0 && protocol.size > 0)
     *negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
+  else
+    *negotiated_protocol = NULL;
 
   *accepted_cas = g_list_copy (self->accepted_cas);
+
+  *peer_certificate = NULL;
+  if (gnutls_certificate_type_get (self->session) == GNUTLS_CRT_X509)
+    {
+      certs = gnutls_certificate_get_peers (self->session, &num_certs);
+      if (certs && num_certs > 0)
+        {
+          chain = g_tls_certificate_gnutls_build_chain (certs, num_certs, GNUTLS_X509_FMT_DER);
+          if (chain)
+            *peer_certificate = G_TLS_CERTIFICATE (chain);
+        }
+    }
 
   return status;
 }
@@ -1093,7 +1113,8 @@ verify_certificate_cb (gnutls_session_t session)
   /* Return 0 for the handshake to continue, non-zero to terminate.
    * Complete opposite of what OpenSSL does.
    */
-  return !g_tls_connection_base_handshake_thread_verify_certificate (tls);
+  return !g_tls_operations_thread_base_verify_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                                           self->handshake_context);
 }
 
 static int
@@ -1406,13 +1427,10 @@ g_tls_operations_thread_gnutls_initable_init (GInitable     *initable,
                                               GError       **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (initable);
-  GTlsConnectionBase *tls;
   int ret;
 
   if (!g_tls_operations_thread_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
-
-  tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
 
   ret = gnutls_certificate_allocate_credentials (&self->creds);
   if (ret != 0)

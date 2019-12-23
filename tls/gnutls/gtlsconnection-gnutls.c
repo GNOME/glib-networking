@@ -123,46 +123,12 @@ g_tls_connection_gnutls_create_op_thread (GTlsConnectionBase *tls)
   return thread;
 }
 
-static GTlsCertificate *
-g_tls_connection_gnutls_retrieve_peer_certificate (GTlsConnectionBase *tls)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  const gnutls_datum_t *certs;
-  GTlsCertificateGnutls *chain;
-  unsigned int num_certs;
-
-  if (gnutls_certificate_type_get (priv->session) != GNUTLS_CRT_X509)
-    return NULL;
-
-  certs = gnutls_certificate_get_peers (priv->session, &num_certs);
-  if (!certs || !num_certs)
-    return NULL;
-
-  chain = g_tls_certificate_gnutls_build_chain (certs, num_certs, GNUTLS_X509_FMT_DER);
-  if (!chain)
-    return NULL;
-
-  return G_TLS_CERTIFICATE (chain);
-}
-
-static gboolean
-g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-
-  return gnutls_session_is_resumed (priv->session);
-}
-
 static void
 g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 {
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  base_class->create_op_thread                           = g_tls_connection_gnutls_create_op_thread;
-  base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
-  base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
+  base_class->create_op_thread = g_tls_connection_gnutls_create_op_thread;
 }
 
 static void
