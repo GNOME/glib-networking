@@ -235,8 +235,12 @@ g_tls_connection_base_initable_init (GInitable    *initable,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
   priv->thread = G_TLS_CONNECTION_BASE_GET_CLASS (tls)->create_op_thread (tls);
+  if (!priv->thread)
+    return FALSE;
+
   if (priv->certificate)
     g_tls_operations_thread_base_set_own_certificate (priv->thread, priv->certificate);
+
   if (priv->interaction)
     g_tls_operations_thread_base_set_interaction (priv->thread, priv->interaction);
 
@@ -748,7 +752,7 @@ yield_op (GTlsConnectionBase       *tls,
   g_mutex_unlock (&priv->op_mutex);
 }
 
-/* FIXME: removable? */
+/* FIXME: removable? It's only here for OpenSSL GTlsBio */
 void
 g_tls_connection_base_push_io (GTlsConnectionBase *tls,
                                GIOCondition        direction,
@@ -758,15 +762,22 @@ g_tls_connection_base_push_io (GTlsConnectionBase *tls,
   g_assert (direction & (G_IO_IN | G_IO_OUT));
   g_return_if_fail (G_IS_TLS_CONNECTION_BASE (tls));
 
-  G_TLS_CONNECTION_BASE_GET_CLASS (tls)->push_io (tls, direction,
-                                                  timeout, cancellable);
+  if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->push_io)
+    {
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->push_io (tls, direction,
+                                                      timeout, cancellable);
+    }
 }
 
 /* FIXME: rename, if push_io is removed? */
+/* FIXME: this is almost certainly inappropriate because it is called on the
+ * op thread. It needs to move to the op thread class.
+ */
 static GTlsConnectionBaseStatus
 g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
                                    GIOCondition         direction,
                                    gboolean             success,
+                                   GError              *op_error,
                                    GError             **error)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
@@ -776,6 +787,9 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
 
   if (success)
     return G_TLS_CONNECTION_BASE_OK;
+
+  g_assert (op_error);
+  g_propagate_error (&my_error, op_error);
 
   if (g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
     {
@@ -831,6 +845,7 @@ GTlsConnectionBaseStatus
 g_tls_connection_base_pop_io (GTlsConnectionBase  *tls,
                               GIOCondition         direction,
                               gboolean             success,
+                              GError              *op_error,
                               GError             **error)
 {
   g_assert (direction & (G_IO_IN | G_IO_OUT));
@@ -838,7 +853,7 @@ g_tls_connection_base_pop_io (GTlsConnectionBase  *tls,
   g_return_val_if_fail (G_IS_TLS_CONNECTION_BASE (tls), G_TLS_CONNECTION_BASE_ERROR);
 
   return G_TLS_CONNECTION_BASE_GET_CLASS (tls)->pop_io (tls, direction,
-                                                        success, error);
+                                                        success, op_error, error);
 }
 
 /* Checks whether the underlying base stream or GDatagramBased meets
