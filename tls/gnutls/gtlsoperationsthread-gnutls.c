@@ -70,6 +70,8 @@ struct _GTlsOperationsThreadGnutls {
   unsigned int             pcert_length;
   gnutls_privkey_t         pkey;
 
+  GTlsCertificate         *peer_certificate;
+
   GList                   *accepted_cas;
 
   gchar                   *server_identity;
@@ -537,6 +539,22 @@ set_authentication_mode (GTlsOperationsThreadGnutls *self,
   gnutls_certificate_server_set_request (self->session, req);
 }
 
+static GTlsCertificate *
+get_peer_certificate (GTlsOperationsThreadGnutls *self)
+{
+  const gnutls_datum_t *certs;
+  unsigned int num_certs;
+
+  if (gnutls_certificate_type_get (self->session) == GNUTLS_CRT_X509)
+    {
+      certs = gnutls_certificate_get_peers (self->session, &num_certs);
+      if (certs && num_certs > 0)
+        return g_tls_certificate_gnutls_build_chain (certs, num_certs, GNUTLS_X509_FMT_DER);
+    }
+
+  return NULL;
+}
+
 static GTlsConnectionBaseStatus
 g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                                           HandshakeContext          *context,
@@ -551,11 +569,10 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
   GTlsConnectionBaseStatus status;
-  GTlsCertificateGnutls *chain;
-  const gnutls_datum_t *certs;
-  unsigned int num_certs;
   gnutls_datum_t protocol;
   int ret;
+
+  g_clear_object (&self->peer_certificate);
 
   if (!self->ever_handshaked)
     set_handshake_priority (self);
@@ -605,17 +622,9 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
 
   *accepted_cas = g_list_copy (self->accepted_cas);
 
-  *peer_certificate = NULL;
-  if (gnutls_certificate_type_get (self->session) == GNUTLS_CRT_X509)
-    {
-      certs = gnutls_certificate_get_peers (self->session, &num_certs);
-      if (certs && num_certs > 0)
-        {
-          chain = g_tls_certificate_gnutls_build_chain (certs, num_certs, GNUTLS_X509_FMT_DER);
-          if (chain)
-            *peer_certificate = G_TLS_CERTIFICATE (chain);
-        }
-    }
+  if (!self->peer_certificate)
+    self->peer_certificate = get_peer_certificate (self);
+  *peer_certificate = g_steal_pointer (&self->peer_certificate);
 
   return status;
 }
@@ -1109,12 +1118,18 @@ static int
 verify_certificate_cb (gnutls_session_t session)
 {
   GTlsOperationsThreadGnutls *self = gnutls_session_get_ptr (session);
+  gboolean accepted;
+
+  g_assert (!self->peer_certificate);
+  self->peer_certificate = get_peer_certificate (self);
+  accepted = g_tls_operations_thread_base_verify_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                                              self->peer_certificate,
+                                                              self->handshake_context);
 
   /* Return 0 for the handshake to continue, non-zero to terminate.
    * Complete opposite of what OpenSSL does.
    */
-  return !g_tls_operations_thread_base_verify_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
-                                                           self->handshake_context);
+  return !accepted;
 }
 
 static int
@@ -1414,6 +1429,8 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
       g_list_free_full (self->accepted_cas, (GDestroyNotify)g_byte_array_unref);
       self->accepted_cas = NULL;
     }
+
+  g_assert (!self->peer_certificate);
 
   g_assert (!self->op_cancellable);
   g_assert (!self->op_error);

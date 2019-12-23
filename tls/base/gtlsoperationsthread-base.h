@@ -116,6 +116,7 @@ gboolean                  g_tls_operations_thread_base_get_is_missing_requested_
                                                                                  (GTlsOperationsThreadBase  *self);
 
 gboolean                  g_tls_operations_thread_base_verify_certificate        (GTlsOperationsThreadBase  *self,
+                                                                                  GTlsCertificate           *peer_certificate,
                                                                                   HandshakeContext          *context);
 
 void                      g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase   *self,
