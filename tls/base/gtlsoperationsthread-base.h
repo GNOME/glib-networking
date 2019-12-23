@@ -34,34 +34,28 @@ G_BEGIN_DECLS
 
 G_DECLARE_DERIVABLE_TYPE (GTlsOperationsThreadBase, g_tls_operations_thread_base, G, TLS_OPERATIONS_THREAD_BASE, GObject)
 
+typedef struct _HandshakeContext HandshakeContext;
+
 struct _GTlsOperationsThreadBaseClass
 {
   GObjectClass parent_class;
 
   void                        (*copy_client_session_state)  (GTlsOperationsThreadBase  *self,
                                                              GTlsOperationsThreadBase  *source);
+
   void                        (*set_server_identity)        (GTlsOperationsThreadBase  *self,
                                                              const gchar               *server_identity);
 
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
+                                                             HandshakeContext          *context,
                                                              const gchar              **advertised_protocols,
                                                              GTlsAuthenticationMode     auth_mode,
                                                              gint64                     timeout,
                                                              gchar                    **negotiated_protocol,
                                                              GList                    **accepted_cas,
+                                                             GTlsCertificate          **peer_certificate,
                                                              GCancellable              *cancellable,
                                                              GError                   **error);
-
-/* FIXME: working on these... */
-#if 0
-  GTlsCertificate            *(*retrieve_peer_certificate)  (GTlsOperationsThreadBase  *self);
-  GTlsCertificateFlags        (*verify_peer_certificate)    (GTlsOperationsThreadBase  *self,
-                                                             GTlsCertificate           *certificate,
-                                                             GTlsCertificateFlags       flags);
-  void                        (*complete_handshake)         (GTlsOperationsThreadBase  *self,
-                                                             gchar                    **negotiated_protocol,
-                                                             GError                   **error);
-#endif
 
   GTlsConnectionBaseStatus    (*read_fn)                    (GTlsOperationsThreadBase  *self,
                                                              void                      *buffer,
@@ -94,73 +88,88 @@ struct _GTlsOperationsThreadBaseClass
                                                              GError                   **error);
 };
 
+typedef gboolean (*GTlsVerifyCertificateFunc) (GTlsOperationsThreadBase *thread,
+                                               GTlsCertificate          *peer_certificate,
+                                               gpointer                  user_data);
+typedef void     (*GTlsSessionResumedFunc)    (GTlsOperationsThreadBase *thread,
+                                               GTlsCertificate          *peer_certificate,
+                                               gpointer                  user_data);
+
 /* FIXME: remove!!! */
-GTlsConnectionBase       *g_tls_operations_thread_base_get_connection            (GTlsOperationsThreadBase  *self);
+GTlsConnectionBase       *g_tls_operations_thread_base_get_connection            (GTlsOperationsThreadBase   *self);
 
-void                      g_tls_operations_thread_base_set_own_certificate       (GTlsOperationsThreadBase  *self,
-                                                                                  GTlsCertificate           *cert);
-gchar                    *g_tls_operations_thread_base_get_own_certificate_pem   (GTlsOperationsThreadBase  *self);
+void                      g_tls_operations_thread_base_set_own_certificate       (GTlsOperationsThreadBase   *self,
+                                                                                  GTlsCertificate            *cert);
+gchar                    *g_tls_operations_thread_base_get_own_certificate_pem   (GTlsOperationsThreadBase   *self);
 
-void                      g_tls_operations_thread_base_set_interaction           (GTlsOperationsThreadBase  *self,
-                                                                                  GTlsInteraction           *interaction);
-GTlsInteraction          *g_tls_operations_thread_base_ref_interaction           (GTlsOperationsThreadBase  *self);
-GError                   *g_tls_operations_thread_base_take_interaction_error    (GTlsOperationsThreadBase  *self);
+void                      g_tls_operations_thread_base_set_interaction           (GTlsOperationsThreadBase   *self,
+                                                                                  GTlsInteraction            *interaction);
+GTlsInteraction          *g_tls_operations_thread_base_ref_interaction           (GTlsOperationsThreadBase   *self);
+GError                   *g_tls_operations_thread_base_take_interaction_error    (GTlsOperationsThreadBase   *self);
 
-gboolean                  g_tls_operations_thread_base_request_certificate       (GTlsOperationsThreadBase  *self,
-                                                                                  GCancellable              *cancellable);
+gboolean                  g_tls_operations_thread_base_request_certificate       (GTlsOperationsThreadBase   *self,
+                                                                                  GCancellable               *cancellable);
 
-void                      g_tls_operations_thread_base_set_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self);
-gboolean                  g_tls_operations_thread_base_get_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self);
+void                      g_tls_operations_thread_base_set_is_missing_requested_client_certificate
+                                                                                 (GTlsOperationsThreadBase  *self);
+gboolean                  g_tls_operations_thread_base_get_is_missing_requested_client_certificate
+                                                                                 (GTlsOperationsThreadBase  *self);
 
-void                      g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase  *self,
-                                                                                  GTlsOperationsThreadBase  *source);
+gboolean                  g_tls_operations_thread_base_verify_certificate        (GTlsOperationsThreadBase  *self,
+                                                                                  HandshakeContext          *context);
 
-void                      g_tls_operations_thread_base_set_server_identity       (GTlsOperationsThreadBase  *self,
-                                                                                  const gchar               *server_identity);
+void                      g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase   *self,
+                                                                                  GTlsOperationsThreadBase   *source);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake                 (GTlsOperationsThreadBase  *self,
-                                                                                  const gchar              **advertised_protocols,
-                                                                                  GTlsAuthenticationMode     auth_mode,
-                                                                                  gint64                     timeout,
-                                                                                  gchar                    **negotiated_protocol,
-                                                                                  GList                    **accepted_cas,
-                                                                                  GCancellable              *cancellable,
-                                                                                  GError                   **error);
+void                      g_tls_operations_thread_base_set_server_identity       (GTlsOperationsThreadBase   *self,
+                                                                                  const gchar                *server_identity);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_read                      (GTlsOperationsThreadBase  *self,
-                                                                                  void                      *buffer,
-                                                                                  gsize                      size,
-                                                                                  gint64                     timeout,
-                                                                                  gssize                    *nread,
-                                                                                  GCancellable              *cancellable,
-                                                                                  GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake                 (GTlsOperationsThreadBase   *self,
+                                                                                  const gchar               **advertised_protocols,
+                                                                                  GTlsAuthenticationMode      auth_mode,
+                                                                                  gint64                      timeout,
+                                                                                  GTlsVerifyCertificateFunc   verify_callback,
+                                                                                  GTlsSessionResumedFunc      resumed_callback,
+                                                                                  gchar                     **negotiated_protocol,
+                                                                                  GList                     **accepted_cas,
+                                                                                  GCancellable               *cancellable,
+                                                                                  gpointer                    user_data,
+                                                                                  GError                    **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_read_message              (GTlsOperationsThreadBase  *self,
-                                                                                  GInputVector              *vectors,
-                                                                                  guint                      num_vectors,
-                                                                                  gint64                     timeout,
-                                                                                  gssize                    *nread,
-                                                                                  GCancellable              *cancellable,
-                                                                                  GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_read                      (GTlsOperationsThreadBase   *self,
+                                                                                  void                       *buffer,
+                                                                                  gsize                       size,
+                                                                                  gint64                      timeout,
+                                                                                  gssize                     *nread,
+                                                                                  GCancellable               *cancellable,
+                                                                                  GError                    **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_write                     (GTlsOperationsThreadBase  *self,
-                                                                                  const void                *buffer,
-                                                                                  gsize                      size,
-                                                                                  gint64                     timeout,
-                                                                                  gssize                    *nwrote,
-                                                                                  GCancellable              *cancellable,
-                                                                                  GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_read_message              (GTlsOperationsThreadBase   *self,
+                                                                                  GInputVector               *vectors,
+                                                                                  guint                       num_vectors,
+                                                                                  gint64                      timeout,
+                                                                                  gssize                     *nread,
+                                                                                  GCancellable               *cancellable,
+                                                                                  GError                    **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_write_message             (GTlsOperationsThreadBase  *self,
-                                                                                  GOutputVector             *vectors,
-                                                                                  guint                      num_vectors,
-                                                                                  gint64                     timeout,
-                                                                                  gssize                    *nwrote,
-                                                                                  GCancellable              *cancellable,
-                                                                                  GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_write                     (GTlsOperationsThreadBase   *self,
+                                                                                  const void                 *buffer,
+                                                                                  gsize                       size,
+                                                                                  gint64                      timeout,
+                                                                                  gssize                     *nwrote,
+                                                                                  GCancellable               *cancellable,
+                                                                                  GError                    **error);
 
-GTlsConnectionBaseStatus  g_tls_operations_thread_base_close                     (GTlsOperationsThreadBase  *self,
-                                                                                  GCancellable              *cancellable,
-                                                                                  GError                   **error);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_write_message             (GTlsOperationsThreadBase   *self,
+                                                                                  GOutputVector              *vectors,
+                                                                                  guint                       num_vectors,
+                                                                                  gint64                      timeout,
+                                                                                  gssize                     *nwrote,
+                                                                                  GCancellable               *cancellable,
+                                                                                  GError                    **error);
+
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_close                     (GTlsOperationsThreadBase   *self,
+                                                                                  GCancellable               *cancellable,
+                                                                                  GError                    **error);
 
 G_END_DECLS
