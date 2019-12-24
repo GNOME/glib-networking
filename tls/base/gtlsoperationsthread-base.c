@@ -81,13 +81,12 @@ typedef struct {
    * instead return data from the op thread to the calling thread using the op
    * struct.
    *
-   * TODO: some of this could move into the op struct?
+   * FIXME: what of this can move into the op struct?
    */
   GMutex mutex;
-  gchar *own_certificate_pem;
   GTlsInteraction *interaction;
   GError *interaction_error;
-  gboolean missing_requested_client_certificate;
+  gboolean missing_requested_client_certificate; /* FIXME: out parameter of handshake op? */
 } GTlsOperationsThreadBasePrivate;
 
 typedef enum {
@@ -112,6 +111,7 @@ struct _HandshakeContext
 
 typedef struct {
   HandshakeContext *context;
+  GTlsCertificate *own_certificate;
   gchar **advertised_protocols;
   GTlsAuthenticationMode auth_mode;
   gchar *negotiated_protocol;
@@ -180,33 +180,6 @@ g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
 
   return priv->connection;
-}
-
-void
-g_tls_operations_thread_base_set_own_certificate (GTlsOperationsThreadBase *self,
-                                                  GTlsCertificate          *cert)
-{
-  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-
-  g_mutex_lock (&priv->mutex);
-  g_clear_pointer (&priv->own_certificate_pem, g_free);
-  g_object_get (cert,
-                "certificate-pem", &priv->own_certificate_pem,
-                NULL);
-  g_mutex_unlock (&priv->mutex);
-}
-
-gchar *
-g_tls_operations_thread_base_get_own_certificate_pem (GTlsOperationsThreadBase *self)
-{
-  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  gchar *copy;
-
-  g_mutex_lock (&priv->mutex);
-  copy = g_strdup (priv->own_certificate_pem);
-  g_mutex_unlock (&priv->mutex);
-
-  return copy;
 }
 
 void
@@ -314,6 +287,7 @@ handshake_context_free (HandshakeContext *context)
 
 static HandshakeData *
 handshake_data_new (HandshakeContext        *context,
+                    GTlsCertificate         *own_certificate,
                     const gchar            **advertised_protocols,
                     GTlsAuthenticationMode   mode)
 {
@@ -321,6 +295,7 @@ handshake_data_new (HandshakeContext        *context,
 
   data = g_new0 (HandshakeData, 1);
   data->context = context;
+  data->own_certificate = own_certificate ? g_object_ref (own_certificate) : NULL;
   data->advertised_protocols = g_strdupv ((gchar **)advertised_protocols);
   data->auth_mode = mode;
 
@@ -332,6 +307,7 @@ handshake_data_free (HandshakeData *data)
 {
   g_strfreev (data->advertised_protocols);
 
+  g_clear_object (&data->own_certificate);
   g_clear_object (&data->peer_certificate);
 
   g_assert (!data->accepted_cas);
@@ -381,6 +357,7 @@ g_tls_thread_set_server_identity_operation_new (GTlsOperationsThreadBase *thread
 static GTlsThreadOperation *
 g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
                                       HandshakeContext          *context,
+                                      GTlsCertificate           *own_certificate,
                                       GTlsConnectionBase        *connection,
                                       const gchar              **advertised_protocols,
                                       GTlsAuthenticationMode     auth_mode,
@@ -398,6 +375,7 @@ g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
   op->cancellable = cancellable;
 
   op->handshake_data = handshake_data_new (context,
+                                           own_certificate,
                                            advertised_protocols,
                                            auth_mode);
 
@@ -719,6 +697,7 @@ g_tls_operations_thread_base_verify_certificate (GTlsOperationsThreadBase *self,
 
 GTlsConnectionBaseStatus
 g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
+                                        GTlsCertificate            *own_certificate,
                                         const gchar               **advertised_protocols,
                                         GTlsAuthenticationMode      auth_mode,
                                         gint64                      timeout,
@@ -733,6 +712,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsConnectionBaseStatus status;
   GTlsThreadOperation *op;
+  GTlsCertificate *copied_cert;
   HandshakeContext *context;
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
@@ -744,8 +724,12 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
   context = handshake_context_new (verify_callback,
                                    user_data);
 
+  copied_cert = G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->copy_certificate (self,
+                                                                                 own_certificate);
+
   op = g_tls_thread_handshake_operation_new (self,
                                              context,
+                                             copied_cert,
                                              priv->connection,
                                              advertised_protocols,
                                              auth_mode,
@@ -762,6 +746,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
 
   handshake_context_free (context);
   g_tls_thread_operation_free (op);
+  g_object_unref (copied_cert);
 
   return status;
 }
@@ -1216,6 +1201,7 @@ process_op (GAsyncQueue         *queue,
     case G_TLS_THREAD_OP_HANDSHAKE:
       op->result = base_class->handshake_fn (op->thread,
                                              op->handshake_data->context,
+                                             op->handshake_data->own_certificate,
                                              (const gchar **)op->handshake_data->advertised_protocols,
                                              op->handshake_data->auth_mode,
                                              op->timeout,
@@ -1430,7 +1416,6 @@ g_tls_operations_thread_base_finalize (GObject *object)
 
   g_mutex_clear (&priv->mutex);
 
-  g_clear_pointer (&priv->own_certificate_pem, g_free);
   g_clear_object (&priv->interaction);
   g_clear_error (&priv->interaction_error);
 

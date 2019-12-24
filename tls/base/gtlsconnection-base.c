@@ -238,9 +238,6 @@ g_tls_connection_base_initable_init (GInitable    *initable,
   if (!priv->thread)
     return FALSE;
 
-  if (priv->certificate)
-    g_tls_operations_thread_base_set_own_certificate (priv->thread, priv->certificate);
-
   if (priv->interaction)
     g_tls_operations_thread_base_set_interaction (priv->thread, priv->interaction);
 
@@ -440,10 +437,6 @@ g_tls_connection_base_set_property (GObject      *object,
       if (priv->certificate)
         g_object_unref (priv->certificate);
       priv->certificate = g_value_dup_object (value);
-
-      if (priv->thread)
-        g_tls_operations_thread_base_set_own_certificate (priv->thread,
-                                                          priv->certificate);
       break;
 
     case PROP_INTERACTION:
@@ -1416,6 +1409,7 @@ handshake (GTlsConnectionBase  *tls,
   priv->started_handshake = TRUE;
 
   g_tls_operations_thread_base_handshake (priv->thread,
+                                          priv->certificate,
                                           (const gchar **)priv->advertised_protocols,
                                           auth_mode,
                                           timeout,

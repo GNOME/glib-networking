@@ -40,6 +40,9 @@ struct _GTlsOperationsThreadBaseClass
 {
   GObjectClass parent_class;
 
+  GTlsCertificate            *(*copy_certificate)           (GTlsOperationsThreadBase  *self,
+                                                             GTlsCertificate           *cert);
+
   void                        (*copy_client_session_state)  (GTlsOperationsThreadBase  *self,
                                                              GTlsOperationsThreadBase  *source);
 
@@ -48,6 +51,7 @@ struct _GTlsOperationsThreadBaseClass
 
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
                                                              HandshakeContext          *context,
+                                                             GTlsCertificate           *own_certificate,
                                                              const gchar              **advertised_protocols,
                                                              GTlsAuthenticationMode     auth_mode,
                                                              gint64                     timeout,
@@ -98,10 +102,6 @@ typedef void     (*GTlsSessionResumedFunc)    (GTlsOperationsThreadBase *thread,
 /* FIXME: remove!!! */
 GTlsConnectionBase       *g_tls_operations_thread_base_get_connection            (GTlsOperationsThreadBase   *self);
 
-void                      g_tls_operations_thread_base_set_own_certificate       (GTlsOperationsThreadBase   *self,
-                                                                                  GTlsCertificate            *cert);
-gchar                    *g_tls_operations_thread_base_get_own_certificate_pem   (GTlsOperationsThreadBase   *self);
-
 void                      g_tls_operations_thread_base_set_interaction           (GTlsOperationsThreadBase   *self,
                                                                                   GTlsInteraction            *interaction);
 GTlsInteraction          *g_tls_operations_thread_base_ref_interaction           (GTlsOperationsThreadBase   *self);
@@ -126,6 +126,7 @@ void                      g_tls_operations_thread_base_set_server_identity      
                                                                                   const gchar                *server_identity);
 
 GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake                 (GTlsOperationsThreadBase   *self,
+                                                                                  GTlsCertificate            *own_certificate,
                                                                                   const gchar               **advertised_protocols,
                                                                                   GTlsAuthenticationMode      auth_mode,
                                                                                   gint64                      timeout,
