@@ -1267,12 +1267,12 @@ retrieve_certificate_cb (gnutls_session_t              session,
   GByteArray *dn;
   int i;
 
-  /* FIXME: Here we are supposed to ensure that the certificate supports one of
-   * the algorithms given in pk_algos.
-   */
-
   if (is_client (self))
     {
+      /* FIXME: Here we are supposed to ensure that the certificate supports one
+       * of the algorithms given in pk_algos.
+       */
+
       if (self->accepted_cas)
         {
           g_list_free_full (self->accepted_cas, (GDestroyNotify)g_byte_array_unref);
