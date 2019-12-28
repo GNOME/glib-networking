@@ -190,7 +190,7 @@ g_tls_operations_thread_base_set_interaction (GTlsOperationsThreadBase *self,
 
   g_mutex_lock (&priv->mutex);
   g_clear_object (&priv->interaction);
-  priv->interaction = g_object_ref (interaction);
+  priv->interaction = interaction? g_object_ref (interaction) : NULL;
   g_mutex_unlock (&priv->mutex);
 }
 
@@ -230,11 +230,14 @@ g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase *self
 
   g_mutex_lock (&priv->mutex);
   g_clear_error (&priv->interaction_error);
-  res = g_tls_interaction_invoke_request_certificate (priv->interaction,
-                                                      G_TLS_CONNECTION (priv->connection),
-                                                      0,
-                                                      cancellable,
-                                                      &priv->interaction_error);
+  if (priv->interaction)
+    {
+      res = g_tls_interaction_invoke_request_certificate (priv->interaction,
+                                                          G_TLS_CONNECTION (priv->connection),
+                                                          0,
+                                                          cancellable,
+                                                          &priv->interaction_error);
+    }
   g_mutex_unlock (&priv->mutex);
 
   return res != G_TLS_INTERACTION_FAILED;
