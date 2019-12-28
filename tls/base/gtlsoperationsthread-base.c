@@ -747,7 +747,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
 
   handshake_context_free (context);
   g_tls_thread_operation_free (op);
-  g_object_unref (copied_cert);
+  g_clear_object (&copied_cert);
 
   return status;
 }
