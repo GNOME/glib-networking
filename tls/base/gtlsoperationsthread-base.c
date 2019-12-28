@@ -658,6 +658,7 @@ execute_verify_certificate_callback_cb (VerifyCertificateData *data)
 
   g_mutex_lock (&data->mutex);
   data->complete = TRUE;
+  g_cond_signal (&data->condition);
   g_mutex_unlock (&data->mutex);
 
   return G_SOURCE_REMOVE;
