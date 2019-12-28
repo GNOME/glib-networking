@@ -1283,7 +1283,6 @@ verify_certificate_cb (GTlsOperationsThreadBase *thread,
                        GTlsConnectionBase       *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsCertificateFlags peer_certificate_errors = 0;
   gboolean accepted = FALSE;
 
   /* FIXME: when doing async handshake as sync-on-a-thread, this function will
@@ -1292,13 +1291,12 @@ verify_certificate_cb (GTlsOperationsThreadBase *thread,
    * FIXME: eliminate handshake context.
    */
 
-  if (peer_certificate)
-    peer_certificate_errors = verify_peer_certificate (tls, peer_certificate);
-
   g_set_object (&priv->peer_certificate, peer_certificate);
-  g_clear_object (&peer_certificate);
 
-  priv->peer_certificate_errors = peer_certificate_errors;
+  if (peer_certificate)
+    priv->peer_certificate_errors = verify_peer_certificate (tls, peer_certificate);
+  else
+    priv->peer_certificate_errors = 0;
 
   g_object_notify (G_OBJECT (tls), "peer-certificate");
   g_object_notify (G_OBJECT (tls), "peer-certificate-errors");
