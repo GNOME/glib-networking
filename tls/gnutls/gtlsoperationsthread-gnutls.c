@@ -602,7 +602,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   gnutls_datum_t protocol;
   int ret;
 
-  self->own_certificate = g_steal_pointer (&own_certificate);
+  self->own_certificate = own_certificate;
 
   if (!self->ever_handshaked)
     set_handshake_priority (self);
@@ -641,11 +641,10 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   END_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, ret, status,
                  _("Error performing TLS handshake"), error);
 
+  self->own_certificate = NULL;
   self->handshake_context = NULL;
   self->handshaking = FALSE;
   self->ever_handshaked = TRUE;
-
-  g_clear_object (&self->own_certificate);
 
   if (gnutls_alpn_get_selected_protocol (self->session, &protocol) == 0 && protocol.size > 0)
     *negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
@@ -1410,7 +1409,7 @@ g_tls_operations_thread_gnutls_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_BASE_IO_STREAM:
-      self->base_iostream = g_value_get_object (value);
+      self->base_iostream = g_value_dup_object (value);
       if (self->base_iostream)
         {
           self->base_istream = g_io_stream_get_input_stream (self->base_iostream);
@@ -1420,7 +1419,7 @@ g_tls_operations_thread_gnutls_set_property (GObject      *object,
       break;
 
     case PROP_BASE_SOCKET:
-      self->base_socket = g_value_get_object (value);
+      self->base_socket = g_value_dup_object (value);
       if (self->base_socket)
         g_assert (!self->base_iostream);
       break;
