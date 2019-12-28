@@ -1306,9 +1306,6 @@ accept_or_reject_peer_certificate (gpointer user_data)
   g_cond_signal (&priv->verify_certificate_condition);
   g_mutex_unlock (&priv->verify_certificate_mutex);
 
-  g_object_notify (G_OBJECT (tls), "peer-certificate");
-  g_object_notify (G_OBJECT (tls), "peer-certificate-errors");
-
   return G_SOURCE_REMOVE;
 }
 
