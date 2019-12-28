@@ -47,9 +47,9 @@
  *   from separate reader and writer threads simultaneously.
  *
  * While the TLS thread class is intended to simplify our code, it has one major
- * disadvantage: the TLS thread *must never block* because GIOStream users are
- * allowed to do a sync read and a sync write simultaneously in separate
- * threads. Consider a hypothetical scenario:
+ * disadvantage: the TLS thread *must never block* during read or write
+ * operations, because GIOStream users are allowed to do a sync read and a sync
+ * write simultaneously in separate threads. Consider a hypothetical scenario:
  *
  * (1) Application starts a read on thread A
  * (2) Application starts a write on thread B
