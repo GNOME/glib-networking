@@ -137,7 +137,12 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
 
   ret = gnutls_certificate_allocate_credentials (&priv->creds);
   if (ret != GNUTLS_E_SUCCESS)
-    return FALSE;
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Could not create TLS connection: %s"),
+                   gnutls_strerror (ret));
+      return FALSE;
+    }
 
   gnutls_init (&priv->session, flags);
 
