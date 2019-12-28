@@ -149,7 +149,6 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
   GTlsConnectionBase *tls;
   GTlsConnectionBaseStatus status;
   GError *my_error = NULL;
-  GError *op_error = NULL;
 
   /* We intentionally do not check for GNUTLS_E_INTERRUPTED here
    * Instead, the caller may poll for the source to become ready again.
@@ -162,11 +161,10 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
     return G_TLS_CONNECTION_BASE_TRY_AGAIN;
 
   self->op_cancellable = NULL;
-  op_error = g_steal_pointer (&self->op_error);
 
   tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
 
-  status = g_tls_connection_base_pop_io (tls, direction, ret >= 0, op_error, &my_error);
+  status = g_tls_connection_base_pop_io (tls, direction, ret >= 0, g_steal_pointer (&self->op_error), &my_error);
   if (status == G_TLS_CONNECTION_BASE_OK ||
       status == G_TLS_CONNECTION_BASE_WOULD_BLOCK ||
       status == G_TLS_CONNECTION_BASE_TIMED_OUT)
