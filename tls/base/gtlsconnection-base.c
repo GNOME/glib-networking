@@ -824,7 +824,8 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
                                _("Server required TLS certificate"));
         }
 
-      g_error_free (op_error);
+      if (op_error)
+        g_error_free (op_error);
     }
   else if (op_error)
     {
