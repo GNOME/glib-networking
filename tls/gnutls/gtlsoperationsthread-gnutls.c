@@ -642,7 +642,9 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   self->own_certificate = NULL;
   self->handshake_context = NULL;
   self->handshaking = FALSE;
-  self->ever_handshaked = TRUE;
+
+  if (status == G_TLS_CONNECTION_BASE_OK)
+    self->ever_handshaked = TRUE;
 
   if (gnutls_alpn_get_selected_protocol (self->session, &protocol) == 0 && protocol.size > 0)
     *negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
