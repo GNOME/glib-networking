@@ -641,7 +641,7 @@ verify_certificate_data_new (GTlsOperationsThreadBase *thread,
 
   data = g_new0 (VerifyCertificateData, 1);
   data->thread = g_object_ref (thread);
-  data->peer_certificate = g_object_ref (peer_certificate);
+  data->peer_certificate = peer_certificate ? g_object_ref (peer_certificate) : NULL;
   data->context = context;
 
   g_mutex_init (&data->mutex);
@@ -653,8 +653,8 @@ verify_certificate_data_new (GTlsOperationsThreadBase *thread,
 static void
 verify_certificate_data_free (VerifyCertificateData *data)
 {
-  g_object_unref (data->thread);
-  g_object_unref (data->peer_certificate);
+  g_clear_object (&data->thread);
+  g_clear_object (&data->peer_certificate);
 
   g_mutex_clear (&data->mutex);
   g_cond_clear (&data->condition);
