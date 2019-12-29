@@ -222,13 +222,16 @@ g_tls_operations_thread_base_take_interaction_error (GTlsOperationsThreadBase *s
 }
 
 gboolean
-g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase *self,
-                                                  GCancellable             *cancellable)
+g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase  *self,
+                                                  GCancellable              *cancellable,
+                                                  GTlsCertificate          **own_certificate)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;
+  GTlsCertificate *cert;
 
   g_mutex_lock (&priv->mutex);
+
   g_clear_error (&priv->interaction_error);
   if (priv->interaction)
     {
@@ -238,6 +241,13 @@ g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase *self
                                                           cancellable,
                                                           &priv->interaction_error);
     }
+
+  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (priv->connection));
+  if (cert)
+    *own_certificate = G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->copy_certificate (self, cert);
+  else
+    *own_certificate = NULL;
+
   g_mutex_unlock (&priv->mutex);
 
   return res != G_TLS_INTERACTION_FAILED;

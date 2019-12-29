@@ -1229,7 +1229,7 @@ pin_request_cb (void         *userdata,
 static void
 clear_own_certificate_internals (GTlsOperationsThreadGnutls *self)
 {
-  g_tls_certificate_gnutls_copy_free (self->pcert, self->pcert_length, self->pkey);
+  g_tls_certificate_gnutls_internals_free (self->pcert, self->pcert_length, self->pkey);
 
   self->pcert = NULL;
   self->pcert_length = 0;
@@ -1237,10 +1237,10 @@ clear_own_certificate_internals (GTlsOperationsThreadGnutls *self)
 }
 
 static void
-get_gnutls_certificate_internals (GTlsOperationsThreadGnutls  *self,
-                                  gnutls_pcert_st            **pcert,
-                                  unsigned int                *pcert_length,
-                                  gnutls_privkey_t            *pkey)
+get_own_certificate_internals (GTlsOperationsThreadGnutls  *self,
+                               gnutls_pcert_st            **pcert,
+                               unsigned int                *pcert_length,
+                               gnutls_privkey_t            *pkey)
 {
   clear_own_certificate_internals (self);
 
@@ -1250,9 +1250,9 @@ get_gnutls_certificate_internals (GTlsOperationsThreadGnutls  *self,
       gnutls_privkey_init (&privkey);
       gnutls_privkey_set_pin_function (privkey, pin_request_cb, self);
 
-      g_tls_certificate_gnutls_copy (G_TLS_CERTIFICATE_GNUTLS (self->own_certificate),
-                                     self->interaction_id,
-                                     pcert, pcert_length, &privkey);
+      g_tls_certificate_gnutls_copy_internals (G_TLS_CERTIFICATE_GNUTLS (self->own_certificate),
+                                               self->interaction_id,
+                                               pcert, pcert_length, &privkey);
       *pkey = privkey;
     }
   else
@@ -1299,22 +1299,22 @@ retrieve_certificate_cb (gnutls_session_t              session,
       self->accepted_cas = g_list_reverse (self->accepted_cas);
     }
 
-  clear_own_certificate_internals (self);
-  get_gnutls_certificate_internals (self, pcert, pcert_length, pkey);
+  get_own_certificate_internals (self, pcert, pcert_length, pkey);
 
   if (is_client (self))
     {
       if (*pcert_length == 0)
         {
-          g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+          g_tls_certificate_gnutls_internals_free (*pcert, *pcert_length, *pkey);
 
           if (g_tls_operations_thread_base_request_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
-                                                                self->op_cancellable))
-            get_gnutls_certificate_internals (self, pcert, pcert_length, pkey);
+                                                                self->op_cancellable,
+                                                                &self->own_certificate))
+            get_own_certificate_internals (self, pcert, pcert_length, pkey);
 
           if (*pcert_length == 0)
             {
-              g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+              g_tls_certificate_gnutls_internals_free (*pcert, *pcert_length, *pkey);
 
               /* If there is still no client certificate, this connection will
                * probably fail, but we must not give up yet. The certificate might
@@ -1328,7 +1328,7 @@ retrieve_certificate_cb (gnutls_session_t              session,
 
       if (!*pkey)
         {
-          g_tls_certificate_gnutls_copy_free (*pcert, *pcert_length, *pkey);
+          g_tls_certificate_gnutls_internals_free (*pcert, *pcert_length, *pkey);
 
           /* No private key. GnuTLS expects it to be non-null if pcert_length is
            * nonzero, so we have to abort now.

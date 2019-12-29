@@ -108,7 +108,8 @@ GTlsInteraction          *g_tls_operations_thread_base_ref_interaction          
 GError                   *g_tls_operations_thread_base_take_interaction_error    (GTlsOperationsThreadBase   *self);
 
 gboolean                  g_tls_operations_thread_base_request_certificate       (GTlsOperationsThreadBase   *self,
-                                                                                  GCancellable               *cancellable);
+                                                                                  GCancellable               *cancellable,
+                                                                                  GTlsCertificate           **own_certificate);
 
 void                      g_tls_operations_thread_base_set_is_missing_requested_client_certificate
                                                                                  (GTlsOperationsThreadBase  *self);
