@@ -641,8 +641,7 @@ verify_certificate_data_new (GTlsOperationsThreadBase *thread,
 
   data = g_new0 (VerifyCertificateData, 1);
   data->thread = g_object_ref (thread);
-  /* FIXME: don't emit accept-certificate when peer_certificate is NULL, glib-2-62 branch regression */
-  data->peer_certificate = peer_certificate ? g_object_ref (peer_certificate) : NULL;
+  data->peer_certificate = g_object_ref (peer_certificate);
   data->context = context;
 
   g_mutex_init (&data->mutex);
@@ -655,10 +654,7 @@ static void
 verify_certificate_data_free (VerifyCertificateData *data)
 {
   g_object_unref (data->thread);
-
-  /* FIXME: don't emit accept-certificate when peer_certificate is NULL, glib-2-62 branch regression */
-  if (data->peer_certificate)
-    g_object_unref (data->peer_certificate);
+  g_object_unref (data->peer_certificate);
 
   g_mutex_clear (&data->mutex);
   g_cond_clear (&data->condition);
@@ -691,6 +687,8 @@ g_tls_operations_thread_base_verify_certificate (GTlsOperationsThreadBase *self,
   gboolean accepted;
 
   g_assert (g_main_context_is_owner (priv->op_thread_context));
+  g_assert (G_IS_TLS_CERTIFICATE (peer_certificate));
+  g_assert (context);
 
   data = verify_certificate_data_new (self, peer_certificate, context);
 

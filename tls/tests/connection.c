@@ -210,6 +210,9 @@ on_accept_certificate (GTlsConnection       *conn,
                        gpointer              user_data)
 {
   TestConnection *test = user_data;
+
+  g_assert_nonnull (cert);
+
   return errors == test->accept_flags;
 }
 
