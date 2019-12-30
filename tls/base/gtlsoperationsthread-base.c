@@ -335,16 +335,12 @@ has_performed_successful_posthandshake_op (GTlsOperationsThreadBase *self)
 void
 g_tls_operations_thread_base_push_io (GTlsOperationsThreadBase *self,
                                       GIOCondition              direction,
-                                      gint64                    timeout,
                                       GCancellable             *cancellable)
 {
-  g_assert (direction & (G_IO_IN | G_IO_OUT));
-
   /* FIXME: this is weird, can't we get rid of it on OpenSSL side? */
   if (G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->push_io)
     {
-      G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->push_io (self, direction,
-                                                              timeout, cancellable);
+      G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->push_io (self, direction, cancellable);
     }
 }
 
@@ -422,9 +418,6 @@ g_tls_operations_thread_base_pop_io (GTlsOperationsThreadBase  *self,
                                      GError                    *op_error,
                                      GError                   **error)
 {
-  g_assert (direction & (G_IO_IN | G_IO_OUT));
-  g_assert (!error || !*error);
-
   return G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->pop_io (self, direction,
                                                                 success, op_error, error);
 }

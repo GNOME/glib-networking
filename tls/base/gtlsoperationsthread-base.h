@@ -59,7 +59,6 @@ struct _GTlsOperationsThreadBaseClass
 
   void                   (*push_io)                    (GTlsOperationsThreadBase  *self,
                                                         GIOCondition               direction,
-                                                        gint64                     timeout, /* FIXME: remove timeout? */
                                                         GCancellable              *cancellable);
   GTlsOperationStatus    (*pop_io)                     (GTlsOperationsThreadBase  *self,
                                                         GIOCondition               direction,
@@ -148,7 +147,6 @@ void                 g_tls_operations_thread_base_set_server_identity       (GTl
 
 void                 g_tls_operations_thread_base_push_io                   (GTlsOperationsThreadBase   *self,
                                                                              GIOCondition                direction,
-                                                                             gint64                      timeout, /* FIXME: remove timeout? */
                                                                              GCancellable               *cancellable);
 GTlsOperationStatus  g_tls_operations_thread_base_pop_io                    (GTlsOperationsThreadBase   *self,
                                                                              GIOCondition                direction,

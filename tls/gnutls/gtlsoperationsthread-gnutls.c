@@ -135,7 +135,7 @@ begin_gnutls_io (GTlsOperationsThreadGnutls *self,
   self->op_cancellable = cancellable;
 
   g_tls_operations_thread_base_push_io (G_TLS_OPERATIONS_THREAD_BASE (self),
-                                        direction, 0, cancellable);
+                                        direction, cancellable);
 }
 
 static GTlsOperationStatus
