@@ -564,7 +564,7 @@ claim_op (GTlsConnectionBase    *tls,
           if (!do_implicit_handshake (tls, timeout, cancellable, error))
             {
               g_mutex_unlock (&priv->op_mutex);
-              g_tls_log_debug (tls, "claim_op failed: do_implicit_handshake failed");
+              g_tls_log_debug (tls, "claim_op failed: implicit handshake required");
               return FALSE;
             }
         }
