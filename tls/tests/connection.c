@@ -211,6 +211,9 @@ on_accept_certificate (GTlsConnection       *conn,
                        gpointer              user_data)
 {
   TestConnection *test = user_data;
+
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
+
   return errors == test->accept_flags;
 }
 
