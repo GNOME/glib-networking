@@ -223,6 +223,8 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS connection: %s"),
                    gnutls_strerror (status));
+      g_clear_object (&base_io_stream);
+      g_clear_object (&base_socket);
       return FALSE;
     }
 
@@ -244,6 +246,9 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   /* Set reasonable MTU */
   if (flags & GNUTLS_DATAGRAM)
     gnutls_dtls_set_mtu (priv->session, 1400);
+
+  g_clear_object (&base_io_stream);
+  g_clear_object (&base_socket);
 
   return TRUE;
 }
