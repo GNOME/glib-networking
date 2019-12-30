@@ -64,6 +64,7 @@ struct _GTlsOperationsThreadGnutls {
   gboolean                 ever_handshaked;
 
   /* Valid only during current operation */
+  GTlsAuthenticationMode   auth_mode;
   GTlsCertificate         *own_certificate;
   GTlsCertificate         *peer_certificate;
   GCancellable            *op_cancellable;
@@ -601,6 +602,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   int ret;
 
   self->own_certificate = own_certificate;
+  self->auth_mode = auth_mode;
 
   if (!self->ever_handshaked)
     set_handshake_priority (self);
@@ -640,6 +642,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                  _("Error performing TLS handshake"), error);
 
   self->own_certificate = NULL;
+  self->auth_mode = G_TLS_AUTHENTICATION_NONE;
   self->handshake_context = NULL;
   self->handshaking = FALSE;
 
@@ -1153,9 +1156,17 @@ verify_certificate_cb (gnutls_session_t session)
 
   g_assert (!self->peer_certificate);
   self->peer_certificate = get_peer_certificate (self);
-  accepted = g_tls_operations_thread_base_verify_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
-                                                              self->peer_certificate,
-                                                              self->handshake_context);
+
+  if (self->peer_certificate)
+    {
+      accepted = g_tls_operations_thread_base_verify_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                                                  self->peer_certificate,
+                                                                  self->handshake_context);
+    }
+  else
+    {
+      accepted = is_server (self) && self->auth_mode != G_TLS_AUTHENTICATION_REQUIRED;
+    }
 
   /* Return 0 for the handshake to continue, non-zero to terminate.
    * Complete opposite of what OpenSSL does.
