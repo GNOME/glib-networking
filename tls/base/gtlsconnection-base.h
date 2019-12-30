@@ -58,29 +58,9 @@ struct _GTlsConnectionBaseClass
 
   GTlsOperationsThreadBase   *(*create_op_thread)           (GTlsConnectionBase   *tls);
 
-  void                        (*push_io)                    (GTlsConnectionBase   *tls,
-                                                             GIOCondition          direction,
-                                                             gint64                timeout, /* FIXME: remove timeout */
-                                                             GCancellable         *cancellable);
-  GTlsConnectionBaseStatus    (*pop_io)                     (GTlsConnectionBase   *tls,
-                                                             GIOCondition          direction,
-                                                             gboolean              success,
-                                                             GError               *op_error,
-                                                             GError              **error);
-
   void                        (*set_accepted_cas)           (GTlsConnectionBase    *tls,
                                                              GList                 *accepted_cas);
 };
-
-void                      g_tls_connection_base_push_io                 (GTlsConnectionBase *tls,
-                                                                         GIOCondition        direction,
-                                                                         gint64              timeout, /* FIXME: remove timeout */
-                                                                         GCancellable       *cancellable);
-GTlsConnectionBaseStatus  g_tls_connection_base_pop_io                  (GTlsConnectionBase  *tls,
-                                                                         GIOCondition         direction,
-                                                                         gboolean             success,
-                                                                         GError              *op_error,
-                                                                         GError             **error);
 
 gssize                    g_tls_connection_base_read                    (GTlsConnectionBase  *tls,
                                                                          void                *buffer,

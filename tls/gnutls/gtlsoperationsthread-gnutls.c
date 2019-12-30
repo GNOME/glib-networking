@@ -63,10 +63,10 @@ struct _GTlsOperationsThreadGnutls {
   gboolean                 handshaking;
   gboolean                 ever_handshaked;
 
-  /* Valid only during current operation */
-  GTlsAuthenticationMode   auth_mode;
-  GTlsCertificate         *own_certificate;
-  GTlsCertificate         *peer_certificate;
+  /* This data is valid only during current operation */
+  GTlsAuthenticationMode   op_auth_mode;
+  GTlsCertificate         *op_own_certificate;
+  GTlsCertificate         *op_peer_certificate;
   GCancellable            *op_cancellable;
   GError                  *op_error;
 
@@ -129,15 +129,13 @@ begin_gnutls_io (GTlsOperationsThreadGnutls *self,
                  GIOCondition                direction,
                  GCancellable               *cancellable)
 {
-  GTlsConnectionBase *tls;
-
-  tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
-
   g_assert (!self->op_error);
   g_assert (!self->op_cancellable);
+
   self->op_cancellable = cancellable;
 
-  g_tls_connection_base_push_io (tls, direction, 0, cancellable);
+  g_tls_operations_thread_base_push_io (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                        direction, 0, cancellable);
 }
 
 static GTlsConnectionBaseStatus
@@ -147,7 +145,6 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
                GError                     **error,
                const char                  *err_prefix)
 {
-  GTlsConnectionBase *tls;
   GTlsConnectionBaseStatus status;
   GError *my_error = NULL;
 
@@ -163,9 +160,12 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
 
   self->op_cancellable = NULL;
 
-  tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
+  status = g_tls_operations_thread_base_pop_io (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                                direction,
+                                                ret >= 0,
+                                                g_steal_pointer (&self->op_error),
+                                                &my_error);
 
-  status = g_tls_connection_base_pop_io (tls, direction, ret >= 0, g_steal_pointer (&self->op_error), &my_error);
   if (status == G_TLS_CONNECTION_BASE_OK ||
       status == G_TLS_CONNECTION_BASE_WOULD_BLOCK ||
       status == G_TLS_CONNECTION_BASE_TIMED_OUT)
@@ -212,7 +212,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
           return G_TLS_CONNECTION_BASE_ERROR;
         }
 
-      if (g_tls_connection_get_require_close_notify (G_TLS_CONNECTION (tls)))
+      if (g_tls_operations_thread_base_get_close_notify_required (G_TLS_OPERATIONS_THREAD_BASE (self)))
         {
           g_clear_error (&my_error);
           g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_EOF,
@@ -489,10 +489,10 @@ compute_session_id (GTlsOperationsThreadGnutls *self)
            * that different connections to the same server can use different
            * certificates.
            */
-          if (self->own_certificate)
+          if (self->op_own_certificate)
             {
               GByteArray *der = NULL;
-              g_object_get (self->own_certificate,
+              g_object_get (self->op_own_certificate,
                             "certificate", &der,
                             NULL);
               if (der)
@@ -601,8 +601,8 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   gnutls_datum_t protocol;
   int ret;
 
-  self->own_certificate = own_certificate;
-  self->auth_mode = auth_mode;
+  self->op_own_certificate = own_certificate;
+  self->op_auth_mode = auth_mode;
 
   if (!self->ever_handshaked)
     set_handshake_priority (self);
@@ -641,8 +641,8 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   END_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, ret, status,
                  _("Error performing TLS handshake"), error);
 
-  self->own_certificate = NULL;
-  self->auth_mode = G_TLS_AUTHENTICATION_NONE;
+  self->op_own_certificate = NULL;
+  self->op_auth_mode = G_TLS_AUTHENTICATION_NONE;
   self->handshake_context = NULL;
   self->handshaking = FALSE;
 
@@ -656,9 +656,9 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
 
   *accepted_cas = g_list_copy (self->accepted_cas);
 
-  if (!self->peer_certificate)
-    self->peer_certificate = get_peer_certificate (self);
-  *peer_certificate = g_steal_pointer (&self->peer_certificate);
+  if (!self->op_peer_certificate)
+    self->op_peer_certificate = get_peer_certificate (self);
+  *peer_certificate = g_steal_pointer (&self->op_peer_certificate);
 
   return status;
 }
@@ -803,19 +803,16 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
                                               GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBase *connection;
   GTlsConnectionBaseStatus status;
   gssize ret;
   guint i;
   gsize total_message_size;
 
-  connection = g_tls_operations_thread_base_get_connection (base);
-
   /* Calculate the total message size and check it’s not too big. */
   for (i = 0, total_message_size = 0; i < num_vectors; i++)
     total_message_size += vectors[i].size;
 
-  if (g_tls_connection_base_is_dtls (connection) &&
+  if (is_dtls (self) &&
       gnutls_dtls_get_data_mtu (self->session) < total_message_size)
     {
       char *message;
@@ -1154,18 +1151,18 @@ verify_certificate_cb (gnutls_session_t session)
   GTlsOperationsThreadGnutls *self = gnutls_session_get_ptr (session);
   gboolean accepted;
 
-  g_assert (!self->peer_certificate);
-  self->peer_certificate = get_peer_certificate (self);
+  g_assert (!self->op_peer_certificate);
+  self->op_peer_certificate = get_peer_certificate (self);
 
-  if (self->peer_certificate)
+  if (self->op_peer_certificate)
     {
       accepted = g_tls_operations_thread_base_verify_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
-                                                                  self->peer_certificate,
+                                                                  self->op_peer_certificate,
                                                                   self->handshake_context);
     }
   else
     {
-      accepted = is_server (self) && self->auth_mode != G_TLS_AUTHENTICATION_REQUIRED;
+      accepted = is_server (self) && self->op_auth_mode != G_TLS_AUTHENTICATION_REQUIRED;
     }
 
   /* Return 0 for the handshake to continue, non-zero to terminate.
@@ -1257,13 +1254,13 @@ get_own_certificate_internals (GTlsOperationsThreadGnutls  *self,
 {
   clear_own_certificate_internals (self);
 
-  if (self->own_certificate)
+  if (self->op_own_certificate)
     {
       gnutls_privkey_t privkey;
       gnutls_privkey_init (&privkey);
       gnutls_privkey_set_pin_function (privkey, pin_request_cb, self);
 
-      g_tls_certificate_gnutls_copy_internals (G_TLS_CERTIFICATE_GNUTLS (self->own_certificate),
+      g_tls_certificate_gnutls_copy_internals (G_TLS_CERTIFICATE_GNUTLS (self->op_own_certificate),
                                                self->interaction_id,
                                                pcert, pcert_length, &privkey);
       *pkey = privkey;
@@ -1322,7 +1319,7 @@ retrieve_certificate_cb (gnutls_session_t              session,
 
           if (g_tls_operations_thread_base_request_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
                                                                 self->op_cancellable,
-                                                                &self->own_certificate))
+                                                                &self->op_own_certificate))
             get_own_certificate_internals (self, pcert, pcert_length, pkey);
 
           if (*pcert_length == 0)
@@ -1468,8 +1465,8 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
       self->accepted_cas = NULL;
     }
 
-  g_assert (!self->peer_certificate);
-  g_assert (!self->own_certificate);
+  g_assert (!self->op_peer_certificate);
+  g_assert (!self->op_own_certificate);
 
   g_assert (!self->op_cancellable);
   g_assert (!self->op_error);

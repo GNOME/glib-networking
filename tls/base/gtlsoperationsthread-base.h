@@ -49,6 +49,16 @@ struct _GTlsOperationsThreadBaseClass
   void                        (*set_server_identity)        (GTlsOperationsThreadBase  *self,
                                                              const gchar               *server_identity);
 
+  void                        (*push_io)                    (GTlsOperationsThreadBase  *self,
+                                                             GIOCondition               direction,
+                                                             gint64                     timeout, /* FIXME: remove timeout? */
+                                                             GCancellable              *cancellable);
+  GTlsConnectionBaseStatus    (*pop_io)                     (GTlsOperationsThreadBase  *self,
+                                                             GIOCondition               direction,
+                                                             gboolean                   success,
+                                                             GError                    *op_error,
+                                                             GError                   **error);
+
   GTlsConnectionBaseStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
                                                              HandshakeContext          *context,
                                                              GTlsCertificate           *own_certificate,
@@ -113,8 +123,10 @@ gboolean                  g_tls_operations_thread_base_request_certificate      
 
 void                      g_tls_operations_thread_base_set_is_missing_requested_client_certificate
                                                                                  (GTlsOperationsThreadBase  *self);
-gboolean                  g_tls_operations_thread_base_get_is_missing_requested_client_certificate
-                                                                                 (GTlsOperationsThreadBase  *self);
+
+void                      g_tls_operations_thread_base_set_close_notify_required (GTlsOperationsThreadBase  *self,
+                                                                                  gboolean                   required);
+gboolean                  g_tls_operations_thread_base_get_close_notify_required (GTlsOperationsThreadBase  *self);
 
 gboolean                  g_tls_operations_thread_base_verify_certificate        (GTlsOperationsThreadBase  *self,
                                                                                   GTlsCertificate           *peer_certificate,
@@ -125,6 +137,16 @@ void                      g_tls_operations_thread_base_copy_client_session_state
 
 void                      g_tls_operations_thread_base_set_server_identity       (GTlsOperationsThreadBase   *self,
                                                                                   const gchar                *server_identity);
+
+void                      g_tls_operations_thread_base_push_io                   (GTlsOperationsThreadBase   *self,
+                                                                                  GIOCondition                direction,
+                                                                                  gint64                      timeout, /* FIXME: remove timeout? */
+                                                                                  GCancellable               *cancellable);
+GTlsConnectionBaseStatus  g_tls_operations_thread_base_pop_io                    (GTlsOperationsThreadBase   *self,
+                                                                                  GIOCondition                direction,
+                                                                                  gboolean                    success,
+                                                                                  GError                     *op_error,
+                                                                                  GError                    **error);
 
 GTlsConnectionBaseStatus  g_tls_operations_thread_base_handshake                 (GTlsOperationsThreadBase   *self,
                                                                                   GTlsCertificate            *own_certificate,

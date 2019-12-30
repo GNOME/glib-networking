@@ -135,8 +135,6 @@ typedef struct
   gboolean       reading;
   gboolean       writing;
 
-  gboolean       successful_posthandshake_op;
-
   gboolean       is_system_certdb;
   gboolean       database_is_unset;
 
@@ -240,6 +238,10 @@ g_tls_connection_base_initable_init (GInitable    *initable,
 
   if (priv->interaction)
     g_tls_operations_thread_base_set_interaction (priv->thread, priv->interaction);
+
+  g_tls_operations_thread_base_set_close_notify_required (priv->thread,
+                                                          priv->require_close_notify);
+
 
   return TRUE;
 }
@@ -405,6 +407,10 @@ g_tls_connection_base_set_property (GObject      *object,
 
     case PROP_REQUIRE_CLOSE_NOTIFY:
       priv->require_close_notify = g_value_get_boolean (value);
+
+      if (priv->thread)
+        g_tls_operations_thread_base_set_close_notify_required (priv->thread,
+                                                                priv->require_close_notify);
       break;
 
     case PROP_REHANDSHAKE_MODE:
@@ -743,111 +749,6 @@ yield_op (GTlsConnectionBase       *tls,
 
   g_cancellable_cancel (priv->waiting_for_op);
   g_mutex_unlock (&priv->op_mutex);
-}
-
-/* FIXME: removable? It's only here for OpenSSL GTlsBio */
-void
-g_tls_connection_base_push_io (GTlsConnectionBase *tls,
-                               GIOCondition        direction,
-                               gint64              timeout,
-                               GCancellable       *cancellable)
-{
-  g_assert (direction & (G_IO_IN | G_IO_OUT));
-  g_return_if_fail (G_IS_TLS_CONNECTION_BASE (tls));
-
-  if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->push_io)
-    {
-      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->push_io (tls, direction,
-                                                      timeout, cancellable);
-    }
-}
-
-/* FIXME: rename, if push_io is removed? */
-/* FIXME: this is almost certainly inappropriate because it is called on the
- * op thread. It needs to move to the op thread class.
- */
-static GTlsConnectionBaseStatus
-g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
-                                   GIOCondition         direction,
-                                   gboolean             success,
-                                   GError              *op_error /* owned */,
-                                   GError             **error)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  /* This function MAY or MAY NOT set error when it fails! */
-
-  if (success)
-    {
-      g_assert (!op_error);
-      return G_TLS_CONNECTION_BASE_OK;
-    }
-
-  if (g_error_matches (op_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-    {
-      g_propagate_error (error, op_error);
-      return G_TLS_CONNECTION_BASE_WOULD_BLOCK;
-    }
-
-  if (g_error_matches (op_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
-    {
-      g_propagate_error (error, op_error);
-      return G_TLS_CONNECTION_BASE_TIMED_OUT;
-    }
-
-  if (g_tls_operations_thread_base_get_is_missing_requested_client_certificate (priv->thread) &&
-      !priv->successful_posthandshake_op)
-    {
-      GError *interaction_error;
-
-      g_assert (G_IS_TLS_CLIENT_CONNECTION (tls));
-
-      interaction_error = g_tls_operations_thread_base_take_interaction_error (priv->thread);
-
-      /* Probably the server requires a client certificate, but we failed to
-       * provide one. With TLS 1.3 the server is no longer able to tell us
-       * this, so we just have to guess. If there is an error from the TLS
-       * interaction (request for user certificate), we provide that. Otherwise,
-       * guess that G_TLS_ERROR_CERTIFICATE_REQUIRED is probably appropriate.
-       * This could be wrong, but only applies to the small minority of
-       * connections where a client cert is requested but not provided, and then
-       * then only if the client has never successfully read or written.
-       */
-      if (interaction_error)
-        {
-          g_propagate_error (error, interaction_error);
-        }
-      else
-        {
-          g_clear_error (error);
-          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
-                               _("Server required TLS certificate"));
-        }
-
-      if (op_error)
-        g_error_free (op_error);
-    }
-  else if (op_error)
-    {
-      g_propagate_error (error, op_error);
-    }
-
-  return G_TLS_CONNECTION_BASE_ERROR;
-}
-
-GTlsConnectionBaseStatus
-g_tls_connection_base_pop_io (GTlsConnectionBase  *tls,
-                              GIOCondition         direction,
-                              gboolean             success,
-                              GError              *op_error,
-                              GError             **error)
-{
-  g_assert (direction & (G_IO_IN | G_IO_OUT));
-  g_assert (!error || !*error);
-  g_return_val_if_fail (G_IS_TLS_CONNECTION_BASE (tls), G_TLS_CONNECTION_BASE_ERROR);
-
-  return G_TLS_CONNECTION_BASE_GET_CLASS (tls)->pop_io (tls, direction,
-                                                        success, op_error, error);
 }
 
 /* Checks whether the underlying base stream or GDatagramBased meets
@@ -1762,7 +1663,6 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
       g_tls_log_debug (tls, "successfully read %" G_GSSIZE_FORMAT " bytes from TLS connection", nread);
       return nread;
     }
@@ -1796,7 +1696,6 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
       g_tls_log_debug (tls, "successfully read %" G_GSSIZE_FORMAT " bytes from TLS connection", nread);
       return nread;
     }
@@ -1815,7 +1714,6 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
                                         GError         **error)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   guint i;
   GError *child_error = NULL;
 
@@ -1878,7 +1776,6 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
-  priv->successful_posthandshake_op = TRUE;
   return i;
 }
 
@@ -1909,7 +1806,6 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
       g_tls_log_debug (tls, "successfully write %" G_GSSIZE_FORMAT " bytes to TLS connection", nwrote);
       return nwrote;
     }
@@ -1944,7 +1840,6 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
       g_tls_log_debug (tls, "successfully write %" G_GSSIZE_FORMAT " bytes to TLS connection", nwrote);
       return nwrote;
     }
@@ -1963,7 +1858,6 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
                                      GError         **error)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   guint i;
   GError *child_error = NULL;
 
@@ -2014,7 +1908,6 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
-  priv->successful_posthandshake_op = TRUE;
   return i;
 }
 
@@ -2326,8 +2219,6 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   iostream_class->close_fn          = g_tls_connection_base_close;
   iostream_class->close_async       = g_tls_connection_base_close_async;
   iostream_class->close_finish      = g_tls_connection_base_close_finish;
-
-  klass->pop_io = g_tls_connection_base_real_pop_io;
 
   /* For GTlsConnection and GDtlsConnection: */
   g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");

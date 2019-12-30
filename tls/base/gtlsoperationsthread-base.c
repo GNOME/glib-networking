@@ -71,22 +71,28 @@ typedef struct {
   /* FIXME: remove to prevent misuse? */
   GTlsConnectionBase *connection;
 
+  /* Objects explicitly designed for unlocked multithreaded use. These are the
+   * only priv members that may be accessed without locking the mutex.
+   */
   GThread *op_thread;
   GMainContext *op_thread_context;
-
   GAsyncQueue *queue;
 
-  /* This mutex guards everything below. It's a bit of a failure of design.
+  /* This mutex guards everything else. It's a bit of a failure of design.
    * Ideally we wouldn't need to share this data between threads and would
-   * instead return data from the op thread to the calling thread using the op
-   * struct.
+   * instead pass data to the op thread and return data from the op thread
+   * using the op struct. But this is not always easy.
    *
-   * FIXME: what of this can move into the op struct?
+   * FIXME: what of this can move into the op struct? The booleans are needed
+   * for more than handshakes, so they'd need to be part of every op.
    */
   GMutex mutex;
+
   GTlsInteraction *interaction;
   GError *interaction_error;
-  gboolean missing_requested_client_certificate; /* FIXME: out parameter of handshake op? */
+  gboolean missing_requested_client_certificate;
+  gboolean performed_successful_posthandshake_op;
+  gboolean require_close_notify;
 } GTlsOperationsThreadBasePrivate;
 
 typedef enum {
@@ -114,6 +120,7 @@ typedef struct {
   GTlsCertificate *own_certificate;
   gchar **advertised_protocols;
   GTlsAuthenticationMode auth_mode;
+  gboolean require_close_notify;
   gchar *negotiated_protocol;
   GList *accepted_cas;
   GTlsCertificate *peer_certificate;
@@ -208,8 +215,8 @@ g_tls_operations_thread_base_ref_interaction (GTlsOperationsThreadBase *self)
   return ref;
 }
 
-GError *
-g_tls_operations_thread_base_take_interaction_error (GTlsOperationsThreadBase *self)
+static GError *
+take_interaction_error (GTlsOperationsThreadBase *self)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   GError *error;
@@ -258,13 +265,15 @@ g_tls_operations_thread_base_set_is_missing_requested_client_certificate (GTlsOp
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
 
+  /* For client connections only */
+
   g_mutex_lock (&priv->mutex);
   priv->missing_requested_client_certificate = TRUE;
   g_mutex_unlock (&priv->mutex);
 }
 
-gboolean
-g_tls_operations_thread_base_get_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self)
+static gboolean
+get_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
   gboolean ret;
@@ -274,6 +283,150 @@ g_tls_operations_thread_base_get_is_missing_requested_client_certificate (GTlsOp
   g_mutex_unlock (&priv->mutex);
 
   return ret;
+}
+
+void
+g_tls_operations_thread_base_set_close_notify_required (GTlsOperationsThreadBase *self,
+                                                        gboolean                  required)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  g_mutex_lock (&priv->mutex);
+  priv->require_close_notify = required;
+  g_mutex_unlock (&priv->mutex);
+}
+
+gboolean
+g_tls_operations_thread_base_get_close_notify_required (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  gboolean ret;
+
+  g_mutex_lock (&priv->mutex);
+  ret = priv->require_close_notify;
+  g_mutex_unlock (&priv->mutex);
+
+  return ret;
+}
+
+static void
+set_performed_successful_posthandshake_op (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  g_mutex_lock (&priv->mutex);
+  priv->performed_successful_posthandshake_op = TRUE;
+  g_mutex_unlock (&priv->mutex);
+}
+
+static gboolean
+has_performed_successful_posthandshake_op (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+  gboolean ret;
+
+  g_mutex_lock (&priv->mutex);
+  ret = priv->performed_successful_posthandshake_op;
+  g_mutex_unlock (&priv->mutex);
+
+  return ret;
+}
+
+void
+g_tls_operations_thread_base_push_io (GTlsOperationsThreadBase *self,
+                                      GIOCondition              direction,
+                                      gint64                    timeout,
+                                      GCancellable             *cancellable)
+{
+  g_assert (direction & (G_IO_IN | G_IO_OUT));
+
+  /* FIXME: this is weird, can't we get rid of it on OpenSSL side? */
+  if (G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->push_io)
+    {
+      G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->push_io (self, direction,
+                                                              timeout, cancellable);
+    }
+}
+
+static GTlsConnectionBaseStatus
+g_tls_operations_thread_base_real_pop_io (GTlsOperationsThreadBase  *self,
+                                          GIOCondition               direction,
+                                          gboolean                   success,
+                                          GError                    *op_error /* owned */,
+                                          GError                   **error)
+{
+  /* This function MAY or MAY NOT set error when it fails! */
+
+  if (success)
+    {
+      g_assert (!op_error);
+      return G_TLS_CONNECTION_BASE_OK;
+    }
+
+  if (g_error_matches (op_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+    {
+      g_propagate_error (error, op_error);
+      return G_TLS_CONNECTION_BASE_WOULD_BLOCK;
+    }
+
+  if (g_error_matches (op_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
+    {
+      g_propagate_error (error, op_error);
+      return G_TLS_CONNECTION_BASE_TIMED_OUT;
+    }
+
+  if (get_is_missing_requested_client_certificate (self) &&
+      !has_performed_successful_posthandshake_op (self))
+    {
+      GError *interaction_error;
+
+      interaction_error = take_interaction_error (self);
+
+      /* We are a client connection.
+       *
+       * Probably the server requires a client certificate, but we failed to
+       * provide one. With TLS 1.3 the server is no longer able to tell us
+       * this, so we just have to guess. If there is an error from the TLS
+       * interaction (request for user certificate), we provide that. Otherwise,
+       * guess that G_TLS_ERROR_CERTIFICATE_REQUIRED is probably appropriate.
+       * This could be wrong, but only applies to the small minority of
+       * connections where a client cert is requested but not provided, and then
+       * then only if the client has never successfully read or written.
+       */
+      if (interaction_error)
+        {
+          g_propagate_error (error, interaction_error);
+        }
+      else
+        {
+          g_clear_error (error);
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
+                               _("Server required TLS certificate"));
+        }
+
+      if (op_error)
+        g_error_free (op_error);
+    }
+  else if (op_error)
+    {
+      g_propagate_error (error, op_error);
+    }
+
+  return G_TLS_CONNECTION_BASE_ERROR;
+}
+
+GTlsConnectionBaseStatus
+g_tls_operations_thread_base_pop_io (GTlsOperationsThreadBase  *self,
+                                     GIOCondition               direction,
+                                     gboolean                   success,
+                                     GError                    *op_error,
+                                     GError                   **error)
+{
+  g_assert (direction & (G_IO_IN | G_IO_OUT));
+  g_assert (!error || !*error);
+
+  return G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->pop_io (self, direction,
+                                                                success, op_error, error);
 }
 
 static HandshakeContext *
@@ -1143,6 +1296,7 @@ process_op (GAsyncQueue         *queue,
 {
   GTlsThreadOperation *op;
   GTlsOperationsThreadBaseClass *base_class;
+  gboolean performed_posthandshake_op = FALSE;
 
   if (delayed_op)
     {
@@ -1233,6 +1387,7 @@ process_op (GAsyncQueue         *queue,
                                         &op->count,
                                         op->cancellable,
                                         &op->error);
+      performed_posthandshake_op = TRUE;
       break;
     case G_TLS_THREAD_OP_READ_MESSAGE:
       g_assert (base_class->read_message_fn);
@@ -1241,6 +1396,7 @@ process_op (GAsyncQueue         *queue,
                                                 &op->count,
                                                 op->cancellable,
                                                 &op->error);
+      performed_posthandshake_op = TRUE;
       break;
     case G_TLS_THREAD_OP_WRITE:
       op->result = base_class->write_fn (op->thread,
@@ -1248,6 +1404,7 @@ process_op (GAsyncQueue         *queue,
                                          &op->count,
                                          op->cancellable,
                                          &op->error);
+      performed_posthandshake_op = TRUE;
       break;
     case G_TLS_THREAD_OP_WRITE_MESSAGE:
       g_assert (base_class->write_message_fn);
@@ -1256,15 +1413,20 @@ process_op (GAsyncQueue         *queue,
                                                  &op->count,
                                                  op->cancellable,
                                                  &op->error);
+      performed_posthandshake_op = TRUE;
       break;
     case G_TLS_THREAD_OP_CLOSE:
       op->result = base_class->close_fn (op->thread,
                                          op->cancellable,
                                          &op->error);
+      performed_posthandshake_op = TRUE;
       break;
     case G_TLS_THREAD_OP_SHUTDOWN_THREAD:
       g_assert_not_reached ();
     }
+
+  if (op->result == G_TLS_CONNECTION_BASE_OK && performed_posthandshake_op)
+    set_performed_successful_posthandshake_op (op->thread);
 
 wait:
   if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK &&
@@ -1447,8 +1609,10 @@ g_tls_operations_thread_base_class_init (GTlsOperationsThreadBaseClass *klass)
   gobject_class->get_property = g_tls_operations_thread_base_get_property;
   gobject_class->set_property = g_tls_operations_thread_base_set_property;
 
-  /* FIXME: remove this. subclass has been designed to not need it!
-   * Move base_iostream and base_socket up to this level.
+  klass->pop_io = g_tls_operations_thread_base_real_pop_io;
+
+  /* FIXME: remove this? subclass has been designed to not need it?
+   * Move base_iostream and base_socket up to this level?
    */
   obj_properties[PROP_TLS_CONNECTION] =
     g_param_spec_object ("tls-connection",
