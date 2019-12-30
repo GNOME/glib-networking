@@ -138,14 +138,14 @@ begin_gnutls_io (GTlsOperationsThreadGnutls *self,
                                         direction, 0, cancellable);
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 end_gnutls_io (GTlsOperationsThreadGnutls  *self,
                GIOCondition                 direction,
                int                          ret,
                GError                     **error,
                const char                  *err_prefix)
 {
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   GError *my_error = NULL;
 
   /* We intentionally do not check for GNUTLS_E_INTERRUPTED here
@@ -156,7 +156,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
    */
   if (ret == GNUTLS_E_AGAIN ||
       ret == GNUTLS_E_WARNING_ALERT_RECEIVED)
-    return G_TLS_CONNECTION_BASE_TRY_AGAIN;
+    return G_TLS_OPERATION_TRY_AGAIN;
 
   self->op_cancellable = NULL;
 
@@ -166,16 +166,16 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
                                                 g_steal_pointer (&self->op_error),
                                                 &my_error);
 
-  if (status == G_TLS_CONNECTION_BASE_OK ||
-      status == G_TLS_CONNECTION_BASE_WOULD_BLOCK ||
-      status == G_TLS_CONNECTION_BASE_TIMED_OUT)
+  if (status == G_TLS_OPERATION_SUCCESS ||
+      status == G_TLS_OPERATION_WOULD_BLOCK ||
+      status == G_TLS_OPERATION_TIMED_OUT)
     {
       if (my_error)
         g_propagate_error (error, my_error);
       return status;
     }
 
-  g_assert (status == G_TLS_CONNECTION_BASE_ERROR);
+  g_assert (status == G_TLS_OPERATION_ERROR);
 
   if (self->handshaking && !self->ever_handshaked)
     {
@@ -185,7 +185,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
                        _("Peer failed to perform TLS handshake: %s"), my_error->message);
           g_clear_error (&my_error);
-          return G_TLS_CONNECTION_BASE_ERROR;
+          return G_TLS_OPERATION_ERROR;
         }
 
       if (status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
@@ -195,12 +195,37 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
                        _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (ret));
-          return G_TLS_CONNECTION_BASE_ERROR;
+          return G_TLS_OPERATION_ERROR;
         }
     }
 
   if (ret == GNUTLS_E_REHANDSHAKE)
-    return G_TLS_CONNECTION_BASE_REHANDSHAKE;
+    {
+      if (is_client (self))
+        {
+          /* Ignore server's request for rehandshake, because we no longer
+           * support obsolete TLS rehandshakes.
+           *
+           * TODO: Send GNUTLS_A_NO_RENEGOTIATION here once we support alerts.
+           */
+          return G_TLS_OPERATION_SUCCESS;
+        }
+      else
+        {
+          /* Are you hitting this error? If so, we may need to restore support
+           * for obsolete TLS rehandshakes. Hopefully not, because not many
+           * applications use GTlsServerConnection, and presumably not many
+           * clients request rehandshakes.
+           *
+           * The server cannot simply ignore a rehandshake request like clients
+           * can, so this is fatal.
+           */
+          g_clear_error (&my_error);
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                               _("Client requested TLS rehandshake, which is no longer supported"));
+          return G_TLS_OPERATION_ERROR;
+        }
+    }
 
   if (ret == GNUTLS_E_PREMATURE_TERMINATION)
     {
@@ -209,7 +234,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
                        _("Peer failed to perform TLS handshake: %s"), gnutls_strerror (ret));
-          return G_TLS_CONNECTION_BASE_ERROR;
+          return G_TLS_OPERATION_ERROR;
         }
 
       if (g_tls_operations_thread_base_get_close_notify_required (G_TLS_OPERATIONS_THREAD_BASE (self)))
@@ -217,10 +242,10 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
           g_clear_error (&my_error);
           g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_EOF,
                                _("TLS connection closed unexpectedly"));
-          return G_TLS_CONNECTION_BASE_ERROR;
+          return G_TLS_OPERATION_ERROR;
         }
 
-      return G_TLS_CONNECTION_BASE_OK;
+      return G_TLS_OPERATION_SUCCESS;
     }
 
   if (ret == GNUTLS_E_NO_CERTIFICATE_FOUND || ret == GNUTLS_E_CERTIFICATE_REQUIRED)
@@ -228,7 +253,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       g_clear_error (&my_error);
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
                            _("TLS connection peer did not send a certificate"));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (ret == GNUTLS_E_CERTIFICATE_ERROR)
@@ -236,7 +261,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       g_clear_error (&my_error);
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                            _("Unacceptable TLS certificate"));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (ret == GNUTLS_E_FATAL_ALERT_RECEIVED)
@@ -245,7 +270,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Peer sent fatal TLS alert: %s"),
                    gnutls_alert_get_name (gnutls_alert_get (self->session)));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (ret == GNUTLS_E_INAPPROPRIATE_FALLBACK)
@@ -254,7 +279,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       g_set_error_literal (error, G_TLS_ERROR,
                            G_TLS_ERROR_INAPPROPRIATE_FALLBACK,
                            _("Protocol version downgrade attack detected"));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (ret == GNUTLS_E_LARGE_PACKET)
@@ -264,7 +289,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE,
                    ngettext ("Message is too large for DTLS connection; maximum is %u byte",
                              "Message is too large for DTLS connection; maximum is %u bytes", mtu), mtu);
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (ret == GNUTLS_E_TIMEDOUT)
@@ -272,7 +297,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
       g_clear_error (&my_error);
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
                            _("The operation timed out"));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (error && my_error)
@@ -284,7 +309,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
                             err_prefix, gnutls_strerror (ret));
     }
 
-  return G_TLS_CONNECTION_BASE_ERROR;
+  return G_TLS_OPERATION_ERROR;
 }
 
 /* FIXME: do not use GTlsConnectionBase at all. */
@@ -295,7 +320,7 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
 
 #define END_GNUTLS_IO(self, direction, ret, status, errmsg, err)      \
     status = end_gnutls_io (self, direction, ret, err, errmsg);       \
-  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
+  } while (status == G_TLS_OPERATION_TRY_AGAIN);
 
 static void
 initialize_gnutls_priority (void)
@@ -583,7 +608,7 @@ get_peer_certificate (GTlsOperationsThreadGnutls *self)
   return NULL;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                                           HandshakeContext          *context,
                                           GTlsCertificate           *own_certificate,
@@ -597,7 +622,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
                                           GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   gnutls_datum_t protocol;
   int ret;
 
@@ -628,6 +653,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
     {
       guint8 buf[1024];
 
+      /* FIXME: no longer supports rehandshake, but what about reauth? */
       /* Got app data while waiting for rehandshake; buffer it and try again */
       ret = gnutls_record_recv (self->session, buf, sizeof (buf));
       if (ret > -1)
@@ -646,7 +672,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   self->handshake_context = NULL;
   self->handshaking = FALSE;
 
-  if (status == G_TLS_CONNECTION_BASE_OK)
+  if (status == G_TLS_OPERATION_SUCCESS)
     self->ever_handshaked = TRUE;
 
   if (gnutls_alpn_get_selected_protocol (self->session, &protocol) == 0 && protocol.size > 0)
@@ -663,7 +689,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
                                      void                      *buffer,
                                      gsize                      size,
@@ -672,7 +698,7 @@ g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
                                      GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   gssize ret;
 
   if (self->application_data_buffer)
@@ -683,7 +709,7 @@ g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
         g_clear_pointer (&self->application_data_buffer, g_byte_array_unref);
       else
         g_byte_array_remove_range (self->application_data_buffer, 0, *nread);
-      return G_TLS_CONNECTION_BASE_OK;
+      return G_TLS_OPERATION_SUCCESS;
     }
 
   BEGIN_GNUTLS_IO (self, G_IO_IN, cancellable);
@@ -719,7 +745,7 @@ input_vectors_from_gnutls_datum_t (GInputVector         *vectors,
   return total;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
                                              GInputVector              *vectors,
                                              guint                      num_vectors,
@@ -728,7 +754,7 @@ g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
                                              GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   gssize ret;
   gnutls_packet_t packet = { 0, };
 
@@ -750,7 +776,7 @@ g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
               g_clear_pointer (&self->application_data_buffer, g_byte_array_unref);
             else
               g_byte_array_remove_range (self->application_data_buffer, 0, count);
-            return G_TLS_CONNECTION_BASE_OK;
+            return G_TLS_OPERATION_SUCCESS;
           }
       }
 
@@ -774,7 +800,7 @@ g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_gnutls_write (GTlsOperationsThreadBase  *base,
                                       const void                *buffer,
                                       gsize                      size,
@@ -783,7 +809,7 @@ g_tls_operations_thread_gnutls_write (GTlsOperationsThreadBase  *base,
                                       GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   gssize ret;
 
   BEGIN_GNUTLS_IO (self, G_IO_OUT, cancellable);
@@ -794,7 +820,7 @@ g_tls_operations_thread_gnutls_write (GTlsOperationsThreadBase  *base,
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
                                               GOutputVector             *vectors,
                                               guint                      num_vectors,
@@ -803,7 +829,7 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
                                               GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   gssize ret;
   guint i;
   gsize total_message_size;
@@ -829,7 +855,7 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
                    mtu);
       g_free (message);
 
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   /* Queue up the data from all the vectors. */
@@ -857,13 +883,13 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_gnutls_close (GTlsOperationsThreadBase  *base,
                                       GCancellable              *cancellable,
                                       GError                   **error)
 {
   GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   int ret;
 
   BEGIN_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, cancellable);
@@ -1331,7 +1357,7 @@ retrieve_certificate_cb (gnutls_session_t              session,
                * be optional, e.g. if the server is using
                * G_TLS_AUTHENTICATION_REQUESTED, not G_TLS_AUTHENTICATION_REQUIRED.
                */
-              g_tls_operations_thread_base_set_is_missing_requested_client_certificate (G_TLS_OPERATIONS_THREAD_BASE (self));
+              g_tls_operations_thread_base_set_missing_requested_client_certificate (G_TLS_OPERATIONS_THREAD_BASE (self));
               return 0;
             }
         }
@@ -1343,7 +1369,7 @@ retrieve_certificate_cb (gnutls_session_t              session,
           /* No private key. GnuTLS expects it to be non-null if pcert_length is
            * nonzero, so we have to abort now.
            */
-          g_tls_operations_thread_base_set_is_missing_requested_client_certificate (G_TLS_OPERATIONS_THREAD_BASE (self));
+          g_tls_operations_thread_base_set_missing_requested_client_certificate (G_TLS_OPERATIONS_THREAD_BASE (self));
           return -1;
         }
     }

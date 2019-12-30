@@ -48,7 +48,7 @@ G_DEFINE_TYPE_WITH_CODE (GTlsOperationsThreadOpenssl, g_tls_operations_thread_op
                                                 g_tls_operations_thread_openssl_initable_iface_init);
                          )
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 end_openssl_io (GTlsOperationsThreadOpenssl  *self,
                 GIOCondition                  direction,
                 int                           ret,
@@ -59,7 +59,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   GTlsConnectionBase *tls;
   int err_code, err, err_lib, reason;
   GError *my_error = NULL;
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
 
   tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
 
@@ -68,11 +68,11 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   status = g_tls_connection_base_pop_io (tls, direction, ret > 0, &my_error);
 
   if (err_code == SSL_ERROR_ZERO_RETURN)
-    return G_TLS_CONNECTION_BASE_OK;
+    return G_TLS_OPERATION_SUCCESS;
 
-  if (status == G_TLS_CONNECTION_BASE_OK ||
-      status == G_TLS_CONNECTION_BASE_WOULD_BLOCK ||
-      status == G_TLS_CONNECTION_BASE_TIMED_OUT)
+  if (status == G_TLS_OPERATION_SUCCESS ||
+      status == G_TLS_OPERATION_WOULD_BLOCK ||
+      status == G_TLS_OPERATION_TIMED_OUT)
     {
       if (my_error)
         g_propagate_error (error, my_error);
@@ -84,7 +84,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
       ((self->shutting_down && !my_error) || g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)))
     {
       g_clear_error (&my_error);
-      return G_TLS_CONNECTION_BASE_OK;
+      return G_TLS_OPERATION_SUCCESS;
     }
 
   err = ERR_get_error ();
@@ -104,7 +104,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
                        _("Peer failed to perform TLS handshake: %s"), ERR_reason_error_string (err));
-          return G_TLS_CONNECTION_BASE_ERROR;
+          return G_TLS_OPERATION_ERROR;
         }
     }
 
@@ -116,7 +116,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   if (reason == SSL_R_SHUTDOWN_WHILE_IN_INIT)
     {
       g_clear_error (&my_error);
-      return G_TLS_CONNECTION_BASE_OK;
+      return G_TLS_OPERATION_SUCCESS;
     }
 #endif
 
@@ -137,7 +137,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
       g_clear_error (&my_error);
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                    _("Unacceptable TLS certificate"));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (reason == SSL_R_TLSV1_ALERT_UNKNOWN_CA)
@@ -145,7 +145,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
       g_clear_error (&my_error);
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                    _("Unacceptable TLS certificate authority"));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (err_lib == ERR_LIB_RSA && reason == RSA_R_DIGEST_TOO_BIG_FOR_RSA_KEY)
@@ -153,7 +153,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
       g_clear_error (&my_error);
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                            _("Digest too big for RSA key"));
-      return G_TLS_CONNECTION_BASE_ERROR;
+      return G_TLS_OPERATION_ERROR;
     }
 
   if (my_error)
@@ -165,7 +165,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   if (error && !*error)
     *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
 
-  return G_TLS_CONNECTION_BASE_ERROR;
+  return G_TLS_OPERATION_ERROR;
 }
 
 #define BEGIN_OPENSSL_IO(self, direction, cancellable)          \
@@ -177,16 +177,16 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
 #define END_OPENSSL_IO(self, direction, ret, status, errmsg, err) \
     ERR_error_string_n (SSL_get_error (self->ssl, ret), error_str, sizeof (error_str)); \
     status = end_openssl_io (self, direction, ret, err, errmsg, error_str); \
-  } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
+  } while (status == G_TLS_OPERATION_TRY_AGAIN);
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
                                            gint64                     timeout,
                                            GCancellable              *cancellable,
                                            GError                   **error)
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   int ret;
 
   /* FIXME: doesn't respect timeout */
@@ -201,14 +201,14 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
   if (ret > 0)
     {
       if (!g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl)))
-        return G_TLS_CONNECTION_BASE_ERROR;
+        return G_TLS_OPERATION_ERROR;
     }
 #endif
 
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
                                       void                       *buffer,
                                       gsize                       size,
@@ -217,7 +217,7 @@ g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
                                       GError                    **error)
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   gssize ret;
 
   BEGIN_OPENSSL_IO (self, G_IO_OUT, cancellable);
@@ -230,7 +230,7 @@ g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_openssl_write (GTlsOperationsThreadBase  *base,
                                        const void                *buffer,
                                        gsize                      size,
@@ -239,7 +239,7 @@ g_tls_operations_thread_openssl_write (GTlsOperationsThreadBase  *base,
                                        GError                   **error)
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   gssize ret;
 
   BEGIN_OPENSSL_IO (self, G_IO_OUT, cancellable);
@@ -250,13 +250,13 @@ g_tls_operations_thread_openssl_write (GTlsOperationsThreadBase  *base,
   return status;
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_openssl_close (GTlsOperationsThreadBase  *base,
                                        GCancellable              *cancellable,
                                        GError                   **error)
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   int ret;
 
   self->shutting_down = TRUE;

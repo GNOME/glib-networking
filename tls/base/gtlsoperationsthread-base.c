@@ -152,7 +152,7 @@ typedef struct {
   GCancellable *cancellable;
 
   /* Op output */
-  GTlsConnectionBaseStatus result;
+  GTlsOperationStatus result;
   gssize count; /* Bytes read or written */
   GError *error;
 
@@ -261,7 +261,7 @@ g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase  *sel
 }
 
 void
-g_tls_operations_thread_base_set_is_missing_requested_client_certificate (GTlsOperationsThreadBase *self)
+g_tls_operations_thread_base_set_missing_requested_client_certificate (GTlsOperationsThreadBase *self)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
 
@@ -348,7 +348,7 @@ g_tls_operations_thread_base_push_io (GTlsOperationsThreadBase *self,
     }
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_operations_thread_base_real_pop_io (GTlsOperationsThreadBase  *self,
                                           GIOCondition               direction,
                                           gboolean                   success,
@@ -360,19 +360,19 @@ g_tls_operations_thread_base_real_pop_io (GTlsOperationsThreadBase  *self,
   if (success)
     {
       g_assert (!op_error);
-      return G_TLS_CONNECTION_BASE_OK;
+      return G_TLS_OPERATION_SUCCESS;
     }
 
   if (g_error_matches (op_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
     {
       g_propagate_error (error, op_error);
-      return G_TLS_CONNECTION_BASE_WOULD_BLOCK;
+      return G_TLS_OPERATION_WOULD_BLOCK;
     }
 
   if (g_error_matches (op_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
     {
       g_propagate_error (error, op_error);
-      return G_TLS_CONNECTION_BASE_TIMED_OUT;
+      return G_TLS_OPERATION_TIMED_OUT;
     }
 
   if (get_is_missing_requested_client_certificate (self) &&
@@ -412,10 +412,10 @@ g_tls_operations_thread_base_real_pop_io (GTlsOperationsThreadBase  *self,
       g_propagate_error (error, op_error);
     }
 
-  return G_TLS_CONNECTION_BASE_ERROR;
+  return G_TLS_OPERATION_ERROR;
 }
 
-GTlsConnectionBaseStatus
+GTlsOperationStatus
 g_tls_operations_thread_base_pop_io (GTlsOperationsThreadBase  *self,
                                      GIOCondition               direction,
                                      gboolean                   success,
@@ -714,14 +714,14 @@ wait_for_op_completion (GTlsThreadOperation *op)
   g_mutex_unlock (&op->finished_mutex);
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 execute_op (GTlsOperationsThreadBase *self,
             GTlsThreadOperation      *op,
             gssize                   *count,
             GError                  **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsConnectionBaseStatus result;
+  GTlsOperationStatus result;
 
   g_async_queue_push (priv->queue, op);
   g_main_context_wakeup (priv->op_thread_context);
@@ -864,7 +864,7 @@ g_tls_operations_thread_base_verify_certificate (GTlsOperationsThreadBase *self,
   return accepted;
 }
 
-GTlsConnectionBaseStatus
+GTlsOperationStatus
 g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
                                         GTlsCertificate            *own_certificate,
                                         const gchar               **advertised_protocols,
@@ -879,7 +879,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
                                         GError                    **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   GTlsThreadOperation *op;
   GTlsCertificate *copied_cert;
   HandshakeContext *context;
@@ -920,7 +920,7 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
   return status;
 }
 
-GTlsConnectionBaseStatus
+GTlsOperationStatus
 g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
                                    void                      *buffer,
                                    gsize                      size,
@@ -930,7 +930,7 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
                                    GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   GTlsThreadOperation *op;
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
@@ -946,7 +946,7 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
   return status;
 }
 
-GTlsConnectionBaseStatus
+GTlsOperationStatus
 g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
                                            GInputVector              *vectors,
                                            guint                      num_vectors,
@@ -956,7 +956,7 @@ g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
                                            GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   GTlsThreadOperation *op;
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
@@ -972,7 +972,7 @@ g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
   return status;
 }
 
-GTlsConnectionBaseStatus
+GTlsOperationStatus
 g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
                                     const void                *buffer,
                                     gsize                      size,
@@ -982,7 +982,7 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
                                     GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   GTlsThreadOperation *op;
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
@@ -998,7 +998,7 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
   return status;
 }
 
-GTlsConnectionBaseStatus
+GTlsOperationStatus
 g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
                                             GOutputVector             *vectors,
                                             guint                      num_vectors,
@@ -1008,7 +1008,7 @@ g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
                                             GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   GTlsThreadOperation *op;
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
@@ -1024,13 +1024,13 @@ g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
   return status;
 }
 
-GTlsConnectionBaseStatus
+GTlsOperationStatus
 g_tls_operations_thread_base_close (GTlsOperationsThreadBase  *self,
                                     GCancellable              *cancellable,
                                     GError                   **error)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsConnectionBaseStatus status;
+  GTlsOperationStatus status;
   GTlsThreadOperation *op;
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
@@ -1333,7 +1333,7 @@ process_op (GAsyncQueue         *queue,
             }
 
           /* Spurious wakeup. Try again later. */
-          op->result = G_TLS_CONNECTION_BASE_WOULD_BLOCK;
+          op->result = G_TLS_OPERATION_WOULD_BLOCK;
           goto wait;
         }
     }
@@ -1425,11 +1425,11 @@ process_op (GAsyncQueue         *queue,
       g_assert_not_reached ();
     }
 
-  if (op->result == G_TLS_CONNECTION_BASE_OK && performed_posthandshake_op)
+  if (op->result == G_TLS_OPERATION_SUCCESS && performed_posthandshake_op)
     set_performed_successful_posthandshake_op (op->thread);
 
 wait:
-  if (op->result == G_TLS_CONNECTION_BASE_WOULD_BLOCK &&
+  if (op->result == G_TLS_OPERATION_WOULD_BLOCK &&
       op->timeout != 0)
     {
       GSource *tls_source;

@@ -124,7 +124,7 @@ g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
     }
 }
 
-static GTlsConnectionBaseStatus
+static GTlsOperationStatus
 g_tls_connection_openssl_pop_io (GTlsConnectionBase  *tls,
                                  GIOCondition         direction,
                                  gboolean             success,
