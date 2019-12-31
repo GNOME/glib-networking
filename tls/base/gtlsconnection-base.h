@@ -73,15 +73,11 @@ gboolean                  g_tls_connection_base_base_check              (GTlsCon
 GSource                  *g_tls_connection_base_create_source           (GTlsConnectionBase  *tls,
                                                                          GIOCondition         condition,
                                                                          GCancellable        *cancellable);
-GSource                  *g_tls_connection_base_create_base_source      (GTlsConnectionBase  *tls,
-                                                                         GIOCondition         condition,
-                                                                         GCancellable        *cancellable);
-
-gboolean                  g_tls_connection_base_close_internal          (GIOStream      *stream,
-                                                                         GTlsDirection   direction,
-                                                                         gint64          timeout,
-                                                                         GCancellable   *cancellable,
-                                                                         GError        **error);
+gboolean                  g_tls_connection_base_close_internal          (GIOStream           *stream,
+                                                                         GTlsDirection        direction,
+                                                                         gint64               timeout,
+                                                                         GCancellable        *cancellable,
+                                                                         GError             **error);
 
 /* FIXME: audit, which are still needed? in public header? */
 

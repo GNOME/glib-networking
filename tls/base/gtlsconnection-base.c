@@ -210,6 +210,32 @@ g_tls_connection_base_is_dtls (GTlsConnectionBase *tls)
   return priv->base_socket != NULL;
 }
 
+static GTlsInteractionResult
+operations_thread_request_certificate_cb (GTlsOperationsThreadBase  *thread,
+                                          GTlsInteraction           *interaction,
+                                          GTlsCertificate          **own_certificate,
+                                          GCancellable              *cancellable,
+                                          GError                   **error,
+                                          GTlsConnectionBase        *tls)
+{
+  GTlsInteractionResult result = G_TLS_INTERACTION_UNHANDLED;
+
+  /* Careful! This is emitted on the op thread. */
+
+  if (interaction)
+    {
+      result = g_tls_interaction_invoke_request_certificate (interaction,
+                                                             G_TLS_CONNECTION (tls),
+                                                             0,
+                                                             cancellable,
+                                                             error);
+    }
+
+  *own_certificate = g_tls_connection_get_certificate (G_TLS_CONNECTION (tls));
+
+  return result;
+}
+
 static void
 g_tls_connection_base_init (GTlsConnectionBase *tls)
 {
@@ -225,8 +251,8 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
 }
 
 static gboolean
-g_tls_connection_base_initable_init (GInitable    *initable,
-                                     GCancellable *cancellable,
+g_tls_connection_base_initable_init (GInitable     *initable,
+                                     GCancellable  *cancellable,
                                      GError       **error)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (initable);
@@ -242,6 +268,9 @@ g_tls_connection_base_initable_init (GInitable    *initable,
   g_tls_operations_thread_base_set_close_notify_required (priv->thread,
                                                           priv->require_close_notify);
 
+  g_signal_connect_object (priv->thread, "operations-thread-request-certificate",
+                           (GCallback)operations_thread_request_certificate_cb,
+                           tls, 0);
 
   return TRUE;
 }
@@ -1045,26 +1074,6 @@ g_tls_connection_base_condition_check (GDatagramBased  *datagram_based,
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
 
   return g_tls_connection_base_check (tls, condition) ? condition : 0;
-}
-
-/* Returns a GSource for the underlying GDatagramBased or base stream, not for
- * the GTlsConnectionBase itself.
- */
-GSource *
-g_tls_connection_base_create_base_source (GTlsConnectionBase *tls,
-                                          GIOCondition        condition,
-                                          GCancellable       *cancellable)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  if (g_tls_connection_base_is_dtls (tls))
-    return g_datagram_based_create_source (priv->base_socket, condition, cancellable);
-  if (condition & G_IO_IN)
-    return g_pollable_input_stream_create_source (priv->base_istream, cancellable);
-  if (condition & G_IO_OUT)
-    return g_pollable_output_stream_create_source (priv->base_ostream, cancellable);
-
-  g_assert_not_reached ();
 }
 
 static gboolean

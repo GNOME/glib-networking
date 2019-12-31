@@ -87,8 +87,6 @@ struct _GTlsOperationsThreadGnutls {
 enum
 {
   PROP_0,
-  PROP_BASE_IO_STREAM,
-  PROP_BASE_SOCKET,
   PROP_GNUTLS_FLAGS,
   LAST_PROP
 };
@@ -1107,11 +1105,9 @@ g_tls_operations_thread_gnutls_pull_timeout_func (gnutls_transport_ptr_t transpo
                                                   unsigned int           ms)
 {
   GTlsOperationsThreadGnutls *self = transport_data;
-  /* FIXME: don't use GTlsConnection */
-  GTlsConnectionBase *tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
 
   /* Fast path. */
-  if (g_tls_connection_base_base_check (tls, G_IO_IN) ||
+  if (g_tls_operations_thread_base_check (G_TLS_OPERATIONS_THREAD_BASE (self), G_IO_IN) ||
       g_cancellable_is_cancelled (self->op_cancellable))
     return 1;
 
@@ -1162,8 +1158,9 @@ g_tls_operations_thread_gnutls_pull_timeout_func (gnutls_transport_ptr_t transpo
       g_source_unref (timeout_source);
 
       /* If @read_source was dispatched due to cancellation, the resulting error
-       * will be handled in g_tls_connection_gnutls_pull_func(). */
-      if (g_tls_connection_base_base_check (tls, G_IO_IN) ||
+       * will be handled in pull_func.
+       */
+      if (g_tls_operations_thread_base_check (G_TLS_OPERATIONS_THREAD_BASE (self), G_IO_IN) ||
           g_cancellable_is_cancelled (self->op_cancellable))
         return 1;
     }
@@ -1410,29 +1407,6 @@ session_ticket_received_cb (gnutls_session_t      session,
 }
 
 static void
-g_tls_operations_thread_gnutls_get_property (GObject    *object,
-                                             guint       prop_id,
-                                             GValue     *value,
-                                             GParamSpec *pspec)
-{
-  GTlsOperationsThreadGnutls *self = G_TLS_OPERATIONS_THREAD_GNUTLS (object);
-
-  switch (prop_id)
-    {
-    case PROP_BASE_IO_STREAM:
-      g_value_set_object (value, self->base_iostream);
-      break;
-
-    case PROP_BASE_SOCKET:
-      g_value_set_object (value, self->base_socket);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 g_tls_operations_thread_gnutls_set_property (GObject      *object,
                                              guint         prop_id,
                                              const GValue *value,
@@ -1442,22 +1416,6 @@ g_tls_operations_thread_gnutls_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_BASE_IO_STREAM:
-      self->base_iostream = g_value_dup_object (value);
-      if (self->base_iostream)
-        {
-          self->base_istream = g_io_stream_get_input_stream (self->base_iostream);
-          self->base_ostream = g_io_stream_get_output_stream (self->base_iostream);
-          g_assert (!self->base_socket);
-        }
-      break;
-
-    case PROP_BASE_SOCKET:
-      self->base_socket = g_value_dup_object (value);
-      if (self->base_socket)
-        g_assert (!self->base_iostream);
-      break;
-
     case PROP_GNUTLS_FLAGS:
       self->init_flags = g_value_get_uint (value);
       break;
@@ -1479,9 +1437,6 @@ g_tls_operations_thread_gnutls_finalize (GObject *object)
   g_clear_pointer (&self->application_data_buffer, g_byte_array_unref);
   g_clear_pointer (&self->server_identity, g_free);
   g_clear_pointer (&self->interaction_id, g_free);
-
-  g_clear_object (&self->base_iostream);
-  g_clear_object (&self->base_socket);
 
   clear_own_certificate_internals (self);
 
@@ -1510,6 +1465,15 @@ g_tls_operations_thread_gnutls_initable_init (GInitable     *initable,
 
   if (!g_tls_operations_thread_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
+
+  self->base_iostream = g_tls_operations_thread_base_get_base_iostream (G_TLS_OPERATIONS_THREAD_BASE (self));
+  if (self->base_iostream)
+    {
+      self->base_istream = g_io_stream_get_input_stream (self->base_iostream);
+      self->base_ostream = g_io_stream_get_output_stream (self->base_iostream);
+    }
+  else
+    self->base_socket = g_tls_operations_thread_base_get_base_socket (G_TLS_OPERATIONS_THREAD_BASE (self));
 
   ret = gnutls_certificate_allocate_credentials (&self->creds);
   if (ret != 0)
@@ -1582,7 +1546,6 @@ g_tls_operations_thread_gnutls_class_init (GTlsOperationsThreadGnutlsClass *klas
   GTlsOperationsThreadBaseClass *base_class = G_TLS_OPERATIONS_THREAD_BASE_CLASS (klass);
 
   gobject_class->finalize      = g_tls_operations_thread_gnutls_finalize;
-  gobject_class->get_property  = g_tls_operations_thread_gnutls_get_property;
   gobject_class->set_property  = g_tls_operations_thread_gnutls_set_property;
 
   base_class->copy_certificate          = g_tls_operations_thread_gnutls_copy_certificate;
@@ -1594,20 +1557,6 @@ g_tls_operations_thread_gnutls_class_init (GTlsOperationsThreadGnutlsClass *klas
   base_class->write_fn                  = g_tls_operations_thread_gnutls_write;
   base_class->write_message_fn          = g_tls_operations_thread_gnutls_write_message;
   base_class->close_fn                  = g_tls_operations_thread_gnutls_close;
-
-  obj_properties[PROP_BASE_IO_STREAM] =
-    g_param_spec_object ("base-io-stream",
-                         "Base IOStream",
-                         "The underlying GIOStream, for TLS connections",
-                         G_TYPE_IO_STREAM,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
-
-  obj_properties[PROP_BASE_SOCKET] =
-    g_param_spec_object ("base-socket",
-                         "Base socket",
-                         "The underlying GDatagramBased, for DTLS connections",
-                         G_TYPE_DATAGRAM_BASED,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
   obj_properties[PROP_GNUTLS_FLAGS] =
     g_param_spec_uint ("gnutls-flags",
@@ -1632,7 +1581,7 @@ g_tls_operations_thread_gnutls_new (GTlsConnectionGnutls *connection,
                          "base-io-stream", base_iostream,
                          "base-socket", base_socket,
                          "gnutls-flags", flags,
-                         "tls-connection", connection,
+                         "thread-type", (flags & GNUTLS_CLIENT) ? G_TLS_OPERATIONS_THREAD_CLIENT : G_TLS_OPERATIONS_THREAD_SERVER,
                          NULL);
 }
 

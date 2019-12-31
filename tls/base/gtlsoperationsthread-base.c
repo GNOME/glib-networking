@@ -26,6 +26,8 @@
 #include "config.h"
 #include "gtlsoperationsthread-base.h"
 
+#include "tls-base-builtins.h"
+
 #include <glib/gi18n-lib.h>
 
 /* The purpose of this class is to ensure the underlying TLS library is only
@@ -68,17 +70,22 @@
  * write operations on one thread without either one blocking the other.
  */
 typedef struct {
-  /* FIXME: remove to prevent misuse? */
-  GTlsConnectionBase *connection;
-
-  /* Objects explicitly designed for unlocked multithreaded use. These are the
-   * only priv members that may be accessed without locking the mutex.
-   */
+  /* Objects explicitly designed for unlocked multithreaded use. */
   GThread *op_thread;
   GMainContext *op_thread_context;
   GAsyncQueue *queue;
 
-  /* This mutex guards everything else. It's a bit of a failure of design.
+  /* Never mutated after construction. */
+  GTlsOperationsThreadType thread_type;
+
+  /* GIOStream is only partially threadsafe, and GDatagramBased is not
+   * threadsafe at all. Although they are shared across threads, we try to
+   * ensure that we only use them on one thread at any given time.
+   */
+  GIOStream *base_iostream;
+  GDatagramBased *base_socket;
+
+  /* This mutex guards everything below. It's a bit of a failure of design.
    * Ideally we wouldn't need to share this data between threads and would
    * instead pass data to the op thread and return data from the op thread
    * using the op struct. But this is not always easy.
@@ -131,7 +138,6 @@ typedef struct {
   GIOCondition io_condition;
 
   GTlsOperationsThreadBase *thread;
-  GTlsConnectionBase *connection; /* FIXME: threadsafety nightmare, not OK */
 
   /* Op input */
   union {
@@ -167,8 +173,19 @@ static gboolean process_op (GAsyncQueue         *queue,
 
 enum
 {
+  REQUEST_CERTIFICATE,
+
+  LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
+
+enum
+{
   PROP_0,
-  PROP_TLS_CONNECTION,
+  PROP_BASE_IO_STREAM,
+  PROP_BASE_SOCKET,
+  PROP_THREAD_TYPE,
   LAST_PROP
 };
 
@@ -181,12 +198,28 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsOperationsThreadBase, g_tls_operations_thr
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                          g_tls_operations_thread_base_initable_iface_init);)
 
-GTlsConnectionBase *
-g_tls_operations_thread_base_get_connection (GTlsOperationsThreadBase *self)
+static inline gboolean
+is_dtls (GTlsOperationsThreadBase *self)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
 
-  return priv->connection;
+  return !!priv->base_socket;
+}
+
+static inline gboolean
+is_client (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  return priv->thread_type == G_TLS_OPERATIONS_THREAD_CLIENT;
+}
+
+static inline gboolean
+is_server (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  return priv->thread_type == G_TLS_OPERATIONS_THREAD_SERVER;
 }
 
 void
@@ -234,22 +267,19 @@ g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase  *sel
                                                   GTlsCertificate          **own_certificate)
 {
   GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
-  GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;
-  GTlsCertificate *cert;
+  GTlsInteractionResult result = G_TLS_INTERACTION_UNHANDLED;
+  GTlsCertificate *cert = NULL;
 
   g_mutex_lock (&priv->mutex);
 
   g_clear_error (&priv->interaction_error);
-  if (priv->interaction)
-    {
-      res = g_tls_interaction_invoke_request_certificate (priv->interaction,
-                                                          G_TLS_CONNECTION (priv->connection),
-                                                          0,
-                                                          cancellable,
-                                                          &priv->interaction_error);
-    }
+  g_signal_emit (self, signals[REQUEST_CERTIFICATE], 0,
+                 priv->interaction,
+                 &cert,
+                 cancellable,
+                 &priv->interaction_error,
+                 &result);
 
-  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (priv->connection));
   if (cert)
     *own_certificate = G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->copy_certificate (self, cert);
   else
@@ -257,7 +287,7 @@ g_tls_operations_thread_base_request_certificate (GTlsOperationsThreadBase  *sel
 
   g_mutex_unlock (&priv->mutex);
 
-  return res != G_TLS_INTERACTION_FAILED;
+  return result != G_TLS_INTERACTION_FAILED;
 }
 
 void
@@ -477,7 +507,6 @@ handshake_data_free (HandshakeData *data)
 
 static GTlsThreadOperation *
 g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *thread,
-                                                      GTlsConnectionBase       *connection,
                                                       GTlsOperationsThreadBase *source)
 {
   GTlsThreadOperation *op;
@@ -485,7 +514,6 @@ g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *
   op = g_new0 (GTlsThreadOperation, 1);
   op->type = G_TLS_THREAD_OP_COPY_CLIENT_SESSION_STATE;
   op->thread = thread;
-  op->connection = connection;
   op->source = source;
 
   g_mutex_init (&op->finished_mutex);
@@ -496,7 +524,6 @@ g_tls_thread_copy_client_session_state_operation_new (GTlsOperationsThreadBase *
 
 static GTlsThreadOperation *
 g_tls_thread_set_server_identity_operation_new (GTlsOperationsThreadBase *thread,
-                                                GTlsConnectionBase       *connection,
                                                 const gchar              *server_identity)
 {
   GTlsThreadOperation *op;
@@ -504,7 +531,6 @@ g_tls_thread_set_server_identity_operation_new (GTlsOperationsThreadBase *thread
   op = g_new0 (GTlsThreadOperation, 1);
   op->type = G_TLS_THREAD_OP_SET_SERVER_IDENTITY;
   op->thread = thread;
-  op->connection = connection;
   op->server_identity = g_strdup (server_identity);
 
   g_mutex_init (&op->finished_mutex);
@@ -517,7 +543,6 @@ static GTlsThreadOperation *
 g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
                                       HandshakeContext          *context,
                                       GTlsCertificate           *own_certificate,
-                                      GTlsConnectionBase        *connection,
                                       const gchar              **advertised_protocols,
                                       GTlsAuthenticationMode     auth_mode,
                                       gint64                     timeout,
@@ -529,7 +554,6 @@ g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
   op->type = G_TLS_THREAD_OP_HANDSHAKE;
   op->io_condition = G_IO_IN | G_IO_OUT;
   op->thread = thread;
-  op->connection = connection;
   op->timeout = timeout;
   op->cancellable = cancellable;
 
@@ -546,7 +570,6 @@ g_tls_thread_handshake_operation_new (GTlsOperationsThreadBase  *thread,
 
 static GTlsThreadOperation *
 g_tls_thread_read_operation_new (GTlsOperationsThreadBase *thread,
-                                 GTlsConnectionBase       *connection,
                                  void                     *data,
                                  gsize                     size,
                                  gint64                    timeout,
@@ -558,7 +581,6 @@ g_tls_thread_read_operation_new (GTlsOperationsThreadBase *thread,
   op->type = G_TLS_THREAD_OP_READ;
   op->io_condition = G_IO_IN;
   op->thread = thread;
-  op->connection = connection;
   op->data = data;
   op->size = size;
   op->timeout = timeout;
@@ -572,7 +594,6 @@ g_tls_thread_read_operation_new (GTlsOperationsThreadBase *thread,
 
 static GTlsThreadOperation *
 g_tls_thread_read_message_operation_new (GTlsOperationsThreadBase *thread,
-                                         GTlsConnectionBase       *connection,
                                          GInputVector             *vectors,
                                          guint                     num_vectors,
                                          gint64                    timeout,
@@ -584,7 +605,6 @@ g_tls_thread_read_message_operation_new (GTlsOperationsThreadBase *thread,
   op->type = G_TLS_THREAD_OP_READ_MESSAGE;
   op->io_condition = G_IO_IN;
   op->thread = thread;
-  op->connection = connection;
   op->input_vectors = vectors;
   op->num_vectors = num_vectors;
   op->timeout = timeout;
@@ -598,7 +618,6 @@ g_tls_thread_read_message_operation_new (GTlsOperationsThreadBase *thread,
 
 static GTlsThreadOperation *
 g_tls_thread_write_operation_new (GTlsOperationsThreadBase *thread,
-                                  GTlsConnectionBase       *connection,
                                   const void               *data,
                                   gsize                     size,
                                   gint64                    timeout,
@@ -610,7 +629,6 @@ g_tls_thread_write_operation_new (GTlsOperationsThreadBase *thread,
   op->type = G_TLS_THREAD_OP_WRITE;
   op->io_condition = G_IO_OUT;
   op->thread = thread;
-  op->connection = connection;
   op->data = (void *)data;
   op->size = size;
   op->timeout = timeout;
@@ -624,7 +642,6 @@ g_tls_thread_write_operation_new (GTlsOperationsThreadBase *thread,
 
 static GTlsThreadOperation *
 g_tls_thread_write_message_operation_new (GTlsOperationsThreadBase *thread,
-                                          GTlsConnectionBase       *connection,
                                           GOutputVector            *vectors,
                                           guint                     num_vectors,
                                           gint64                    timeout,
@@ -636,7 +653,6 @@ g_tls_thread_write_message_operation_new (GTlsOperationsThreadBase *thread,
   op->type = G_TLS_THREAD_OP_WRITE_MESSAGE;
   op->io_condition = G_IO_OUT;
   op->thread = thread;
-  op->connection = connection;
   op->output_vectors = vectors;
   op->num_vectors = num_vectors;
   op->timeout = timeout;
@@ -650,7 +666,6 @@ g_tls_thread_write_message_operation_new (GTlsOperationsThreadBase *thread,
 
 static GTlsThreadOperation *
 g_tls_thread_close_operation_new (GTlsOperationsThreadBase *thread,
-                                  GTlsConnectionBase       *connection,
                                   GCancellable             *cancellable)
 {
   GTlsThreadOperation *op;
@@ -659,7 +674,6 @@ g_tls_thread_close_operation_new (GTlsOperationsThreadBase *thread,
   op->type = G_TLS_THREAD_OP_CLOSE;
   op->io_condition = G_IO_IN | G_IO_OUT;
   op->thread = thread;
-  op->connection = connection;
   op->timeout = -1;
   op->cancellable = cancellable;
 
@@ -744,9 +758,7 @@ g_tls_operations_thread_base_copy_client_session_state (GTlsOperationsThreadBase
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
-  op = g_tls_thread_copy_client_session_state_operation_new (self,
-                                                             priv->connection,
-                                                             source);
+  op = g_tls_thread_copy_client_session_state_operation_new (self, source);
   execute_op (self, op, NULL, NULL);
   g_tls_thread_operation_free (op);
 }
@@ -760,9 +772,7 @@ g_tls_operations_thread_base_set_server_identity (GTlsOperationsThreadBase *self
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
-  op = g_tls_thread_set_server_identity_operation_new (self,
-                                                       priv->connection,
-                                                       server_identity);
+  op = g_tls_thread_set_server_identity_operation_new (self, server_identity);
   execute_op (self, op, NULL, NULL);
   g_tls_thread_operation_free (op);
 }
@@ -892,7 +902,6 @@ g_tls_operations_thread_base_handshake (GTlsOperationsThreadBase   *self,
   op = g_tls_thread_handshake_operation_new (self,
                                              context,
                                              copied_cert,
-                                             priv->connection,
                                              advertised_protocols,
                                              auth_mode,
                                              timeout,
@@ -929,7 +938,6 @@ g_tls_operations_thread_base_read (GTlsOperationsThreadBase  *self,
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_read_operation_new (self,
-                                        priv->connection,
                                         buffer, size,
                                         timeout,
                                         cancellable);
@@ -955,7 +963,6 @@ g_tls_operations_thread_base_read_message (GTlsOperationsThreadBase  *self,
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_read_message_operation_new (self,
-                                                priv->connection,
                                                 vectors, num_vectors,
                                                 timeout,
                                                 cancellable);
@@ -981,7 +988,6 @@ g_tls_operations_thread_base_write (GTlsOperationsThreadBase  *self,
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_write_operation_new (self,
-                                         priv->connection,
                                          buffer, size,
                                          timeout,
                                          cancellable);
@@ -1007,7 +1013,6 @@ g_tls_operations_thread_base_write_message (GTlsOperationsThreadBase  *self,
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
   op = g_tls_thread_write_message_operation_new (self,
-                                                 priv->connection,
                                                  vectors, num_vectors,
                                                  timeout,
                                                  cancellable);
@@ -1028,13 +1033,77 @@ g_tls_operations_thread_base_close (GTlsOperationsThreadBase  *self,
 
   g_assert (!g_main_context_is_owner (priv->op_thread_context));
 
-  op = g_tls_thread_close_operation_new (self,
-                                         priv->connection,
-                                         cancellable);
+  op = g_tls_thread_close_operation_new (self, cancellable);
   status = execute_op (self, op, NULL, error);
   g_tls_thread_operation_free (op);
 
   return status;
+}
+
+GIOStream *
+g_tls_operations_thread_base_get_base_iostream (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  return priv->base_iostream;
+}
+
+GDatagramBased *
+g_tls_operations_thread_base_get_base_socket (GTlsOperationsThreadBase *self)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  return priv->base_socket;
+}
+
+gboolean
+g_tls_operations_thread_base_check (GTlsOperationsThreadBase *self,
+                                    GIOCondition              condition)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  if (is_dtls (self))
+    return g_datagram_based_condition_check (priv->base_socket, condition);
+
+  if (condition & G_IO_IN)
+    {
+      GInputStream *istream = g_io_stream_get_input_stream (priv->base_iostream);
+      return g_pollable_input_stream_is_readable (G_POLLABLE_INPUT_STREAM (istream));
+    }
+
+  if (condition & G_IO_OUT)
+    {
+      GOutputStream *ostream = g_io_stream_get_output_stream (priv->base_iostream);
+      return g_pollable_output_stream_is_writable (G_POLLABLE_OUTPUT_STREAM (ostream));
+    }
+
+  g_assert_not_reached ();
+  return FALSE;
+}
+
+static GSource *
+create_base_source (GTlsOperationsThreadBase *self,
+                    GIOCondition              condition,
+                    GCancellable             *cancellable)
+{
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (self);
+
+  if (is_dtls (self))
+    return g_datagram_based_create_source (priv->base_socket, condition, cancellable);
+
+  if (condition & G_IO_IN)
+    {
+      GInputStream *istream = g_io_stream_get_input_stream (priv->base_iostream);
+      return g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (istream), cancellable);
+    }
+
+  if (condition & G_IO_OUT)
+    {
+      GOutputStream *ostream = g_io_stream_get_output_stream (priv->base_iostream);
+      return g_pollable_output_stream_create_source (G_POLLABLE_OUTPUT_STREAM (ostream), cancellable);
+    }
+
+  g_assert_not_reached ();
 }
 
 typedef struct {
@@ -1241,25 +1310,22 @@ dummy_callback (gpointer data)
 static void
 adjust_op_timeout (GTlsThreadOperation *op)
 {
+  GTlsOperationsThreadBasePrivate *priv = g_tls_operations_thread_base_get_instance_private (op->thread);
   GSocket *socket = NULL;
 
   /* Nonblocking? */
   if (op->timeout == 0)
     return;
 
-  if (g_tls_connection_base_is_dtls (op->connection))
+  if (is_dtls (op->thread))
     {
-      GDatagramBased *base_socket = g_tls_connection_base_get_base_socket (op->connection);
-
-      if (G_IS_SOCKET (base_socket))
-        socket = (GSocket *)base_socket;
+      if (G_IS_SOCKET (priv->base_socket))
+        socket = (GSocket *)priv->base_socket;
     }
   else
     {
-      GIOStream *base_stream = g_tls_connection_base_get_base_iostream (op->connection);
-
-      if (G_IS_SOCKET_CONNECTION (base_stream))
-        socket = g_socket_connection_get_socket ((GSocketConnection *)base_stream);
+      if (G_IS_SOCKET_CONNECTION (priv->base_iostream))
+        socket = g_socket_connection_get_socket ((GSocketConnection *)priv->base_iostream);
     }
 
   /* We have to "massage" the timeout here because we are using only nonblocking
@@ -1303,7 +1369,7 @@ process_op (GAsyncQueue         *queue,
         }
 
       g_assert (op->io_condition != 0);
-      if (!g_tls_connection_base_base_check (op->connection, op->io_condition))
+      if (!g_tls_operations_thread_base_check (op->thread, op->io_condition))
         {
           /* Not ready for I/O. Either we timed out, or were cancelled, or we
            * could have a spurious wakeup caused by GTlsConnectionBase yield_op.
@@ -1430,9 +1496,9 @@ wait:
       GMainContext *main_context;
       DelayedOpAsyncData *data;
 
-      tls_source = g_tls_connection_base_create_base_source (op->connection,
-                                                             op->io_condition,
-                                                             op->cancellable);
+      tls_source = create_base_source (op->thread,
+                                       op->io_condition,
+                                       op->cancellable);
       if (op->timeout > 0)
         {
           op->start_time = g_get_monotonic_time ();
@@ -1447,7 +1513,7 @@ wait:
         }
 
       data = delayed_op_async_data_new (queue, op, main_loop);
-      if (g_tls_connection_base_is_dtls (op->connection))
+      if (is_dtls (op->thread))
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_dtls_op), data, NULL);
       else
         g_source_set_callback (tls_source, G_SOURCE_FUNC (resume_tls_op), data, NULL);
@@ -1507,9 +1573,16 @@ g_tls_operations_thread_base_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_TLS_CONNECTION:
-      g_assert (priv->connection);
-      g_value_set_object (value, priv->connection);
+    case PROP_BASE_IO_STREAM:
+      g_value_set_object (value, priv->base_iostream);
+      break;
+
+    case PROP_BASE_SOCKET:
+      g_value_set_object (value, priv->base_socket);
+      break;
+
+    case PROP_THREAD_TYPE:
+      g_value_set_enum (value, priv->thread_type);
       break;
 
     default:
@@ -1528,16 +1601,20 @@ g_tls_operations_thread_base_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_TLS_CONNECTION:
-      priv->connection = g_value_get_object (value);
+    case PROP_BASE_IO_STREAM:
+      priv->base_iostream = g_value_dup_object (value);
+      if (priv->base_iostream)
+        g_assert (!priv->base_socket);
+      break;
 
-      /* This weak pointer is not required for correctness, because the
-       * thread should never outlive its GTlsConnection. It's only here
-       * as a sanity-check and debugging aid, to ensure priv->connection
-       * isn't ever dangling.
-       */
-      g_object_add_weak_pointer (G_OBJECT (priv->connection),
-                                 (gpointer *)&priv->connection);
+    case PROP_BASE_SOCKET:
+      priv->base_socket = g_value_dup_object (value);
+      if (priv->base_socket)
+        g_assert (!priv->base_iostream);
+      break;
+
+    case PROP_THREAD_TYPE:
+      priv->thread_type = g_value_get_enum (value);
       break;
 
     default:
@@ -1583,7 +1660,8 @@ g_tls_operations_thread_base_finalize (GObject *object)
   g_clear_pointer (&priv->queue, g_async_queue_unref);
   g_tls_thread_operation_free (op);
 
-  g_clear_weak_pointer (&priv->connection);
+  g_clear_object (&priv->base_iostream);
+  g_clear_object (&priv->base_socket);
 
   g_mutex_clear (&priv->mutex);
 
@@ -1604,15 +1682,39 @@ g_tls_operations_thread_base_class_init (GTlsOperationsThreadBaseClass *klass)
 
   klass->pop_io = g_tls_operations_thread_base_real_pop_io;
 
-  /* FIXME: remove this? subclass has been designed to not need it?
-   * Move base_iostream and base_socket up to this level?
-   */
-  obj_properties[PROP_TLS_CONNECTION] =
-    g_param_spec_object ("tls-connection",
-                         "TLS Connection",
-                         "The thread's GTlsConnection",
-                         G_TYPE_TLS_CONNECTION_BASE,
-                         G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+  signals[REQUEST_CERTIFICATE] =
+    g_signal_new ("operations-thread-request-certificate",
+		              G_TYPE_TLS_OPERATIONS_THREAD_BASE,
+		              G_SIGNAL_RUN_LAST, 0,
+		              g_signal_accumulator_first_wins,
+		              NULL, NULL,
+		              G_TYPE_TLS_INTERACTION_RESULT, 4,
+		              G_TYPE_TLS_INTERACTION,
+		              G_TYPE_POINTER,
+		              G_TYPE_CANCELLABLE,
+		              G_TYPE_POINTER);
+
+  obj_properties[PROP_BASE_IO_STREAM] =
+    g_param_spec_object ("base-io-stream",
+                         "Base IOStream",
+                         "The underlying GIOStream, for TLS connections",
+                         G_TYPE_IO_STREAM,
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
+  obj_properties[PROP_BASE_SOCKET] =
+    g_param_spec_object ("base-socket",
+                         "Base socket",
+                         "The underlying GDatagramBased, for DTLS connections",
+                         G_TYPE_DATAGRAM_BASED,
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
+  obj_properties[PROP_THREAD_TYPE] =
+    g_param_spec_enum ("thread-type",
+                       "Thread type",
+                       "Whether this thread runs a TLS client or server",
+                       G_TYPE_TLS_OPERATIONS_THREAD_TYPE,
+                       0,
+                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (gobject_class, LAST_PROP, obj_properties);
 }

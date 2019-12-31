@@ -42,6 +42,11 @@ typedef enum {
   G_TLS_OPERATION_ERROR,
 } GTlsOperationStatus;
 
+typedef enum {
+  G_TLS_OPERATIONS_THREAD_CLIENT,
+  G_TLS_OPERATIONS_THREAD_SERVER
+} GTlsOperationsThreadType;
+
 typedef struct _HandshakeContext HandshakeContext;
 
 struct _GTlsOperationsThreadBaseClass
@@ -115,9 +120,6 @@ typedef gboolean (*GTlsVerifyCertificateFunc) (GTlsOperationsThreadBase *thread,
 typedef void     (*GTlsSessionResumedFunc)    (GTlsOperationsThreadBase *thread,
                                                GTlsCertificate          *peer_certificate,
                                                gpointer                  user_data);
-
-/* FIXME: remove!!! */
-GTlsConnectionBase  *g_tls_operations_thread_base_get_connection            (GTlsOperationsThreadBase   *self);
 
 void                 g_tls_operations_thread_base_set_interaction           (GTlsOperationsThreadBase   *self,
                                                                              GTlsInteraction            *interaction);
@@ -202,5 +204,12 @@ GTlsOperationStatus  g_tls_operations_thread_base_write_message             (GTl
 GTlsOperationStatus  g_tls_operations_thread_base_close                     (GTlsOperationsThreadBase   *self,
                                                                              GCancellable               *cancellable,
                                                                              GError                    **error);
+
+GIOStream           *g_tls_operations_thread_base_get_base_iostream         (GTlsOperationsThreadBase   *self);
+GDatagramBased      *g_tls_operations_thread_base_get_base_socket           (GTlsOperationsThreadBase   *self);
+
+gboolean             g_tls_operations_thread_base_check                     (GTlsOperationsThreadBase   *self,
+                                                                             GIOCondition                condition);
+
 
 G_END_DECLS
