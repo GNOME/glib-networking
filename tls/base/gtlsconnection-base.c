@@ -4,6 +4,7 @@
  *
  * Copyright 2009-2011 Red Hat, Inc
  * Copyright 2019 Igalia S.L.
+ * Copyright 2019 Metrological Group B.V.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -202,8 +203,8 @@ enum
   PROP_NEGOTIATED_PROTOCOL,
 };
 
-gboolean
-g_tls_connection_base_is_dtls (GTlsConnectionBase *tls)
+static gboolean
+is_dtls (GTlsConnectionBase *tls)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
@@ -779,13 +780,13 @@ yield_op (GTlsConnectionBase   *tls,
 /* Checks whether the underlying base stream or GDatagramBased meets
  * @condition.
  */
-gboolean
-g_tls_connection_base_base_check (GTlsConnectionBase *tls,
-                                  GIOCondition        condition)
+static gboolean
+base_check (GTlsConnectionBase *tls,
+            GIOCondition        condition)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
-  if (g_tls_connection_base_is_dtls (tls))
+  if (is_dtls (tls))
     return g_datagram_based_condition_check (priv->base_socket, condition);
 
   if (condition & G_IO_IN)
@@ -822,7 +823,7 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
     return FALSE;
 
   /* Defer to the base stream or GDatagramBased. */
-  return g_tls_connection_base_base_check (tls, condition);
+  return base_check (tls, condition);
 }
 
 typedef struct {
@@ -1009,7 +1010,6 @@ static GSourceFuncs dtls_source_funcs =
   (GSourceDummyMarshal)g_cclosure_marshal_generic
 };
 
-/* FIXME: all needs to be threadsafe... */
 GSource *
 g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
                                      GIOCondition         condition,
@@ -1019,7 +1019,7 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   GSource *source, *cancellable_source;
   GTlsConnectionBaseSource *tls_source;
 
-  if (g_tls_connection_base_is_dtls (tls))
+  if (is_dtls (tls))
     {
       source = g_source_new (&dtls_source_funcs,
                              sizeof (GTlsConnectionBaseSource));
@@ -1033,7 +1033,7 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   tls_source = (GTlsConnectionBaseSource *)source;
   tls_source->tls = g_object_ref (tls);
   tls_source->condition = condition;
-  if (g_tls_connection_base_is_dtls (tls))
+  if (is_dtls (tls))
     tls_source->base = G_OBJECT (tls);
   else if (priv->tls_istream && condition & G_IO_IN)
     tls_source->base = G_OBJECT (priv->tls_istream);
@@ -1148,7 +1148,7 @@ verify_peer_certificate (GTlsConnectionBase *tls,
 
   if (!is_client)
     peer_identity = NULL;
-  else if (!g_tls_connection_base_is_dtls (tls))
+  else if (!is_dtls (tls))
     peer_identity = g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls));
   else
     peer_identity = g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls));
@@ -1198,21 +1198,19 @@ verify_certificate_cb (GTlsOperationsThreadBase *thread,
    * FIXME: eliminate handshake context.
    */
 
-  g_set_object (&priv->peer_certificate, peer_certificate);
+  g_assert (G_IS_TLS_CERTIFICATE (peer_certificate));
 
-  if (peer_certificate)
-    priv->peer_certificate_errors = verify_peer_certificate (tls, peer_certificate);
-  else
-    priv->peer_certificate_errors = 0;
+  g_set_object (&priv->peer_certificate, peer_certificate);
+  priv->peer_certificate_errors = verify_peer_certificate (tls, peer_certificate);
 
   g_object_notify (G_OBJECT (tls), "peer-certificate");
   g_object_notify (G_OBJECT (tls), "peer-certificate-errors");
 
-  if (G_IS_TLS_CLIENT_CONNECTION (tls) && priv->peer_certificate)
+  if (G_IS_TLS_CLIENT_CONNECTION (tls))
     {
       GTlsCertificateFlags validation_flags;
 
-      if (!g_tls_connection_base_is_dtls (tls))
+      if (!is_dtls (tls))
         validation_flags =
           g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (tls));
       else
@@ -1450,7 +1448,6 @@ async_handshake_thread_completed (GObject      *object,
     need_finish_handshake = FALSE;
   g_mutex_unlock (&priv->op_mutex);
 
-  /* FIXME: this looks weird, why do we ignore the result of the GTask in the !need_finish_handshake case? */
   if (need_finish_handshake)
     {
       success = g_task_propagate_boolean (G_TASK (result), &error);
@@ -1981,7 +1978,7 @@ g_tls_connection_base_close_internal (GIOStream      *stream,
         success = g_output_stream_close (g_io_stream_get_output_stream (priv->base_io_stream),
                                          cancellable, &stream_error);
     }
-  else if (g_tls_connection_base_is_dtls (tls))
+  else if (is_dtls (tls))
     {
       /* We do not close underlying #GDatagramBaseds. There is no
        * g_datagram_based_close() method since different datagram-based
@@ -2159,26 +2156,6 @@ g_tls_connection_base_dtls_get_negotiated_protocol (GDtlsConnection *conn)
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
   return priv->negotiated_protocol;
-}
-
-GDatagramBased *
-g_tls_connection_base_get_base_socket (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
- g_assert (g_tls_connection_base_is_dtls (tls));
-
-  return priv->base_socket;
-}
-
-GIOStream *
-g_tls_connection_base_get_base_iostream (GTlsConnectionBase *tls)
-{
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
- g_assert (!g_tls_connection_base_is_dtls (tls));
-
-  return priv->base_io_stream;
 }
 
 GTlsOperationsThreadBase *

@@ -40,7 +40,4 @@ GTlsOperationsThreadBase *g_tls_operations_thread_gnutls_new (GTlsConnectionGnut
                                                               GDatagramBased       *base_socket,
                                                               guint                 flags);
 
-/* FIXME: must remove this!!! */
-gnutls_session_t g_tls_operations_thread_gnutls_get_session (GTlsOperationsThreadGnutls *self);
-
 G_END_DECLS

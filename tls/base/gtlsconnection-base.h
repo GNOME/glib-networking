@@ -68,8 +68,6 @@ gssize                    g_tls_connection_base_write                   (GTlsCon
 
 gboolean                  g_tls_connection_base_check                   (GTlsConnectionBase  *tls,
                                                                          GIOCondition         condition);
-gboolean                  g_tls_connection_base_base_check              (GTlsConnectionBase  *tls,
-                                                                         GIOCondition         condition);
 GSource                  *g_tls_connection_base_create_source           (GTlsConnectionBase  *tls,
                                                                          GIOCondition         condition,
                                                                          GCancellable        *cancellable);
@@ -79,15 +77,6 @@ gboolean                  g_tls_connection_base_close_internal          (GIOStre
                                                                          GCancellable        *cancellable,
                                                                          GError             **error);
 
-/* FIXME: audit, which are still needed? in public header? */
-
-gboolean                  g_tls_connection_base_is_dtls                 (GTlsConnectionBase *tls);
-
-GDatagramBased           *g_tls_connection_base_get_base_socket         (GTlsConnectionBase *tls);
-
-GIOStream                *g_tls_connection_base_get_base_iostream       (GTlsConnectionBase *tls);
-
-/* FIXME: needed? */
 GTlsOperationsThreadBase *g_tls_connection_base_get_op_thread           (GTlsConnectionBase *tls);
 
 G_END_DECLS

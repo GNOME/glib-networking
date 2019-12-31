@@ -3,6 +3,8 @@
  * gtlsclientconnection-openssl.c
  *
  * Copyright (C) 2015 NICE s.r.l.
+ * Copyright 2019 Igalia S.L.
+ * Copyright 2019 Metrological Group B.V.
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
