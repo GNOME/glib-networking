@@ -543,6 +543,8 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
 
   SSL_set_bio (ssl, priv->bio, priv->bio);
 
+  g_object_unref (base_io_stream);
+
   return TRUE;
 }
 
