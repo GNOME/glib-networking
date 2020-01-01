@@ -52,7 +52,6 @@ struct _GTlsClientConnectionOpenssl
   GBytes *session_data;
 
   STACK_OF (X509_NAME) *ca_list;
-  gboolean ca_list_changed;
 
   SSL_SESSION *session;
   SSL *ssl;
@@ -243,13 +242,13 @@ g_tls_client_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
 {
   GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
 
-  G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->complete_handshake (tls, negotiated_protocol, error);
+  if (G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->complete_handshake)
+    G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->complete_handshake (tls, negotiated_protocol, error);
 
   /* It may have changed during the handshake, but we have to wait until here
    * because we can't emit notifies on the handshake thread.
    */
-  if (client->ca_list_changed)
-    g_object_notify (G_OBJECT (client), "accepted-cas");
+  g_object_notify (G_OBJECT (client), "accepted-cas");
 }
 
 static GTlsCertificateFlags
@@ -359,14 +358,11 @@ handshake_thread_retrieve_certificate (SSL       *ssl,
   GTlsClientConnectionOpenssl *client;
   GTlsConnectionBase *tls;
   GTlsCertificate *cert;
-  gboolean had_ca_list;
 
   client = SSL_get_ex_data (ssl, data_index);
   tls = G_TLS_CONNECTION_BASE (client);
 
-  had_ca_list = client->ca_list != NULL;
   client->ca_list = SSL_get_client_CA_list (client->ssl);
-  client->ca_list_changed = client->ca_list || had_ca_list;
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
   if (!cert)
