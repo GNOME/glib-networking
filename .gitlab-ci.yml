@@ -24,7 +24,7 @@ fedora-x86_64:
             -Dwerror=true
             build/
     - ninja -C build/
-    - meson test -v -C build/ --repeat=5000
+    - meson test -v -C build/ --repeat=1000
     - meson install -C build/
   artifacts:
     paths:
