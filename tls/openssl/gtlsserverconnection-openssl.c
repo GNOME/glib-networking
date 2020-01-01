@@ -33,16 +33,11 @@
 #include "openssl-include.h"
 #include <glib/gi18n-lib.h>
 
-#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
-
 struct _GTlsServerConnectionOpenssl
 {
   GTlsConnectionOpenssl parent_instance;
 
   GTlsAuthenticationMode authentication_mode;
-  SSL_SESSION *session;
-  SSL *ssl;
-  SSL_CTX *ssl_ctx;
 };
 
 enum
@@ -63,17 +58,6 @@ G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionOpenssl, g_tls_server_connection_op
                          G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
                                                 g_tls_server_connection_openssl_server_connection_interface_init))
 
-static void
-g_tls_server_connection_openssl_finalize (GObject *object)
-{
-  GTlsServerConnectionOpenssl *openssl = G_TLS_SERVER_CONNECTION_OPENSSL (object);
-
-  SSL_free (openssl->ssl);
-  SSL_CTX_free (openssl->ssl_ctx);
-  SSL_SESSION_free (openssl->session);
-
-  G_OBJECT_CLASS (g_tls_server_connection_openssl_parent_class)->finalize (object);
-}
 
 static void
 g_tls_server_connection_openssl_get_property (GObject    *object,
@@ -296,7 +280,6 @@ g_tls_server_connection_openssl_class_init (GTlsServerConnectionOpensslClass *kl
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
   GTlsConnectionOpensslClass *connection_class = G_TLS_CONNECTION_OPENSSL_CLASS (klass);
 
-  gobject_class->finalize = g_tls_server_connection_openssl_finalize;
   gobject_class->get_property = g_tls_server_connection_openssl_get_property;
   gobject_class->set_property = g_tls_server_connection_openssl_set_property;
 
@@ -317,167 +300,17 @@ g_tls_server_connection_openssl_server_connection_interface_init (GTlsServerConn
 {
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-static void
-ssl_info_callback (const SSL *ssl,
-                   int        type,
-                   int        val)
-{
-  if ((type & SSL_CB_HANDSHAKE_DONE) != 0)
-    {
-      /* Disable renegotiation (CVE-2009-3555) */
-      ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
-    }
-}
-#endif
-
-static gboolean
-set_cipher_list (GTlsServerConnectionOpenssl  *server,
-                 GError                      **error)
-{
-  const gchar *cipher_list;
-
-  cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
-  if (!cipher_list)
-    cipher_list = DEFAULT_CIPHER_LIST;
-
-  if (!SSL_CTX_set_cipher_list (server->ssl_ctx, cipher_list))
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Could not create TLS context: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
-#ifdef SSL_CTX_set1_sigalgs_list
-static void
-set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
-{
-  const gchar *signature_algorithm_list;
-
-  signature_algorithm_list = g_getenv ("G_TLS_OPENSSL_SIGNATURE_ALGORITHM_LIST");
-  if (!signature_algorithm_list)
-    return;
-
-  SSL_CTX_set1_sigalgs_list (server->ssl_ctx, signature_algorithm_list);
-}
-#endif
-
-#ifdef SSL_CTX_set1_curves_list
-static void
-set_curve_list (GTlsServerConnectionOpenssl *server)
-{
-  const gchar *curve_list;
-
-  curve_list = g_getenv ("G_TLS_OPENSSL_CURVE_LIST");
-  if (!curve_list)
-    return;
-
-  SSL_CTX_set1_curves_list (server->ssl_ctx, curve_list);
-}
-#endif
-
 static gboolean
 g_tls_server_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
                                                GError         **error)
 {
   GTlsServerConnectionOpenssl *server = G_TLS_SERVER_CONNECTION_OPENSSL (initable);
-  GTlsCertificate *cert;
-  long options;
 
-  server->session = SSL_SESSION_new ();
-
-  server->ssl_ctx = SSL_CTX_new (SSLv23_server_method ());
-  if (!server->ssl_ctx)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Could not create TLS context: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-  if (!set_cipher_list (server, error))
+  if (!g_tls_server_connection_openssl_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
 
-  /* Only TLS 1.2 or higher */
-  options = SSL_OP_NO_TICKET |
-            SSL_OP_NO_COMPRESSION |
-            SSL_OP_CIPHER_SERVER_PREFERENCE |
-            SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
-            SSL_OP_SINGLE_ECDH_USE |
-#ifdef SSL_OP_NO_TLSv1_1
-            SSL_OP_NO_TLSv1_1 |
-#endif
-            SSL_OP_NO_SSLv2 |
-            SSL_OP_NO_SSLv3 |
-            SSL_OP_NO_TLSv1;
-
-#ifdef SSL_OP_NO_RENEGOTIATION
-  options |= SSL_OP_NO_RENEGOTIATION;
-#endif
-
-  SSL_CTX_set_options (server->ssl_ctx, options);
-
-  SSL_CTX_add_session (server->ssl_ctx, server->session);
-
-#ifdef SSL_CTX_set1_sigalgs_list
-  set_signature_algorithm_list (server);
-#endif
-
-#ifdef SSL_CTX_set1_curves_list
-  set_curve_list (server);
-#endif
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-# ifdef SSL_CTX_set_ecdh_auto
-  SSL_CTX_set_ecdh_auto (server->ssl_ctx, 1);
-# else
-  {
-    EC_KEY *ecdh;
-
-    ecdh = EC_KEY_new_by_curve_name (NID_X9_62_prime256v1);
-    if (ecdh)
-      {
-        SSL_CTX_set_tmp_ecdh (server->ssl_ctx, ecdh);
-        EC_KEY_free (ecdh);
-      }
-  }
-# endif
-
-  SSL_CTX_set_info_callback (server->ssl_ctx, ssl_info_callback);
-#endif
-
-  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
-
-#if OPENSSL_VERSION_NUMBER < 0x10002000L
-  if (cert && !ssl_ctx_set_certificate (server->ssl_ctx, cert, error))
-    return FALSE;
-#endif
-
-  server->ssl = SSL_new (server->ssl_ctx);
-  if (!server->ssl)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Could not create TLS connection: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
-  if (cert && !ssl_set_certificate (server->ssl, cert, error))
-    return FALSE;
-#endif
-
-  SSL_set_accept_state (server->ssl);
-
-  if (!g_tls_server_connection_openssl_parent_initable_iface->
-      init (initable, cancellable, error))
-    return FALSE;
-
+// FIXME: remove this
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   g_signal_connect (server, "notify::certificate", G_CALLBACK (on_certificate_changed), NULL);
 #endif

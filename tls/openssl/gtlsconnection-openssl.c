@@ -58,7 +58,24 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionOpenssl, g_tls_connection_openss
 static GTlsOperationsThreadBase *
 g_tls_connection_openssl_create_op_thread (GTlsConnectionBase *tls)
 {
-  return g_tls_operations_thread_openssl_new (G_TLS_CONNECTION_OPENSSL (tls));
+  GTlsOperationsThreadBase *thread;
+  GTlsOperationsThreadType thread_type;
+  GIOStream *base_iostream = NULL;
+
+  g_object_get (tls,
+                "base-io-stream", &base_iostream,
+                NULL);
+
+  if (G_IS_TLS_CLIENT_CONNECTION (tls))
+    thread_type = G_TLS_OPERATIONS_THREAD_CLIENT;
+  else
+    thread_type = G_TLS_OPERATIONS_THREAD_SERVER;
+
+  thread = g_tls_operations_thread_openssl_new (base_iostream,
+                                                thread_type);
+  g_object_unref (base_iostream);
+
+  return thread;
 }
 
 static GTlsCertificate *
@@ -191,6 +208,8 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
 
   SSL_set_bio (ssl, priv->bio, priv->bio);
 
+  g_object_unref (base_io_stream);
+
   return g_tls_connection_openssl_parent_initable_iface->init (initable, cancellable, error);
 }
 
@@ -207,6 +226,7 @@ g_tls_connection_openssl_init (GTlsConnectionOpenssl *openssl)
 {
 }
 
+// FIXME: remove
 SSL *
 g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *openssl)
 {
@@ -215,6 +235,7 @@ g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *openssl)
   return G_TLS_CONNECTION_OPENSSL_GET_CLASS (openssl)->get_ssl (openssl);
 }
 
+// FIXME: remove
 GTlsConnectionOpenssl *
 g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl)
 {

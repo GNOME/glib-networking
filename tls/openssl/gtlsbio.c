@@ -221,16 +221,16 @@ gtls_bio_read (BIO  *bio,
 }
 
 static int
-gtls_bio_puts(BIO        *bio,
-              const char *str)
+gtls_bio_puts (BIO        *bio,
+               const char *str)
 {
   return gtls_bio_write (bio, str, (int)strlen (str));
 }
 
 static int
-gtls_bio_gets(BIO  *bio,
-              char *buf,
-              int   len)
+gtls_bio_gets (BIO  *bio,
+               char *buf,
+               int   len)
 {
   return -1;
 }

@@ -213,5 +213,4 @@ GDatagramBased      *g_tls_operations_thread_base_get_base_socket           (GTl
 gboolean             g_tls_operations_thread_base_check                     (GTlsOperationsThreadBase   *self,
                                                                              GIOCondition                condition);
 
-
 G_END_DECLS

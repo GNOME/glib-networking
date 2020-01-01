@@ -36,7 +36,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GTlsOperationsThreadOpenssl, g_tls_operations_thread_openssl, G, TLS_OPERATIONS_THREAD_OPENSSL, GTlsOperationsThreadBase)
 
-GTlsOperationsThreadBase *g_tls_operations_thread_openssl_new (GTlsConnectionOpenssl *tls,
-                                                               GIOStream             *base_iostream);
+GTlsOperationsThreadBase *g_tls_operations_thread_openssl_new (GIOStream                *base_iostream,
+                                                               GTlsOperationsThreadType  type);
 
 G_END_DECLS

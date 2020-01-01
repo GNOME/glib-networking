@@ -31,10 +31,18 @@
 
 #include <glib/gi18n-lib.h>
 
+#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
+
+static int data_index = -1;
+
 struct _GTlsOperationsThreadOpenssl {
   GTlsOperationsThreadBase parent_instance;
 
+  GTlsOperationsThreadType thread_type;
+
+  SSL_SESSION *session;
   SSL *ssl;
+  SSL_CTX *ssl_ctx;
 
   gboolean shutting_down;
 };
@@ -47,6 +55,43 @@ G_DEFINE_TYPE_WITH_CODE (GTlsOperationsThreadOpenssl, g_tls_operations_thread_op
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_tls_operations_thread_openssl_initable_iface_init);
                          )
+
+static inline gboolean
+is_client (GTlsOperationsThreadOpenssl *self)
+{
+  return self->thread_type == G_TLS_OPERATIONS_THREAD_CLIENT;
+}
+
+static inline gboolean
+is_server (GTlsOperationsThreadOpenssl *self)
+{
+  return self->thread_type == G_TLS_OPERATIONS_THREAD_SERVER;
+}
+
+static void
+g_tls_operations_thread_openssl_set_server_identity (GTlsOperationsThreadBase *base,
+                                                     const gchar              *server_identity)
+{
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
+
+  g_assert (is_client (self));
+
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L && !defined (LIBRESSL_VERSION_NUMBER)
+  if (server_identity)
+    {
+      X509_VERIFY_PARAM *param;
+
+      param = X509_VERIFY_PARAM_new ();
+      X509_VERIFY_PARAM_set1_host (param, server_identity, 0);
+      SSL_CTX_set1_param (self->ssl_ctx, param);
+      X509_VERIFY_PARAM_free (param);
+
+#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
+      SSL_set_tlsext_host_name (self->ssl, server_identity);
+#endif
+    }
+#endif
+}
 
 static GTlsOperationStatus
 end_openssl_io (GTlsOperationsThreadOpenssl  *self,
@@ -274,18 +319,321 @@ g_tls_operations_thread_openssl_close (GTlsOperationsThreadBase  *base,
 }
 
 static gboolean
+set_cipher_list (GTlsOperationsThreadOpenssl  *self,
+                 GError                      **error)
+{
+  const gchar *cipher_list;
+
+  cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
+  if (!cipher_list)
+    cipher_list = DEFAULT_CIPHER_LIST;
+
+  if (!SSL_CTX_set_cipher_list (self->ssl_ctx, cipher_list))
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Could not create TLS context: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+#ifdef SSL_CTX_set1_sigalgs_list
+static void
+set_signature_algorithm_list (GTlsOperationsThreadOpenssl *self)
+{
+  const gchar *signature_algorithm_list;
+
+  signature_algorithm_list = g_getenv ("G_TLS_OPENSSL_SIGNATURE_ALGORITHM_LIST");
+  if (!signature_algorithm_list)
+    return;
+
+  SSL_CTX_set1_sigalgs_list (self->ssl_ctx, signature_algorithm_list);
+}
+#endif
+
+#ifdef SSL_CTX_set1_curves_list
+static void
+set_curve_list (GTlsOperationsThreadOpenssl *self)
+{
+  const gchar *curve_list;
+
+  curve_list = g_getenv ("G_TLS_OPENSSL_CURVE_LIST");
+  if (!curve_list)
+    return;
+
+  SSL_CTX_set1_curves_list (self->ssl_ctx, curve_list);
+}
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+static void
+ssl_info_callback (const SSL *ssl,
+                   int        type,
+                   int        val)
+{
+  g_assert (is_server (self));
+
+  if ((type & SSL_CB_HANDSHAKE_DONE) != 0)
+    {
+      /* Disable renegotiation (CVE-2009-3555) */
+      ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
+    }
+}
+#endif
+
+static void
+compute_session_id (GTlsOperationsThreadOpenssl *self)
+{
+  GSocketConnection *base_conn;
+  GSocketAddress *remote_addr;
+  GInetAddress *iaddr;
+  guint port;
+
+  /* FIXME: this logic is broken because it doesn't consider the client
+   * certificate when computing the session ID. The GnuTLS version of this
+   * code has this problem fixed. Eliminate this code duplication.
+   */
+  g_object_get (G_OBJECT (openssl), "base-io-stream", &base_conn, NULL);
+  if (G_IS_SOCKET_CONNECTION (base_conn))
+    {
+      remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
+      if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
+        {
+          GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
+          const gchar *server_hostname;
+          gchar *addrstr, *session_id;
+
+          iaddr = g_inet_socket_address_get_address (isaddr);
+          port = g_inet_socket_address_get_port (isaddr);
+
+          addrstr = g_inet_address_to_string (iaddr);
+          server_hostname = get_server_identity (openssl); /* FIXME: server identity won't be available until after init... */
+          session_id = g_strdup_printf ("%s/%s/%d", addrstr,
+                                        server_hostname ? server_hostname : "",
+                                        port);
+          self->session_id = g_bytes_new_take (session_id, strlen (session_id));
+          g_free (addrstr);
+        }
+      g_object_unref (remote_addr);
+    }
+  g_object_unref (base_conn);
+}
+
+static int
+generate_session_id_cb (SSL           *ssl,
+                        unsigned char *id,
+                        unsigned int  *id_len)
+{
+  GTlsOperationsThreadOpenssl *self;
+  int len;
+
+  self = SSL_get_ex_data (ssl, data_index);
+
+  len = MIN (*id_len, g_bytes_get_size (self->session_id));
+  memcpy (id, g_bytes_get_data (self->session_id, NULL), len);
+
+  return 1;
+}
+
+static int
+retrieve_certificate_cb (SSL       *ssl,
+                         X509     **x509,
+                         EVP_PKEY **pkey)
+{
+  GTlsOperationsThreadOpenssl *self;
+  GTlsConnectionBase *tls;
+  GTlsCertificate *cert;
+  gboolean had_ca_list;
+
+  self = SSL_get_ex_data (ssl, data_index);
+  tls = G_TLS_CONNECTION_BASE (client);
+
+  had_ca_list = self->ca_list != NULL;
+  self->ca_list = SSL_get_client_CA_list (client->ssl);
+  self->ca_list_changed = self->ca_list || had_ca_list;
+
+  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
+  if (!cert)
+    {
+      if (g_tls_connection_base_handshake_thread_request_certificate (tls))
+        cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
+    }
+
+  if (cert)
+    {
+      EVP_PKEY *key;
+
+      key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
+      /* increase ref count */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+      CRYPTO_add (&key->references, 1, CRYPTO_LOCK_EVP_PKEY);
+#else
+      EVP_PKEY_up_ref (key);
+#endif
+      *pkey = key;
+
+      *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
+
+      return 1;
+    }
+
+  g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
+
+  return 0;
+}
+
+static gboolean
+use_ocsp (void)
+{
+  return g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED") != NULL;
+}
+
+static void
+g_tls_operations_thread_openssl_finalize (GObject *object)
+{
+  GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (object);
+
+  SSL_free (self->ssl);
+  SSL_CTX_free (self->ssl_ctx);
+  SSL_SESSION_free (self->session);
+
+  G_OBJECT_CLASS (g_tls_operations_thread_openssl_parent_class)->finalize (object);
+}
+
+static gboolean
 g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
                                                GCancellable  *cancellable,
                                                GError       **error)
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (initable);
-  GTlsConnectionBase *openssl;
+  long options;
+  const char *hostname;
+  GTlsCertificate *cert; /* FIXME: remove, become part of handshake op? */
 
   if (!g_tls_operations_thread_openssl_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
 
-  openssl = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
-  self->ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
+  g_object_get (self,
+                "thread-type", &self->thread_type,
+                NULL);
+
+  if (is_client (self)) /* FIXME: broken */
+    compute_session_id (self);
+
+  self->session = SSL_SESSION_new ();
+  self->ssl_ctx = SSL_CTX_new (is_client (self) ? SSLv23_client_method () : SSLv23_server_method ());
+  if (!self->ssl_ctx)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Could not create TLS context: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+    if (!set_cipher_list (self, error))
+      return FALSE;
+
+  /* Only TLS 1.2 or higher */
+  options = SSL_OP_NO_TICKET |
+            SSL_OP_NO_COMPRESSION |
+#ifdef SSL_OP_NO_TLSv1_1
+            SSL_OP_NO_TLSv1_1 |
+#endif
+            SSL_OP_NO_SSLv2 |
+            SSL_OP_NO_SSLv3 |
+            SSL_OP_NO_TLSv1;
+
+  if (is_server (self))
+    {
+      SSL_CTX_set_options (self->ssl_ctx, options);
+    }
+  else
+    {
+      options |= SSL_OP_CIPHER_SERVER_PREFERENCE |
+                 SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
+                 SSL_OP_SINGLE_ECDH_USE;
+#ifdef SSL_OP_NO_RENEGOTIATION
+      options |= SSL_OP_NO_RENEGOTIATION;
+#endif
+      SSL_CTX_set_options (self->ssl_ctx, options);
+      SSL_CTX_clear_options (self->ssl_ctx, SSL_OP_LEGACY_SERVER_CONNECT);
+
+      SSL_CTX_set_generate_session_id (self->ssl_ctx, (GEN_SESSION_CB)generate_session_id_cb);
+
+      SSL_CTX_set_client_cert_cb (self->ssl_ctx, retrieve_certificate_cb);
+    }
+
+  SSL_CTX_add_session (self->ssl_ctx, self->session);
+
+#ifdef SSL_CTX_set1_sigalgs_list
+  set_signature_algorithm_list (server);
+#endif
+
+#ifdef SSL_CTX_set1_curves_list
+  set_curve_list (server);
+#endif
+
+  if (is_server (self))
+    {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+# ifdef SSL_CTX_set_ecdh_auto
+      SSL_CTX_set_ecdh_auto (self->ssl_ctx, 1);
+# else
+      {
+        EC_KEY *ecdh;
+
+        ecdh = EC_KEY_new_by_curve_name (NID_X9_62_prime256v1);
+        if (ecdh)
+          {
+            SSL_CTX_set_tmp_ecdh (self->ssl_ctx, ecdh);
+            EC_KEY_free (ecdh);
+          }
+      }
+# endif
+
+      SSL_CTX_set_info_callback (self->ssl_ctx, ssl_info_callback);
+#endif
+
+      cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
+
+#if OPENSSL_VERSION_NUMBER < 0x10002000L
+      if (cert && !ssl_ctx_set_certificate (server->ssl_ctx, cert, error))
+        return FALSE;
+#endif
+    }
+
+  self->ssl = SSL_new (self->ssl_ctx);
+  if (!self->ssl)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Could not create TLS connection: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  if (data_index == -1)
+    data_index = SSL_get_ex_new_index (0, (void *)"gtlsoperationsthread", NULL, NULL, NULL);
+  SSL_set_ex_data (self->ssl, data_index, self);
+
+  if (is_client (self))
+    {
+      SSL_set_connect_state (client->ssl);
+
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
+      if (use_ocsp())
+        SSL_set_tlsext_status_type (client->ssl, TLSEXT_STATUSTYPE_ocsp);
+#endif
+    }
+  else
+    {
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
+      if (cert && !ssl_set_certificate (server->ssl, cert, error))
+        return FALSE;
+#endif
+      SSL_set_accept_state (server->ssl);
+    }
 
   return TRUE;
 }
@@ -301,10 +649,14 @@ g_tls_operations_thread_openssl_class_init (GTlsOperationsThreadOpensslClass *kl
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsOperationsThreadBaseClass *base_class = G_TLS_OPERATIONS_THREAD_BASE_CLASS (klass);
 
-  base_class->handshake_fn   = g_tls_operations_thread_openssl_handshake;
-  base_class->read_fn        = g_tls_operations_thread_openssl_read;
-  base_class->write_fn       = g_tls_operations_thread_openssl_write;
-  base_class->close_fn       = g_tls_operations_thread_openssl_close;
+  gobject_class->finalize         = g_tls_operations_thread_openssl_finalize;
+
+  base_class->copy_certificate    = g_tls_operations_thread_openssl_copy_certificate;
+  base_class->set_server_identity = g_tls_operations_thread_openssl_set_server_identity;
+  base_class->handshake_fn        = g_tls_operations_thread_openssl_handshake;
+  base_class->read_fn             = g_tls_operations_thread_openssl_read;
+  base_class->write_fn            = g_tls_operations_thread_openssl_write;
+  base_class->close_fn            = g_tls_operations_thread_openssl_close;
 }
 
 static void
@@ -316,12 +668,12 @@ g_tls_operations_thread_openssl_initable_iface_init (GInitableIface *iface)
 }
 
 GTlsOperationsThreadBase *
-g_tls_operations_thread_openssl_new (GTlsConnectionOpenssl *tls,
-                                     GIOStream             *base_iostream)
+g_tls_operations_thread_openssl_new (GIOStream                *base_iostream,
+                                     GTlsOperationsThreadType  type)
 {
   return g_initable_new (G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL,
                          NULL, NULL,
                          "base-iostream", base_iostream,
-                         "tls-connection", tls,
+                         "thread-type", type,
                          NULL);
 }
