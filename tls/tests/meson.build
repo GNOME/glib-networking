@@ -46,7 +46,7 @@ test_programs = [
   ['file-database', [], deps, [], []],
   ['connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
 # DTLS tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/49
-#  ['dtls-connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
+  ['dtls-connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
 ]
 
 foreach backend: backends
