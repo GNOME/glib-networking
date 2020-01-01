@@ -383,60 +383,6 @@ ssl_info_callback (const SSL *ssl,
 }
 #endif
 
-static void
-compute_session_id (GTlsOperationsThreadOpenssl *self)
-{
-  GSocketConnection *base_conn;
-  GSocketAddress *remote_addr;
-  GInetAddress *iaddr;
-  guint port;
-
-  /* FIXME: this logic is broken because it doesn't consider the client
-   * certificate when computing the session ID. The GnuTLS version of this
-   * code has this problem fixed. Eliminate this code duplication.
-   */
-  g_object_get (G_OBJECT (openssl), "base-io-stream", &base_conn, NULL);
-  if (G_IS_SOCKET_CONNECTION (base_conn))
-    {
-      remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
-      if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
-        {
-          GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
-          const gchar *server_hostname;
-          gchar *addrstr, *session_id;
-
-          iaddr = g_inet_socket_address_get_address (isaddr);
-          port = g_inet_socket_address_get_port (isaddr);
-
-          addrstr = g_inet_address_to_string (iaddr);
-          server_hostname = get_server_identity (openssl); /* FIXME: server identity won't be available until after init... */
-          session_id = g_strdup_printf ("%s/%s/%d", addrstr,
-                                        server_hostname ? server_hostname : "",
-                                        port);
-          self->session_id = g_bytes_new_take (session_id, strlen (session_id));
-          g_free (addrstr);
-        }
-      g_object_unref (remote_addr);
-    }
-  g_object_unref (base_conn);
-}
-
-static int
-generate_session_id_cb (SSL           *ssl,
-                        unsigned char *id,
-                        unsigned int  *id_len)
-{
-  GTlsOperationsThreadOpenssl *self;
-  int len;
-
-  self = SSL_get_ex_data (ssl, data_index);
-
-  len = MIN (*id_len, g_bytes_get_size (self->session_id));
-  memcpy (id, g_bytes_get_data (self->session_id, NULL), len);
-
-  return 1;
-}
-
 static int
 retrieve_certificate_cb (SSL       *ssl,
                          X509     **x509,
@@ -519,9 +465,6 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
                 "thread-type", &self->thread_type,
                 NULL);
 
-  if (is_client (self)) /* FIXME: broken */
-    compute_session_id (self);
-
   self->session = SSL_SESSION_new ();
   self->ssl_ctx = SSL_CTX_new (is_client (self) ? SSLv23_client_method () : SSLv23_server_method ());
   if (!self->ssl_ctx)
@@ -559,8 +502,6 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
 #endif
       SSL_CTX_set_options (self->ssl_ctx, options);
       SSL_CTX_clear_options (self->ssl_ctx, SSL_OP_LEGACY_SERVER_CONNECT);
-
-      SSL_CTX_set_generate_session_id (self->ssl_ctx, (GEN_SESSION_CB)generate_session_id_cb);
 
       SSL_CTX_set_client_cert_cb (self->ssl_ctx, retrieve_certificate_cb);
     }
