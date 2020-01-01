@@ -37,12 +37,19 @@ void g_tls_log (GLogLevelFlags  level,
                 const gchar    *format,
                 ...) G_GNUC_PRINTF (6, 7);
 
+#ifdef G_HAVE_GNUC_VARARGS
 #define g_tls_log_debug(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_DEBUG, _conn, \
                                                                __FILE__, G_STRINGIFY (__LINE__), \
                                                                G_STRFUNC, _format, ## _args)
+#elif defined (G_HAVE_ISO_VARARGS)
+#define g_tls_log_debug(_conn, _format, ...)   g_tls_log (G_LOG_LEVEL_DEBUG, _conn, \
+                                                          __FILE__, G_STRINGIFY (__LINE__), \
+                                                          G_STRFUNC, _format, ## __VA_ARGS__)
+#endif
 
 /* The following functions are for local debugging only. */
 #if 0
+#ifdef G_HAVE_GNUC_VARARGS
 #define g_tls_log_info(_conn, _format, _args...)    g_tls_log (G_LOG_LEVEL_INFO, _conn, \
                                                                __FILE__, G_STRINGIFY (__LINE__), \
                                                                G_STRFUNC, _format, ## _args)
@@ -52,6 +59,17 @@ void g_tls_log (GLogLevelFlags  level,
 #define g_tls_log_error(_conn, _format, _args...)   g_tls_log (G_LOG_LEVEL_ERROR, _conn, \
                                                                __FILE__, G_STRINGIFY (__LINE__), \
                                                                G_STRFUNC, _format, ## _args)
+#elif defined (G_HAVE_ISO_VARARGS)
+#define g_tls_log_info(_conn, _format, ...)    g_tls_log (G_LOG_LEVEL_INFO, _conn, \
+                                                               __FILE__, G_STRINGIFY (__LINE__), \
+                                                               G_STRFUNC, _format, ## __VA_ARGS__)
+#define g_tls_log_warning(_conn, _format, ...) g_tls_log (G_LOG_LEVEL_WARNING, _conn, \
+                                                               __FILE__, G_STRINGIFY (__LINE__), \
+                                                               G_STRFUNC, _format, ## __VA_ARGS__)
+#define g_tls_log_error(_conn, _format, ...)   g_tls_log (G_LOG_LEVEL_ERROR, _conn, \
+                                                               __FILE__, G_STRINGIFY (__LINE__), \
+                                                               G_STRFUNC, _format, ## __VA_ARGS__)
+#endif
 #endif
 
 G_END_DECLS
