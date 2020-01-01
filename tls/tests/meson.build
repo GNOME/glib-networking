@@ -96,10 +96,7 @@ foreach backend: backends
       'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
     ]
 
-    # FIXME: OpenSSL tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/54
-    if backend != 'openssl'
-      test(program_name, exe, env: test_envs, depends: program[4])
-    endif
+    test(program_name, exe, env: test_envs, depends: program[4])
 
     if backend == 'gnutls' and program[0] == 'connection' or program[0] == 'dtls-connection'
       # Run the tests again, this time with TLS 1.3 disabled so we can test TLS 1.2.
