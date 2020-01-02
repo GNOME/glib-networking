@@ -1,6 +1,7 @@
 image: registry.gitlab.gnome.org/gnome/glib-networking/master:v8
 
 fedora-x86_64:
+  stage: build
   script:
     # Sadly, GCC 9's LeakSanitizer is quite crashy, #86.
     # So we will run our tests under asan only once.
