@@ -62,10 +62,10 @@ struct CRYPTO_dynlock_value {
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-static unsigned long
+static size_t
 id_cb (void)
 {
-  return (unsigned long) g_thread_self ();
+  return (size_t) g_thread_self ();
 }
 
 static void
