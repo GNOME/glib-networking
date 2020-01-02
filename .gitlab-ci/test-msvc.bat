@@ -4,7 +4,7 @@
 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 @echo on
 
-set BUILD_DIR=%cd%\deps
+set BUILD_DIR=c:\gnet
 
 git clone --depth 1 https://github.com/wingtk/gvsbuild.git || goto :error
 
@@ -12,7 +12,7 @@ pushd gvsbuild
 python.exe build.py --verbose --debug build -p x64 --vs-ver 15 --build-dir %BUILD_DIR% openssl glib || goto :error
 popd
 
-set DEPS_DIR=%cd%\deps\gtk\x64\release
+set DEPS_DIR=%BUILD_DIR%\gtk\x64\release
 set PATH=%DEPS_DIR%\bin;%PATH%
 set LIB=%DEPS_DIR%\lib;%LIB%
 set LIBPATH=%DEPS_DIR%\lib;%LIBPATH%
