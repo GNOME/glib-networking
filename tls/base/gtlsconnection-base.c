@@ -1319,38 +1319,52 @@ accept_or_reject_peer_certificate (gpointer user_data)
 
   update_peer_certificate_and_compute_errors (tls);
 
-  if (G_IS_TLS_CLIENT_CONNECTION (tls) && priv->peer_certificate)
+  if (priv->peer_certificate)
     {
-      GTlsCertificateFlags validation_flags;
+      if (G_IS_TLS_CLIENT_CONNECTION (tls))
+        {
+          GTlsCertificateFlags validation_flags;
 
-      if (!g_tls_connection_base_is_dtls (tls))
-        validation_flags =
-          g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (tls));
-      else
-        validation_flags =
-          g_dtls_client_connection_get_validation_flags (G_DTLS_CLIENT_CONNECTION (tls));
+          if (!g_tls_connection_base_is_dtls (tls))
+            validation_flags =
+              g_tls_client_connection_get_validation_flags (G_TLS_CLIENT_CONNECTION (tls));
+          else
+            validation_flags =
+              g_dtls_client_connection_get_validation_flags (G_DTLS_CLIENT_CONNECTION (tls));
 
-      if ((priv->peer_certificate_errors & validation_flags) == 0)
-        accepted = TRUE;
+          if ((priv->peer_certificate_errors & validation_flags) == 0)
+            accepted = TRUE;
+        }
+
+      if (!accepted)
+        {
+          gboolean sync_handshake_in_progress;
+
+          g_mutex_lock (&priv->op_mutex);
+          sync_handshake_in_progress = priv->sync_handshake_in_progress;
+          g_mutex_unlock (&priv->op_mutex);
+
+          if (sync_handshake_in_progress)
+            g_main_context_pop_thread_default (priv->handshake_context);
+
+          accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (tls),
+                                                               priv->peer_certificate,
+                                                               priv->peer_certificate_errors);
+
+          if (sync_handshake_in_progress)
+            g_main_context_push_thread_default (priv->handshake_context);
+        }
     }
-
-  if (!accepted)
+  else if (G_IS_TLS_SERVER_CONNECTION (tls))
     {
-      gboolean sync_handshake_in_progress;
+      GTlsAuthenticationMode mode = 0;
 
-      g_mutex_lock (&priv->op_mutex);
-      sync_handshake_in_progress = priv->sync_handshake_in_progress;
-      g_mutex_unlock (&priv->op_mutex);
+      g_object_get (tls,
+                    "authentication-mode", &mode,
+                    NULL);
 
-      if (sync_handshake_in_progress)
-        g_main_context_pop_thread_default (priv->handshake_context);
-
-      accepted = g_tls_connection_emit_accept_certificate (G_TLS_CONNECTION (tls),
-                                                           priv->peer_certificate,
-                                                           priv->peer_certificate_errors);
-
-      if (sync_handshake_in_progress)
-        g_main_context_push_thread_default (priv->handshake_context);
+      if (mode != G_TLS_AUTHENTICATION_REQUIRED)
+        accepted = TRUE;
     }
 
   priv->peer_certificate_accepted = accepted;
