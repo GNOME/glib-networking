@@ -20,10 +20,10 @@ set INCLUDE=%DEPS_DIR%\include;%DEPS_DIR%\include\glib-2.0;%INCLUDE%
 
 :: FIXME: make warnings fatal
 pip3 install --upgrade --user meson==0.52.0  || goto :error
-meson build || goto :error
+meson build -Dgnutls=disabled -Dopenssl=enabled || goto :error
 ninja -C build || goto :error
 
-meson test -C build --timeout-multiplier --timeout-multiplier=10 || goto :error
+meson test -C build --timeout-multiplier=10 || goto :error
 
 :: FIXME: can we get code coverage support?
 
