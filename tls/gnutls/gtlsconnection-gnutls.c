@@ -385,7 +385,31 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     }
 
   if (ret == GNUTLS_E_REHANDSHAKE)
-    return G_TLS_CONNECTION_BASE_REHANDSHAKE;
+    {
+      if (ret == GNUTLS_E_REHANDSHAKE)
+        {
+          if (G_IS_TLS_CLIENT_CONNECTION (tls))
+            {
+              /* Ignore server's request for rehandshake, because we no longer
+               * support obsolete TLS rehandshakes.
+               *
+               * TODO: Send GNUTLS_A_NO_RENEGOTIATION here once we support alerts.
+               */
+              return G_TLS_CONNECTION_BASE_OK;
+            }
+          else
+            {
+              /* Are you hitting this error? If so, we may need to restore support
+               * for obsolete TLS rehandshakes. The server cannot simply ignore
+               * a rehandshake request like clients can, so this is fatal.
+               */
+              g_clear_error (&my_error);
+              g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                                   _("Client requested TLS rehandshake, which is no longer supported"));
+              return G_TLS_CONNECTION_BASE_ERROR;
+            }
+        }
+    }
 
   if (ret == GNUTLS_E_PREMATURE_TERMINATION)
     {
@@ -772,31 +796,6 @@ g_tls_connection_gnutls_handshake_thread_safe_renegotiation_status (GTlsConnecti
                                                           : G_TLS_SAFE_RENEGOTIATION_UNSUPPORTED;
 }
 
-static GTlsConnectionBaseStatus
-g_tls_connection_gnutls_handshake_thread_request_rehandshake (GTlsConnectionBase  *tls,
-                                                              gint64               timeout,
-                                                              GCancellable        *cancellable,
-                                                              GError             **error)
-{
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionBaseStatus status;
-  int ret;
-
-  /* On a client-side connection, gnutls_handshake() itself will start
-   * a rehandshake, so we only need to do something special here for
-   * server-side connections.
-   */
-  if (!G_IS_TLS_SERVER_CONNECTION (tls))
-    return G_TLS_CONNECTION_BASE_OK;
-
-  BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = gnutls_rehandshake (priv->session);
-  END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret, status, _("Error performing TLS handshake: %s"), error);
-
-  return status;
-}
-
 static GTlsCertificate *
 g_tls_connection_gnutls_retrieve_peer_certificate (GTlsConnectionBase *tls)
 {
@@ -882,18 +881,6 @@ g_tls_connection_gnutls_handshake_thread_handshake (GTlsConnectionBase  *tls,
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = gnutls_handshake (priv->session);
-  if (ret == GNUTLS_E_GOT_APPLICATION_DATA)
-    {
-      guint8 buf[1024];
-
-      /* Got app data while waiting for rehandshake; buffer it and try again */
-      ret = gnutls_record_recv (priv->session, buf, sizeof (buf));
-      if (ret > -1)
-        {
-          g_tls_connection_base_handshake_thread_buffer_application_data (tls, buf, ret);
-          ret = GNUTLS_E_AGAIN;
-        }
-    }
   END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret, status,
                  _("Error performing TLS handshake"), error);
 
@@ -1144,7 +1131,6 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
 
   base_class->prepare_handshake                          = g_tls_connection_gnutls_prepare_handshake;
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_gnutls_handshake_thread_safe_renegotiation_status;
-  base_class->handshake_thread_request_rehandshake       = g_tls_connection_gnutls_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_gnutls_handshake_thread_handshake;
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
