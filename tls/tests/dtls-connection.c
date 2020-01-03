@@ -83,7 +83,6 @@ typedef struct {
   GDatagramBased *client_connection;
   GSocketConnectable *identity;
   GSocketAddress *address;
-  gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
   GError *read_error;
   gboolean expect_server_error;
@@ -222,100 +221,6 @@ static void close_server_connection (TestConnection *test,
                                      gboolean        graceful);
 
 static void
-on_rehandshake_finish (GObject        *object,
-                       GAsyncResult   *res,
-                       gpointer        user_data)
-{
-  TestConnection *test = user_data;
-  GError *error = NULL;
-  GOutputVector vectors[2] = {
-    { TEST_DATA + TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH / 4 },
-    { TEST_DATA + 3 * TEST_DATA_LENGTH / 4, TEST_DATA_LENGTH / 4},
-  };
-  GOutputMessage message = { NULL, vectors, G_N_ELEMENTS (vectors), 0, NULL, 0 };
-  gint n_sent;
-
-  g_dtls_connection_handshake_finish (G_DTLS_CONNECTION (object), res, &error);
-  g_assert_no_error (error);
-
-  do
-    {
-      g_clear_error (&test->server_error);
-      n_sent = g_datagram_based_send_messages (test->server_connection,
-                                               &message, 1,
-                                               G_SOCKET_MSG_NONE, 0, NULL,
-                                               &test->server_error);
-      g_main_context_iteration (NULL, FALSE);
-    }
-  while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
-
-  if (!test->server_error)
-    {
-      g_assert_cmpint (n_sent, ==, 1);
-      g_assert_cmpuint (message.bytes_sent, ==, TEST_DATA_LENGTH / 2);
-    }
-
-  if (!test->server_error && test->rehandshake)
-    {
-      test->rehandshake = FALSE;
-      g_dtls_connection_handshake_async (G_DTLS_CONNECTION (test->server_connection),
-                                         G_PRIORITY_DEFAULT, NULL,
-                                         on_rehandshake_finish, test);
-      return;
-    }
-
-  if (test->test_data->server_should_close)
-    close_server_connection (test, TRUE);
-}
-
-static void
-on_rehandshake_finish_threaded (GObject      *object,
-                                GAsyncResult *res,
-                                gpointer      user_data)
-{
-  TestConnection *test = user_data;
-  GError *error = NULL;
-  GOutputVector vectors[2] = {
-    { TEST_DATA + TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH / 4 },
-    { TEST_DATA + 3 * TEST_DATA_LENGTH / 4, TEST_DATA_LENGTH / 4},
-  };
-  GOutputMessage message = { NULL, vectors, G_N_ELEMENTS (vectors), 0, NULL, 0 };
-  gint n_sent;
-
-  g_dtls_connection_handshake_finish (G_DTLS_CONNECTION (object), res, &error);
-  g_assert_no_error (error);
-
-  do
-    {
-      g_clear_error (&test->server_error);
-      n_sent = g_datagram_based_send_messages (test->server_connection,
-                                               &message, 1,
-                                               G_SOCKET_MSG_NONE, 0, NULL,
-                                               &test->server_error);
-      g_main_context_iteration (NULL, FALSE);
-    }
-  while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
-
-  if (!test->server_error)
-    {
-      g_assert_cmpint (n_sent, ==, 1);
-      g_assert_cmpuint (message.bytes_sent, ==, TEST_DATA_LENGTH / 2);
-    }
-
-  if (!test->server_error && test->rehandshake)
-    {
-      test->rehandshake = FALSE;
-      g_dtls_connection_handshake_async (G_DTLS_CONNECTION (test->server_connection),
-                                         G_PRIORITY_DEFAULT, NULL,
-                                         on_rehandshake_finish_threaded, test);
-      return;
-    }
-
-  if (test->test_data->server_should_close)
-    close_server_connection (test, TRUE);
-}
-
-static void
 close_server_connection (TestConnection *test,
                          gboolean        graceful)
 {
@@ -346,7 +251,7 @@ on_incoming_connection (GSocket       *socket,
   GError *error = NULL;
   GOutputVector vector = {
     TEST_DATA,
-    test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH
+    TEST_DATA_LENGTH
   };
   GOutputMessage message = { NULL, &vector, 1, 0, NULL, 0 };
   gint n_sent;
@@ -427,15 +332,6 @@ on_incoming_connection (GSocket       *socket,
       g_assert_cmpuint (message.bytes_sent, ==, vector.size);
     }
 
-  if (!test->server_error && test->rehandshake)
-    {
-      test->rehandshake = FALSE;
-      g_dtls_connection_handshake_async (G_DTLS_CONNECTION (test->server_connection),
-                                         G_PRIORITY_DEFAULT, NULL,
-                                         on_rehandshake_finish, test);
-      return G_SOURCE_REMOVE;
-    }
-
   if (test->test_data->server_should_close)
     close_server_connection (test, TRUE);
 
@@ -452,7 +348,7 @@ on_incoming_connection_threaded (GSocket      *socket,
   GError *error = NULL;
   GOutputVector vector = {
     TEST_DATA,
-    test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH
+    TEST_DATA_LENGTH
   };
   GOutputMessage message = { NULL, &vector, 1, 0, NULL, 0 };
   gint n_sent;
@@ -526,15 +422,6 @@ on_incoming_connection_threaded (GSocket      *socket,
     {
       g_assert_cmpint (n_sent, ==, 1);
       g_assert_cmpuint (message.bytes_sent, ==, vector.size);
-    }
-
-  if (!test->server_error && test->rehandshake)
-    {
-      test->rehandshake = FALSE;
-      g_dtls_connection_handshake_async (G_DTLS_CONNECTION (test->server_connection),
-                                         G_PRIORITY_DEFAULT, NULL,
-                                         on_rehandshake_finish_threaded, test);
-      return G_SOURCE_REMOVE;
     }
 
   if (test->test_data->server_should_close)

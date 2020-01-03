@@ -82,7 +82,6 @@ typedef struct {
   GSocketConnectable *identity;
   GSocketAddress *address;
   GTlsAuthenticationMode auth_mode;
-  gboolean rehandshake;
   GTlsCertificateFlags accept_flags;
   GError *read_error;
   GError *server_error;
@@ -222,25 +221,6 @@ static void on_output_write_finish (GObject        *object,
                                     gpointer        user_data);
 
 static void
-on_rehandshake_finish (GObject        *object,
-                       GAsyncResult   *res,
-                       gpointer        user_data)
-{
-  TestConnection *test = user_data;
-  GError *error = NULL;
-  GOutputStream *stream;
-
-  g_tls_connection_handshake_finish (G_TLS_CONNECTION (object), res, &error);
-  g_assert_no_error (error);
-
-  stream = g_io_stream_get_output_stream (test->server_connection);
-  g_output_stream_write_async (stream, TEST_DATA + TEST_DATA_LENGTH / 2,
-                               TEST_DATA_LENGTH / 2,
-                               G_PRIORITY_DEFAULT, NULL,
-                               on_output_write_finish, test);
-}
-
-static void
 on_server_close_finish (GObject        *object,
                         GAsyncResult   *res,
                         gpointer        user_data)
@@ -271,15 +251,6 @@ on_output_write_finish (GObject        *object,
 
   g_assert_no_error (test->server_error);
   g_output_stream_write_finish (G_OUTPUT_STREAM (object), res, &test->server_error);
-
-  if (!test->server_error && test->rehandshake)
-    {
-      test->rehandshake = FALSE;
-      g_tls_connection_handshake_async (G_TLS_CONNECTION (test->server_connection),
-                                        G_PRIORITY_DEFAULT, NULL,
-                                        on_rehandshake_finish, test);
-      return;
-    }
 
   if (test->connection_received_strategy == WRITE_THEN_CLOSE)
     close_server_connection (test);
@@ -341,8 +312,8 @@ on_incoming_connection (GSocketService     *service,
   if (test->connection_received_strategy == WRITE_THEN_CLOSE ||
       test->connection_received_strategy == WRITE_THEN_WAIT)
     {
-      g_output_stream_write_async (stream, TEST_DATA,
-                                   test->rehandshake ? TEST_DATA_LENGTH / 2 : TEST_DATA_LENGTH,
+      g_output_stream_write_async (stream,
+                                   TEST_DATA, TEST_DATA_LENGTH,
                                    G_PRIORITY_DEFAULT, NULL,
                                    on_output_write_finish, test);
     }
@@ -438,13 +409,6 @@ run_echo_server (GThreadedSocketService *service,
       for (total = 0; total < nread; total += nwrote)
         {
           nwrote = g_output_stream_write (ostream, buf + total, nread - total, NULL, &error);
-          g_assert_no_error (error);
-        }
-
-      if (test->rehandshake)
-        {
-          test->rehandshake = FALSE;
-          g_tls_connection_handshake (tlsconn, NULL, &error);
           g_assert_no_error (error);
         }
     }
@@ -1172,20 +1136,6 @@ test_client_auth_pkcs11_connection (TestConnection *test,
 #endif
 
 static void
-test_client_auth_rehandshake (TestConnection *test,
-                              gconstpointer   data)
-{
-#ifdef BACKEND_IS_OPENSSL
-  /* FIXME: this doesn't make sense, we should support safe renegotation */
-  g_test_skip ("the server avoids rehandshake to avoid the security problem CVE-2009-3555");
-  return;
-#endif
-
-  test->rehandshake = TRUE;
-  test_client_auth_connection (test, data);
-}
-
-static void
 test_client_auth_failure (TestConnection *test,
                           gconstpointer   data)
 {
@@ -1886,19 +1836,6 @@ test_simultaneous_async (TestConnection *test,
   g_assert_cmpstr (test->buf, ==, TEST_DATA);
 }
 
-static void
-test_simultaneous_async_rehandshake (TestConnection *test,
-                                     gconstpointer   data)
-{
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
-  test->rehandshake = TRUE;
-  test_simultaneous_async (test, data);
-}
-
 static gpointer
 simul_read_thread (gpointer user_data)
 {
@@ -1983,19 +1920,6 @@ test_simultaneous_sync (TestConnection *test,
 
   g_io_stream_close (test->client_connection, NULL, &error);
   g_assert_no_error (error);
-}
-
-static void
-test_simultaneous_sync_rehandshake (TestConnection *test,
-                                    gconstpointer   data)
-{
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
-  test->rehandshake = TRUE;
-  test_simultaneous_sync (test, data);
 }
 
 static void
@@ -2611,8 +2535,6 @@ main (int   argc,
               setup_connection, test_invalid_chain_with_alternative_ca_cert, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth", TestConnection, NULL,
               setup_connection, test_client_auth_connection, teardown_connection);
-  g_test_add ("/tls/" BACKEND "/connection/client-auth-rehandshake", TestConnection, NULL,
-              setup_connection, test_client_auth_rehandshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-failure", TestConnection, NULL,
               setup_connection, test_client_auth_failure, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-fail-missing-client-private-key", TestConnection, NULL,
@@ -2642,10 +2564,6 @@ main (int   argc,
               setup_connection, test_simultaneous_async, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/simultaneous-sync", TestConnection, NULL,
               setup_connection, test_simultaneous_sync, teardown_connection);
-  g_test_add ("/tls/" BACKEND "/connection/simultaneous-async-rehandshake", TestConnection, NULL,
-              setup_connection, test_simultaneous_async_rehandshake, teardown_connection);
-  g_test_add ("/tls/" BACKEND "/connection/simultaneous-sync-rehandshake", TestConnection, NULL,
-              setup_connection, test_simultaneous_sync_rehandshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/close-immediately", TestConnection, NULL,
               setup_connection, test_close_immediately, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/unclean-close-by-server", TestConnection, NULL,

@@ -36,7 +36,6 @@ typedef enum {
   G_TLS_CONNECTION_BASE_OK,
   G_TLS_CONNECTION_BASE_WOULD_BLOCK,
   G_TLS_CONNECTION_BASE_TIMED_OUT,
-  G_TLS_CONNECTION_BASE_REHANDSHAKE,
   G_TLS_CONNECTION_BASE_TRY_AGAIN,
   G_TLS_CONNECTION_BASE_ERROR,
 } GTlsConnectionBaseStatus;
@@ -191,10 +190,5 @@ gboolean                  g_tls_connection_base_ever_handshaked         (GTlsCon
 
 gboolean                  g_tls_connection_base_handshake_thread_request_certificate
                                                                         (GTlsConnectionBase  *tls);
-
-void                      g_tls_connection_base_handshake_thread_buffer_application_data
-                                                                        (GTlsConnectionBase *tls,
-                                                                         guint8             *data,
-                                                                         gsize               length);
 
 G_END_DECLS
