@@ -1,3 +1,10 @@
+2.62.3 - January 3, 2019
+========================
+
+- Fix leak of base iostream (or base datagram socket), 2.62 regression
+- Fix duplicate notifies of peer-certificate and peer-certificate-errors
+- Fix obscure corner case where SNI might not work
+
 2.62.2 - December 9, 2019
 =========================
 
