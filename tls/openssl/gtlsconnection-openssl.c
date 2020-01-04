@@ -224,36 +224,6 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     status = end_openssl_io (openssl, direction, ret, timeout == -1, err, errmsg, error_str); \
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
 
-static GTlsConnectionBaseStatus
-g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBase  *tls,
-                                                               gint64               timeout,
-                                                               GCancellable        *cancellable,
-                                                               GError             **error)
-{
-  GTlsConnectionOpenssl *openssl;
-  GTlsConnectionBaseStatus status;
-  SSL *ssl;
-  int ret;
-
-  /* On a client-side connection, SSL_renegotiate() itself will start
-   * a rehandshake, so we only need to do something special here for
-   * server-side connections.
-   */
-  if (!G_IS_TLS_SERVER_CONNECTION (tls))
-    return G_TLS_CONNECTION_BASE_OK;
-
-  openssl = G_TLS_CONNECTION_OPENSSL (tls);
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-
-  BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = SSL_renegotiate (ssl);
-  END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, timeout, status,
-                  _("Error performing TLS handshake"), error);
-
-  return status;
-}
-
 static GTlsCertificate *
 g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
 {
@@ -501,7 +471,6 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   object_class->finalize                                 = g_tls_connection_openssl_finalize;
 
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_openssl_handshake_thread_safe_renegotiation_status;
-  base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_openssl_handshake_thread_handshake;
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
   base_class->push_io                                    = g_tls_connection_openssl_push_io;
