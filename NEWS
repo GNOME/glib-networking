@@ -1,3 +1,17 @@
+2.63.3 - January 3, 2019
+========================
+
+- Fix OpenSSL backend regressions and reenable OpenSSL testsuite (#54)
+- Temporarily disable cancellation of sync handshakes (#97)
+- Disable flaky test (#104) and resolve testsuite flakiness (#105)
+- Fix leak of base iostream (or base datagram socket), 2.62 regression
+- Fix duplicate notifies of peer-certificate and peer-certificate-errors
+- Fix regression where GnuTLS connection init could theoretically fail without error
+- Fix obscure corner case where SNI might not work
+- Fix various build warnings on Windows
+- Fix multiple build failures on Windows (Chun-wei Fan)
+- Fix installed tests (Iain Lane)
+
 2.63.2 - November 22, 2019
 ==========================
 
