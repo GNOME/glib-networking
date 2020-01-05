@@ -208,7 +208,6 @@ typedef struct
   GMainContext *handshake_context;
   GTask *implicit_handshake;
   GError *handshake_error;
-  GByteArray *app_data_buf;
 
   /* read_closed means the read direction has closed; write_closed similarly.
    * If (and only if) both are set, the entire GTlsConnection is closed. */
@@ -459,8 +458,6 @@ g_tls_connection_gnutls_finalize (GObject *object)
 
   g_mutex_clear (&priv->verify_certificate_mutex);
   g_cond_clear (&priv->verify_certificate_condition);
-
-  g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
 
   g_free (priv->interaction_id);
   g_clear_object (&priv->interaction);
@@ -1031,18 +1028,25 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
     }
   else if (status == GNUTLS_E_REHANDSHAKE)
     {
-      if (priv->rehandshake_mode == G_TLS_REHANDSHAKE_NEVER)
+      if (G_IS_TLS_CLIENT_CONNECTION (gnutls))
         {
+          /* Ignore server's request for rehandshake, because we no longer
+           * support obsolete TLS rehandshakes.
+           *
+           * TODO: Send GNUTLS_A_NO_RENEGOTIATION here once we support alerts.
+           */
+          return 0;
+        }
+      else
+        {
+          /* Are you hitting this error? If so, we may need to restore support
+           * for obsolete TLS rehandshakes. The server cannot simply ignore
+           * a rehandshake request like clients can, so this is fatal.
+           */
           g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                               _("Peer requested illegal TLS rehandshake"));
+                               _("Client requested TLS rehandshake, which is no longer supported"));
           return GNUTLS_E_PULL_ERROR;
         }
-
-      g_mutex_lock (&priv->op_mutex);
-      if (!priv->handshaking)
-        priv->need_handshake = TRUE;
-      g_mutex_unlock (&priv->op_mutex);
-      return status;
     }
   else if (status == GNUTLS_E_PREMATURE_TERMINATION)
     {
@@ -1991,49 +1995,6 @@ handshake_thread (GTask        *task,
 
   g_clear_error (&priv->handshake_error);
 
-  if (priv->ever_handshaked && !priv->implicit_handshake)
-    {
-      if (priv->rehandshake_mode != G_TLS_REHANDSHAKE_UNSAFELY &&
-          !gnutls_safe_renegotiation_status (priv->session))
-        {
-          g_task_return_new_error (task, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                                   _("Peer does not support safe renegotiation"));
-          return;
-        }
-
-      if (!G_IS_TLS_CLIENT_CONNECTION (gnutls))
-        {
-          /* Adjust the timeout for the next operation in the sequence. */
-          if (timeout > 0)
-            {
-              unsigned int timeout_ms;
-
-              timeout -= (g_get_monotonic_time () - start_time);
-              if (timeout <= 0)
-                timeout = 1;
-
-              /* Convert from microseconds to milliseconds, but ensure the timeout
-               * remains positive. */
-              timeout_ms = (timeout + 999) / 1000;
-
-              gnutls_handshake_set_timeout (priv->session, timeout_ms);
-              gnutls_dtls_set_timeouts (priv->session, 1000 /* default */,
-                                        timeout_ms);
-            }
-
-          BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
-          ret = gnutls_rehandshake (priv->session);
-          END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
-                         _("Error performing TLS handshake"), &error);
-
-          if (error)
-            {
-              g_task_return_error (task, error);
-              return;
-            }
-        }
-    }
-
   priv->started_handshake = TRUE;
 
   if (!priv->ever_handshaked)
@@ -2059,20 +2020,6 @@ handshake_thread (GTask        *task,
 
   BEGIN_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, timeout, cancellable);
   ret = gnutls_handshake (priv->session);
-  if (ret == GNUTLS_E_GOT_APPLICATION_DATA)
-    {
-      guint8 buf[1024];
-
-      /* Got app data while waiting for rehandshake; buffer it and try again */
-      ret = gnutls_record_recv (priv->session, buf, sizeof (buf));
-      if (ret > -1)
-        {
-          if (!priv->app_data_buf)
-            priv->app_data_buf = g_byte_array_new ();
-          g_byte_array_append (priv->app_data_buf, buf, ret);
-          ret = GNUTLS_E_AGAIN;
-        }
-    }
   END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret,
                  _("Error performing TLS handshake"), &error);
 
@@ -2527,18 +2474,6 @@ g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   gssize ret;
 
-  if (priv->app_data_buf && !priv->handshaking)
-    {
-      ret = MIN (count, priv->app_data_buf->len);
-      memcpy (buffer, priv->app_data_buf->data, ret);
-      if (ret == priv->app_data_buf->len)
-        g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
-      else
-        g_byte_array_remove_range (priv->app_data_buf, 0, ret);
-      return ret;
-    }
-
- again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ,
                  timeout, cancellable, error))
     return -1;
@@ -2551,8 +2486,6 @@ g_tls_connection_gnutls_read (GTlsConnectionGnutls  *gnutls,
 
   if (ret >= 0)
     return ret;
-  else if (ret == GNUTLS_E_REHANDSHAKE)
-    goto again;
   else
     return -1;
 }
@@ -2591,34 +2524,9 @@ g_tls_connection_gnutls_read_message (GTlsConnectionGnutls  *gnutls,
                                       GError               **error)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  guint i;
   gssize ret;
   gnutls_packet_t packet = { 0, };
 
-  /* Copy data out of the app data buffer first. */
-  if (priv->app_data_buf && !priv->handshaking)
-    {
-      ret = 0;
-
-      for (i = 0; i < num_vectors; i++)
-        {
-          gsize count;
-          GInputVector *vec = &vectors[i];
-
-          count = MIN (vec->size, priv->app_data_buf->len);
-          ret += count;
-
-          memcpy (vec->buffer, priv->app_data_buf->data, count);
-          if (count == priv->app_data_buf->len)
-            g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
-          else
-            g_byte_array_remove_range (priv->app_data_buf, 0, count);
-        }
-
-      return ret;
-    }
-
- again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_READ,
                  timeout, cancellable, error))
     return -1;
@@ -2643,8 +2551,6 @@ g_tls_connection_gnutls_read_message (GTlsConnectionGnutls  *gnutls,
 
   if (ret >= 0)
     return ret;
-  else if (ret == GNUTLS_E_REHANDSHAKE)
-    goto again;
   else
     return -1;
 }
@@ -2737,7 +2643,6 @@ g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   gssize ret;
 
- again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE,
                  timeout, cancellable, error))
     return -1;
@@ -2750,8 +2655,6 @@ g_tls_connection_gnutls_write (GTlsConnectionGnutls  *gnutls,
 
   if (ret >= 0)
     return ret;
-  else if (ret == GNUTLS_E_REHANDSHAKE)
-    goto again;
   else
     return -1;
 }
@@ -2769,7 +2672,6 @@ g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
   guint i;
   gsize total_message_size;
 
- again:
   if (!claim_op (gnutls, G_TLS_CONNECTION_GNUTLS_OP_WRITE,
                  timeout, cancellable, error))
     return -1;
@@ -2823,8 +2725,6 @@ g_tls_connection_gnutls_write_message (GTlsConnectionGnutls  *gnutls,
 
   if (ret >= 0)
     return ret;
-  else if (ret == GNUTLS_E_REHANDSHAKE)
-    goto again;
   else
     return -1;
 }
