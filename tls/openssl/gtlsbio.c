@@ -29,18 +29,16 @@
 
 typedef struct {
   GIOStream *io_stream;
-  GCancellable *read_cancellable;
-  GCancellable *write_cancellable;
-  gboolean read_blocking;
-  gboolean write_blocking;
-  GError **read_error;
-  GError **write_error;
+  GCancellable *cancellable;
+  GError **error;
 } GTlsBio;
 
 static void
 free_gbio (gpointer user_data)
 {
   GTlsBio *bio = (GTlsBio *)user_data;
+
+  g_assert (!cancellable);
 
   g_object_unref (bio->io_stream);
   g_free (bio);
@@ -143,7 +141,6 @@ gtls_bio_write (BIO        *bio,
 {
   GTlsBio *gbio;
   gssize written;
-  GError *error = NULL;
 
   if (
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
@@ -163,16 +160,14 @@ gtls_bio_write (BIO        *bio,
   BIO_clear_retry_flags (bio);
   written = g_pollable_stream_write (g_io_stream_get_output_stream (gbio->io_stream),
                                      in, inl,
-                                     gbio->write_blocking,
-                                     gbio->write_cancellable,
-                                     &error);
+                                     FALSE,
+                                     gbio->cancellable,
+                                     &gbio->error);
 
   if (written == -1)
     {
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
         BIO_set_retry_write (bio);
-
-      g_propagate_error (gbio->write_error, error);
     }
 
   return written;
@@ -185,7 +180,6 @@ gtls_bio_read (BIO  *bio,
 {
   GTlsBio *gbio;
   gssize read;
-  GError *error = NULL;
 
   if (
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
@@ -205,16 +199,14 @@ gtls_bio_read (BIO  *bio,
   BIO_clear_retry_flags (bio);
   read = g_pollable_stream_read (g_io_stream_get_input_stream (gbio->io_stream),
                                  out, outl,
-                                 gbio->read_blocking,
-                                 gbio->read_cancellable,
-                                 &error);
+                                 FALSE,
+                                 gbio->cancellable,
+                                 &gbio->error);
 
   if (read == -1)
     {
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
         BIO_set_retry_read (bio);
-
-      g_propagate_error (gbio->read_error, error);
     }
 
   return read;
@@ -303,8 +295,8 @@ g_tls_bio_new (GIOStream *io_stream)
 }
 
 void
-g_tls_bio_set_read_cancellable (BIO          *bio,
-                                GCancellable *cancellable)
+g_tls_bio_set_cancellable (BIO          *bio,
+                           GCancellable *cancellable)
 {
   GTlsBio *gbio;
 
@@ -315,12 +307,12 @@ g_tls_bio_set_read_cancellable (BIO          *bio,
 #else
   gbio = BIO_get_data (bio);
 #endif
-  gbio->read_cancellable = cancellable;
+  gbio->cancellable = cancellable;
 }
 
 void
-g_tls_bio_set_read_blocking (BIO      *bio,
-                             gboolean  blocking)
+g_tls_bio_set_error (BIO     *bio,
+                     GError **error)
 {
   GTlsBio *gbio;
 
@@ -331,69 +323,5 @@ g_tls_bio_set_read_blocking (BIO      *bio,
 #else
   gbio = BIO_get_data (bio);
 #endif
-  gbio->read_blocking = blocking;
-}
-
-void
-g_tls_bio_set_read_error (BIO     *bio,
-                          GError **error)
-{
-  GTlsBio *gbio;
-
-  g_return_if_fail (bio);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
-  gbio = BIO_get_data (bio);
-#endif
-  gbio->read_error = error;
-}
-
-void
-g_tls_bio_set_write_cancellable (BIO          *bio,
-                                 GCancellable *cancellable)
-{
-  GTlsBio *gbio;
-
-  g_return_if_fail (bio);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
-  gbio = BIO_get_data (bio);
-#endif
-  gbio->write_cancellable = cancellable;
-}
-
-void
-g_tls_bio_set_write_blocking (BIO          *bio,
-                              gboolean      blocking)
-{
-  GTlsBio *gbio;
-
-  g_return_if_fail (bio);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
-  gbio = BIO_get_data (bio);
-#endif
-  gbio->write_blocking = blocking;
-}
-
-void
-g_tls_bio_set_write_error (BIO     *bio,
-                           GError **error)
-{
-  GTlsBio *gbio;
-
-  g_return_if_fail (bio);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
-  gbio = BIO_get_data (bio);
-#endif
-  gbio->write_error = error;
+  gbio->error = error;
 }

@@ -40,10 +40,13 @@ struct _GTlsOperationsThreadOpenssl {
 
   GTlsOperationsThreadType thread_type;
 
+  BIO *bio;
   SSL_SESSION *session;
   SSL *ssl;
   SSL_CTX *ssl_ctx;
 
+  gboolean handshaking;
+  gboolean ever_handshaked;
   gboolean shutting_down;
 };
 
@@ -93,24 +96,36 @@ g_tls_operations_thread_openssl_set_server_identity (GTlsOperationsThreadBase *b
 #endif
 }
 
+static void
+begin_openssl_io (GTlsOperationsThreadOpenssl *self,
+                  GCancellable                *cancellable)
+{
+  g_tls_bio_set_cancellable (self->bio, cancellable);
+
+  /* FIXME: where exactly to store errors? */
+#if 0
+  error = g_tls_connection_base_get_read_error (tls);
+  g_clear_error (error);
+  g_tls_bio_set_read_error (priv->bio, error);
+#endif
+}
+
 static GTlsOperationStatus
 end_openssl_io (GTlsOperationsThreadOpenssl  *self,
                 GIOCondition                  direction,
                 int                           ret,
                 GError                      **error,
-                const char                   *err_prefix,
-                const char                   *err_str)
+                const char                   *err_prefix)
 {
-  GTlsConnectionBase *tls;
   int err_code, err, err_lib, reason;
   GError *my_error = NULL;
   GTlsOperationStatus status;
 
-  tls = g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self));
+  g_tls_bio_set_cancellable (self->bio, NULL);
+
+  status = g_tls_operations_thread_base_pop_io (self, direction, ret > 0, &my_error);
 
   err_code = SSL_get_error (self->ssl, ret);
-
-  status = g_tls_connection_base_pop_io (tls, direction, ret > 0, &my_error);
 
   if (err_code == SSL_ERROR_ZERO_RETURN)
     return G_TLS_OPERATION_SUCCESS;
@@ -136,7 +151,7 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
   err_lib = ERR_GET_LIB (err);
   reason = ERR_GET_REASON (err);
 
-  if (g_tls_connection_base_is_handshaking (tls) && !g_tls_connection_base_ever_handshaked (tls))
+  if (self->handshaking && !self->ever_handshaked)
     {
       if (reason == SSL_R_BAD_PACKET_LENGTH ||
           reason == SSL_R_UNKNOWN_ALERT_TYPE ||
@@ -208,25 +223,34 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
     g_message ("end_openssl_io %s: %d, %d, %d", G_IS_TLS_CLIENT_CONNECTION (tls) ? "client" : "server", err_code, err_lib, reason);
 
   if (error && !*error)
-    *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
+    {
+      char error_str[256];
+      ERR_error_string_n (SSL_get_error (self->ssl, ret), error_str, sizeof (error_str));
+      *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
+    }
 
   return G_TLS_OPERATION_ERROR;
 }
 
-#define BEGIN_OPENSSL_IO(self, direction, cancellable)          \
-  do {                                                          \
-    char error_str[256];                                        \
-    g_tls_connection_base_push_io (g_tls_operations_thread_base_get_connection (G_TLS_OPERATIONS_THREAD_BASE (self)), \
-                                   direction, 0, cancellable);
+#define BEGIN_OPENSSL_IO(self, cancellable)            \
+  do {                                                 \
+    begin_openssl_io (self, cancellable);
 
 #define END_OPENSSL_IO(self, direction, ret, status, errmsg, err) \
-    ERR_error_string_n (SSL_get_error (self->ssl, ret), error_str, sizeof (error_str)); \
-    status = end_openssl_io (self, direction, ret, err, errmsg, error_str); \
+    status = end_openssl_io (self, direction, ret, err, errmsg);  \
   } while (status == G_TLS_OPERATION_TRY_AGAIN);
 
 static GTlsOperationStatus
 g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
+                                           HandshakeContext          *context,
+                                           GTlsCertificate           *own_certificate,
+                                           const gchar              **advertised_protocols,
+                                           GTlsAuthenticationMode     auth_mode,
                                            gint64                     timeout,
+                                           gchar                    **negotiated_protocol,
+                                           GList                    **accepted_cas,
+                                           GTlsCertificate          **peer_certificate,
+                                           gboolean                  *session_resumed,
                                            GCancellable              *cancellable,
                                            GError                   **error)
 {
@@ -234,21 +258,45 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
   GTlsOperationStatus status;
   int ret;
 
-  /* FIXME: doesn't respect timeout */
+  /* TODO: No support yet for client authentication. */
+  g_assert (!own_certificate);
 
-  BEGIN_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  /* TODO: No support yet for ALPN. */
+  g_assert (!advertised_protocols);
+
+  /* FIXME: Doesn't respect timeout. */
+
+  self->handshake_context = context;
+  self->handshaking = TRUE;
+
+  BEGIN_OPENSSL_IO (self, cancellable);
   ret = SSL_do_handshake (ssl);
   END_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, ret, status,
                   _("Error performing TLS handshake"), error);
 
-  /* FIXME: sabotage */
-#if 0
+  self->handshake_context = NULL;
+  self->handshaking = FALSE;
+
+  if (status == G_TLS_OPERATION_SUCCESS)
+    self->ever_handshaked = TRUE;
+
+  /* FIXME: this is really too late to be performing certificate verification.
+   * We should be doing it during the handshake.
+   */
   if (ret > 0)
     {
+      /* FIXME */
       if (!g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl)))
         return G_TLS_OPERATION_ERROR;
     }
-#endif
+
+  /* TODO: No support yet for ALPN. */
+  *negotiated_protocol = NULL;
+
+  /* FIXME FIXME FIXME: accepted CAs and peer_certificate */
+
+  /* TODO: No support yet for session resumption. */
+  *session_resumed = FALSE;
 
   return status;
 }
@@ -265,7 +313,7 @@ g_tls_operations_thread_openssl_read (GTlsOperationsThreadBase   *base,
   GTlsOperationStatus status;
   gssize ret;
 
-  BEGIN_OPENSSL_IO (self, G_IO_OUT, cancellable);
+  BEGIN_OPENSSL_IO (self, cancellable);
   ret = SSL_read (self->ssl, buffer, size);
   END_OPENSSL_IO (self, G_IO_OUT, ret, status,
                   _("Error reading data from TLS socket"), error);
@@ -287,7 +335,7 @@ g_tls_operations_thread_openssl_write (GTlsOperationsThreadBase  *base,
   GTlsOperationStatus status;
   gssize ret;
 
-  BEGIN_OPENSSL_IO (self, G_IO_OUT, cancellable);
+  BEGIN_OPENSSL_IO (self, cancellable);
   ret = SSL_write (self->ssl, buffer, size);
   END_OPENSSL_IO (self, G_IO_OUT, ret, status,
                   _("Error writing data to TLS socket"), error);
@@ -306,7 +354,7 @@ g_tls_operations_thread_openssl_close (GTlsOperationsThreadBase  *base,
 
   self->shutting_down = TRUE;
 
-  BEGIN_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  BEGIN_OPENSSL_IO (self, cancellable);
   ret = SSL_shutdown (self->ssl);
   /* Note it is documented that getting 0 is correct when shutting down since
    * it means it will close the write direction
@@ -454,6 +502,7 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
                                                GError       **error)
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (initable);
+  GIOStream *base_iostream = NULL;
   long options;
   const char *hostname;
   GTlsCertificate *cert; /* FIXME: remove, become part of handshake op? */
@@ -462,8 +511,10 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
     return FALSE;
 
   g_object_get (self,
+                "base-io-stream", &base_iostream,
                 "thread-type", &self->thread_type,
                 NULL);
+  g_assert (base_iostream);
 
   self->session = SSL_SESSION_new ();
   self->ssl_ctx = SSL_CTX_new (is_client (self) ? SSLv23_client_method () : SSLv23_server_method ());
@@ -553,6 +604,10 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
                    ERR_error_string (ERR_get_error (), NULL));
       return FALSE;
     }
+
+  self->bio = g_tls_bio_new (base_iostream);
+  SSL_set_bio (ssl, self->bio, self->bio);
+  g_object_unref (base_io_stream);
 
   if (data_index == -1)
     data_index = SSL_get_ex_new_index (0, (void *)"gtlsoperationsthread", NULL, NULL, NULL);

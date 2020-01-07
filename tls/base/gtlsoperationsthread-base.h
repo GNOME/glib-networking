@@ -63,15 +63,6 @@ struct _GTlsOperationsThreadBaseClass
   void                   (*set_server_identity)        (GTlsOperationsThreadBase  *self,
                                                         const gchar               *server_identity);
 
-  void                   (*push_io)                    (GTlsOperationsThreadBase  *self,
-                                                        GIOCondition               direction,
-                                                        GCancellable              *cancellable);
-  GTlsOperationStatus    (*pop_io)                     (GTlsOperationsThreadBase  *self,
-                                                        GIOCondition               direction,
-                                                        gboolean                   success,
-                                                        GError                    *op_error,
-                                                        GError                   **error);
-
   GTlsOperationStatus    (*handshake_fn)               (GTlsOperationsThreadBase  *self,
                                                         HandshakeContext          *context,
                                                         GTlsCertificate           *own_certificate,

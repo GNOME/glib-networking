@@ -365,26 +365,16 @@ has_performed_successful_posthandshake_op (GTlsOperationsThreadBase *self)
   return ret;
 }
 
-void
-g_tls_operations_thread_base_push_io (GTlsOperationsThreadBase *self,
-                                      GIOCondition              direction,
-                                      GCancellable             *cancellable)
+GTlsOperationStatus
+g_tls_operations_thread_base_pop_io (GTlsOperationsThreadBase  *self,
+                                     GIOCondition               direction,
+                                     gboolean                   success,
+                                     GError                    *op_error /* owned */,
+                                     GError                   **error)
 {
-  /* FIXME: this is weird, can't we get rid of it on OpenSSL side? */
-  if (G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->push_io)
-    {
-      G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->push_io (self, direction, cancellable);
-    }
-}
-
-static GTlsOperationStatus
-g_tls_operations_thread_base_real_pop_io (GTlsOperationsThreadBase  *self,
-                                          GIOCondition               direction,
-                                          gboolean                   success,
-                                          GError                    *op_error /* owned */,
-                                          GError                   **error)
-{
-  /* This function MAY or MAY NOT set error when it fails! */
+  /* This function MAY or MAY NOT set error when it fails!
+   * FIXME: that is confusing.
+   */
 
   if (success)
     {
@@ -442,17 +432,6 @@ g_tls_operations_thread_base_real_pop_io (GTlsOperationsThreadBase  *self,
     }
 
   return G_TLS_OPERATION_ERROR;
-}
-
-GTlsOperationStatus
-g_tls_operations_thread_base_pop_io (GTlsOperationsThreadBase  *self,
-                                     GIOCondition               direction,
-                                     gboolean                   success,
-                                     GError                    *op_error,
-                                     GError                   **error)
-{
-  return G_TLS_OPERATIONS_THREAD_BASE_GET_CLASS (self)->pop_io (self, direction,
-                                                                success, op_error, error);
 }
 
 static HandshakeContext *

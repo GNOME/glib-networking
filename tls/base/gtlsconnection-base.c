@@ -1095,7 +1095,7 @@ g_tls_connection_base_condition_wait (GDatagramBased  *datagram_based,
 
   /* Convert from microseconds to milliseconds. */
   if (timeout != -1)
-    timeout = timeout / 1000;
+    timeout /= 1000;
 
   start_time = g_get_monotonic_time ();
 

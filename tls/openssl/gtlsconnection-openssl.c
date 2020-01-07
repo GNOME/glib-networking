@@ -28,6 +28,8 @@
 #include "config.h"
 #include "glib.h"
 
+/* FIXME: audit includes throughout the project */
+
 #include <errno.h>
 #include <stdarg.h>
 #include "openssl-include.h"
@@ -43,7 +45,6 @@
 
 typedef struct _GTlsConnectionOpensslPrivate
 {
-  BIO *bio;
 } GTlsConnectionOpensslPrivate;
 
 static GInitableIface *g_tls_connection_openssl_parent_initable_iface;
@@ -107,63 +108,6 @@ g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
   return G_TLS_CERTIFICATE (chain);
 }
 
-/* FIXME: move to op thread? */
-static void
-g_tls_connection_openssl_push_io (GTlsConnectionBase *tls,
-                                  GIOCondition        direction,
-                                  gint64              timeout,
-                                  GCancellable       *cancellable)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
-  GError **error;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);;
-
-  /* FIXME: need to support timeout > 0
-   * This will require changes in GTlsBio
-   */
-
-  if (direction & G_IO_IN)
-    {
-      error = g_tls_connection_base_get_read_error (tls);
-      g_tls_bio_set_read_cancellable (priv->bio, cancellable);
-      g_tls_bio_set_read_blocking (priv->bio, timeout == -1);
-      g_clear_error (error);
-      g_tls_bio_set_read_error (priv->bio, error);
-    }
-
-  if (direction & G_IO_OUT)
-    {
-      error = g_tls_connection_base_get_write_error (tls);
-      g_tls_bio_set_write_cancellable (priv->bio, cancellable);
-      g_tls_bio_set_write_blocking (priv->bio, timeout == -1);
-      g_clear_error (error);
-      g_tls_bio_set_write_error (priv->bio, error);
-    }
-}
-
-static GTlsOperationStatus
-g_tls_connection_openssl_pop_io (GTlsConnectionBase  *tls,
-                                 GIOCondition         direction,
-                                 gboolean             success,
-                                 GError             **error)
-{
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
-  GTlsConnectionOpensslPrivate *priv;
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  if (direction & G_IO_IN)
-    g_tls_bio_set_read_cancellable (priv->bio, NULL);
-
-  if (direction & G_IO_OUT)
-    g_tls_bio_set_write_cancellable (priv->bio, NULL);
-
-  return G_TLS_CONNECTION_BASE_CLASS (g_tls_connection_openssl_parent_class)->pop_io (tls, direction,
-                                                                                      success, error);
-}
-
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
@@ -172,44 +116,13 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->create_op_thread                           = g_tls_connection_openssl_create_op_thread;
   /* FIXME: remove */
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
-  base_class->push_io                                    = g_tls_connection_openssl_push_io; /* FIXME: move to op thread */
-  base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
 }
-
-static int data_index = -1;
 
 static gboolean
 g_tls_connection_openssl_initable_init (GInitable     *initable,
                                         GCancellable  *cancellable,
                                         GError       **error)
 {
-  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (initable);
-  GTlsConnectionOpensslPrivate *priv;
-  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (initable);
-  GIOStream *base_io_stream;
-  SSL *ssl;
-
-  g_object_get (tls,
-                "base-io-stream", &base_io_stream,
-                NULL);
-  g_return_val_if_fail (base_io_stream, FALSE);
-
-  priv = g_tls_connection_openssl_get_instance_private (openssl);
-
-  ssl = g_tls_connection_openssl_get_ssl (openssl);
-  g_assert (ssl);
-
-  if (data_index == -1) {
-      data_index = SSL_get_ex_new_index (0, (void *)"gtlsconnection", NULL, NULL, NULL);
-  }
-  SSL_set_ex_data (ssl, data_index, openssl);
-
-  priv->bio = g_tls_bio_new (base_io_stream);
-
-  SSL_set_bio (ssl, priv->bio, priv->bio);
-
-  g_object_unref (base_io_stream);
-
   return g_tls_connection_openssl_parent_initable_iface->init (initable, cancellable, error);
 }
 
@@ -224,22 +137,4 @@ g_tls_connection_openssl_initable_iface_init (GInitableIface *iface)
 static void
 g_tls_connection_openssl_init (GTlsConnectionOpenssl *openssl)
 {
-}
-
-// FIXME: remove
-SSL *
-g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *openssl)
-{
-  g_return_val_if_fail (G_IS_TLS_CONNECTION_OPENSSL (openssl), NULL);
-
-  return G_TLS_CONNECTION_OPENSSL_GET_CLASS (openssl)->get_ssl (openssl);
-}
-
-// FIXME: remove
-GTlsConnectionOpenssl *
-g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl)
-{
-  g_return_val_if_fail (ssl, NULL);
-
-  return SSL_get_ex_data (ssl, data_index);
 }

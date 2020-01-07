@@ -122,16 +122,12 @@ is_server (GTlsOperationsThreadGnutls *self)
 
 static void
 begin_gnutls_io (GTlsOperationsThreadGnutls *self,
-                 GIOCondition                direction,
                  GCancellable               *cancellable)
 {
   g_assert (!self->op_error);
   g_assert (!self->op_cancellable);
 
   self->op_cancellable = cancellable;
-
-  g_tls_operations_thread_base_push_io (G_TLS_OPERATIONS_THREAD_BASE (self),
-                                        direction, cancellable);
 }
 
 static GTlsOperationStatus
@@ -308,8 +304,8 @@ end_gnutls_io (GTlsOperationsThreadGnutls  *self,
   return G_TLS_OPERATION_ERROR;
 }
 
-#define BEGIN_GNUTLS_IO(self, direction, cancellable)          \
-  begin_gnutls_io (self, direction, cancellable);              \
+#define BEGIN_GNUTLS_IO(self, cancellable)          \
+  begin_gnutls_io (self, cancellable);              \
   do {
 
 #define END_GNUTLS_IO(self, direction, ret, status, errmsg, err)      \
@@ -642,7 +638,7 @@ g_tls_operations_thread_gnutls_handshake (GTlsOperationsThreadBase  *base,
   self->handshaking = TRUE;
   self->handshake_context = context;
 
-  BEGIN_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  BEGIN_GNUTLS_IO (self, cancellable);
   ret = gnutls_handshake (self->session);
   END_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, ret, status,
                  _("Error performing TLS handshake"), error);
@@ -683,7 +679,7 @@ g_tls_operations_thread_gnutls_read (GTlsOperationsThreadBase  *base,
   GTlsOperationStatus status;
   gssize ret;
 
-  BEGIN_GNUTLS_IO (self, G_IO_IN, cancellable);
+  BEGIN_GNUTLS_IO (self, cancellable);
   ret = gnutls_record_recv (self->session, buffer, size);
   END_GNUTLS_IO (self, G_IO_IN, ret, status, _("Error reading data from TLS socket"), error);
 
@@ -729,7 +725,7 @@ g_tls_operations_thread_gnutls_read_message (GTlsOperationsThreadBase  *base,
   gssize ret;
   gnutls_packet_t packet = { 0, };
 
-  BEGIN_GNUTLS_IO (self, G_IO_IN, cancellable);
+  BEGIN_GNUTLS_IO (self, cancellable);
 
   /* Receive the entire datagram (zero-copy). */
   ret = gnutls_record_recv_packet (self->session, &packet);
@@ -761,7 +757,7 @@ g_tls_operations_thread_gnutls_write (GTlsOperationsThreadBase  *base,
   GTlsOperationStatus status;
   gssize ret;
 
-  BEGIN_GNUTLS_IO (self, G_IO_OUT, cancellable);
+  BEGIN_GNUTLS_IO (self, cancellable);
   ret = gnutls_record_send (self->session, buffer, size);
   END_GNUTLS_IO (self, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
@@ -824,7 +820,7 @@ g_tls_operations_thread_gnutls_write_message (GTlsOperationsThreadBase  *base,
         }
     }
 
-  BEGIN_GNUTLS_IO (self, G_IO_OUT, cancellable);
+  BEGIN_GNUTLS_IO (self, cancellable);
   ret = gnutls_record_uncork (self->session, 0  /* flags */);
   END_GNUTLS_IO (self, G_IO_OUT, ret, status, _("Error writing data to TLS socket"), error);
 
@@ -841,7 +837,7 @@ g_tls_operations_thread_gnutls_close (GTlsOperationsThreadBase  *base,
   GTlsOperationStatus status;
   int ret;
 
-  BEGIN_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, cancellable);
+  BEGIN_GNUTLS_IO (self, cancellable);
   ret = gnutls_bye (self->session, GNUTLS_SHUT_WR);
   END_GNUTLS_IO (self, G_IO_IN | G_IO_OUT, ret, status, _("Error performing TLS close: %s"), error);
 

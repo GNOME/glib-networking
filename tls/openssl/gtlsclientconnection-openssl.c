@@ -47,13 +47,9 @@ struct _GTlsClientConnectionOpenssl
   GTlsCertificateFlags validation_flags;
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
-  gboolean session_data_override;
-
-  GBytes *session_id;
-  GBytes *session_data;
 
   STACK_OF (X509_NAME) *ca_list;
-  gboolean ca_list_changed;
+  gboolean ca_list_changed; /* FIXME: unused? */
 };
 
 enum
@@ -83,8 +79,6 @@ g_tls_client_connection_openssl_finalize (GObject *object)
   GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
 
   g_clear_object (&openssl->server_identity);
-  g_clear_pointer (&openssl->session_id, g_bytes_unref);
-  g_clear_pointer (&openssl->session_data, g_bytes_unref);
 
   G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->finalize (object);
 }
@@ -102,9 +96,9 @@ get_server_identity (GTlsClientConnectionOpenssl *openssl)
 
 static void
 g_tls_client_connection_openssl_get_property (GObject    *object,
-                                             guint       prop_id,
-                                             GValue     *value,
-                                             GParamSpec *pspec)
+                                              guint       prop_id,
+                                              GValue     *value,
+                                              GParamSpec *pspec)
 {
   GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
   GList *accepted_cas;
@@ -158,9 +152,9 @@ g_tls_client_connection_openssl_get_property (GObject    *object,
 
 static void
 g_tls_client_connection_openssl_set_property (GObject      *object,
-                                             guint         prop_id,
-                                             const GValue *value,
-                                             GParamSpec   *pspec)
+                                              guint         prop_id,
+                                              const GValue *value,
+                                              GParamSpec   *pspec)
 {
   GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
   const gchar *hostname;
@@ -176,7 +170,8 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
         g_object_unref (openssl->server_identity);
       openssl->server_identity = g_value_dup_object (value);
 
-      // FIXME: should allow unsetting server identity on op thread, and for GnuTLS too
+      // FIXME: this only sets the server identinty.
+      // We must also allow unsetting server identity on op thread, and for GnuTLS too
       hostname = get_server_identity (openssl);
       if (hostname)
         {
@@ -197,57 +192,6 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
     }
 }
 
-static GTlsCertificateFlags
-verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
-                      GTlsCertificate             *peer_certificate)
-{
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
-  SSL *ssl = NULL;
-  OCSP_RESPONSE *resp = NULL;
-  GTlsDatabase *database;
-  long len = 0;
-  unsigned char *p = NULL;
-
-  ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
-  len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
-  /* Soft fail in case of no response is the best we can do
-   * FIXME: this makes it security theater, why bother with OCSP at all? */
-  if (!p)
-    return 0;
-
-  resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
-  if (!resp)
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  database = g_tls_connection_get_database (G_TLS_CONNECTION (openssl));
-
-  /* If there's no database, then G_TLS_CERTIFICATE_UNKNOWN_CA must be flagged,
-   * and this function is only called if there are no flags.
-   */
-  g_assert (database);
-
-  return g_tls_database_openssl_verify_ocsp_response (G_TLS_DATABASE_OPENSSL (database),
-                                                      peer_certificate,
-                                                      resp);
-#else
-  return 0;
-#endif
-}
-
-// FIXME FIXME: looks important
-static GTlsCertificateFlags
-g_tls_client_connection_openssl_verify_peer_certificate (GTlsConnectionBase   *tls,
-                                                         GTlsCertificate      *certificate,
-                                                         GTlsCertificateFlags  flags)
-{
-  GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
-
-  if (flags == 0)
-    flags = verify_ocsp_response (openssl, certificate);
-
-  return flags;
-}
-
 static void
 g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *klass)
 {
@@ -258,8 +202,6 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
   gobject_class->finalize             = g_tls_client_connection_openssl_finalize;
   gobject_class->get_property         = g_tls_client_connection_openssl_get_property;
   gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
-
-  base_class->verify_peer_certificate = g_tls_client_connection_openssl_verify_peer_certificate;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
