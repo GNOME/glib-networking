@@ -110,7 +110,7 @@ else
     if libcrypto_dep.found()
       libssl = 'ssl'
     else
-      libcrypto_dep = cc.find_library('eay32', required: openssl_option)
+      libcrypto_dep = cc.find_library('eay32', required: false)
       libssl = 'ssleay32'
     endif
 
