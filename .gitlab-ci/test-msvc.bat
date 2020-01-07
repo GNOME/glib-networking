@@ -17,6 +17,7 @@ set PATH=%DEPS_DIR%\bin;%PATH%
 set LIB=%DEPS_DIR%\lib;%LIB%
 set LIBPATH=%DEPS_DIR%\lib;%LIBPATH%
 set INCLUDE=%DEPS_DIR%\include;%DEPS_DIR%\include\glib-2.0;%INCLUDE%
+set PKG_CONFIG_PATH=%DEPS_DIR%\lib\pkgconfig
 
 :: FIXME: make warnings fatal
 pip3 install --upgrade --user meson==0.52.0  || goto :error
