@@ -27,6 +27,9 @@
 #include "config.h"
 #include "gtlsoperationsthread-openssl.h"
 
+#include "gtlsbio.h"
+#include "gtlscertificate-openssl.h"
+
 #include <glib/gi18n-lib.h>
 
 #define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
@@ -48,6 +51,7 @@ struct _GTlsOperationsThreadOpenssl {
 
   /* Valid only during current operation. */
   GTlsCertificate *op_own_certificate;
+  GError *op_error;
 
   gboolean handshaking;
   gboolean ever_handshaked;
@@ -73,6 +77,17 @@ static inline gboolean
 is_server (GTlsOperationsThreadOpenssl *self)
 {
   return self->thread_type == G_TLS_OPERATIONS_THREAD_SERVER;
+}
+
+static GTlsCertificate *
+g_tls_operations_thread_openssl_copy_certificate (GTlsOperationsThreadBase *base,
+                                                  GTlsCertificate          *cert)
+{
+  /* FIXME: need a real copy to avoid sharing the certificate across threads.
+   * Copy must copy private key. Must copy ENTIRE CHAIN including issuers.
+   */
+
+  return cert ? g_object_ref (cert) : NULL;
 }
 
 static void
@@ -106,12 +121,8 @@ begin_openssl_io (GTlsOperationsThreadOpenssl *self,
 {
   g_tls_bio_set_cancellable (self->bio, cancellable);
 
-  /* FIXME: where exactly to store errors? */
-#if 0
-  error = g_tls_connection_base_get_read_error (tls);
-  g_clear_error (error);
-  g_tls_bio_set_read_error (priv->bio, error);
-#endif
+  g_assert (!self->op_error);
+  g_tls_bio_set_error (self->bio, &self->op_error);
 }
 
 static GTlsOperationStatus
@@ -127,7 +138,10 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
 
   g_tls_bio_set_cancellable (self->bio, NULL);
 
-  status = g_tls_operations_thread_base_pop_io (self, direction, ret > 0, &my_error);
+  status = g_tls_operations_thread_base_pop_io (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                                direction, ret > 0,
+                                                g_steal_pointer (&self->op_error),
+                                                &my_error);
 
   err_code = SSL_get_error (self->ssl, ret);
 
@@ -224,13 +238,13 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
     g_propagate_error (error, my_error);
   else
     /* FIXME: this is just for debug */
-    g_message ("end_openssl_io %s: %d, %d, %d", G_IS_TLS_CLIENT_CONNECTION (tls) ? "client" : "server", err_code, err_lib, reason);
+    g_message ("end_openssl_io %s: %d, %d, %d", is_client (self) ? "client" : "server", err_code, err_lib, reason);
 
   if (error && !*error)
     {
       char error_str[256];
       ERR_error_string_n (SSL_get_error (self->ssl, ret), error_str, sizeof (error_str));
-      *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
+      *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, error_str);
     }
 
   return G_TLS_OPERATION_ERROR;
@@ -244,13 +258,131 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
     status = end_openssl_io (self, direction, ret, err, errmsg);  \
   } while (status == G_TLS_OPERATION_TRY_AGAIN);
 
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
+static gboolean
+ssl_set_certificate (SSL              *ssl,
+                     GTlsCertificate  *cert,
+                     GError          **error)
+{
+  EVP_PKEY *key;
+  X509 *x;
+  GTlsCertificate *issuer;
+
+  key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
+
+  if (!key)
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Certificate has no private key"));
+      return FALSE;
+    }
+
+  /* Note, order is important. If a certificate has been set previously,
+   * OpenSSL requires that the new certificate is set _before_ the new
+   * private key is set.
+   */
+  x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert));
+  if (SSL_use_certificate (ssl, x) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  if (SSL_use_PrivateKey (ssl, key) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate private key: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  if (SSL_clear_chain_certs (ssl) == 0)
+    g_warning ("There was a problem clearing the chain certificates: %s",
+               ERR_error_string (ERR_get_error (), NULL));
+
+  /* Add all the issuers to create the full certificate chain */
+  for (issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (cert));
+       issuer;
+       issuer = g_tls_certificate_get_issuer (issuer))
+    {
+      X509 *issuer_x;
+
+      issuer_x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer));
+
+      /* Be careful here and duplicate the certificate since the ssl object
+       * will take the ownership
+       */
+      if (SSL_add1_chain_cert (ssl, issuer_x) == 0)
+        g_warning ("There was a problem adding the chain certificate: %s",
+                   ERR_error_string (ERR_get_error (), NULL));
+    }
+
+  return TRUE;
+}
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10002000L
+static gboolean
+ssl_ctx_set_certificate (SSL_CTX          *ssl_ctx,
+                         GTlsCertificate  *cert,
+                         GError          **error)
+{
+  EVP_PKEY *key;
+  X509 *x;
+  GTlsCertificate *issuer;
+
+  key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
+
+  if (!key)
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Certificate has no private key"));
+      return FALSE;
+    }
+
+  if (SSL_CTX_use_PrivateKey (ssl_ctx, key) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate private key: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+     return FALSE;
+    }
+
+  x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert));
+  if (SSL_CTX_use_certificate (ssl_ctx, x) <= 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                   _("There is a problem with the certificate: %s"),
+                   ERR_error_string (ERR_get_error (), NULL));
+      return FALSE;
+    }
+
+  /* Add all the issuers to create the full certificate chain */
+  for (issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (cert));
+       issuer;
+       issuer = g_tls_certificate_get_issuer (issuer))
+    {
+      X509 *issuer_x;
+
+      /* Be careful here and duplicate the certificate since the context
+       * will take the ownership
+       */
+      issuer_x = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer)));
+      if (!SSL_CTX_add_extra_chain_cert (ssl_ctx, issuer_x))
+        g_warning ("There was a problem adding the extra chain certificate: %s",
+                   ERR_error_string (ERR_get_error (), NULL));
+    }
+}
+#endif
+
 static GTlsCertificate *
 get_peer_certificate (GTlsOperationsThreadOpenssl *self)
 {
   X509 *peer;
   STACK_OF (X509) *certs;
   GTlsCertificateOpenssl *chain;
-  SSL *ssl;
 
   peer = SSL_get_peer_certificate (self->ssl);
   if (!peer)
@@ -272,8 +404,8 @@ get_peer_certificate (GTlsOperationsThreadOpenssl *self)
 }
 
 static int
-verify_callback (int             preverify_ok,
-                 X509_STORE_CTX *ctx)
+server_verify_callback (int             preverify_ok,
+                        X509_STORE_CTX *ctx)
 {
   /* FIXME: The server connection currently accepts any client certificate.
    * We should emit accept-certificate here and reject the certificate unless
@@ -298,21 +430,31 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
   GTlsOperationStatus status;
-  gboolean accepted = FALSE;
   int ret;
+
+  /* FIXME: The handshake doesn't respect timeout. */
 
   self->op_own_certificate = own_certificate;
 
+  if (is_server (self) && self->op_own_certificate)
+    {
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
+      if (!ssl_set_certificate (self->ssl, self->op_own_certificate, error))
+        return G_TLS_OPERATION_ERROR;
+#else
+      if (!ssl_ctx_set_certificate (server->ssl_ctx, self->op_own_certificate, error))
+        return G_TLS_OPERATION_ERROR;
+#endif
+    }
+
   /* TODO: No support yet for ALPN. */
   g_assert (!advertised_protocols);
-
-  /* FIXME: Doesn't respect timeout. */
 
   if (is_server (self))
     {
       int req_mode = 0;
 
-      switch (openssl->authentication_mode)
+      switch (auth_mode)
         {
         case G_TLS_AUTHENTICATION_REQUIRED:
           req_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
@@ -324,21 +466,19 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
         default:
           req_mode = SSL_VERIFY_NONE;
           break;
+        }
 
       SSL_set_verify (self->ssl, req_mode, server_verify_callback);
       SSL_set_verify_depth (self->ssl, 0);
     }
 
-
-  self->handshake_context = context;
   self->handshaking = TRUE;
 
   BEGIN_OPENSSL_IO (self, cancellable);
-  ret = SSL_do_handshake (ssl);
+  ret = SSL_do_handshake (self->ssl);
   END_OPENSSL_IO (self, G_IO_IN | G_IO_OUT, ret, status,
                   _("Error performing TLS handshake"), error);
 
-  self->handshake_context = NULL;
   self->handshaking = FALSE;
 
   if (status == G_TLS_OPERATION_SUCCESS)
@@ -364,17 +504,17 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
 
   if (self->ca_list)
     {
-      for (i = 0; i < sk_X509_NAME_num (openssl->ca_list); ++i)
+      for (int i = 0; i < sk_X509_NAME_num (self->ca_list); ++i)
         {
           int size;
 
-          size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), NULL);
+          size = i2d_X509_NAME (sk_X509_NAME_value (self->ca_list, i), NULL);
           if (size > 0)
             {
               unsigned char *ca;
 
               ca = g_malloc (size);
-              size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), &ca);
+              size = i2d_X509_NAME (sk_X509_NAME_value (self->ca_list, i), &ca);
               if (size > 0)
                 *accepted_cas = g_list_prepend (*accepted_cas,
                                                 g_byte_array_new_take (ca, size));
@@ -522,25 +662,24 @@ ssl_info_callback (const SSL *ssl,
 #endif
 
 static int
-retrieve_certificate_cb (SSL       *ssl,
-                         X509     **x509,
-                         EVP_PKEY **pkey)
+retrieve_own_certificate_cb (SSL       *ssl,
+                             X509     **x509,
+                             EVP_PKEY **pkey)
 {
   GTlsOperationsThreadOpenssl *self;
-  GTlsCertificate *cert;
   gboolean had_ca_list;
 
   self = SSL_get_ex_data (ssl, data_index);
 
   had_ca_list = self->ca_list != NULL;
-  self->ca_list = SSL_get_client_CA_list (client->ssl);
+  self->ca_list = SSL_get_client_CA_list (self->ssl);
   self->ca_list_changed = self->ca_list || had_ca_list;
 
   if (self->op_own_certificate)
     {
       EVP_PKEY *key;
 
-      key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
+      key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (self->op_own_certificate));
       /* increase ref count */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
       CRYPTO_add (&key->references, 1, CRYPTO_LOCK_EVP_PKEY);
@@ -549,7 +688,7 @@ retrieve_certificate_cb (SSL       *ssl,
 #endif
       *pkey = key;
 
-      *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
+      *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (self->op_own_certificate)));
 
       return 1;
     }
@@ -569,6 +708,7 @@ g_tls_operations_thread_openssl_finalize (GObject *object)
   SSL_SESSION_free (self->session);
 
   g_assert (!self->op_own_certificate);
+  g_assert (!self->op_error);
 
   G_OBJECT_CLASS (g_tls_operations_thread_openssl_parent_class)->finalize (object);
 }
@@ -581,8 +721,6 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (initable);
   GIOStream *base_iostream = NULL;
   long options;
-  const char *hostname;
-  GTlsCertificate *cert; /* FIXME: remove, become part of handshake op? */
 
   if (!g_tls_operations_thread_openssl_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
@@ -631,17 +769,17 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
       SSL_CTX_set_options (self->ssl_ctx, options);
       SSL_CTX_clear_options (self->ssl_ctx, SSL_OP_LEGACY_SERVER_CONNECT);
 
-      SSL_CTX_set_client_cert_cb (self->ssl_ctx, retrieve_certificate_cb);
+      SSL_CTX_set_client_cert_cb (self->ssl_ctx, retrieve_own_certificate_cb);
     }
 
   SSL_CTX_add_session (self->ssl_ctx, self->session);
 
 #ifdef SSL_CTX_set1_sigalgs_list
-  set_signature_algorithm_list (server);
+  set_signature_algorithm_list (self);
 #endif
 
 #ifdef SSL_CTX_set1_curves_list
-  set_curve_list (server);
+  set_curve_list (self);
 #endif
 
   if (is_server (self))
@@ -664,13 +802,6 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
 
       SSL_CTX_set_info_callback (self->ssl_ctx, ssl_info_callback);
 #endif
-
-      cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
-
-#if OPENSSL_VERSION_NUMBER < 0x10002000L
-      if (cert && !ssl_ctx_set_certificate (server->ssl_ctx, cert, error))
-        return FALSE;
-#endif
     }
 
   self->ssl = SSL_new (self->ssl_ctx);
@@ -683,25 +814,17 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
     }
 
   self->bio = g_tls_bio_new (base_iostream);
-  SSL_set_bio (ssl, self->bio, self->bio);
-  g_object_unref (base_io_stream);
+  SSL_set_bio (self->ssl, self->bio, self->bio);
+  g_object_unref (base_iostream);
 
   if (data_index == -1)
     data_index = SSL_get_ex_new_index (0, (void *)"gtlsoperationsthread", NULL, NULL, NULL);
   SSL_set_ex_data (self->ssl, data_index, self);
 
   if (is_client (self))
-    {
-      SSL_set_connect_state (client->ssl);
-    }
+    SSL_set_connect_state (self->ssl);
   else
-    {
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
-      if (cert && !ssl_set_certificate (server->ssl, cert, error))
-        return FALSE;
-#endif
-      SSL_set_accept_state (server->ssl);
-    }
+    SSL_set_accept_state (self->ssl);
 
   return TRUE;
 }

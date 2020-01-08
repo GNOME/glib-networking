@@ -224,7 +224,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
                                                GError         **error)
 {
-  GTlsClientConnectionOpenssl *client;
+  GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (initable);
   GTlsOperationsThreadBase *thread;
   const gchar *hostname;
 
