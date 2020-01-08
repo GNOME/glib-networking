@@ -34,7 +34,6 @@
 #include "gtlsclientconnection-openssl.h"
 #include "gtlsbackend-openssl.h"
 #include "gtlscertificate-openssl.h"
-#include "gtlsdatabase-openssl.h"
 #include <glib/gi18n-lib.h>
 
 #define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
@@ -201,56 +200,6 @@ g_tls_client_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
   g_object_notify (G_OBJECT (client), "accepted-cas");
 }
 
-static GTlsCertificateFlags
-verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
-                      GTlsCertificate             *peer_certificate)
-{
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
-  SSL *ssl = NULL;
-  OCSP_RESPONSE *resp = NULL;
-  GTlsDatabase *database;
-  long len = 0;
-  unsigned char *p = NULL;
-
-  ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
-  len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
-  /* Soft fail in case of no response is the best we can do
-   * FIXME: this makes it security theater, why bother with OCSP at all? */
-  if (!p)
-    return 0;
-
-  resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
-  if (!resp)
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  database = g_tls_connection_get_database (G_TLS_CONNECTION (openssl));
-
-  /* If there's no database, then G_TLS_CERTIFICATE_UNKNOWN_CA must be flagged,
-   * and this function is only called if there are no flags.
-   */
-  g_assert (database);
-
-  return g_tls_database_openssl_verify_ocsp_response (G_TLS_DATABASE_OPENSSL (database),
-                                                      peer_certificate,
-                                                      resp);
-#else
-  return 0;
-#endif
-}
-
-static GTlsCertificateFlags
-g_tls_client_connection_openssl_verify_peer_certificate (GTlsConnectionBase   *tls,
-                                                         GTlsCertificate      *certificate,
-                                                         GTlsCertificateFlags  flags)
-{
-  GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
-
-  if (flags == 0)
-    flags = verify_ocsp_response (openssl, certificate);
-
-  return flags;
-}
-
 static SSL *
 g_tls_client_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection)
 {
@@ -269,7 +218,6 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
   gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
 
   base_class->complete_handshake      = g_tls_client_connection_openssl_complete_handshake;
-  base_class->verify_peer_certificate = g_tls_client_connection_openssl_verify_peer_certificate;
 
   openssl_class->get_ssl              = g_tls_client_connection_openssl_get_ssl;
 
@@ -283,7 +231,6 @@ static void
 g_tls_client_connection_openssl_init (GTlsClientConnectionOpenssl *openssl)
 {
 }
-
 
 static void
 g_tls_client_connection_openssl_copy_session_state (GTlsClientConnection *conn,
@@ -393,12 +340,6 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 #endif
 
 static gboolean
-use_ocsp (void)
-{
-  return g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED") != NULL;
-}
-
-static gboolean
 g_tls_client_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
                                                GError         **error)
@@ -480,12 +421,6 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 #endif
 
   SSL_set_connect_state (client->ssl);
-
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
-    !defined(OPENSSL_NO_OCSP)
-  if (use_ocsp())
-    SSL_set_tlsext_status_type (client->ssl, TLSEXT_STATUSTYPE_ocsp);
-#endif
 
   if (!g_tls_client_connection_openssl_parent_initable_iface->
       init (initable, cancellable, error))

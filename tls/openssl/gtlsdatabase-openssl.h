@@ -46,8 +46,4 @@ struct _GTlsDatabaseOpensslClass
 
 GTlsDatabaseOpenssl      *g_tls_database_openssl_new                      (GError **error);
 
-GTlsCertificateFlags      g_tls_database_openssl_verify_ocsp_response     (GTlsDatabaseOpenssl *self,
-                                                                           GTlsCertificate     *chain,
-                                                                           OCSP_RESPONSE       *resp);
-
 G_END_DECLS
