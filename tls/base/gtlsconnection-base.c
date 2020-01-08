@@ -158,7 +158,12 @@ typedef struct
 
   gchar        **advertised_protocols;
   gchar         *negotiated_protocol;
+
+  GList         *sources;
+  GMutex         sources_mutex;
 } GTlsConnectionBasePrivate;
+
+typedef struct _GTlsConnectionBaseSource GTlsConnectionBaseSource;
 
 static void g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInterface *iface);
 
@@ -182,6 +187,8 @@ static void g_tls_connection_base_handshake_async (GTlsConnection      *conn,
 static gboolean g_tls_connection_base_handshake (GTlsConnection   *conn,
                                                  GCancellable     *cancellable,
                                                  GError          **error);
+
+static void tls_source_sync (GTlsConnectionBaseSource *tls_source);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionBase, g_tls_connection_base, G_TYPE_TLS_CONNECTION,
                                   G_ADD_PRIVATE (GTlsConnectionBase);
@@ -232,6 +239,7 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
   g_cond_init (&priv->verify_certificate_condition);
 
   g_mutex_init (&priv->op_mutex);
+  g_mutex_init (&priv->sources_mutex);
 
   priv->waiting_for_op = g_cancellable_new ();
 }
@@ -278,6 +286,9 @@ g_tls_connection_base_finalize (GObject *object)
 
   g_clear_pointer (&priv->advertised_protocols, g_strfreev);
   g_clear_pointer (&priv->negotiated_protocol, g_free);
+
+  g_clear_pointer (&priv->sources, g_list_free);
+  g_mutex_clear (&priv->sources_mutex);
 
   G_OBJECT_CLASS (g_tls_connection_base_parent_class)->finalize (object);
 }
@@ -729,8 +740,14 @@ yield_op (GTlsConnectionBase       *tls,
   if (op != G_TLS_CONNECTION_BASE_OP_READ)
     priv->writing = FALSE;
 
+  g_cancellable_reset (priv->waiting_for_op);
   g_cancellable_cancel (priv->waiting_for_op);
+
   g_mutex_unlock (&priv->op_mutex);
+
+  g_mutex_lock (&priv->sources_mutex);
+  g_list_foreach (priv->sources, (GFunc)tls_source_sync, NULL);
+  g_mutex_unlock (&priv->sources_mutex);
 }
 
 static void
@@ -897,25 +914,40 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
-  /* Racy, but worst case is that we just get WOULD_BLOCK back */
+  g_mutex_lock (&priv->op_mutex);
+
+  /* Must wake up to finish implicit handshake. */
   if (priv->need_finish_handshake)
-    return TRUE;
+    {
+      g_mutex_unlock (&priv->op_mutex);
+      return TRUE;
+    }
 
-  /* If a handshake or close is in progress, then tls_istream and
-   * tls_ostream are blocked, regardless of the base stream status.
+  /* If op or close is in progress, then tls_istream and tls_ostream are
+   * blocked, regardless of the base stream status. Note this includes
+   * handshake ops.
    */
-  if (priv->handshaking)
-    return FALSE;
+  if (((condition & G_IO_IN) && (priv->reading || priv->read_closing)) ||
+      ((condition & G_IO_OUT) && (priv->writing || priv->write_closing)))
+    {
+      g_mutex_unlock (&priv->op_mutex);
+      return FALSE;
+    }
 
-  if (((condition & G_IO_IN) && priv->read_closing) ||
-      ((condition & G_IO_OUT) && priv->write_closing))
-    return FALSE;
+  g_mutex_unlock (&priv->op_mutex);
+
+  /* If base class says we are ready, then we are, regardless of the base
+   * stream status. This accounts for TLS-level buffers.
+   */
+  if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, condition))
+    return TRUE;
 
   /* Defer to the base stream or GDatagramBased. */
   return g_tls_connection_base_base_check (tls, condition);
 }
 
-typedef struct {
+struct _GTlsConnectionBaseSource {
   GSource             source;
 
   GTlsConnectionBase *tls;
@@ -928,9 +960,9 @@ typedef struct {
   GSource            *child_source;
   GIOCondition        condition;
 
-  gboolean            io_waiting;
   gboolean            op_waiting;
-} GTlsConnectionBaseSource;
+  gboolean            io_waiting;
+};
 
 /* Use a custom dummy callback instead of g_source_set_dummy_callback(), as that
  * uses a GClosure and is slow. (The GClosure is necessary to deal with any
@@ -966,6 +998,15 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
   else
     io_waiting = FALSE;
   g_mutex_unlock (&priv->op_mutex);
+
+  /* The child class might have TLS-level buffered data ready for I/O,
+   * even if the base stream does not. But no need to check for this if
+   * we're blocked on another op.
+   */
+  if (!op_waiting &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, tls_source->condition))
+    io_waiting = FALSE;
 
   if (op_waiting == tls_source->op_waiting &&
       io_waiting == tls_source->io_waiting)
@@ -1011,7 +1052,7 @@ tls_source_dispatch (GSource     *source,
   else
     ret = (*pollable_func) (tls_source->base, user_data);
 
-  if (ret)
+  if (ret == G_SOURCE_CONTINUE)
     tls_source_sync (tls_source);
 
   return ret;
@@ -1021,6 +1062,12 @@ static void
 tls_source_finalize (GSource *source)
 {
   GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
+  GTlsConnectionBase *tls = tls_source->tls;
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  g_mutex_lock (&priv->sources_mutex);
+  priv->sources = g_list_remove (priv->sources, source);
+  g_mutex_unlock (&priv->sources_mutex);
 
   g_object_unref (tls_source->tls);
   g_source_unref (tls_source->child_source);
@@ -1141,6 +1188,10 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
       g_source_add_child_source (source, cancellable_source);
       g_source_unref (cancellable_source);
     }
+
+  g_mutex_lock (&priv->sources_mutex);
+  priv->sources = g_list_prepend (priv->sources, source);
+  g_mutex_unlock (&priv->sources_mutex);
 
   return source;
 }
