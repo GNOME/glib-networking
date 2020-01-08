@@ -79,43 +79,12 @@ g_tls_connection_openssl_create_op_thread (GTlsConnectionBase *tls)
   return thread;
 }
 
-static GTlsCertificate *
-g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
-{
-  X509 *peer;
-  STACK_OF (X509) *certs;
-  GTlsCertificateOpenssl *chain;
-  SSL *ssl;
-
-  ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (tls));
-
-  peer = SSL_get_peer_certificate (ssl);
-  if (!peer)
-    return NULL;
-
-  certs = SSL_get_peer_cert_chain (ssl);
-  if (!certs)
-    {
-      X509_free (peer);
-      return NULL;
-    }
-
-  chain = g_tls_certificate_openssl_build_chain (peer, certs);
-  X509_free (peer);
-  if (!chain)
-    return NULL;
-
-  return G_TLS_CERTIFICATE (chain);
-}
-
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
 
-  base_class->create_op_thread                           = g_tls_connection_openssl_create_op_thread;
-  /* FIXME: remove */
-  base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
+  base_class->create_op_thread = g_tls_connection_openssl_create_op_thread;
 }
 
 static gboolean

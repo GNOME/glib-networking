@@ -45,6 +45,9 @@ struct _GTlsOperationsThreadOpenssl {
   SSL *ssl;
   SSL_CTX *ssl_ctx;
 
+  /* Valid only during current operation. */
+  GTlsCertificate *op_own_certificate;
+
   gboolean handshaking;
   gboolean ever_handshaked;
   gboolean shutting_down;
@@ -240,6 +243,33 @@ end_openssl_io (GTlsOperationsThreadOpenssl  *self,
     status = end_openssl_io (self, direction, ret, err, errmsg);  \
   } while (status == G_TLS_OPERATION_TRY_AGAIN);
 
+static GTlsCertificate *
+get_peer_certificate (GTlsOperationsThreadOpenssl *self)
+{
+  X509 *peer;
+  STACK_OF (X509) *certs;
+  GTlsCertificateOpenssl *chain;
+  SSL *ssl;
+
+  peer = SSL_get_peer_certificate (self->ssl);
+  if (!peer)
+    return NULL;
+
+  certs = SSL_get_peer_cert_chain (self->ssl);
+  if (!certs)
+    {
+      X509_free (peer);
+      return NULL;
+    }
+
+  chain = g_tls_certificate_openssl_build_chain (peer, certs);
+  X509_free (peer);
+  if (!chain)
+    return NULL;
+
+  return G_TLS_CERTIFICATE (chain);
+}
+
 static GTlsOperationStatus
 g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
                                            HandshakeContext          *context,
@@ -256,10 +286,10 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
 {
   GTlsOperationsThreadOpenssl *self = G_TLS_OPERATIONS_THREAD_OPENSSL (base);
   GTlsOperationStatus status;
+  gboolean accepted = FALSE;
   int ret;
 
-  /* TODO: No support yet for client authentication. */
-  g_assert (!own_certificate);
+  self->op_own_certificate = own_certificate;
 
   /* TODO: No support yet for ALPN. */
   g_assert (!advertised_protocols);
@@ -280,20 +310,25 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
   if (status == G_TLS_OPERATION_SUCCESS)
     self->ever_handshaked = TRUE;
 
+  *peer_certificate = get_peer_certificate (self);
+
   /* FIXME: this is really too late to be performing certificate verification.
    * We should be doing it during the handshake.
    */
-  if (ret > 0)
+  if (ret > 0 &&
+      !g_tls_operations_thread_base_verify_certificate (G_TLS_OPERATIONS_THREAD_BASE (self),
+                                                        *peer_certificate,
+                                                        context))
     {
-      /* FIXME */
-      if (!g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl)))
-        return G_TLS_OPERATION_ERROR;
+      status = G_TLS_OPERATION_ERROR;
     }
+
+  self->op_own_certificate = NULL;
 
   /* TODO: No support yet for ALPN. */
   *negotiated_protocol = NULL;
 
-  /* FIXME FIXME FIXME: accepted CAs and peer_certificate */
+  /* FIXME FIXME FIXME: accepted CAs */
 
   /* TODO: No support yet for session resumption. */
   *session_resumed = FALSE;
@@ -437,25 +472,16 @@ retrieve_certificate_cb (SSL       *ssl,
                          EVP_PKEY **pkey)
 {
   GTlsOperationsThreadOpenssl *self;
-  GTlsConnectionBase *tls;
   GTlsCertificate *cert;
   gboolean had_ca_list;
 
   self = SSL_get_ex_data (ssl, data_index);
-  tls = G_TLS_CONNECTION_BASE (client);
 
   had_ca_list = self->ca_list != NULL;
   self->ca_list = SSL_get_client_CA_list (client->ssl);
   self->ca_list_changed = self->ca_list || had_ca_list;
 
-  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
-  if (!cert)
-    {
-      if (g_tls_connection_base_handshake_thread_request_certificate (tls))
-        cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (client));
-    }
-
-  if (cert)
+  if (self->op_own_certificate)
     {
       EVP_PKEY *key;
 
@@ -473,15 +499,9 @@ retrieve_certificate_cb (SSL       *ssl,
       return 1;
     }
 
-  g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
+  g_tls_operations_thread_base_set_missing_requested_client_certificate (G_TLS_OPERATIONS_THREAD_BASE (self));
 
   return 0;
-}
-
-static gboolean
-use_ocsp (void)
-{
-  return g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED") != NULL;
 }
 
 static void
@@ -492,6 +512,8 @@ g_tls_operations_thread_openssl_finalize (GObject *object)
   SSL_free (self->ssl);
   SSL_CTX_free (self->ssl_ctx);
   SSL_SESSION_free (self->session);
+
+  g_assert (!self->op_own_certificate);
 
   G_OBJECT_CLASS (g_tls_operations_thread_openssl_parent_class)->finalize (object);
 }
@@ -616,11 +638,6 @@ g_tls_operations_thread_openssl_initable_init (GInitable     *initable,
   if (is_client (self))
     {
       SSL_set_connect_state (client->ssl);
-
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
-      if (use_ocsp())
-        SSL_set_tlsext_status_type (client->ssl, TLSEXT_STATUSTYPE_ocsp);
-#endif
     }
   else
     {
