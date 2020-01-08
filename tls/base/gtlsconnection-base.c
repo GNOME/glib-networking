@@ -911,6 +911,10 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
       ((condition & G_IO_OUT) && priv->write_closing))
     return FALSE;
 
+  if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, condition))
+    return TRUE;
+
   /* Defer to the base stream or GDatagramBased. */
   return g_tls_connection_base_base_check (tls, condition);
 }
