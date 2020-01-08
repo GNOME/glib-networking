@@ -1162,14 +1162,14 @@ get_own_certificate_internals (GTlsOperationsThreadGnutls  *self,
 }
 
 static int
-retrieve_certificate_cb (gnutls_session_t              session,
-                         const gnutls_datum_t         *req_ca_rdn,
-                         int                           nreqs,
-                         const gnutls_pk_algorithm_t  *pk_algos,
-                         int                           pk_algos_length,
-                         gnutls_pcert_st             **pcert,
-                         unsigned int                 *pcert_length,
-                         gnutls_privkey_t             *pkey)
+retrieve_own_certificate_cb (gnutls_session_t              session,
+                             const gnutls_datum_t         *req_ca_rdn,
+                             int                           nreqs,
+                             const gnutls_pk_algorithm_t  *pk_algos,
+                             int                           pk_algos_length,
+                             gnutls_pcert_st             **pcert,
+                             unsigned int                 *pcert_length,
+                             gnutls_privkey_t             *pkey)
 {
   GTlsOperationsThreadGnutls *self = gnutls_transport_get_ptr (session);
   GByteArray *dn;
@@ -1347,7 +1347,7 @@ g_tls_operations_thread_gnutls_initable_init (GInitable     *initable,
                    gnutls_strerror (ret));
       return FALSE;
     }
-  gnutls_certificate_set_retrieve_function2 (self->creds, retrieve_certificate_cb);
+  gnutls_certificate_set_retrieve_function2 (self->creds, retrieve_own_certificate_cb);
 
   gnutls_init (&self->session, self->init_flags);
 
