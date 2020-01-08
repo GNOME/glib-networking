@@ -72,9 +72,6 @@ struct _GTlsConnectionBaseClass
                                                              GCancellable         *cancellable,
                                                              GError              **error);
   GTlsCertificate            *(*retrieve_peer_certificate)  (GTlsConnectionBase   *tls);
-  GTlsCertificateFlags        (*verify_peer_certificate)    (GTlsConnectionBase   *tls,
-                                                             GTlsCertificate      *certificate,
-                                                             GTlsCertificateFlags  flags);
   void                        (*complete_handshake)         (GTlsConnectionBase   *tls,
                                                              gchar               **negotiated_protocol,
                                                              GError              **error);
