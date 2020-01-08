@@ -27,8 +27,6 @@
 #include "config.h"
 #include "gtlsoperationsthread-openssl.h"
 
-#include "gtlsconnection-openssl.h"
-
 #include <glib/gi18n-lib.h>
 
 #define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
@@ -44,6 +42,9 @@ struct _GTlsOperationsThreadOpenssl {
   SSL_SESSION *session;
   SSL *ssl;
   SSL_CTX *ssl_ctx;
+
+  STACK_OF (X509_NAME) *ca_list;
+  gboolean ca_list_changed;
 
   /* Valid only during current operation. */
   GTlsCertificate *op_own_certificate;
@@ -270,6 +271,17 @@ get_peer_certificate (GTlsOperationsThreadOpenssl *self)
   return G_TLS_CERTIFICATE (chain);
 }
 
+static int
+verify_callback (int             preverify_ok,
+                 X509_STORE_CTX *ctx)
+{
+  /* FIXME: The server connection currently accepts any client certificate.
+   * We should emit accept-certificate here and reject the certificate unless
+   * the callback returns TRUE.
+   */
+  return 1;
+}
+
 static GTlsOperationStatus
 g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
                                            HandshakeContext          *context,
@@ -295,6 +307,28 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
   g_assert (!advertised_protocols);
 
   /* FIXME: Doesn't respect timeout. */
+
+  if (is_server (self))
+    {
+      int req_mode = 0;
+
+      switch (openssl->authentication_mode)
+        {
+        case G_TLS_AUTHENTICATION_REQUIRED:
+          req_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+          break;
+        case G_TLS_AUTHENTICATION_REQUESTED:
+          req_mode = SSL_VERIFY_PEER;
+          break;
+        case G_TLS_AUTHENTICATION_NONE:
+        default:
+          req_mode = SSL_VERIFY_NONE;
+          break;
+
+      SSL_set_verify (self->ssl, req_mode, server_verify_callback);
+      SSL_set_verify_depth (self->ssl, 0);
+    }
+
 
   self->handshake_context = context;
   self->handshaking = TRUE;
@@ -328,7 +362,28 @@ g_tls_operations_thread_openssl_handshake (GTlsOperationsThreadBase  *base,
   /* TODO: No support yet for ALPN. */
   *negotiated_protocol = NULL;
 
-  /* FIXME FIXME FIXME: accepted CAs */
+  if (self->ca_list)
+    {
+      for (i = 0; i < sk_X509_NAME_num (openssl->ca_list); ++i)
+        {
+          int size;
+
+          size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), NULL);
+          if (size > 0)
+            {
+              unsigned char *ca;
+
+              ca = g_malloc (size);
+              size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), &ca);
+              if (size > 0)
+                *accepted_cas = g_list_prepend (*accepted_cas,
+                                                g_byte_array_new_take (ca, size));
+              else
+                g_free (ca);
+            }
+        }
+      *accepted_cas = g_list_reverse (*accepted_cas);
+    }
 
   /* TODO: No support yet for session resumption. */
   *session_resumed = FALSE;

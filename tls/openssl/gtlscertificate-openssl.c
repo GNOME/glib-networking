@@ -601,7 +601,7 @@ end:
   return ret;
 }
 
-GTlsCertificate *
+GTlsCertificateOpenssl *
 g_tls_certificate_openssl_build_chain (X509            *x,
                                        STACK_OF (X509) *chain)
 {

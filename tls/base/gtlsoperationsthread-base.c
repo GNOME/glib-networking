@@ -1660,8 +1660,6 @@ g_tls_operations_thread_base_class_init (GTlsOperationsThreadBaseClass *klass)
   gobject_class->get_property = g_tls_operations_thread_base_get_property;
   gobject_class->set_property = g_tls_operations_thread_base_set_property;
 
-  klass->pop_io = g_tls_operations_thread_base_real_pop_io;
-
   signals[REQUEST_CERTIFICATE] =
     g_signal_new ("operations-thread-request-certificate",
 		              G_TYPE_TLS_OPERATIONS_THREAD_BASE,

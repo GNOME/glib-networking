@@ -48,8 +48,7 @@ struct _GTlsClientConnectionOpenssl
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
 
-  STACK_OF (X509_NAME) *ca_list;
-  gboolean ca_list_changed; /* FIXME: unused? */
+  GList *accepted_cas;
 };
 
 enum
@@ -73,16 +72,6 @@ G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionOpenssl, g_tls_client_connection_op
                          G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
                                                 g_tls_client_connection_openssl_client_connection_interface_init))
 
-static void
-g_tls_client_connection_openssl_finalize (GObject *object)
-{
-  GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
-
-  g_clear_object (&openssl->server_identity);
-
-  G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->finalize (object);
-}
-
 static const gchar *
 get_server_identity (GTlsClientConnectionOpenssl *openssl)
 {
@@ -95,14 +84,30 @@ get_server_identity (GTlsClientConnectionOpenssl *openssl)
 }
 
 static void
+g_tls_client_connection_openssl_set_accepted_cas (GTlsConnectionBase *tls,
+                                                  GList              *accepted_cas)
+{
+  GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
+
+  if (openssl->accepted_cas)
+    g_list_free_full (openssl->accepted_cas, (GDestroyNotify)g_byte_array_unref);
+
+  openssl->accepted_cas = g_steal_pointer (&accepted_cas);
+}
+
+static void
+g_tls_client_connection_openssl_copy_session_state (GTlsClientConnection *conn,
+                                                    GTlsClientConnection *source)
+{
+}
+
+static void
 g_tls_client_connection_openssl_get_property (GObject    *object,
                                               guint       prop_id,
                                               GValue     *value,
                                               GParamSpec *pspec)
 {
   GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
-  GList *accepted_cas;
-  gint i;
 
   switch (prop_id)
     {
@@ -119,30 +124,7 @@ g_tls_client_connection_openssl_get_property (GObject    *object,
       break;
 
     case PROP_ACCEPTED_CAS:
-      accepted_cas = NULL;
-      if (openssl->ca_list)
-        {
-          for (i = 0; i < sk_X509_NAME_num (openssl->ca_list); ++i)
-            {
-              int size;
-
-              size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), NULL);
-              if (size > 0)
-                {
-                  unsigned char *ca;
-
-                  ca = g_malloc (size);
-                  size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), &ca);
-                  if (size > 0)
-                    accepted_cas = g_list_prepend (accepted_cas, g_byte_array_new_take (
-                                                   ca, size));
-                  else
-                    g_free (ca);
-                }
-            }
-          accepted_cas = g_list_reverse (accepted_cas);
-        }
-      g_value_set_pointer (value, accepted_cas);
+      g_value_set_pointer (value, g_list_copy (openssl->accepted_cas));
       break;
 
     default:
@@ -193,20 +175,19 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
 }
 
 static void
-g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *klass)
+g_tls_client_connection_openssl_finalize (GObject *object)
 {
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
-  GTlsConnectionOpensslClass *openssl_class = G_TLS_CONNECTION_OPENSSL_CLASS (klass);
+  GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
 
-  gobject_class->finalize             = g_tls_client_connection_openssl_finalize;
-  gobject_class->get_property         = g_tls_client_connection_openssl_get_property;
-  gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
+  g_clear_object (&openssl->server_identity);
 
-  g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
-  g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
-  g_object_class_override_property (gobject_class, PROP_USE_SSL3, "use-ssl3");
-  g_object_class_override_property (gobject_class, PROP_ACCEPTED_CAS, "accepted-cas");
+  if (openssl->accepted_cas)
+    {
+      g_list_free_full (openssl->accepted_cas, (GDestroyNotify)g_byte_array_unref);
+      openssl->accepted_cas = NULL;
+    }
+
+  G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->finalize (object);
 }
 
 static void
@@ -214,11 +195,22 @@ g_tls_client_connection_openssl_init (GTlsClientConnectionOpenssl *openssl)
 {
 }
 
-
 static void
-g_tls_client_connection_openssl_copy_session_state (GTlsClientConnection *conn,
-                                                    GTlsClientConnection *source)
+g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *klass)
 {
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+  GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
+
+  gobject_class->finalize             = g_tls_client_connection_openssl_finalize;
+  gobject_class->get_property         = g_tls_client_connection_openssl_get_property;
+  gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
+
+  base_class->set_accepted_cas        = g_tls_client_connection_openssl_set_accepted_cas;
+
+  g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
+  g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
+  g_object_class_override_property (gobject_class, PROP_USE_SSL3, "use-ssl3");
+  g_object_class_override_property (gobject_class, PROP_ACCEPTED_CAS, "accepted-cas");
 }
 
 static void

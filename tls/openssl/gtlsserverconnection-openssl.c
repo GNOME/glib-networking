@@ -97,49 +97,6 @@ g_tls_server_connection_openssl_set_property (GObject      *object,
     }
 }
 
-static int
-verify_callback (int             preverify_ok,
-                 X509_STORE_CTX *ctx)
-{
-  return 1;
-}
-
-static void
-g_tls_server_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
-                                                   gchar              **advertised_protocols)
-{
-  GTlsServerConnectionOpenssl *openssl = G_TLS_SERVER_CONNECTION_OPENSSL (tls);
-  GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (g_tls_server_connection_openssl_parent_class);
-  int req_mode = 0;
-
-  switch (openssl->authentication_mode)
-    {
-    case G_TLS_AUTHENTICATION_REQUIRED:
-      req_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
-      break;
-    case G_TLS_AUTHENTICATION_REQUESTED:
-      req_mode = SSL_VERIFY_PEER;
-      break;
-    case G_TLS_AUTHENTICATION_NONE:
-    default:
-      req_mode = SSL_VERIFY_NONE;
-      break;
-    }
-
-  SSL_set_verify (openssl->ssl, req_mode, verify_callback);
-  /* FIXME: is this ok? */
-  SSL_set_verify_depth (openssl->ssl, 0);
-
-  if (base_class->prepare_handshake)
-    base_class->prepare_handshake (tls, advertised_protocols);
-}
-
-static SSL *
-g_tls_server_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection)
-{
-  return G_TLS_SERVER_CONNECTION_OPENSSL (connection)->ssl;
-}
-
 #if OPENSSL_VERSION_NUMBER < 0x10002000L
 static gboolean
 ssl_ctx_set_certificate (SSL_CTX          *ssl_ctx,
@@ -282,10 +239,6 @@ g_tls_server_connection_openssl_class_init (GTlsServerConnectionOpensslClass *kl
 
   gobject_class->get_property = g_tls_server_connection_openssl_get_property;
   gobject_class->set_property = g_tls_server_connection_openssl_set_property;
-
-  base_class->prepare_handshake = g_tls_server_connection_openssl_prepare_handshake;
-
-  connection_class->get_ssl = g_tls_server_connection_openssl_get_ssl;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }

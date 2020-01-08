@@ -38,7 +38,7 @@ free_gbio (gpointer user_data)
 {
   GTlsBio *bio = (GTlsBio *)user_data;
 
-  g_assert (!cancellable);
+  g_assert (!bio->cancellable);
 
   g_object_unref (bio->io_stream);
   g_free (bio);
@@ -162,11 +162,11 @@ gtls_bio_write (BIO        *bio,
                                      in, inl,
                                      FALSE,
                                      gbio->cancellable,
-                                     &gbio->error);
+                                     gbio->error);
 
   if (written == -1)
     {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+      if (g_error_matches (*gbio->error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
         BIO_set_retry_write (bio);
     }
 
@@ -201,11 +201,11 @@ gtls_bio_read (BIO  *bio,
                                  out, outl,
                                  FALSE,
                                  gbio->cancellable,
-                                 &gbio->error);
+                                 gbio->error);
 
   if (read == -1)
     {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+      if (g_error_matches (*gbio->error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
         BIO_set_retry_read (bio);
     }
 
