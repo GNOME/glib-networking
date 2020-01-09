@@ -43,16 +43,11 @@
 
 #include <glib/gi18n-lib.h>
 
-typedef struct _GTlsConnectionOpensslPrivate
-{
-} GTlsConnectionOpensslPrivate;
-
 static GInitableIface *g_tls_connection_openssl_parent_initable_iface;
 
 static void g_tls_connection_openssl_initable_iface_init (GInitableIface *iface);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionOpenssl, g_tls_connection_openssl, G_TYPE_TLS_CONNECTION_BASE,
-                                  G_ADD_PRIVATE (GTlsConnectionOpenssl)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                          g_tls_connection_openssl_initable_iface_init))
 

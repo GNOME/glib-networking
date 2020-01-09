@@ -864,7 +864,7 @@ g_tls_operations_thread_openssl_new (GIOStream                *base_iostream,
 {
   return g_initable_new (G_TYPE_TLS_OPERATIONS_THREAD_OPENSSL,
                          NULL, NULL,
-                         "base-iostream", base_iostream,
+                         "base-io-stream", base_iostream,
                          "thread-type", type,
                          NULL);
 }
