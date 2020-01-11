@@ -37,7 +37,7 @@ void g_tls_log (GLogLevelFlags  level,
                 const gchar    *format,
                 ...) G_GNUC_PRINTF (6, 7);
 
-#define g_tls_log_debug(_conn, _format, ...)   g_tls_log (G_LOG_LEVEL_DEBUG, _conn, \
+#define g_tls_log_debug(_conn, _format, ...)   g_tls_log (G_LOG_LEVEL_INFO, _conn, \
                                                           __FILE__, G_STRINGIFY (__LINE__), \
                                                           G_STRFUNC, _format, ## __VA_ARGS__)
 

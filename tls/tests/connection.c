@@ -2118,7 +2118,7 @@ test_unclean_close_by_server (TestConnection *test,
 
   g_object_unref (client);
 }
-
+#include <glib/gstdio.h>
 static gboolean
 async_implicit_handshake_dispatch (GPollableInputStream *stream,
                                    gpointer user_data)
@@ -2132,7 +2132,7 @@ async_implicit_handshake_dispatch (GPollableInputStream *stream,
   size = g_pollable_input_stream_read_nonblocking (stream, buffer,
                                                    TEST_DATA_LENGTH,
                                                    NULL, &error);
-
+printf("%s: size=%zd\n", __FUNCTION__, size);
   keep_running = (-1 == size);
 
   if (keep_running)
