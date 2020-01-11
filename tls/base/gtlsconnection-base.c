@@ -729,7 +729,9 @@ yield_op (GTlsConnectionBase       *tls,
   if (op != G_TLS_CONNECTION_BASE_OP_READ)
     priv->writing = FALSE;
 
+  g_cancellable_reset (priv->waiting_for_op);
   g_cancellable_cancel (priv->waiting_for_op);
+
   g_mutex_unlock (&priv->op_mutex);
 }
 
@@ -897,20 +899,31 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
-  /* Racy, but worst case is that we just get WOULD_BLOCK back */
+  g_mutex_lock (&priv->op_mutex);
+
+  /* Must wake up to finish implicit handshake. */
   if (priv->need_finish_handshake)
-    return TRUE;
+    {
+      g_mutex_unlock (&priv->op_mutex);
+      return TRUE;
+    }
 
-  /* If a handshake or close is in progress, then tls_istream and
-   * tls_ostream are blocked, regardless of the base stream status.
+  /* If op or close is in progress, then tls_istream and tls_ostream are
+   * blocked, regardless of the base stream status. Note this includes
+   * handshakes.
    */
-  if (priv->handshaking)
-    return FALSE;
+  if (((condition & G_IO_IN) && (priv->reading || priv->read_closing)) ||
+      ((condition & G_IO_OUT) && (priv->writing || priv->write_closing)))
+    {
+      g_mutex_unlock (&priv->op_mutex);
+      return FALSE;
+    }
 
-  if (((condition & G_IO_IN) && priv->read_closing) ||
-      ((condition & G_IO_OUT) && priv->write_closing))
-    return FALSE;
+  g_mutex_unlock (&priv->op_mutex);
 
+  /* If base class says we are ready, then we are, regardless of the base
+   * stream status. This accounts for TLS-level buffers.
+   */
   if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
       G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, condition))
     return TRUE;
@@ -971,6 +984,15 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
     io_waiting = FALSE;
   g_mutex_unlock (&priv->op_mutex);
 
+  /* The child class might have TLS-level buffered data ready for I/O,
+   * even if the base stream does not. But no need to check for this if
+   * we're blocked on another op.
+   */
+  if (!op_waiting &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, tls_source->condition))
+    io_waiting = FALSE;
+
   if (op_waiting == tls_source->op_waiting &&
       io_waiting == tls_source->io_waiting)
     return;
@@ -997,6 +1019,20 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
 
   g_source_set_callback (tls_source->child_source, dummy_callback, NULL, NULL);
   g_source_add_child_source ((GSource *)tls_source, tls_source->child_source);
+
+  if (!op_waiting && io_waiting)
+    {
+      GSource *child_source;
+
+      /* If we wait on the a base stream, we have to resync after any
+       * op occurs since the op could alter the state of internal TLS
+       * library buffers, so we'll poll a second child source.
+       */
+      child_source = g_cancellable_source_new (priv->waiting_for_op);
+      g_source_set_callback (child_source, dummy_callback, NULL, NULL);
+      g_source_add_child_source ((GSource *)tls_source->child_source, child_source);
+      g_source_unref (child_source);
+    }
 }
 
 static gboolean
@@ -1007,18 +1043,35 @@ tls_source_dispatch (GSource     *source,
   GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc)callback;
   GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
   GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
+  GTlsConnectionBase *tls = tls_source->tls;
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  gboolean dispatch;
   gboolean ret;
 
-  if (G_IS_DATAGRAM_BASED (tls_source->base))
-    ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
-                                  tls_source->condition, user_data);
-  else
-    ret = (*pollable_func) (tls_source->base, user_data);
+  /* We are *allowed* to have spurious false-positive dispatches when
+   * not actually readable/writable, but let's check anyway before
+   * dispatching to be nice to applications. We can get here spuriously
+   * whenever yield_op cancels waiting_for_op.
+   */
+  dispatch = g_tls_connection_base_check (tls_source->tls, tls_source->condition);
+  if (!dispatch)
+    {
+      g_mutex_lock (&priv->op_mutex);
+      dispatch = priv->need_handshake;
+      g_mutex_unlock (&priv->op_mutex);
+    }
 
-  if (ret)
-    tls_source_sync (tls_source);
+  if (dispatch)
+    {
+      if (G_IS_DATAGRAM_BASED (tls_source->base))
+        ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
+                                      tls_source->condition, user_data);
+      else
+        ret = (*pollable_func) (tls_source->base, user_data);
+      return ret;
+    }
 
-  return ret;
+  return G_SOURCE_CONTINUE;
 }
 
 static void
@@ -1080,7 +1133,6 @@ g_tls_connection_tls_source_dtls_closure_callback (GDatagramBased *datagram_base
   g_value_unset (&param[1]);
 
   return result;
-
 }
 
 static GSourceFuncs tls_source_funcs =
@@ -1862,8 +1914,8 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
 
   g_assert (!priv->implicit_handshake);
   priv->implicit_handshake = g_task_new (tls, cancellable,
-                                        timeout ? sync_handshake_thread_completed : NULL,
-                                        NULL);
+                                         timeout ? sync_handshake_thread_completed : NULL,
+                                         NULL);
   g_task_set_source_tag (priv->implicit_handshake, do_implicit_handshake);
   g_task_set_name (priv->implicit_handshake, "[glib-networking] do_implicit_handshake");
 
