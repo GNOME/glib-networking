@@ -211,6 +211,38 @@ enum
   PROP_NEGOTIATED_PROTOCOL,
 };
 
+static void /* FIXME */
+GTLS_DEBUG (gpointer    connection,
+            const char *message,
+            ...)
+{
+  char *result = NULL;
+  va_list args;
+  int ret;
+
+  g_assert (G_IS_TLS_CONNECTION (connection));
+
+  va_start (args, message);
+
+  ret = g_vasprintf (&result, message, args);
+  g_assert (ret > 0);
+
+  if (G_IS_TLS_CLIENT_CONNECTION (connection))
+    g_printf ("CLIENT %p: ", connection);
+  else if (G_IS_TLS_SERVER_CONNECTION (connection))
+    g_printf ("SERVER %p: ", connection);
+  else
+    g_assert_not_reached ();
+
+  g_printf ("%s\n", result);
+
+  fflush (stdout);
+
+  g_free (result);
+  va_end (args);
+}
+
+
 gboolean
 g_tls_connection_base_is_dtls (GTlsConnectionBase *tls)
 {
@@ -729,10 +761,10 @@ yield_op (GTlsConnectionBase       *tls,
   if (op != G_TLS_CONNECTION_BASE_OP_READ)
     priv->writing = FALSE;
 
+  g_mutex_unlock (&priv->op_mutex);
+
   g_cancellable_reset (priv->waiting_for_op);
   g_cancellable_cancel (priv->waiting_for_op);
-
-  g_mutex_unlock (&priv->op_mutex);
 }
 
 static void
@@ -947,6 +979,10 @@ typedef struct {
 
   gboolean            io_waiting;
   gboolean            op_waiting;
+
+  gulong              op_waiting_id;
+
+  GCancellable       *cancellable;
 } GTlsConnectionBaseSource;
 
 /* Use a custom dummy callback instead of g_source_set_dummy_callback(), as that
@@ -965,11 +1001,14 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   gboolean io_waiting, op_waiting;
 
+GTLS_DEBUG (tls, "%s: source=%p", __FUNCTION__, tls_source);
+
   /* Was the source destroyed earlier in this main context iteration? */
   if (g_source_is_destroyed ((GSource *)tls_source))
     return;
 
   g_mutex_lock (&priv->op_mutex);
+
   if (((tls_source->condition & G_IO_IN) && priv->reading) ||
       ((tls_source->condition & G_IO_OUT) && priv->writing) ||
       (priv->handshaking && !priv->need_finish_handshake))
@@ -992,7 +1031,8 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
       G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
       G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, tls_source->condition))
     io_waiting = FALSE;
-g_info("%s: source=%p op_waiting=%d io_waiting=%d", __FUNCTION__, tls_source, op_waiting, io_waiting);
+GTLS_DEBUG (tls, "%s: op_waiting=%d io_waiting=%d", __FUNCTION__, op_waiting, io_waiting);
+
   if (op_waiting == tls_source->op_waiting &&
       io_waiting == tls_source->io_waiting)
     return;
@@ -1019,7 +1059,7 @@ g_info("%s: source=%p op_waiting=%d io_waiting=%d", __FUNCTION__, tls_source, op
 
   g_source_set_callback (tls_source->child_source, dummy_callback, NULL, NULL);
   g_source_add_child_source ((GSource *)tls_source, tls_source->child_source);
-
+#if 0
   if (!op_waiting && io_waiting)
     {
       GSource *child_source;
@@ -1033,6 +1073,36 @@ g_info("%s: source=%p op_waiting=%d io_waiting=%d", __FUNCTION__, tls_source, op
       g_source_add_child_source ((GSource *)tls_source->child_source, child_source);
       g_source_unref (child_source);
     }
+#endif
+}
+
+static void
+op_completed_cb (GCancellable             *cancellable,
+                 GTlsConnectionBaseSource *tls_source)
+{
+GTlsConnectionBase *tls = tls_source->tls;
+//GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+GTLS_DEBUG (tls, "%s: source=%p", __FUNCTION__, tls_source);
+
+  /* If we were waiting on an op, we'll be dispatched by the cancellable
+   * child source. If we were not waiting on I/O, we'll be dispatched by
+   * the timeout source. If we were waiting on I/O, we need to sync.
+   */
+  if (!tls_source->op_waiting && tls_source->io_waiting)
+    tls_source_sync (tls_source);
+
+#if 0
+  if (g_tls_connection_base_check (tls_source->tls, tls_source->condition))
+{
+GTLS_DEBUG (tls, "%s: source=%p setting source ready time to complete imminently", __FUNCTION__, tls_source);
+    g_source_set_ready_time ((GSource *)tls_source, 0);
+}
+else
+{
+GTLS_DEBUG (tls, "%s: source=%p not ready for I/O: op_waiting=%d io_waiting=%d", __FUNCTION__, tls_source,
+           tls_source->op_waiting, tls_source->io_waiting);
+}
+#endif
 }
 
 static gboolean
@@ -1044,7 +1114,7 @@ tls_source_dispatch (GSource     *source,
   GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
   GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
   gboolean ret;
-
+GTLS_DEBUG(tls_source->tls, "%s", __FUNCTION__);
   if (G_IS_DATAGRAM_BASED (tls_source->base))
     ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
                                   tls_source->condition, user_data);
@@ -1061,9 +1131,17 @@ static void
 tls_source_finalize (GSource *source)
 {
   GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
+  GTlsConnectionBase *tls = tls_source->tls;
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+GTLS_DEBUG(tls, "%s: source=%p", __FUNCTION__, source);
+  g_cancellable_disconnect (priv->waiting_for_op, tls_source->op_waiting_id);
 
   g_object_unref (tls_source->tls);
   g_source_unref (tls_source->child_source);
+
+  if (tls_source->cancellable)
+    g_object_unref (tls_source->cancellable);
 }
 
 static gboolean
@@ -1174,12 +1252,20 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   tls_source->io_waiting = (gboolean) -1;
   tls_source_sync (tls_source);
 
+  tls_source->op_waiting_id = g_cancellable_connect (priv->waiting_for_op,
+                                                     G_CALLBACK (op_completed_cb),
+                                                     tls_source,
+                                                     NULL);
+GTLS_DEBUG (tls, "%s: source=%p connected to waiting_for_op", __FUNCTION__, tls_source);
+
   if (cancellable)
     {
       cancellable_source = g_cancellable_source_new (cancellable);
       g_source_set_dummy_callback (cancellable_source);
       g_source_add_child_source (source, cancellable_source);
       g_source_unref (cancellable_source);
+
+      tls_source->cancellable = g_object_ref (cancellable);
     }
 
   return source;
@@ -1947,6 +2033,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
     }
   else
     {
+GTLS_DEBUG (tls, "%s: started async implicit handshake", __FUNCTION__);
       /* In the non-blocking case, start the asynchronous handshake operation
        * and return EWOULDBLOCK to the caller, who will handle polling for
        * completion of the handshake and whatever operation they actually cared
