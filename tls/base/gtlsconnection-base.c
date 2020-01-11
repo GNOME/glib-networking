@@ -992,7 +992,7 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
       G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
       G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, tls_source->condition))
     io_waiting = FALSE;
-
+g_info("%s: source=%p op_waiting=%d io_waiting=%d", __FUNCTION__, tls_source, op_waiting, io_waiting);
   if (op_waiting == tls_source->op_waiting &&
       io_waiting == tls_source->io_waiting)
     return;
@@ -1043,35 +1043,18 @@ tls_source_dispatch (GSource     *source,
   GDatagramBasedSourceFunc datagram_based_func = (GDatagramBasedSourceFunc)callback;
   GPollableSourceFunc pollable_func = (GPollableSourceFunc)callback;
   GTlsConnectionBaseSource *tls_source = (GTlsConnectionBaseSource *)source;
-  GTlsConnectionBase *tls = tls_source->tls;
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  gboolean dispatch;
   gboolean ret;
 
-  /* We are *allowed* to have spurious false-positive dispatches when
-   * not actually readable/writable, but let's check anyway before
-   * dispatching to be nice to applications. We can get here spuriously
-   * whenever yield_op cancels waiting_for_op.
-   */
-  dispatch = g_tls_connection_base_check (tls_source->tls, tls_source->condition);
-  if (!dispatch)
-    {
-      g_mutex_lock (&priv->op_mutex);
-      dispatch = priv->need_handshake;
-      g_mutex_unlock (&priv->op_mutex);
-    }
+  if (G_IS_DATAGRAM_BASED (tls_source->base))
+    ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
+                                  tls_source->condition, user_data);
+  else
+    ret = (*pollable_func) (tls_source->base, user_data);
 
-  if (dispatch)
-    {
-      if (G_IS_DATAGRAM_BASED (tls_source->base))
-        ret = (*datagram_based_func) (G_DATAGRAM_BASED (tls_source->base),
-                                      tls_source->condition, user_data);
-      else
-        ret = (*pollable_func) (tls_source->base, user_data);
-      return ret;
-    }
+  if (ret == G_SOURCE_CONTINUE)
+    tls_source_sync (tls_source);
 
-  return G_SOURCE_CONTINUE;
+  return ret;
 }
 
 static void
