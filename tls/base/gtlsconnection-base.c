@@ -1138,7 +1138,7 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
   if (cancellable)
     {
       cancellable_source = g_cancellable_source_new (cancellable);
-      g_source_set_dummy_callback (cancellable_source);
+      g_source_set_callback (cancellable_source, dummy_callback, NULL, NULL);
       g_source_add_child_source (source, cancellable_source);
       g_source_unref (cancellable_source);
     }
