@@ -1076,7 +1076,6 @@ g_tls_connection_tls_source_dtls_closure_callback (GDatagramBased *datagram_base
   g_value_unset (&param[1]);
 
   return result;
-
 }
 
 static GSourceFuncs tls_source_funcs =
@@ -1854,8 +1853,8 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
 
   g_assert (!priv->implicit_handshake);
   priv->implicit_handshake = g_task_new (tls, cancellable,
-                                        timeout ? sync_handshake_thread_completed : NULL,
-                                        NULL);
+                                         timeout ? sync_handshake_thread_completed : NULL,
+                                         NULL);
   g_task_set_source_tag (priv->implicit_handshake, do_implicit_handshake);
   g_task_set_name (priv->implicit_handshake, "[glib-networking] do_implicit_handshake");
 
