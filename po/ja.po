@@ -1,18 +1,19 @@
 # Japanese translation of glib-networking message catalog.
-# Copyright (C) 2011-2012 Free Software Foundation, Inc.
+# Copyright (C) 2011-2012, 2015, 2020 Free Software Foundation, Inc.
 # This file is distributed under the same license as glib-networking package.
 # Takayuki KUSANO <AE5T-KSN@asahi-net.or.jp>, 2011-2012.
 # Hideki Yamane <henrich@debian.org>, 2011-2012.
 # Yoji TOYODA <bsyamato@sea.plala.or.jp>, 2012.
 # Jiro Matsuzawa <jmatsuzawa@gnome.org>, 2015.
+# sicklylife <translation@sicklylife.jp>, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
 "POT-Creation-Date: 2019-11-18 21:06+0000\n"
-"PO-Revision-Date: 2015-09-15 01:29+0900\n"
-"Last-Translator: Jiro Matsuzawa <jmatsuzawa@gnome.org>\n"
+"PO-Revision-Date: 2020-01-24 00:00+0900\n"
+"Last-Translator: sicklylife <translation@sicklylife.jp>\n"
 "Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -43,7 +44,7 @@ msgstr ""
 
 #: tls/base/gtlsconnection-base.c:677 tls/base/gtlsconnection-base.c:1219
 msgid "Socket I/O timed out"
-msgstr ""
+msgstr "ソケット I/O がタイムアウトしました"
 
 #: tls/base/gtlsconnection-base.c:845
 msgid "Server required TLS certificate"
@@ -94,10 +95,9 @@ msgid "Could not parse PEM private key: %s"
 msgstr "PEM 形式の秘密鍵を解析できませんでした: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:290
-#, fuzzy, c-format
-#| msgid "Could not parse PEM certificate: %s"
+#, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
-msgstr "PEM 形式の証明書を解析できませんでした: %s"
+msgstr "PKCS #11 証明書の URI をインポートできませんでした: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:333
 #: tls/openssl/gtlscertificate-openssl.c:263
@@ -115,10 +115,9 @@ msgstr "TLS コネクションを確立できませんでした: %s"
 #: tls/gnutls/gtlsconnection-gnutls.c:370
 #: tls/gnutls/gtlsconnection-gnutls.c:384
 #: tls/openssl/gtlsconnection-openssl.c:151
-#, fuzzy, c-format
-#| msgid "Peer failed to perform TLS handshake"
+#, c-format
 msgid "Peer failed to perform TLS handshake: %s"
-msgstr "通信相手が TLS ハンドシェイクの実行に失敗しました"
+msgstr "通信相手が TLS ハンドシェイクの実行に失敗しました: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:392
 msgid "TLS connection closed unexpectedly"
@@ -127,7 +126,7 @@ msgstr "TLS コネクションが突然閉じられました"
 #: tls/gnutls/gtlsconnection-gnutls.c:407
 #: tls/openssl/gtlsconnection-openssl.c:176
 msgid "TLS connection peer did not send a certificate"
-msgstr "TLS の通信相手が証明書を送信しませんでした。"
+msgstr "TLS の通信相手が証明書を送信しませんでした"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:423
 #, c-format
@@ -136,7 +135,7 @@ msgstr ""
 
 #: tls/gnutls/gtlsconnection-gnutls.c:433
 msgid "Protocol version downgrade attack detected"
-msgstr ""
+msgstr "プロトコルバージョンのダウングレード攻撃を検出しました"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:442
 #, c-format
@@ -146,7 +145,7 @@ msgstr[0] ""
 
 #: tls/gnutls/gtlsconnection-gnutls.c:451
 msgid "The operation timed out"
-msgstr ""
+msgstr "操作がタイムアウトしました"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:786
 #, c-format
@@ -156,27 +155,21 @@ msgstr "TLS ハンドシェイク実行中のエラー: %s"
 #: tls/gnutls/gtlsconnection-gnutls.c:889
 #: tls/openssl/gtlsconnection-openssl.c:252
 #: tls/openssl/gtlsconnection-openssl.c:302
-#, fuzzy
-#| msgid "Error performing TLS handshake: %s"
 msgid "Error performing TLS handshake"
-msgstr "TLS ハンドシェイク実行中のエラー: %s"
+msgstr "TLS ハンドシェイク実行中のエラー"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:935
 #: tls/gnutls/gtlsconnection-gnutls.c:995
 #: tls/openssl/gtlsconnection-openssl.c:409
-#, fuzzy
-#| msgid "Error reading data from TLS socket: %s"
 msgid "Error reading data from TLS socket"
-msgstr "TLS ソケットからのデータ読み込み中のエラー: %s"
+msgstr "TLS ソケットからのデータ読み込み中のエラー"
 
 #. flags
 #: tls/gnutls/gtlsconnection-gnutls.c:1017
 #: tls/gnutls/gtlsconnection-gnutls.c:1081
 #: tls/openssl/gtlsconnection-openssl.c:453
-#, fuzzy
-#| msgid "Error writing data to TLS socket: %s"
 msgid "Error writing data to TLS socket"
-msgstr "TLS ソケットへのデータ書き出し中のエラー: %s"
+msgstr "TLS ソケットへのデータ書き出し中のエラー"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1051
 #, c-format
@@ -188,7 +181,7 @@ msgstr[0] ""
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
-msgstr[0] ""
+msgstr[0] "(%u バイトが最大値)"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1100
 #, c-format
@@ -216,49 +209,43 @@ msgstr "証明書に秘密鍵がありません"
 #: tls/openssl/gtlsclientconnection-openssl.c:487
 #: tls/openssl/gtlsserverconnection-openssl.c:345
 #: tls/openssl/gtlsserverconnection-openssl.c:396
-#, fuzzy, c-format
-#| msgid "Could not create TLS connection: %s"
+#, c-format
 msgid "Could not create TLS context: %s"
-msgstr "TLS コネクションを確立できませんでした: %s"
+msgstr "TLS コンテキストを作成できませんでした: %s"
 
 #: tls/openssl/gtlsconnection-openssl.c:192
-#, fuzzy, c-format
-#| msgid "Unacceptable TLS certificate"
+#, c-format
 msgid "Unacceptable TLS certificate authority"
-msgstr "受け付けられない TLS 証明書です"
+msgstr "受け付けられない TLS 認証局です"
 
 #: tls/openssl/gtlsconnection-openssl.c:200
 msgid "Digest too big for RSA key"
 msgstr ""
 
 #: tls/openssl/gtlsconnection-openssl.c:490
-#, fuzzy
-#| msgid "Error performing TLS close: %s"
 msgid "Error performing TLS close"
-msgstr "TLS クローズ実行中のエラー: %s"
+msgstr "TLS クローズ実行中のエラー"
 
 #: tls/openssl/gtlsdatabase-openssl.c:227
-#, fuzzy
-#| msgid "Could not create TLS connection: %s"
 msgid "Could not create CA store"
-msgstr "TLS コネクションを確立できませんでした: %s"
+msgstr ""
 
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
 msgid "Failed to load file path: %s"
-msgstr ""
+msgstr "ファイルパスの読み込みに失敗しました: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:179
 #: tls/openssl/gtlsserverconnection-openssl.c:245
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
-msgstr ""
+msgstr "証明書の秘密鍵に問題があります: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:188
 #: tls/openssl/gtlsserverconnection-openssl.c:237
 #, c-format
 msgid "There is a problem with the certificate: %s"
-msgstr ""
+msgstr "証明書に問題があります: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "操作がブロックされます"
