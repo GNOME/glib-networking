@@ -896,10 +896,15 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
                              GIOCondition         condition)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  gboolean ret = FALSE;
 
-  /* Racy, but worst case is that we just get WOULD_BLOCK back */
+  g_mutex_lock (&priv->op_mutex);
+
   if (priv->need_finish_handshake)
-    return TRUE;
+    {
+      ret = TRUE;
+      goto out;
+    }
 
   /* If op or close is in progress, then tls_istream and tls_ostream are
    * blocked, regardless of the base stream status. Note this also
@@ -907,10 +912,14 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
    */
   if (((condition & G_IO_IN) && (priv->reading || priv->read_closing)) ||
       ((condition & G_IO_OUT) && (priv->writing || priv->write_closing)))
-    return FALSE;
+    goto out;
 
   /* Defer to the base stream or GDatagramBased. */
-  return g_tls_connection_base_base_check (tls, condition);
+  ret = g_tls_connection_base_base_check (tls, condition);
+
+out:
+  g_mutex_unlock (&priv->op_mutex);
+  return ret;
 }
 
 typedef struct {
