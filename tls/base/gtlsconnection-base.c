@@ -914,6 +914,16 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
       ((condition & G_IO_OUT) && (priv->writing || priv->write_closing)))
     goto out;
 
+  /* If base class says we are ready, then we are, regardless of the base
+   * stream status. This accounts for TLS-level buffers.
+   */
+  if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, condition))
+    {
+      ret = TRUE;
+      goto out;
+    }
+
   /* Defer to the base stream or GDatagramBased. */
   ret = g_tls_connection_base_base_check (tls, condition);
 
