@@ -901,14 +901,12 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
   if (priv->need_finish_handshake)
     return TRUE;
 
-  /* If a handshake or close is in progress, then tls_istream and
-   * tls_ostream are blocked, regardless of the base stream status.
+  /* If op or close is in progress, then tls_istream and tls_ostream are
+   * blocked, regardless of the base stream status. Note this also
+   * accounts for handshake ops.
    */
-  if (priv->handshaking)
-    return FALSE;
-
-  if (((condition & G_IO_IN) && priv->read_closing) ||
-      ((condition & G_IO_OUT) && priv->write_closing))
+  if (((condition & G_IO_IN) && (priv->reading || priv->read_closing)) ||
+      ((condition & G_IO_OUT) && (priv->writing || priv->write_closing)))
     return FALSE;
 
   /* Defer to the base stream or GDatagramBased. */
