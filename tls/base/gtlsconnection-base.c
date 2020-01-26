@@ -729,6 +729,7 @@ yield_op (GTlsConnectionBase       *tls,
   if (op != G_TLS_CONNECTION_BASE_OP_READ)
     priv->writing = FALSE;
 
+  g_cancellable_reset (priv->waiting_for_op);
   g_cancellable_cancel (priv->waiting_for_op);
   g_mutex_unlock (&priv->op_mutex);
 }
