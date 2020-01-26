@@ -1019,7 +1019,7 @@ tls_source_dispatch (GSource     *source,
   else
     ret = (*pollable_func) (tls_source->base, user_data);
 
-  if (ret)
+  if (ret != G_SOURCE_REMOVE)
     tls_source_sync (tls_source);
 
   return ret;
