@@ -1,17 +1,17 @@
 # Brazilian Portuguese translation of glib-networking.
-# Copyright (C) 2019 glib-networking's COPYRIGHT HOLDER
+# Copyright (C) 2020 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # André Gondim <In memoriam>, 2011.
 # Djavan Fagundes <djavan@comum.org>, 2011.
 # Jonh Wendell <jwendell@gnome.org>, 2012.
-# Rafael Fontenelle <rafaelff@gnome.org>, 2012-2019.
+# Rafael Fontenelle <rafaelff@gnome.org>, 2012-2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-07-04 09:53+0000\n"
-"PO-Revision-Date: 2019-07-22 01:47-0300\n"
+"POT-Creation-Date: 2019-12-18 12:52+0000\n"
+"PO-Revision-Date: 2020-01-28 18:44-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "Language: pt_BR\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Erro interno do resolvedor de proxy."
 
-#: tls/base/gtlsconnection-base.c:479 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:538 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -39,142 +39,142 @@ msgstr "A conexão está encerrada"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:549
+#: tls/base/gtlsconnection-base.c:612
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Não foi possível realizar operação de bloqueio durante negociação TLS"
 
-#: tls/base/gtlsconnection-base.c:612 tls/base/gtlsconnection-base.c:1118
+#: tls/base/gtlsconnection-base.c:677 tls/base/gtlsconnection-base.c:1220
 msgid "Socket I/O timed out"
 msgstr "Tempo de E/S do soquete foi esgotado"
 
-#: tls/base/gtlsconnection-base.c:1339
-msgid "Peer does not support safe renegotiation"
-msgstr "O peer não possui suporte a negociação segura"
-
-#: tls/base/gtlsconnection-base.c:1382
+#: tls/base/gtlsconnection-base.c:845
 msgid "Server required TLS certificate"
 msgstr "O servidor requer certificado TLS"
 
-#: tls/base/gtlsconnection-base.c:1477 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:172
+#: tls/base/gtlsconnection-base.c:1445
+msgid "Peer does not support safe renegotiation"
+msgstr "O peer não possui suporte a negociação segura"
+
+#: tls/base/gtlsconnection-base.c:1580 tls/gnutls/gtlsconnection-gnutls.c:415
+#: tls/openssl/gtlsconnection-openssl.c:184
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceitável"
 
-#: tls/base/gtlsconnection-base.c:1884
+#: tls/base/gtlsconnection-base.c:2045
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Não há suporte a recebimento de sinalizadores"
 
-#: tls/base/gtlsconnection-base.c:2019
+#: tls/base/gtlsconnection-base.c:2197
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Não há suporte a envio de sinalizadores"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:178
+#: tls/gnutls/gtlscertificate-gnutls.c:196
 #: tls/openssl/gtlscertificate-openssl.c:170
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Não foi possível analisar certificado DER: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:199
+#: tls/gnutls/gtlscertificate-gnutls.c:217
 #: tls/openssl/gtlscertificate-openssl.c:190
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Não foi possível analisar certificado PEM: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:230
+#: tls/gnutls/gtlscertificate-gnutls.c:240
 #: tls/openssl/gtlscertificate-openssl.c:209
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Não foi possível analisar chave privada DER: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:261
+#: tls/gnutls/gtlscertificate-gnutls.c:263
 #: tls/openssl/gtlscertificate-openssl.c:228
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Não foi possível analisar chave privada PEM: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/gnutls/gtlscertificate-gnutls.c:291
+#, c-format
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "Não foi possível importar URI de certificado PKCS #11: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:334
 #: tls/openssl/gtlscertificate-openssl.c:263
 msgid "No certificate data provided"
 msgstr "Nenhum dado de certificado fornecido"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:522
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:153
+#: tls/openssl/gtlsclientconnection-openssl.c:540
+#: tls/openssl/gtlsserverconnection-openssl.c:463
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Não foi possível criar conexão TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:359
+#: tls/gnutls/gtlsconnection-gnutls.c:370
+#: tls/gnutls/gtlsconnection-gnutls.c:384
+#: tls/openssl/gtlsconnection-openssl.c:151
 #, c-format
-#| msgid "Peer failed to perform TLS handshake"
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "Peer falhou ao realizar negociação TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:248
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "O peer requisitou uma negociação TLS ilegal"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:392
 msgid "TLS connection closed unexpectedly"
 msgstr "Conexão TLS fechou inesperadamente"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:164
+#: tls/gnutls/gtlsconnection-gnutls.c:407
+#: tls/openssl/gtlsconnection-openssl.c:176
 msgid "TLS connection peer did not send a certificate"
 msgstr "Conexão TLS não enviou um certificado"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:423
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "O peer enviou alerta TLS fatal: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:433
 msgid "Protocol version downgrade attack detected"
 msgstr "Detectado ataque de downgrade de versão de protocolo"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:442
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "A mensagem é grande demais para conexão DTLS; máximo é %u byte"
 msgstr[1] "A mensagem é grande demais para conexão DTLS; máximo é %u bytes"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:451
 msgid "The operation timed out"
 msgstr "Tempo da operação foi esgotado"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:780
+#: tls/gnutls/gtlsconnection-gnutls.c:783
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Erro ao realizar negociação TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:883
-#: tls/openssl/gtlsconnection-openssl.c:257
-#: tls/openssl/gtlsconnection-openssl.c:307
+#: tls/gnutls/gtlsconnection-gnutls.c:886
+#: tls/openssl/gtlsconnection-openssl.c:252
+#: tls/openssl/gtlsconnection-openssl.c:302
 msgid "Error performing TLS handshake"
 msgstr "Erro executando negociação TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:929
-#: tls/gnutls/gtlsconnection-gnutls.c:989
-#: tls/openssl/gtlsconnection-openssl.c:414
+#: tls/gnutls/gtlsconnection-gnutls.c:932
+#: tls/gnutls/gtlsconnection-gnutls.c:992
+#: tls/openssl/gtlsconnection-openssl.c:409
 msgid "Error reading data from TLS socket"
 msgstr "Erro ao ler dados do soquete TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1011
-#: tls/gnutls/gtlsconnection-gnutls.c:1075
-#: tls/openssl/gtlsconnection-openssl.c:458
+#: tls/gnutls/gtlsconnection-gnutls.c:1014
+#: tls/gnutls/gtlsconnection-gnutls.c:1078
+#: tls/openssl/gtlsconnection-openssl.c:453
 msgid "Error writing data to TLS socket"
 msgstr "Erro ao gravar dados para o soquete TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1045
+#: tls/gnutls/gtlsconnection-gnutls.c:1048
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -183,14 +183,14 @@ msgstr[0] ""
 msgstr[1] ""
 "Uma mensagem de tamanho %lu bytes é grande demais para uma conexão DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1047
+#: tls/gnutls/gtlsconnection-gnutls.c:1050
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(máximo é %u byte)"
 msgstr[1] "(máximo é %u bytes)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1094
+#: tls/gnutls/gtlsconnection-gnutls.c:1097
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Erro ao executar fechamento TLS: %s"
@@ -208,30 +208,30 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Falha ao carregar armazenamento de confiança do sistema: %s "
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:226
 msgid "Certificate has no private key"
 msgstr "O certificado não contém nenhuma chave privada"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:412
-#: tls/openssl/gtlsclientconnection-openssl.c:469
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsclientconnection-openssl.c:487
+#: tls/openssl/gtlsserverconnection-openssl.c:345
+#: tls/openssl/gtlsserverconnection-openssl.c:396
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Não foi possível criar contexto TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:180
+#: tls/openssl/gtlsconnection-openssl.c:192
 #, c-format
-#| msgid "Unacceptable TLS certificate"
 msgid "Unacceptable TLS certificate authority"
 msgstr "Autoridade de certificação TLS inaceitável"
 
-#: tls/openssl/gtlsconnection-openssl.c:188
+#: tls/openssl/gtlsconnection-openssl.c:200
 msgid "Digest too big for RSA key"
 msgstr "Digest grande demais para chave RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:495
+#: tls/openssl/gtlsconnection-openssl.c:490
 msgid "Error performing TLS close"
 msgstr "Erro ao executar fechamento TLS"
 
@@ -244,15 +244,20 @@ msgstr "Não foi possível criar  armazenamento de AC"
 msgid "Failed to load file path: %s"
 msgstr "Falha ao carregar o caminho do arquivo: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:245
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Há um problema com a chave privada do certificado: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:237
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Há um problema com o certificado: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Há um problema com a chave privada do certificado: %s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "O peer requisitou uma negociação TLS ilegal"
 
 #~ msgid "Operation would block"
 #~ msgstr "A operação bloquearia"
