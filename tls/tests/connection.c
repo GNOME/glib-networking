@@ -1065,8 +1065,6 @@ test_client_auth_connection (TestConnection *test,
   g_assert_true (g_tls_certificate_is_same (peer, cert));
 }
 
-/* https://gitlab.gnome.org/GNOME/glib-networking/issues/104 */
-#if 0
 static void
 test_client_auth_pkcs11_connection (TestConnection *test,
                                     gconstpointer   data)
@@ -1167,7 +1165,6 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   g_object_unref (interaction);
 #endif
 }
-#endif
 
 static void
 test_client_auth_rehandshake (TestConnection *test,
@@ -2621,11 +2618,8 @@ main (int   argc,
               setup_connection, test_client_auth_request_fail, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-request-none", TestConnection, NULL,
               setup_connection, test_client_auth_request_none, teardown_connection);
-  /* https://gitlab.gnome.org/GNOME/glib-networking/issues/104 */
-#if 0
   g_test_add ("/tls/" BACKEND "/connection/client-auth-pkcs11", TestConnection, NULL,
               setup_connection, test_client_auth_pkcs11_connection, teardown_connection);
-#endif
   g_test_add ("/tls/" BACKEND "/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/failed", TestConnection, NULL,
