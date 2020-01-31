@@ -26,11 +26,11 @@ if enable_installed_tests
 endif
 
 test_programs = [
-  ['certificate', [], deps, []],
-  ['file-database', [], deps, []],
-  ['connection', ['mock-interaction.c'], deps, []],
+  ['certificate', [], deps],
+  ['file-database', [], deps],
+  ['connection', ['mock-interaction.c'], deps],
 # DTLS tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/49
-#  ['dtls-connection', ['mock-interaction.c'], deps, []],
+#  ['dtls-connection', ['mock-interaction.c'], deps],
 ]
 
 foreach backend: backends
