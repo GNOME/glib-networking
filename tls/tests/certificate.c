@@ -26,11 +26,6 @@
 
 #include <gio/gio.h>
 
-#ifdef BACKEND_IS_GNUTLS
-#include <gnutls/gnutls.h>
-#include <gnutls/pkcs11.h>
-#endif
-
 #include <sys/types.h>
 #include <string.h>
 
@@ -246,25 +241,6 @@ test_create_certificate_with_garbage_input (TestCertificate *test,
   g_assert_null (cert);
   g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
   g_clear_error (&error);
-}
-
-static void
-test_create_certificate_pkcs11 (TestCertificate *test,
-                                gconstpointer data)
-{
-#ifndef BACKEND_IS_GNUTLS
-  g_test_skip ("This backend does not support PKCS #11");
-#else
-  GTlsCertificate *cert;
-  GError *error = NULL;
-
-  cert = g_initable_new (test->cert_gtype, NULL, &error,
-                         "pkcs11-uri", "pkcs11:model=mock;token=Mock%20Certificate;object=Mock%20Certificate",
-                         NULL);
-
-  g_assert_no_error (error);
-  g_assert_nonnull (cert);
-#endif
 }
 
 static void
@@ -580,24 +556,11 @@ int
 main (int   argc,
       char *argv[])
 {
-#ifdef BACKEND_IS_GNUTLS
-  char *module_path;
-#endif
-
   g_test_init (&argc, &argv, NULL);
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
   g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
-
-#ifdef BACKEND_IS_GNUTLS
-  module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.so", NULL);
-  g_assert_true (g_file_test (module_path, G_FILE_TEST_EXISTS));
-
-  g_assert (gnutls_pkcs11_init (GNUTLS_PKCS11_FLAG_MANUAL, NULL) == GNUTLS_E_SUCCESS);
-  g_assert (gnutls_pkcs11_add_provider (module_path, NULL) == GNUTLS_E_SUCCESS);
-  g_free (module_path);
-#endif
 
   g_test_add ("/tls/" BACKEND "/certificate/create-pem", TestCertificate, NULL,
               setup_certificate, test_create_pem, teardown_certificate);
@@ -611,8 +574,6 @@ main (int   argc,
               setup_certificate, test_create_certificate_with_issuer, teardown_certificate);
   g_test_add ("/tls/" BACKEND "/certificate/create-with-garbage-input", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_garbage_input, teardown_certificate);
-  g_test_add ("/tls/" BACKEND "/certificate/pkcs11", TestCertificate, NULL,
-              setup_certificate, test_create_certificate_pkcs11, teardown_certificate);
 
   g_test_add_func ("/tls/" BACKEND "/certificate/create-chain", test_create_certificate_chain);
   g_test_add_func ("/tls/" BACKEND "/certificate/create-no-chain", test_create_certificate_no_chain);
