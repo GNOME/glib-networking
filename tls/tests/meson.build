@@ -21,32 +21,16 @@ envs = [
   'G_TEST_BUILDDIR=' + meson.current_build_dir(),
 ]
 
-if backends.contains('gnutls')
-  mock_pkcs11_module = shared_module('mock-pkcs11',
-    sources: 'mock-pkcs11.c',
-    name_prefix: '',
-    gnu_symbol_visibility: 'hidden',
-    dependencies: [
-      gio_dep,
-      gnutls_dep,
-    ],
-    install: enable_installed_tests,
-    install_dir: installed_tests_execdir
-  )
-else
-  mock_pkcs11_module = []
-endif
-
 if enable_installed_tests
   install_subdir('files', install_dir: installed_tests_execdir)
 endif
 
 test_programs = [
-  ['certificate', [], deps, [], [mock_pkcs11_module]],
-  ['file-database', [], deps, [], []],
-  ['connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
+  ['certificate', [], deps, []],
+  ['file-database', [], deps, []],
+  ['connection', ['mock-interaction.c'], deps, []],
 # DTLS tests are disabled until we fix https://gitlab.gnome.org/GNOME/glib-networking/issues/49
-#  ['dtls-connection', ['mock-interaction.c'], deps, [], [mock_pkcs11_module]],
+#  ['dtls-connection', ['mock-interaction.c'], deps, []],
 ]
 
 foreach backend: backends
@@ -96,7 +80,7 @@ foreach backend: backends
       'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
     ]
 
-    test(program_name, exe, env: test_envs, depends: program[4])
+    test(program_name, exe, env: test_envs, depends: program[3])
 
     if backend == 'gnutls' and program[0] == 'connection' or program[0] == 'dtls-connection'
       # Run the tests again, this time with TLS 1.3 disabled so we can test TLS 1.2.
