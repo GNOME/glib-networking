@@ -1,3 +1,9 @@
+2.63.90 - February 1, 2020
+==========================
+
+- Remove PKCS#11 support, deferred until next cycle (#104)
+- Remove OpenSSL backend's OCSP support (#124)
+
 2.63.3 - January 3, 2019
 ========================
 
