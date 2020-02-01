@@ -303,7 +303,11 @@ g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
   if (ret > 0)
     {
       if (!g_tls_connection_base_handshake_thread_verify_certificate (G_TLS_CONNECTION_BASE (openssl)))
-        return G_TLS_CONNECTION_BASE_ERROR;
+        {
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                               _("Unacceptable TLS certificate"));
+          return G_TLS_CONNECTION_BASE_ERROR;
+        }
     }
 
   return status;
