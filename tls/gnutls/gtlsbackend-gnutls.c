@@ -165,21 +165,25 @@ g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface)
   iface->get_dtls_server_connection_type = g_tls_server_connection_gnutls_get_type;
 }
 
-/* Session cache support; all the details are sort of arbitrary. Note
- * that having session_cache_cleanup() be a little bit slow isn't the
- * end of the world, since it will still be faster than the network
- * is. (NSS uses a linked list for its cache...)
+/* Session cache support. We try to be careful of TLS session tracking
+ * and so have adopted the recommendations of arXiv:1810.07304 section 6
+ * in using a 10-minute cache lifetime and in never updating the
+ * expiration time of cache entries when they are accessed to ensure a
+ * new session gets used after 10 minutes even if the cached one was
+ * resumed more recently.
+ *
+ * https://arxiv.org/abs/1810.07304
  */
 
 G_LOCK_DEFINE_STATIC (session_cache_lock);
 GHashTable *client_session_cache; /* (owned) GBytes -> (owned) GTlsBackendGnutlsCacheData */
 
 #define SESSION_CACHE_MAX_SIZE 50
-#define SESSION_CACHE_MAX_AGE (60ll * 60ll * G_USEC_PER_SEC) /* one hour */
+#define SESSION_CACHE_MAX_AGE (10ll * 60ll * G_USEC_PER_SEC) /* ten minutes */
 
 typedef struct {
   GQueue *session_tickets; /* (owned) GBytes */
-  gint64  last_used;
+  gint64  expiration_time;
 } GTlsBackendGnutlsCacheData;
 
 static void
@@ -193,7 +197,7 @@ session_cache_cleanup (GHashTable *cache)
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
       cache_data = value;
-      if (cache_data->last_used + SESSION_CACHE_MAX_AGE < g_get_monotonic_time ())
+      if (g_get_monotonic_time () > cache_data->expiration_time)
         g_hash_table_iter_remove (&iter);
     }
 }
@@ -238,7 +242,7 @@ g_tls_backend_gnutls_store_session_data (GBytes *session_id,
     }
 
   g_queue_push_tail (cache_data->session_tickets, g_bytes_ref (session_data));
-  cache_data->last_used = g_get_monotonic_time ();
+  cache_data->expiration_time = g_get_monotonic_time () + SESSION_CACHE_MAX_AGE;
 
   G_UNLOCK (session_cache_lock);
 }
@@ -262,7 +266,6 @@ g_tls_backend_gnutls_lookup_session_data (GBytes *session_id)
            * so we remove from the queue after retrieval. See RFC 8446 §C.4.
            */
           session_data = g_queue_pop_head (cache_data->session_tickets);
-          cache_data->last_used = g_get_monotonic_time ();
         }
     }
 
