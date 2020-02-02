@@ -495,6 +495,8 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
                                                    GError             **error)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
+  gnutls_session_t session;
+  gnutls_protocol_t version;
 
   G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->complete_handshake (tls, negotiated_protocol, error);
 
@@ -503,6 +505,30 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
    */
   if (gnutls->accepted_cas_changed)
     g_object_notify (G_OBJECT (gnutls), "accepted-cas");
+
+  /* If we're not using TLS 1.3, store the session ticket here. We
+   * don't normally perform session resumption in TLS 1.2, but we still
+   * support it if the application calls copy_session_state() (which
+   * doesn't exist for DTLS, so do this for TLS only).
+   *
+   * Note to distant future: remove this when dropping TLS 1.2 support.
+   */
+  session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls));
+  version = gnutls_protocol_get_version (session);
+  if (version <= GNUTLS_TLS1_2 && !g_tls_connection_base_is_dtls (tls))
+    {
+      gnutls_datum_t session_datum;
+
+      if (gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
+                                    &session_datum) == 0)
+        {
+          g_clear_pointer (&gnutls->session_data, g_bytes_unref);
+          gnutls->session_data = g_bytes_new_with_free_func (session_datum.data,
+                                                             session_datum.size,
+                                                             (GDestroyNotify)gnutls_free,
+                                                             session_datum.data);
+        }
+    }
 }
 
 static void
