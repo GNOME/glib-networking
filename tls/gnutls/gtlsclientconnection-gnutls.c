@@ -211,9 +211,10 @@ handshake_thread_session_ticket_received_cb (gnutls_session_t      session,
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls_session_get_ptr (session));
   gnutls_datum_t session_datum;
 
+  /* Must free existing data *before* getting more. */
+  g_clear_pointer (&gnutls->session_data, g_bytes_unref);
   if (gnutls_session_get_data2 (session, &session_datum) == GNUTLS_E_SUCCESS)
     {
-      g_clear_pointer (&gnutls->session_data, g_bytes_unref);
       gnutls->session_data = g_bytes_new_with_free_func (session_datum.data,
                                                          session_datum.size,
                                                          (GDestroyNotify)gnutls_free,
@@ -519,10 +520,10 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
     {
       gnutls_datum_t session_datum;
 
+      g_clear_pointer (&gnutls->session_data, g_bytes_unref);
       if (gnutls_session_get_data2 (g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (tls)),
                                     &session_datum) == 0)
         {
-          g_clear_pointer (&gnutls->session_data, g_bytes_unref);
           gnutls->session_data = g_bytes_new_with_free_func (session_datum.data,
                                                              session_datum.size,
                                                              (GDestroyNotify)gnutls_free,
