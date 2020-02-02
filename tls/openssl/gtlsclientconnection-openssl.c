@@ -186,13 +186,14 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
 
 static void
 g_tls_client_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
+                                                    gboolean             handshake_succeeded,
                                                     gchar              **negotiated_protocol,
                                                     GError             **error)
 {
   GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
 
   if (G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->complete_handshake)
-    G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->complete_handshake (tls, negotiated_protocol, error);
+    G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_openssl_parent_class)->complete_handshake (tls, handshake_succeeded, negotiated_protocol, error);
 
   /* It may have changed during the handshake, but we have to wait until here
    * because we can't emit notifies on the handshake thread.

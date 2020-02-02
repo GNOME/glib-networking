@@ -73,6 +73,7 @@ struct _GTlsConnectionBaseClass
                                                              GError              **error);
   GTlsCertificate            *(*retrieve_peer_certificate)  (GTlsConnectionBase   *tls);
   void                        (*complete_handshake)         (GTlsConnectionBase   *tls,
+                                                             gboolean              handshake_succeeded,
                                                              gchar               **negotiated_protocol,
                                                              GError              **error);
 
