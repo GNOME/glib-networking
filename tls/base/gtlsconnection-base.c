@@ -1555,13 +1555,15 @@ finish_handshake (GTlsConnectionBase  *tls,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   gchar *original_negotiated_protocol;
+  gboolean success;
   GError *my_error = NULL;
 
   g_tls_log_debug (tls, "finishing TLS handshake");
 
   original_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
 
-  if (g_task_propagate_boolean (task, &my_error))
+  success = g_task_propagate_boolean (task, &my_error);
+  if (success)
     {
       if (tls_class->is_session_resumed && tls_class->is_session_resumed (tls))
         {
@@ -1585,13 +1587,14 @@ finish_handshake (GTlsConnectionBase  *tls,
         {
           g_set_error_literal (&my_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                                _("Unacceptable TLS certificate"));
+          success = FALSE;
         }
     }
 
   if (tls_class->complete_handshake)
     {
       /* If we already have an error, ignore further errors. */
-      tls_class->complete_handshake (tls, &priv->negotiated_protocol, my_error ? NULL : &my_error);
+      tls_class->complete_handshake (tls, success, &priv->negotiated_protocol, my_error ? NULL : &my_error);
 
       if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
         g_object_notify (G_OBJECT (tls), "negotiated-protocol");
