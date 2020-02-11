@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
 "POT-Creation-Date: 2020-01-31 14:56+0000\n"
-"PO-Revision-Date: 2020-01-24 00:00+0900\n"
+"PO-Revision-Date: 2020-02-12 00:00+0900\n"
 "Last-Translator: sicklylife <translation@sicklylife.jp>\n"
 "Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
 "Language: ja\n"
@@ -23,7 +23,7 @@ msgstr ""
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
-msgstr "プロキシリゾルバーでの内部エラー。"
+msgstr "プロキシリゾルバーでの内部エラーです。"
 
 #: tls/base/gtlsconnection-base.c:538 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
@@ -146,26 +146,26 @@ msgstr "操作がタイムアウトしました"
 #: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
-msgstr "TLS ハンドシェイク実行中のエラー: %s"
+msgstr "TLS ハンドシェイク実行中にエラーが発生しました: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:818
 #: tls/openssl/gtlsconnection-openssl.c:252
 #: tls/openssl/gtlsconnection-openssl.c:302
 msgid "Error performing TLS handshake"
-msgstr "TLS ハンドシェイク実行中のエラー"
+msgstr "TLS ハンドシェイク実行中にエラーが発生しました"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:864
 #: tls/gnutls/gtlsconnection-gnutls.c:924
 #: tls/openssl/gtlsconnection-openssl.c:409
 msgid "Error reading data from TLS socket"
-msgstr "TLS ソケットからのデータ読み込み中のエラー"
+msgstr "TLS ソケットからのデータ読み込み中にエラーが発生しました"
 
 #. flags
 #: tls/gnutls/gtlsconnection-gnutls.c:946
 #: tls/gnutls/gtlsconnection-gnutls.c:1010
 #: tls/openssl/gtlsconnection-openssl.c:453
 msgid "Error writing data to TLS socket"
-msgstr "TLS ソケットへのデータ書き出し中のエラー"
+msgstr "TLS ソケットへのデータ書き込み中にエラーが発生しました"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:980
 #, c-format
@@ -182,7 +182,7 @@ msgstr[0] "(%u バイトが最大値)"
 #: tls/gnutls/gtlsconnection-gnutls.c:1029
 #, c-format
 msgid "Error performing TLS close: %s"
-msgstr "TLS クローズ実行中のエラー: %s"
+msgstr "TLS クローズ実行中にエラーが発生しました: %s"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:553
 msgid ""
@@ -220,7 +220,7 @@ msgstr ""
 
 #: tls/openssl/gtlsconnection-openssl.c:490
 msgid "Error performing TLS close"
-msgstr "TLS クローズ実行中のエラー"
+msgstr "TLS クローズ実行中にエラーが発生しました"
 
 #: tls/openssl/gtlsdatabase-openssl.c:227
 msgid "Could not create CA store"
