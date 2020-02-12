@@ -822,6 +822,7 @@ g_tls_connection_gnutls_handshake_thread_handshake (GTlsConnectionBase  *tls,
 
 static void
 g_tls_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
+                                            gboolean             handshake_succeeded,
                                             gchar              **negotiated_protocol,
                                             GError             **error)
 {
@@ -829,7 +830,9 @@ g_tls_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   gnutls_datum_t protocol;
 
-  if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 && protocol.size > 0)
+  if (handshake_succeeded &&
+      gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 &&
+      protocol.size > 0)
     {
       g_assert (!*negotiated_protocol);
       *negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
