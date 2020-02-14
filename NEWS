@@ -1,3 +1,10 @@
+2.63.91 - February 14, 2020
+===========================
+
+- Fix peer-certificate properties changing too soon (#127)
+- GnuTLS backend: reduce session resumption cache lifetime (!113)
+- GnuTLS backend: restore TLS 1.2 support for copy session state (!114)
+
 2.63.90 - February 1, 2020
 ==========================
 
