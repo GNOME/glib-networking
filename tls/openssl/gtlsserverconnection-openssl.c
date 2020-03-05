@@ -205,6 +205,8 @@ ssl_ctx_set_certificate (SSL_CTX          *ssl_ctx,
         g_warning ("There was a problem adding the extra chain certificate: %s",
                    ERR_error_string (ERR_get_error (), NULL));
     }
+
+  return TRUE;
 }
 #endif
 
