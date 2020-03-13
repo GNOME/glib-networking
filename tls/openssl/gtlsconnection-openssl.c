@@ -143,7 +143,8 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
           reason == SSL_R_DECRYPTION_FAILED_OR_BAD_RECORD_MAC ||
           reason == SSL_R_BAD_PROTOCOL_VERSION_NUMBER ||
           reason == SSL_R_SSLV3_ALERT_HANDSHAKE_FAILURE ||
-          reason == SSL_R_UNKNOWN_PROTOCOL)
+          reason == SSL_R_UNKNOWN_PROTOCOL ||
+          g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
         {
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,

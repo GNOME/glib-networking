@@ -963,12 +963,7 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
 
-#ifdef BACKEND_IS_GNUTLS
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
-#elif defined(BACKEND_IS_OPENSSL)
-  /* FIXME: This is not OK. There should be an error here. */
-  g_assert_no_error (test->server_error);
-#endif
 }
 
 static void
