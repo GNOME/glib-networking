@@ -966,8 +966,8 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
 #ifdef BACKEND_IS_GNUTLS
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
 #elif defined(BACKEND_IS_OPENSSL)
-  /* FIXME: This is not OK. There should be an error here. */
-  g_assert_no_error (test->server_error);
+  /* FIXME: This is not OK. There should be a NOT_TLS errors. */
+  g_assert_error (test->server_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE);
 #endif
 }
 
