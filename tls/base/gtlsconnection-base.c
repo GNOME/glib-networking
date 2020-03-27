@@ -549,7 +549,7 @@ claim_op (GTlsConnectionBase    *tls,
       if (error)
         *error = g_error_copy (priv->handshake_error);
       g_mutex_unlock (&priv->op_mutex);
-      g_tls_log_debug (tls, "claim_op failed: %s", error ? (*error)->message : "no error");
+      g_tls_log_debug (tls, "claim_op failed: %s", priv->handshake_error->message);
       return FALSE;
     }
 
@@ -611,7 +611,7 @@ claim_op (GTlsConnectionBase    *tls,
        */
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, _("Cannot perform blocking operation during TLS handshake"));
       g_mutex_unlock (&priv->op_mutex);
-      g_tls_log_debug (tls, "claim_op failed: %s", (*error)->message);
+      g_tls_log_debug (tls, "claim_op failed: cannot perform blocking operation during TLS handshake");
       return FALSE;
     }
 
@@ -633,7 +633,7 @@ claim_op (GTlsConnectionBase    *tls,
           /* Intentionally not translated because this is not a fatal error to be
            * presented to the user, and to avoid this showing up in profiling. */
           g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK, "Operation would block");
-          g_tls_log_debug (tls, "claim_op failed: %s", (*error)->message);
+          g_tls_log_debug (tls, "claim_op failed: operation would block");
           return FALSE;
         }
 
@@ -675,7 +675,7 @@ claim_op (GTlsConnectionBase    *tls,
         {
           g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
                                _("Socket I/O timed out"));
-          g_tls_log_debug (tls, "claim_op failed: %s", (*error)->message);
+          g_tls_log_debug (tls, "claim_op failed: socket I/O timed out");
           return FALSE;
         }
 
@@ -1466,7 +1466,7 @@ handshake_thread (GTask        *task,
       if (status != G_TLS_CONNECTION_BASE_OK)
         {
           g_task_return_error (task, error);
-          g_tls_log_debug (tls, "TLS handshake thread failed: %s", error ? error->message : "no error");
+          g_tls_log_debug (tls, "TLS handshake thread failed: %s", error->message);
           return;
         }
     }
