@@ -5,6 +5,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary
 @echo on
 
 set BUILD_DIR=c:\gnet
+@RD /S /Q %BUILD_DIR%
 
 git clone --depth 1 https://github.com/wingtk/gvsbuild.git || goto :error
 

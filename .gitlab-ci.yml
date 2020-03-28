@@ -33,15 +33,15 @@ fedora-x86_64:
       - build/test-results
     when: on_failure
 
-#vs2017-x64:
-#  stage: build
-#  except:
-#    - tags
-#  tags:
-#    - win32
-#  script:
-#    - .gitlab-ci/test-msvc.bat
-#  artifacts:
-#    paths:
-#      - build/test-results
-#    when: on_failure
+vs2017-x64:
+  stage: build
+  except:
+    - tags
+  tags:
+    - win32
+  script:
+    - .gitlab-ci/test-msvc.bat
+  artifacts:
+    paths:
+      - build/test-results
+    when: on_failure
