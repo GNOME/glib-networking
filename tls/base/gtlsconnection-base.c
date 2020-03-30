@@ -483,7 +483,10 @@ op_to_string (GTlsConnectionBaseOp op)
     case G_TLS_CONNECTION_BASE_OP_CLOSE_BOTH:
       return "OP_CLOSE_BOTH";
     }
+
   g_assert_not_reached ();
+
+  return "UNKNOWN_OP";
 }
 
 static const gchar *
@@ -504,7 +507,10 @@ status_to_string (GTlsConnectionBaseStatus st)
     case G_TLS_CONNECTION_BASE_ERROR:
       return "ERROR";
     }
+
   g_assert_not_reached ();
+
+  return "UNKNOWN_STATUS";
 }
 
 static gboolean
