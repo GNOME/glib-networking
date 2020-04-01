@@ -238,9 +238,6 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 
   if (my_error)
     g_propagate_error (error, my_error);
-  else
-    /* FIXME: this is just for debug */
-    g_message ("end_openssl_io %s: %d, %d, %d", G_IS_TLS_CLIENT_CONNECTION (openssl) ? "client" : "server", err_code, err_lib, reason);
 
   if (ret == 0 && err == 0 && err_lib == 0 && err_code == SSL_ERROR_SYSCALL
       && (direction == G_IO_IN || direction == G_IO_OUT))

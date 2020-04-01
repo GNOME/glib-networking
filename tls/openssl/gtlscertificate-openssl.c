@@ -548,7 +548,6 @@ g_tls_certificate_openssl_convert_error (guint openssl_error)
       gtls_flags = G_TLS_CERTIFICATE_UNKNOWN_CA;
       break;
     default:
-      g_message ("certificate error: %s", X509_verify_cert_error_string (openssl_error));
       gtls_flags = G_TLS_CERTIFICATE_GENERIC_ERROR;
     }
 
