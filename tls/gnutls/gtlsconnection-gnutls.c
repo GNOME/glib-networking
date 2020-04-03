@@ -1052,7 +1052,7 @@ initialize_gnutls_priority (void)
       return;
     }
 
-  ret = gnutls_priority_init2 (&priority, "%COMPAT:-VERS-TLS1.1:-VERS-TLS1.0", &error_pos, GNUTLS_PRIORITY_INIT_DEF_APPEND);
+  ret = gnutls_priority_init2 (&priority, "%COMPAT", &error_pos, GNUTLS_PRIORITY_INIT_DEF_APPEND);
   if (ret != GNUTLS_E_SUCCESS)
     g_warning ("Failed to set GnuTLS session priority with error beginning at %s: %s", error_pos, gnutls_strerror (ret));
 }
