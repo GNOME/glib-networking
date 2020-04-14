@@ -1,3 +1,9 @@
+2.64.2 - April 14, 2020
+=======================
+
+- Reenable TLS 1.0/1.1 protocols due to COVID-19.
+- Fix build warning on Windows.
+
 2.64.1 - March 27, 2020
 =======================
 
