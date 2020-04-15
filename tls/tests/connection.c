@@ -2444,6 +2444,86 @@ test_socket_timeout (TestConnection *test,
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
 }
 
+static void
+run_source_test (TestConnection *test,
+                 gboolean       *dispatched)
+{
+  GPollableInputStream *istream = G_POLLABLE_INPUT_STREAM (g_io_stream_get_input_stream (test->client_connection));
+  gboolean possibly_readable;
+
+  *dispatched = FALSE;
+  while (!*dispatched && g_main_context_iteration (NULL, FALSE))
+    {
+      possibly_readable = g_pollable_input_stream_is_readable (istream);
+      if (possibly_readable)
+        {
+          test->nread = g_pollable_input_stream_read_nonblocking (istream,
+                                                                  test->buf, 1,
+                                                                  NULL, &test->read_error);
+          if (g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+            {
+              g_clear_error (&test->read_error);
+            }
+          else
+            {
+              g_assert_no_error (test->read_error);
+              g_assert_cmpint (test->nread, ==, 1);
+            }
+        }
+    }
+
+  g_assert_true (*dispatched);
+}
+
+static gboolean
+source_dispatched_cb (GPollableInputStream *istream,
+                      gboolean             *dispatched)
+{
+  *dispatched = TRUE;
+  return G_SOURCE_CONTINUE;
+}
+
+static void
+test_socket_source (TestConnection *test,
+                    gconstpointer   data)
+{
+  GIOStream *connection;
+  GSource *source;
+  gboolean dispatched = FALSE;
+  GError *error = NULL;
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  /* No validation at all in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+
+  source = g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (g_io_stream_get_input_stream (test->client_connection)),
+                                                  NULL);
+  g_source_set_callback (source, (GSourceFunc)source_dispatched_cb, &dispatched, NULL);
+  g_source_attach (source, test->context);
+
+  /* Read one byte. For GnuTLS, more bytes remain in the GnuTLS buffer. */
+  run_source_test (test, &dispatched);
+
+  /* Read second byte. */
+  run_source_test (test, &dispatched);
+
+  /* Read the rest. */
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_source_destroy (source);
+  g_source_unref (source);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -2530,6 +2610,8 @@ main (int   argc,
               setup_connection, test_sync_op_during_handshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/socket-timeout", TestConnection, NULL,
               setup_connection, test_socket_timeout, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/socket-source", TestConnection, NULL,
+              setup_connection, test_socket_source, teardown_connection);
 
   ret = g_test_run ();
 

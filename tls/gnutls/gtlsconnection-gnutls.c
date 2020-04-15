@@ -848,6 +848,19 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
   return gnutls_session_is_resumed (priv->session);
 }
 
+static gboolean
+g_tls_connection_gnutls_check (GTlsConnectionBase *tls,
+                               GIOCondition        direction)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+
+  if (direction & G_IO_IN)
+    return !!gnutls_record_check_pending (priv->session);
+
+  return FALSE;
+}
+
 static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
                               void                *buffer,
@@ -1072,6 +1085,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
+  base_class->check                                      = g_tls_connection_gnutls_check;
   base_class->read_fn                                    = g_tls_connection_gnutls_read;
   base_class->read_message_fn                            = g_tls_connection_gnutls_read_message;
   base_class->write_fn                                   = g_tls_connection_gnutls_write;

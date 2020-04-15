@@ -735,6 +735,7 @@ yield_op (GTlsConnectionBase       *tls,
   if (op != G_TLS_CONNECTION_BASE_OP_READ)
     priv->writing = FALSE;
 
+  g_cancellable_reset (priv->waiting_for_op);
   g_cancellable_cancel (priv->waiting_for_op);
   g_mutex_unlock (&priv->op_mutex);
 }
@@ -902,23 +903,40 @@ g_tls_connection_base_check (GTlsConnectionBase  *tls,
                              GIOCondition         condition)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  gboolean ret = FALSE;
 
-  /* Racy, but worst case is that we just get WOULD_BLOCK back */
+  g_mutex_lock (&priv->op_mutex);
+
   if (priv->need_finish_handshake)
-    return TRUE;
+    {
+      ret = TRUE;
+      goto out;
+    }
 
-  /* If a handshake or close is in progress, then tls_istream and
-   * tls_ostream are blocked, regardless of the base stream status.
+  /* If op or close is in progress, then tls_istream and tls_ostream are
+   * blocked, regardless of the base stream status. Note this also
+   * accounts for handshake ops.
    */
-  if (priv->handshaking)
-    return FALSE;
+  if (((condition & G_IO_IN) && (priv->reading || priv->read_closing)) ||
+      ((condition & G_IO_OUT) && (priv->writing || priv->write_closing)))
+    goto out;
 
-  if (((condition & G_IO_IN) && priv->read_closing) ||
-      ((condition & G_IO_OUT) && priv->write_closing))
-    return FALSE;
+  /* If base class says we are ready, then we are, regardless of the base
+   * stream status. This accounts for TLS-level buffers.
+   */
+  if (G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check &&
+      G_TLS_CONNECTION_BASE_GET_CLASS (tls)->check (tls, condition))
+    {
+      ret = TRUE;
+      goto out;
+    }
 
   /* Defer to the base stream or GDatagramBased. */
-  return g_tls_connection_base_base_check (tls, condition);
+  ret = g_tls_connection_base_base_check (tls, condition);
+
+out:
+  g_mutex_unlock (&priv->op_mutex);
+  return ret;
 }
 
 typedef struct {
@@ -952,30 +970,25 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
 {
   GTlsConnectionBase *tls = tls_source->tls;
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  gboolean io_waiting, op_waiting;
+  gboolean check;
+  gboolean base_check;
+  gboolean io_waiting;
+  gboolean op_waiting;
 
   /* Was the source destroyed earlier in this main context iteration? */
   if (g_source_is_destroyed ((GSource *)tls_source))
     return;
 
-  g_mutex_lock (&priv->op_mutex);
-  if (((tls_source->condition & G_IO_IN) && priv->reading) ||
-      ((tls_source->condition & G_IO_OUT) && priv->writing) ||
-      (priv->handshaking && !priv->need_finish_handshake))
-    op_waiting = TRUE;
-  else
-    op_waiting = FALSE;
+  check = g_tls_connection_base_check (tls, tls_source->condition);
+  base_check = g_tls_connection_base_base_check (tls, tls_source->condition);
 
-  if (!op_waiting && !priv->need_handshake &&
-      !priv->need_finish_handshake)
-    io_waiting = TRUE;
-  else
-    io_waiting = FALSE;
-  g_mutex_unlock (&priv->op_mutex);
+  op_waiting = !check && base_check;
+  io_waiting = check && !base_check;
 
   if (op_waiting == tls_source->op_waiting &&
       io_waiting == tls_source->io_waiting)
     return;
+
   tls_source->op_waiting = op_waiting;
   tls_source->io_waiting = io_waiting;
 
@@ -1017,7 +1030,7 @@ tls_source_dispatch (GSource     *source,
   else
     ret = (*pollable_func) (tls_source->base, user_data);
 
-  if (ret)
+  if (ret == G_SOURCE_CONTINUE)
     tls_source_sync (tls_source);
 
   return ret;
