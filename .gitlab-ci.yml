@@ -38,7 +38,7 @@ vs2017-x64:
   except:
     - tags
   tags:
-    - win32
+    - win32-ps
   script:
     - .gitlab-ci/test-msvc.bat
   artifacts:
