@@ -1235,19 +1235,25 @@ verify_peer_certificate (GTlsConnectionBase *tls,
 {
   GSocketConnectable *peer_identity;
   GTlsDatabase *database;
-  GTlsCertificateFlags errors;
+  GTlsCertificateFlags errors = 0;
   gboolean is_client;
 
   is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
 
-  if (!is_client)
-    peer_identity = NULL;
-  else if (!g_tls_connection_base_is_dtls (tls))
-    peer_identity = g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls));
-  else
-    peer_identity = g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls));
+  if (is_client)
+    {
+      if (!g_tls_connection_base_is_dtls (tls))
+        peer_identity = g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls));
+      else
+        peer_identity = g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls));
 
-  errors = 0;
+      if (!peer_identity)
+        errors |= G_TLS_CERTIFICATE_BAD_IDENTITY;
+    }
+  else
+    {
+      peer_identity = NULL;
+    }
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (tls));
   if (!database)
