@@ -2444,6 +2444,74 @@ test_socket_timeout (TestConnection *test,
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
 }
 
+static void
+test_connection_missing_server_identity (TestConnection *test,
+                                         gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  /* We pass NULL instead of test->identity when creating the client
+   * connection. This means verification must fail with
+   * G_TLS_CERTIFICATE_BAD_IDENTITY.
+   */
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+
+#ifdef BACKEND_IS_GNUTLS
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#elif defined(BACKEND_IS_OPENSSL)
+  /* FIXME: This is not OK. There should be a NOT_TLS errors. But some times
+   * we either get no error or BROKEN_PIPE
+   */
+#endif
+
+  g_clear_error (&test->read_error);
+  g_clear_error (&test->server_error);
+
+  g_clear_object (&test->client_connection);
+  g_clear_object (&test->server_connection);
+
+  /* Now do the same thing again, this time ignoring bad identity. */
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL & ~G_TLS_CERTIFICATE_BAD_IDENTITY);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -2530,6 +2598,8 @@ main (int   argc,
               setup_connection, test_sync_op_during_handshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/socket-timeout", TestConnection, NULL,
               setup_connection, test_socket_timeout, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/missing-server-identity", TestConnection, NULL,
+              setup_connection, test_connection_missing_server_identity, teardown_connection);
 
   ret = g_test_run ();
 
