@@ -1247,9 +1247,6 @@ verify_peer_certificate (GTlsConnectionBase *tls,
   else
     peer_identity = g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls));
 
-  if (is_client && !peer_identity)
-    g_warning ("GTlsClientConnection certificate verification will fail because its server-identity property is NULL. Fix your application!");
-
   errors = 0;
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (tls));
