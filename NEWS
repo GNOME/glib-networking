@@ -1,6 +1,10 @@
+2.62.4 - May 28, 2020
+=====================
+
+- Fix CVE-2020-13645, fail connections when server identity is unset (#135)
+
 2.62.3 - January 3, 2019
 ========================
-
 - Fix leak of base iostream (or base datagram socket), 2.62 regression
 - Fix duplicate notifies of peer-certificate and peer-certificate-errors
 - Fix obscure corner case where SNI might not work
