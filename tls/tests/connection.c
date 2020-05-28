@@ -2024,66 +2024,6 @@ test_async_implicit_handshake (TestConnection *test, gconstpointer   data)
 }
 
 static void
-quit_on_handshake_complete (GObject      *object,
-                            GAsyncResult *result,
-                            gpointer      user_data)
-{
-  TestConnection *test = user_data;
-  GError *error = NULL;
-
-  g_tls_connection_handshake_finish (G_TLS_CONNECTION (object), result, &error);
-  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
-  g_error_free (error);
-
-  g_main_loop_quit (test->loop);
-  return;
-}
-
-static void
-test_fallback (TestConnection *test,
-               gconstpointer   data)
-{
-  GIOStream *connection;
-  GTlsConnection *tlsconn;
-  GError *error = NULL;
-
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
-  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
-  test->client_connection = g_tls_client_connection_new (connection, NULL, &error);
-  g_assert_no_error (error);
-  tlsconn = G_TLS_CONNECTION (test->client_connection);
-  g_object_unref (connection);
-
-  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
-                                                0);
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-  g_tls_client_connection_set_use_ssl3 (G_TLS_CLIENT_CONNECTION (test->client_connection),
-                                        TRUE);
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
-  g_tls_connection_handshake_async (tlsconn, G_PRIORITY_DEFAULT, NULL,
-                                    quit_on_handshake_complete, test);
-  g_main_loop_run (test->loop);
-  wait_until_server_finished (test);
-
-  /* The server should detect a protocol downgrade attack and terminate the connection.
-   */
-  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_INAPPROPRIATE_FALLBACK);
-
-  g_io_stream_close (test->client_connection, NULL, &error);
-  g_assert_no_error (error);
-}
-
-static void
 handshake_completed (GObject      *object,
                      GAsyncResult *result,
                      gpointer      user_data)
@@ -2565,8 +2505,6 @@ main (int   argc,
               setup_connection, test_async_implicit_handshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/output-stream-close", TestConnection, NULL,
               setup_connection, test_output_stream_close, teardown_connection);
-  g_test_add ("/tls/" BACKEND "/connection/fallback", TestConnection, NULL,
-              setup_connection, test_fallback, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/garbage-database", TestConnection, NULL,
               setup_connection, test_garbage_database, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/readwrite-after-connection-destroyed", TestConnection, NULL,
