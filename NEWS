@@ -1,3 +1,9 @@
+2.64.3 - May 28, 2020
+=====================
+
+- Revert warning when server-identity property is unset (#130)
+- Fix CVE-2020-13645, fail connections when server identity is unset (#135)
+
 2.64.2 - April 14, 2020
 =======================
 
