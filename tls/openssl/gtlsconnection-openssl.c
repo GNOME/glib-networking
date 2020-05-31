@@ -282,6 +282,81 @@ g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
   return G_TLS_CERTIFICATE (chain);
 }
 
+static GTlsChannelBindingError
+g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase     *tls,
+                                                   GTlsChannelBindingType  type,
+                                                   GByteArray             *in_out)
+{
+  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
+  SSL *ssl = g_tls_connection_openssl_get_ssl (openssl);
+  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
+
+  switch (type)
+    {
+    case G_TLS_CHANNEL_BINDING_TLS_UNIQUE:
+      {
+        size_t len = 64;
+
+        do {
+          g_byte_array_set_size (in_out, len);
+          if (SSL_session_reused (ssl) || !is_client)
+            len = SSL_get_peer_finished (ssl, in_out->data, in_out->len);
+          else
+            len = SSL_get_finished (ssl, in_out->data, in_out->len);
+        } while(len > in_out->len);
+
+        if (len == 0)
+          return G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE;
+
+        g_byte_array_set_size (in_out, len);
+        return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
+      }
+    case G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT:
+      {
+        int algo_nid;
+        const EVP_MD *algo = NULL;
+        X509 *crt;
+
+        if (is_client)
+          crt = SSL_get_peer_certificate (ssl);
+        else
+          crt = SSL_get_certificate (ssl);
+
+        if (!crt)
+          return G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE;
+
+        if (!OBJ_find_sigid_algs(X509_get_signature_nid(crt), &algo_nid, NULL))
+          {
+            X509_free (crt);
+            return G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR;
+          }
+
+        switch (algo_nid)
+          {
+          case NID_md4:
+          case NID_md5:
+          case NID_sha1:
+          case NID_sha224:
+          case NID_ripemd160:
+            algo_nid = NID_sha256;
+          }
+
+        g_byte_array_set_size (in_out, EVP_MAX_MD_SIZE);
+        algo = EVP_get_digestbynid (algo_nid);
+        if (!X509_digest (crt, algo, in_out->data, &(in_out->len)))
+          {
+            X509_free (crt);
+            return G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR;
+          }
+
+        X509_free (crt);
+        return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
+      }
+    default:
+      return G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED;
+    }
+}
+
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
                                                      gint64               timeout,
@@ -503,6 +578,7 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_openssl_handshake_thread_handshake;
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
+  base_class->get_channel_binding_data                   = g_tls_connection_openssl_get_channel_binding_data;
   base_class->push_io                                    = g_tls_connection_openssl_push_io;
   base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
   base_class->read_fn                                    = g_tls_connection_openssl_read;
