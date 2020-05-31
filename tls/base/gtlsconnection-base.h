@@ -54,6 +54,39 @@ typedef enum {
 
 #define G_TLS_DIRECTION_BOTH (G_TLS_DIRECTION_READ | G_TLS_DIRECTION_WRITE)
 
+/**
+ * GTlsChannelBindingType:
+ * @G_TLS_CHANNEL_BINDING_TLS_UNIQUE            : tls-unique binding type
+ * @G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT  : tls-server-end-point type
+ * @G_TLS_CHANNEL_BINDING_TLS_UNIQUE_FOR_TELNET : tls-unique-for-telnet type
+ * @G_TLS_CHANNEL_BINDING_TLS_SCRAM_EXPORTER    : tls-scram-exporter draft-whited-tls-channel-bindings-for-tls13
+ */
+typedef enum {
+  G_TLS_CHANNEL_BINDING_TLS_UNIQUE,
+  G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT,
+  G_TLS_CHANNEL_BINDING_TLS_UNIQUE_FOR_TELNET,
+  G_TLS_CHANNEL_BINDING_TLS_SCRAM_EXPORTER
+} GTlsChannelBindingType;
+
+/**
+ * GTlsChannelBindingError:
+ * @G_TLS_CHANNEL_BINDING_ERROR_SUCCESS         : No error
+ * @G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED : Backend not implemented
+ * @G_TLS_CHANNEL_BINDING_ERROR_INVALID_STATE   : The handshake is not complete
+ * @G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE   : The binding data is not available
+ * @G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED   : Backend does not support binding type
+ *
+ * Possible errors returned by get_channel_binding_data call
+ */
+typedef enum {
+  G_TLS_CHANNEL_BINDING_ERROR_SUCCESS = 0,
+  G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
+  G_TLS_CHANNEL_BINDING_ERROR_INVALID_STATE,
+  G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+  G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+  G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR
+} GTlsChannelBindingError;
+
 struct _GTlsConnectionBaseClass
 {
   GTlsConnectionClass parent_class;
@@ -78,6 +111,10 @@ struct _GTlsConnectionBaseClass
                                                              GError              **error);
 
   gboolean                    (*is_session_resumed)         (GTlsConnectionBase   *tls);
+
+  GTlsChannelBindingError     (*get_channel_binding_data)   (GTlsConnectionBase     *tls,
+                                                             GTlsChannelBindingType  type,
+                                                             GByteArray             *in_out);
 
   void                        (*push_io)                    (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,

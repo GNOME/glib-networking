@@ -1417,6 +1417,24 @@ g_tls_connection_base_handshake_thread_verify_certificate (GTlsConnectionBase *t
   return accepted;
 }
 
+static GTlsChannelBindingError
+g_tls_connection_base_get_binding_data (GTlsConnection         *conn,
+                                        GTlsChannelBindingType  type,
+                                        GByteArray             *in_out)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
+
+  if (!priv->ever_handshaked || priv->need_handshake)
+    return G_TLS_CHANNEL_BINDING_ERROR_INVALID_STATE;
+
+  if (!tls_class->get_channel_binding_data)
+    return G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED;
+
+  return tls_class->get_channel_binding_data (tls, type, in_out);
+}
+
 static void
 handshake_thread (GTask        *task,
                   gpointer      object,
@@ -2684,6 +2702,7 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   connection_class->handshake        = g_tls_connection_base_handshake;
   connection_class->handshake_async  = g_tls_connection_base_handshake_async;
   connection_class->handshake_finish = g_tls_connection_base_handshake_finish;
+/*connection_class->get_binding_data = g_tls_connection_base_get_binding_data; */
 
   iostream_class->get_input_stream  = g_tls_connection_base_get_input_stream;
   iostream_class->get_output_stream = g_tls_connection_base_get_output_stream;
