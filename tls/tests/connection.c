@@ -2445,6 +2445,68 @@ test_socket_timeout (TestConnection *test,
 }
 
 static void
+test_connection_binding_match_tls_unique (TestConnection *test,
+                                          gconstpointer   data)
+{
+  GSocketClient *client;
+  GIOStream *connection;
+  GByteArray *client_cb, *server_cb;
+  gchar *client_b64, *server_b64;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_WAIT);
+
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                        NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  /* Smoke test: ensure both sides support tls-unique */
+  g_assert (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL) == G_TLS_CHANNEL_BINDING_ERROR_SUCCESS);
+  g_assert (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL) == G_TLS_CHANNEL_BINDING_ERROR_SUCCESS);
+  /* Real test: retrieve bindings and compare */
+  client_cb = g_byte_array_new ();
+  server_cb = g_byte_array_new ();
+  g_assert (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                G_TLS_CHANNEL_BINDING_TLS_UNIQUE, client_cb) == G_TLS_CHANNEL_BINDING_ERROR_SUCCESS);
+  g_assert (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                G_TLS_CHANNEL_BINDING_TLS_UNIQUE, server_cb) == G_TLS_CHANNEL_BINDING_ERROR_SUCCESS);
+  client_b64 = g_base64_encode (client_cb->data, client_cb->len);
+  server_b64 = g_base64_encode (server_cb->data, server_cb->len);
+  g_assert_cmpstr (client_b64, ==, server_b64);
+  g_free (client_b64);
+  g_free (server_b64);
+  g_byte_array_unref (client_cb);
+  g_byte_array_unref (server_cb);
+  /* drop the mic */
+  close_server_connection (test);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
+static void
 test_connection_missing_server_identity (TestConnection *test,
                                          gconstpointer   data)
 {
@@ -2600,6 +2662,9 @@ main (int   argc,
               setup_connection, test_socket_timeout, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/missing-server-identity", TestConnection, NULL,
               setup_connection, test_connection_missing_server_identity, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/binding-match-tls-unique", TestConnection, NULL,
+              setup_connection, test_connection_binding_match_tls_unique, teardown_connection);
+
 
   ret = g_test_run ();
 
