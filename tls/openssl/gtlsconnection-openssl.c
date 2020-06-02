@@ -298,6 +298,10 @@ g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase     *tls,
         size_t len = 64;
         gboolean resumed = SSL_session_reused (ssl);
 
+        /* This is a drill */
+        if (!in_out)
+          return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
+
         do {
           g_byte_array_set_size (in_out, len);
           if ((resumed && is_client) || (!resumed && !is_client))
@@ -330,6 +334,13 @@ g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase     *tls,
           {
             X509_free (crt);
             return G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR;
+          }
+
+        /* This is a drill */
+        if (!in_out)
+          {
+            X509_free (crt);
+            return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
           }
 
         switch (algo_nid)

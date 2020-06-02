@@ -865,8 +865,11 @@ g_tls_connection_gnutls_get_channel_binding_data (GTlsConnectionBase     *tls,
 
         if (ret == GNUTLS_E_SUCCESS)
           {
-            g_free (g_byte_array_steal (in_out, NULL));
-            g_byte_array_append (in_out, cb.data, cb.size);
+            if (in_out != NULL)
+              {
+                g_free (g_byte_array_steal (in_out, NULL));
+                g_byte_array_append (in_out, cb.data, cb.size);
+              }
             g_free (cb.data);
             return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
           }
@@ -903,6 +906,10 @@ g_tls_connection_gnutls_get_channel_binding_data (GTlsConnectionBase     *tls,
 
         if (!ders || !num_certs)
           return G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE;
+
+        /* This is a drill */
+        if (!in_out)
+          return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
 
         /* for DER only first cert is imported, but cert will be pre-initialized */
         ret = gnutls_x509_crt_list_import (&cert, &num_certs, ders, GNUTLS_X509_FMT_DER, 0);
@@ -949,8 +956,13 @@ g_tls_connection_gnutls_get_channel_binding_data (GTlsConnectionBase     *tls,
 #define RFC5705_LABEL_LEN 30
         int ret;
         gsize ctx_len = 0;
-        char *context = (char *)g_byte_array_steal (in_out, &ctx_len);
+        char *context;
 
+        /* This is a drill */
+        if (!in_out)
+          return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
+
+        context = (char *)g_byte_array_steal (in_out, &ctx_len);
         g_byte_array_set_size (in_out, 32);
         ret = gnutls_prf_rfc5705 (priv->session,
                                   RFC5705_LABEL_LEN, RFC5705_LABEL_DATA,
