@@ -848,6 +848,164 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
   return gnutls_session_is_resumed (priv->session);
 }
 
+static gboolean
+g_tls_connection_gnutls_get_channel_binding_data (GTlsConnectionBase      *tls,
+                                                  GTlsChannelBindingType   type,
+                                                  GByteArray              *in_out,
+                                                  GError                 **error)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+
+  switch (type)
+    { /* As of 3.6 GnuTLS supports only tls-unique */
+    case G_TLS_CHANNEL_BINDING_TLS_UNIQUE:
+      {
+        gnutls_datum_t cb;
+        int ret = gnutls_session_channel_binding (priv->session, GNUTLS_CB_TLS_UNIQUE, &cb);
+
+        if (ret == GNUTLS_E_SUCCESS)
+          {
+            if (in_out != NULL)
+              {
+                g_free (g_byte_array_steal (in_out, NULL));
+                g_byte_array_append (in_out, cb.data, cb.size);
+              }
+            g_free (cb.data);
+            return TRUE;
+          }
+
+        switch (ret)
+          {
+          case GNUTLS_E_UNIMPLEMENTED_FEATURE:
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_SUPPORTED,
+                         "The channel binding type tls-unique is not supported by the backend");
+            break;
+          case GNUTLS_E_CHANNEL_BINDING_NOT_AVAILABLE:
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_AVAILABLE,
+                         "Channel binding data for tls-unique is not yet available");
+            break;
+          default:
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_GENERAL_ERROR,
+                         "Unexpected error[%d] occurred while fetching tls-unique binding data", ret);
+          }
+        break;
+      }
+    case G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT:
+      {
+        const gnutls_datum_t *ders;
+        unsigned int num_certs = 1;
+        int ret;
+        size_t rlen;
+        gnutls_x509_crt_t cert;
+        gnutls_digest_algorithm_t algo;
+        gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
+
+        ret = gnutls_certificate_type_get (priv->session);
+        if (ret != GNUTLS_CRT_X509)
+          {
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_SUPPORTED,
+                         "Current connection does not support[%d] x509 certificates",
+                         ret);
+            return FALSE;
+          }
+
+        if (is_client)
+          ders = gnutls_certificate_get_peers (priv->session, &num_certs);
+        else
+          ders = gnutls_certificate_get_ours (priv->session);
+
+        if (!ders || !num_certs)
+          {
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_AVAILABLE,
+                         "No certificates[%d of %p] available on the current connection",
+                         num_certs, ders);
+            return FALSE;
+          }
+
+        /* This is a drill */
+        if (!in_out)
+          return TRUE;
+
+        /* for DER only first cert is imported, but cert will be pre-initialized */
+        ret = gnutls_x509_crt_list_import (&cert, &num_certs, ders, GNUTLS_X509_FMT_DER, 0);
+        if (ret < 0 || !num_certs)
+          {
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_AVAILABLE,
+                         "Error[%d] parsing certificate or no certificates[%d] available",
+                         ret, num_certs);
+            return FALSE;
+          }
+
+        /* obtain signature algorithm for the certificate - we need hashing algo from it */
+        ret = gnutls_x509_crt_get_signature_algorithm (cert);
+        if (ret < 0 || ret == GNUTLS_SIGN_UNKNOWN)
+          {
+            gnutls_x509_crt_deinit (cert);
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_SUPPORTED,
+                         "Unable to obtain signature algorithm[%d] for certificate", ret);
+            return FALSE;
+          }
+        /* At this point we either use SHA256 as a fallback, or native algorithm */
+        algo = gnutls_sign_get_hash_algorithm (ret);
+        /* Cannot identify signing algorithm or weak security - let try fallback */
+        /* FIXME: Add once something usable appears after GNUTLS_DIG_SHAKE_256 */
+        if (algo < GNUTLS_DIG_SHA256 || algo > GNUTLS_DIG_SHA3_512)
+          algo = GNUTLS_DIG_SHA256;
+        /* preallocate 512 bits buffer, should be enough for day 1 */
+        rlen = 64;
+        do {
+          g_byte_array_set_size (in_out, rlen);
+          ret = gnutls_x509_crt_get_fingerprint (cert, algo, in_out->data, &rlen);
+        } while (ret == GNUTLS_E_SHORT_MEMORY_BUFFER);
+
+        gnutls_x509_crt_deinit (cert);
+        g_byte_array_set_size (in_out, rlen);
+
+        if (ret == 0)
+          return TRUE;
+
+        /* Still getting error? We cannot do much here to recover */
+        g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_GENERAL_ERROR,
+                     "Backend returned error[%d] when trying get certificate digest", ret);
+        break;
+      }
+    case G_TLS_CHANNEL_BINDING_TLS_SCRAM_EXPORTER:
+      { /* Experimental binding for TLS1.3, see
+         * https://datatracker.ietf.org/doc/draft-whited-tls-channel-bindings-for-tls13 */
+#define RFC5705_LABEL_DATA "EXPORTER-SCRAM-Channel-Binding"
+#define RFC5705_LABEL_LEN 30
+        int ret;
+        gsize ctx_len = 0;
+        char *context;
+
+        /* This is a drill */
+        if (!in_out)
+          return TRUE;
+
+        context = (char *)g_byte_array_steal (in_out, &ctx_len);
+        g_byte_array_set_size (in_out, 32);
+        ret = gnutls_prf_rfc5705 (priv->session,
+                                  RFC5705_LABEL_LEN, RFC5705_LABEL_DATA,
+                                  ctx_len,  context,
+                                  in_out->len, (char *)in_out->data);
+        g_free (context);
+
+        if (ret == GNUTLS_E_SUCCESS)
+          return TRUE;
+
+        g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_GENERAL_ERROR,
+                     "The backend returned error[%d] for binding type %d", ret, type);
+        break;
+      }
+    default:
+      /* Anyone to implement tls-unique-for-telnet? */
+      g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_IMPLEMENTED,
+                   "Requested Channel Binding Type[%d] is not implemented", type);
+    }
+  return FALSE;
+}
+
 static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
                               void                *buffer,
@@ -1072,6 +1230,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
+  base_class->get_channel_binding_data                   = g_tls_connection_gnutls_get_channel_binding_data;
   base_class->read_fn                                    = g_tls_connection_gnutls_read;
   base_class->read_message_fn                            = g_tls_connection_gnutls_read_message;
   base_class->write_fn                                   = g_tls_connection_gnutls_write;
