@@ -364,6 +364,32 @@ g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase     *tls,
         X509_free (crt);
         return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
       }
+    case G_TLS_CHANNEL_BINDING_TLS_SCRAM_EXPORTER:
+      {
+#define RFC5705_LABEL_DATA "EXPORTER-SCRAM-Channel-Binding"
+#define RFC5705_LABEL_LEN 30
+        if (in_out != NULL)
+          {
+            size_t  ctx_len = in_out->len;
+            guint8 *context = g_byte_array_steal (in_out, &ctx_len);
+            int ret;
+            
+            g_byte_array_set_size (in_out, 32);
+            ret = SSL_export_keying_material (ssl,
+                                              in_out->data, in_out->len,
+                                              RFC5705_LABEL_DATA, RFC5705_LABEL_LEN,
+                                              context, ctx_len,
+                                              1 /* use context */);
+            g_free (context);
+
+            if (ret < 0)
+              return G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED;
+            if (ret == 0)
+              return G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR;
+          }
+
+        return G_TLS_CHANNEL_BINDING_ERROR_SUCCESS;
+      }
     default:
       return G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED;
     }
