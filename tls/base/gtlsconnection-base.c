@@ -1406,6 +1406,41 @@ g_tls_connection_base_handshake_thread_verify_certificate (GTlsConnectionBase *t
   return accepted;
 }
 
+static gboolean
+g_tls_connection_base_get_binding_data (GTlsConnection          *conn,
+                                        GTlsChannelBindingType   type,
+                                        GByteArray              *data,
+                                        GError                 **error)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
+
+  g_assert (tls_class->get_channel_binding_data);
+
+  if (!priv->ever_handshaked || priv->need_handshake)
+    {
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR,
+                   G_TLS_CHANNEL_BINDING_ERROR_INVALID_STATE,
+                   _("Handshake is not finished, no channel binding information yet"));
+      return FALSE;
+    }
+
+  return tls_class->get_channel_binding_data (tls, type, data, error);
+}
+
+static gboolean
+g_tls_connection_base_dtls_get_binding_data (GDtlsConnection         *conn,
+                                             GTlsChannelBindingType   type,
+                                             GByteArray              *data,
+                                             GError                 **error)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
+
+  return g_tls_connection_base_get_binding_data ((GTlsConnection *)tls,
+                                                 type, data, error);
+}
+
 static void
 handshake_thread (GTask        *task,
                   gpointer      object,
@@ -2680,6 +2715,7 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   connection_class->handshake        = g_tls_connection_base_handshake;
   connection_class->handshake_async  = g_tls_connection_base_handshake_async;
   connection_class->handshake_finish = g_tls_connection_base_handshake_finish;
+  connection_class->get_binding_data = g_tls_connection_base_get_binding_data;
 
   iostream_class->get_input_stream  = g_tls_connection_base_get_input_stream;
   iostream_class->get_output_stream = g_tls_connection_base_get_output_stream;
@@ -2716,6 +2752,7 @@ g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInterface *ifac
   iface->shutdown_finish = g_tls_connection_base_dtls_shutdown_finish;
   iface->set_advertised_protocols = g_tls_connection_base_dtls_set_advertised_protocols;
   iface->get_negotiated_protocol = g_tls_connection_base_dtls_get_negotiated_protocol;
+  iface->get_binding_data = g_tls_connection_base_dtls_get_binding_data;
 }
 
 static void

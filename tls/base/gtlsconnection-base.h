@@ -79,6 +79,11 @@ struct _GTlsConnectionBaseClass
 
   gboolean                    (*is_session_resumed)         (GTlsConnectionBase   *tls);
 
+  gboolean                    (*get_channel_binding_data)   (GTlsConnectionBase      *tls,
+                                                             GTlsChannelBindingType   type,
+                                                             GByteArray              *data,
+                                                             GError                 **error);
+
   void                        (*push_io)                    (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,
                                                              gint64                timeout,
