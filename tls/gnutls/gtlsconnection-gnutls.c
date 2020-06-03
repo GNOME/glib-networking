@@ -36,6 +36,7 @@
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
 #include "gtlsclientconnection-gnutls.h"
+#include "gtlslog.h"
 
 #ifdef G_OS_WIN32
 #include <winsock2.h>
@@ -848,6 +849,205 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
   return gnutls_session_is_resumed (priv->session);
 }
 
+static gboolean
+_gnutls_get_binding_tls_unique (GTlsConnectionGnutls *gnutls,
+                                GByteArray           *data,
+                                GError              **error)
+{
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  gnutls_datum_t cb;
+  int ret = gnutls_session_channel_binding (priv->session, GNUTLS_CB_TLS_UNIQUE, &cb);
+
+  if (ret == GNUTLS_E_SUCCESS)
+    {
+      if (data != NULL)
+        {
+          g_tls_log_debug (gnutls, "tls-unique binding size %d", cb.size);
+          g_free (g_byte_array_steal (data, NULL));
+          g_byte_array_append (data, cb.data, cb.size);
+        }
+      g_free (cb.data);
+      return TRUE;
+    }
+
+  switch (ret)
+    {
+    case GNUTLS_E_UNIMPLEMENTED_FEATURE:
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
+                   _("Channel binding type tls-unique is not implemented in the TLS library"));
+      break;
+    case GNUTLS_E_CHANNEL_BINDING_NOT_AVAILABLE:
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+                   _("Channel binding data for tls-unique is not yet available"));
+      break;
+    default:
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                   "%s", gnutls_strerror (ret));
+    }
+  return FALSE;
+}
+
+static gboolean
+_gnutls_get_binding_tls_server_end_point (GTlsConnectionGnutls *gnutls,
+                                          GByteArray           *data,
+                                          GError              **error)
+{
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  const gnutls_datum_t *ders;
+  unsigned int num_certs = 1;
+  int ret;
+  size_t rlen;
+  gnutls_x509_crt_t cert;
+  gnutls_digest_algorithm_t algo;
+  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
+
+  ret = gnutls_certificate_type_get (priv->session);
+  if (ret != GNUTLS_CRT_X509)
+    {
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+                   _("X.509 certificate is not available on the connection"));
+      return FALSE;
+    }
+
+  if (is_client)
+    ders = gnutls_certificate_get_peers (priv->session, &num_certs);
+  else
+    ders = gnutls_certificate_get_ours (priv->session);
+
+  if (!ders || num_certs == 0)
+    {
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+                   _("X.509 certificate is not available on the connection"));
+      return FALSE;
+    }
+
+  /* This is a drill */
+  if (!data)
+    return TRUE;
+
+  /* for DER only first cert is imported, but cert will be pre-initialized */
+  ret = gnutls_x509_crt_list_import (&cert, &num_certs, ders, GNUTLS_X509_FMT_DER, 0);
+  if (ret < 0 || num_certs == 0)
+    {
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+                   _("X.509 certififcate is not available or is of unknown format: %s"),
+                   gnutls_strerror (ret));
+      return FALSE;
+    }
+
+  /* obtain signature algorithm for the certificate - we need hashing algo from it */
+  ret = gnutls_x509_crt_get_signature_algorithm (cert);
+  if (ret < 0 || ret == GNUTLS_SIGN_UNKNOWN)
+    {
+      gnutls_x509_crt_deinit (cert);
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+                   _("Unable to obtain certificate signature algoritm"));
+      return FALSE;
+    }
+  /* At this point we either use SHA256 as a fallback, or native algorithm */
+  algo = gnutls_sign_get_hash_algorithm (ret);
+  /* Cannot identify signing algorithm or weak security - let try fallback */
+  switch (algo)
+    {
+    case GNUTLS_DIG_MD5:
+    case GNUTLS_DIG_SHA1:
+      algo = GNUTLS_DIG_SHA256;
+      break;
+    case GNUTLS_DIG_UNKNOWN:
+    case GNUTLS_DIG_NULL:
+    case GNUTLS_DIG_MD5_SHA1:
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+                   _("Current X.509 certificate uses unknown or unsupported signature algorithm"));
+      gnutls_x509_crt_deinit (cert);
+      return FALSE;
+    default:
+      /* no-op */
+      algo = algo;
+    }
+  /* preallocate 512 bits buffer as maximum supported digest size */
+  rlen = 64;
+  g_byte_array_set_size (data, rlen);
+  ret = gnutls_x509_crt_get_fingerprint (cert, algo, data->data, &rlen);
+
+  /* in case the future is coming on */
+  if (ret == GNUTLS_E_SHORT_MEMORY_BUFFER)
+    {
+      g_byte_array_set_size (data, rlen);
+      ret = gnutls_x509_crt_get_fingerprint (cert, algo, data->data, &rlen);
+    }
+
+  gnutls_x509_crt_deinit (cert);
+  g_byte_array_set_size (data, rlen);
+
+  if (ret == 0)
+    return TRUE;
+
+  /* Still getting error? We cannot do much here to recover */
+  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+               "%s", gnutls_strerror(ret));
+  return FALSE;
+}
+
+#define RFC5705_LABEL_DATA "EXPORTER-Channel-Binding"
+#define RFC5705_LABEL_LEN 24
+/* Experimental binding for TLS1.3, see
+ * https://datatracker.ietf.org/doc/draft-ietf-kitten-tls-channel-bindings-for-tls13 */
+static gboolean
+_gnutls_get_binding_tls_exporter (GTlsConnectionGnutls *gnutls,
+                                  GByteArray           *data,
+                                  GError              **error)
+{
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  int ret;
+  gsize ctx_len = 0;
+  char *context = "";
+
+  /* This is a drill */
+  if (!data)
+    return TRUE;
+
+  g_byte_array_set_size (data, 32);
+  ret = gnutls_prf_rfc5705 (priv->session,
+                            RFC5705_LABEL_LEN, RFC5705_LABEL_DATA,
+                            ctx_len, context,
+                            data->len, (char *)data->data);
+
+  if (ret == GNUTLS_E_SUCCESS)
+    return TRUE;
+
+  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+               "%s", gnutls_strerror (ret));
+  return FALSE;
+}
+
+static gboolean
+g_tls_connection_gnutls_get_channel_binding_data (GTlsConnectionBase      *tls,
+                                                  GTlsChannelBindingType   type,
+                                                  GByteArray              *data,
+                                                  GError                 **error)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
+
+  /* XXX: remove the cast once public enum supports exporter */
+  switch ((int)type)
+    {
+    case G_TLS_CHANNEL_BINDING_TLS_UNIQUE:
+      return _gnutls_get_binding_tls_unique (gnutls, data, error);
+      /* fall through */
+    case G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT:
+      return _gnutls_get_binding_tls_server_end_point (gnutls, data, error);
+      /* fall through */
+    case 100500:
+      return _gnutls_get_binding_tls_exporter (gnutls, data, error);
+      /* fall through */
+    default:
+      /* Anyone to implement tls-unique-for-telnet? */
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
+                   _("Requested channel binding type is not implemented"));
+    }
+  return FALSE;
+}
+
 static GTlsConnectionBaseStatus
 g_tls_connection_gnutls_read (GTlsConnectionBase  *tls,
                               void                *buffer,
@@ -1072,6 +1272,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
+  base_class->get_channel_binding_data                   = g_tls_connection_gnutls_get_channel_binding_data;
   base_class->read_fn                                    = g_tls_connection_gnutls_read;
   base_class->read_message_fn                            = g_tls_connection_gnutls_read_message;
   base_class->write_fn                                   = g_tls_connection_gnutls_write;
