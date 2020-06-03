@@ -2440,6 +2440,224 @@ test_socket_timeout (TestConnection *test,
 }
 
 static void
+test_connection_binding_match_tls_unique (TestConnection *test,
+                                          gconstpointer   data)
+{
+  GSocketClient *client;
+  GIOStream *connection;
+  GByteArray *client_cb, *server_cb;
+  gchar *client_b64, *server_b64;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_WAIT);
+
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  /* Smoke test: ensure both sides support tls-unique */
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL, NULL));
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL, NULL));
+
+  /* Real test: retrieve bindings and compare */
+  client_cb = g_byte_array_new ();
+  server_cb = g_byte_array_new ();
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, client_cb, NULL));
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, server_cb, NULL));
+
+#ifdef BACKEND_IS_OPENSSL
+  g_assert_cmpint (client_cb->len, >, 0);
+  g_assert_cmpint (server_cb->len, >, 0);
+#else
+  /* GnuTLS returns empty binding for TLS1.3, let's pretend it didn't happen
+   * see https://gitlab.com/gnutls/gnutls/-/issues/1041 */
+  if (client_cb->len == 0 && server_cb->len == 0)
+    g_test_skip ("GnuTLS missing support for tls-unique over TLS1.3");
+#endif
+
+  client_b64 = g_base64_encode (client_cb->data, client_cb->len);
+  server_b64 = g_base64_encode (server_cb->data, server_cb->len);
+  g_assert_cmpstr (client_b64, ==, server_b64);
+
+  g_free (client_b64);
+  g_free (server_b64);
+  g_byte_array_unref (client_cb);
+  g_byte_array_unref (server_cb);
+
+  /* drop the mic */
+  close_server_connection (test);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
+/* create_files.sh should update this digest but if anything goes wrong
+ * please make sure the string below matches the output of
+ * openssl x509 -outform der -in files/server.pem | openssl sha256 -binary | base64
+ **/
+#define SERVER_CERT_DIGEST_B64 "jd+Lgj78hyCQXLgZhEKeBPDypjTaLfsPPExqs+6R/n0="
+static void
+test_connection_binding_match_tls_server_end_point (TestConnection *test,
+                                                    gconstpointer   data)
+{
+  GSocketClient *client;
+  GIOStream *connection;
+  GByteArray *client_cb, *server_cb;
+  gchar *client_b64, *server_b64;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_WAIT);
+
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  /* Smoke test: ensure both sides support tls-server-end-point */
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                        G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT, NULL, NULL));
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                        G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT, NULL, NULL));
+
+  /* Real test: retrieve bindings and compare */
+  client_cb = g_byte_array_new ();
+  server_cb = g_byte_array_new ();
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                        G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT, client_cb, NULL));
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                        G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT, server_cb, NULL));
+
+  client_b64 = g_base64_encode (client_cb->data, client_cb->len);
+  server_b64 = g_base64_encode (server_cb->data, server_cb->len);
+  g_assert_cmpstr (client_b64, ==, server_b64);
+  g_assert_cmpstr (client_b64, ==, SERVER_CERT_DIGEST_B64);
+  g_assert_cmpstr (server_b64, ==, SERVER_CERT_DIGEST_B64);
+
+  g_free (client_b64);
+  g_free (server_b64);
+  g_byte_array_unref (client_cb);
+  g_byte_array_unref (server_cb);
+
+  /* drop the mic */
+  close_server_connection (test);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
+static void
+test_connection_binding_match_tls_exporter (TestConnection *test,
+                                            gconstpointer   data)
+{
+  GSocketClient *client;
+  GIOStream *connection;
+  GByteArray *client_cb, *server_cb;
+  gchar *client_b64, *server_b64;
+  GError *error = NULL;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_WAIT);
+
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  /* All validation in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  /* Smoke test: ensure both sides support tls-exporter */
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                                    (GTlsChannelBindingType)100500, NULL, NULL));
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                                    (GTlsChannelBindingType)100500, NULL, NULL));
+
+  /* Real test: retrieve bindings and compare */
+  client_cb = g_byte_array_new ();
+  server_cb = g_byte_array_new ();
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                                    (GTlsChannelBindingType)100500, client_cb, NULL));
+  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                                    (GTlsChannelBindingType)100500, server_cb, NULL));
+
+  client_b64 = g_base64_encode (client_cb->data, client_cb->len);
+  server_b64 = g_base64_encode (server_cb->data, server_cb->len);
+  g_assert_cmpstr (client_b64, ==, server_b64);
+
+  g_free (client_b64);
+  g_free (server_b64);
+  g_byte_array_unref (client_cb);
+  g_byte_array_unref (server_cb);
+
+  /* drop the mic */
+  close_server_connection (test);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
+static void
 test_connection_missing_server_identity (TestConnection *test,
                                          gconstpointer   data)
 {
@@ -2685,6 +2903,12 @@ main (int   argc,
               setup_connection, test_connection_missing_server_identity, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/peer-certificate-notify", TestConnection, NULL,
               setup_connection, test_peer_certificate_notify, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/binding/match-tls-unique", TestConnection, NULL,
+              setup_connection, test_connection_binding_match_tls_unique, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/binding/match-tls-server-end-point", TestConnection, NULL,
+              setup_connection, test_connection_binding_match_tls_server_end_point, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/binding/match-tls-exporter", TestConnection, NULL,
+              setup_connection, test_connection_binding_match_tls_exporter, teardown_connection);
 
   ret = g_test_run ();
 
