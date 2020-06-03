@@ -282,6 +282,142 @@ g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
   return G_TLS_CERTIFICATE (chain);
 }
 
+static gboolean
+g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase      *tls,
+                                                   GTlsChannelBindingType   type,
+                                                   GByteArray              *in_out,
+                                                   GError                 **error)
+{
+  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
+  SSL *ssl = g_tls_connection_openssl_get_ssl (openssl);
+  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
+
+  switch (type)
+    {
+    case G_TLS_CHANNEL_BINDING_TLS_UNIQUE:
+      {
+        size_t len = 64;
+        gboolean resumed = SSL_session_reused (ssl);
+
+        /* This is a drill */
+        if (!in_out)
+          return TRUE;
+
+        do {
+          g_byte_array_set_size (in_out, len);
+          if ((resumed && is_client) || (!resumed && !is_client))
+            len = SSL_get_peer_finished (ssl, in_out->data, in_out->len);
+          else
+            len = SSL_get_finished (ssl, in_out->data, in_out->len);
+        } while(len > in_out->len);
+
+        if (len > 0)
+          {
+            g_byte_array_set_size (in_out, len);
+            return TRUE;
+          }
+        g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_AVAILABLE,
+                     "Channel binding data tls-unique is not available");
+        break;
+      }
+    case G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT:
+      {
+        int algo_nid;
+        const EVP_MD *algo = NULL;
+        X509 *crt;
+
+        if (is_client)
+          crt = SSL_get_peer_certificate (ssl);
+        else
+          crt = SSL_get_certificate (ssl);
+
+        if (!crt)
+          {
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_AVAILABLE,
+                         "X509 Certificate is not available on the connection");
+            return FALSE;
+          }
+
+        if (!OBJ_find_sigid_algs(X509_get_signature_nid(crt), &algo_nid, NULL))
+          {
+            X509_free (crt);
+            g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_GENERAL_ERROR,
+                         "Unable to obtain certificate signature algoritm");
+            return FALSE;
+          }
+
+        /* This is a drill */
+        if (!in_out)
+          {
+            X509_free (crt);
+            return TRUE;;
+          }
+
+        switch (algo_nid)
+          {
+          case NID_md4:
+          case NID_md5:
+          case NID_sha1:
+          case NID_sha224:
+          case NID_ripemd160:
+            algo_nid = NID_sha256;
+          }
+
+        g_byte_array_set_size (in_out, EVP_MAX_MD_SIZE);
+        algo = EVP_get_digestbynid (algo_nid);
+        if (X509_digest (crt, algo, in_out->data, &(in_out->len)))
+          {
+            X509_free (crt);
+            return TRUE;
+          }
+
+        X509_free (crt);
+        g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_GENERAL_ERROR,
+                     "Failed to generate certificate digest[%d]", algo_nid);
+        break;
+      }
+    case G_TLS_CHANNEL_BINDING_TLS_SCRAM_EXPORTER:
+      {
+#define RFC5705_LABEL_DATA "EXPORTER-SCRAM-Channel-Binding"
+#define RFC5705_LABEL_LEN 30
+        size_t  ctx_len;
+        guint8 *context;
+        int ret;
+
+        if (!in_out)
+          return TRUE;
+
+        ctx_len = in_out->len;
+        context = g_byte_array_steal (in_out, &ctx_len);
+
+        g_byte_array_set_size (in_out, 32);
+        ret = SSL_export_keying_material (ssl,
+                                          in_out->data, in_out->len,
+                                          RFC5705_LABEL_DATA, RFC5705_LABEL_LEN,
+                                          context, ctx_len,
+                                          1 /* use context */);
+        g_free (context);
+
+        if (ret > 0)
+          return TRUE;
+        else
+        if (ret < 0)
+          g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_SUPPORTED,
+                       "TLS Connection does not support PRF/KDF/Export");
+        else
+          g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_GENERAL_ERROR,
+                       "Unexpected error while exporting keying data");
+
+        break;
+      }
+    default:
+      /* Anyone to implement tls-unique-for-telnet? */
+      g_set_error (error, G_TLS_CB_ERROR, G_TLS_CB_ERROR_NOT_IMPLEMENTED,
+                   "Requested Channel Binding Type[%d] is not implemented", type);
+    }
+  return FALSE;
+}
+
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
                                                      gint64               timeout,
@@ -503,6 +639,7 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_openssl_handshake_thread_handshake;
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
+  base_class->get_channel_binding_data                   = g_tls_connection_openssl_get_channel_binding_data;
   base_class->push_io                                    = g_tls_connection_openssl_push_io;
   base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
   base_class->read_fn                                    = g_tls_connection_openssl_read;
