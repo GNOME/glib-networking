@@ -1,3 +1,6 @@
+# The OpenSSL backend is provided for systems where licensing considerations
+# prohibit use of certain dependencies of GnuTLS. General-purpose Linux distros
+# should leave it disabled. Please don't second-guess our defaults.
 option('gnutls', type: 'feature', value: 'auto', description: 'support for GnuTLS networking configration')
 option('openssl', type: 'feature', value: 'disabled', description: 'support for OpenSSL networking configration')
 option('libproxy', type: 'feature', value: 'auto', description: 'support for libproxy proxy configration')
