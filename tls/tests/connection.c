@@ -2267,11 +2267,6 @@ test_alpn (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this is not yet passing with openssl");
-  return;
-#endif
-
   test->server_protocols = server_protocols;
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
@@ -2377,11 +2372,6 @@ test_sync_op_during_handshake (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this is not yet passing with openssl");
-  return;
-#endif
-
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
@@ -2412,11 +2402,6 @@ test_socket_timeout (TestConnection *test,
   GSocketClient *client;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   test->incoming_connection_delay = (gulong)(1.1 * G_USEC_PER_SEC);
 
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_CLOSE);
@@ -2441,7 +2426,9 @@ test_socket_timeout (TestConnection *test,
   wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
+#ifndef BACKEND_IS_OPENSSL
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#endif
 }
 
 static void
