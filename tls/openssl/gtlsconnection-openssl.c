@@ -35,6 +35,7 @@
 #include "gtlscertificate-openssl.h"
 #include "gtlsdatabase-openssl.h"
 #include "gtlsbio.h"
+#include "gtlslog.h"
 
 #include <glib/gi18n-lib.h>
 
@@ -212,6 +213,137 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
+static int
+_openssl_alpn_select_cb (SSL                  *ssl,
+                         const unsigned char **out,
+                         unsigned char        *outlen,
+                         const unsigned char  *in,
+                         unsigned int          inlen,
+                         void                 *arg)
+{
+  GTlsConnectionBase *tls = arg;
+  int n_protos;
+  gchar **advertised_protocols;
+
+  g_tls_log_debug (tls, "ALPN their protocols: %s", in);
+
+  g_object_get (G_OBJECT (tls),
+                "advertised-protocols", &advertised_protocols,
+                NULL);
+
+  if (!advertised_protocols)
+    return SSL_TLSEXT_ERR_NOACK;
+
+  n_protos = g_strv_length (advertised_protocols);
+  if (n_protos)
+    {
+      GByteArray *protocols = g_byte_array_new ();
+      int ret, i;
+      guint8 slen = 0;
+      guint8 *spd = NULL;
+
+      for (i = 0; advertised_protocols[i]; i++)
+        {
+          guint8 len = strlen (advertised_protocols[i]);
+          g_byte_array_append (protocols, &len, 1);
+          g_byte_array_append (protocols,
+                               (guint8 *)advertised_protocols[i],
+                               len);
+        }
+      g_tls_log_debug (tls, "ALPN our protocols: %s", protocols->data);
+      ret = SSL_select_next_proto (&spd, &slen,
+                                   protocols->data, protocols->len,
+                                   in, inlen);
+      if (ret == OPENSSL_NPN_NO_OVERLAP)
+        {
+          g_tls_log_debug (tls, "ALPN no matching protocol");
+          ret = SSL_TLSEXT_ERR_NOACK;
+        }
+      else
+        {
+          g_tls_log_debug (tls, "ALPN selected protocol [%d]%s", slen, spd);
+          ret = SSL_TLSEXT_ERR_OK;
+          *out = spd;
+          *outlen = slen;
+        }
+
+      g_byte_array_unref (protocols);
+      return ret;
+    }
+  return SSL_TLSEXT_ERR_NOACK;
+}
+
+static void
+g_tls_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
+                                            gchar              **advertised_protocols)
+{
+  SSL *ssl;
+  int n_protos;
+
+  if (!advertised_protocols)
+    return;
+
+  ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (tls));
+
+  if (G_IS_TLS_SERVER_CONNECTION (tls))
+    {
+      SSL_CTX *ctx = SSL_get_SSL_CTX(ssl);
+
+      g_tls_log_debug (tls, "Setting ALPN Callback on %p", ctx);
+      SSL_CTX_set_alpn_select_cb (ctx, _openssl_alpn_select_cb, tls);
+
+      return;
+    }
+
+  n_protos = g_strv_length (advertised_protocols);
+
+  if (n_protos)
+    {
+      GByteArray *protocols = g_byte_array_new ();
+      int ret, i;
+
+      for (i = 0; advertised_protocols[i]; i++)
+        {
+          guint8 len = strlen (advertised_protocols[i]);
+          g_byte_array_append (protocols, &len, 1);
+          g_byte_array_append (protocols, (guint8 *)advertised_protocols[i], len);
+        }
+      ret = SSL_set_alpn_protos (ssl, protocols->data, protocols->len);
+      if (ret)
+        g_tls_log_debug (tls, "Error setting ALPN protocols: %d", ret);
+      else
+        g_tls_log_debug (tls, "Setting ALPN protocols to [%d]%s", protocols->len, protocols->data);
+      g_byte_array_unref (protocols);
+    }
+}
+
+static void
+g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
+                                             gboolean             handshake_succeeded,
+                                             gchar              **negotiated_protocol,
+                                             GError             **error)
+{
+  SSL *ssl;
+  unsigned int len = 0;
+  const unsigned char *data = NULL;
+
+  if (!handshake_succeeded)
+    return;
+
+  ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (tls));
+
+  SSL_get0_alpn_selected (ssl, &data, &len);
+
+  g_tls_log_debug (tls, "negotiated ALPN protocols: [%d]%p", len, data);
+
+  if (data && len > 0)
+    {
+      g_assert (!*negotiated_protocol);
+      *negotiated_protocol = g_strndup ((gchar *)data, len);
+    }
+}
+
+
 #define BEGIN_OPENSSL_IO(openssl, direction, timeout, cancellable)          \
   do {                                                                      \
     char error_str[256];                                                    \
@@ -222,6 +354,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     ERR_error_string_n (SSL_get_error (ssl, ret), error_str, sizeof(error_str)); \
     status = end_openssl_io (openssl, direction, ret, timeout == -1, err, errmsg, error_str); \
   } while (status == G_TLS_CONNECTION_BASE_TRY_AGAIN);
+
 
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBase  *tls,
@@ -503,6 +636,8 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 
   object_class->finalize                                 = g_tls_connection_openssl_finalize;
 
+  base_class->prepare_handshake                          = g_tls_connection_openssl_prepare_handshake;
+  base_class->complete_handshake                         = g_tls_connection_openssl_complete_handshake;
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_openssl_handshake_thread_safe_renegotiation_status;
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_openssl_handshake_thread_handshake;
