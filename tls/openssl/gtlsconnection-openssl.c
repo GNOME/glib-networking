@@ -201,6 +201,14 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
+  if (reason == SSL_R_NO_RENEGOTIATION)
+    {
+      g_clear_error (&my_error);
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                           _("Secure renegotiation is disabled"));
+      return G_TLS_CONNECTION_BASE_REHANDSHAKE;
+    }
+
   if (my_error)
     g_propagate_error (error, my_error);
   else
@@ -389,7 +397,7 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
   GTlsConnectionOpenssl *openssl;
   GTlsConnectionBaseStatus status;
   SSL *ssl;
-  int ret;
+  int ret = 1; /* always look on the bright side of life */
 
   /* On a client-side connection, SSL_renegotiate() itself will start
    * a rehandshake, so we only need to do something special here for
@@ -403,7 +411,13 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = SSL_renegotiate (ssl);
+  if (SSL_version(ssl) >= TLS1_3_VERSION)
+    ret = SSL_key_update (ssl, SSL_KEY_UPDATE_REQUESTED);
+  else if (SSL_get_secure_renegotiation_support (ssl) && !(SSL_get_options(ssl) & SSL_OP_NO_RENEGOTIATION))
+    /* remote and local peers both can rehandshake */
+    ret = SSL_renegotiate (ssl);
+  else
+    g_tls_log_debug (tls, "Secure renegotiation is not supported");
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, timeout, status,
                   _("Error performing TLS handshake"), error);
 
