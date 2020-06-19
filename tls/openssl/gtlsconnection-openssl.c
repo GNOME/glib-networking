@@ -207,7 +207,20 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     /* FIXME: this is just for debug */
     g_message ("end_openssl_io %s: %d, %d, %d", G_IS_TLS_CLIENT_CONNECTION (openssl) ? "client" : "server", err_code, err_lib, reason);
 
-  if (error && !*error)
+  if (ret == 0 && err == 0 && err_lib == 0 && err_code == SSL_ERROR_SYSCALL
+      && (direction == G_IO_IN || direction == G_IO_OUT))
+    {
+      /* SSL_ERROR_SYSCALL usually means we have no bloody idea what has happened
+       * but when ret for read or write is 0 and all others error codes as well
+       * - this is normally Early EOF condition
+       */
+      if (!g_tls_connection_get_require_close_notify (G_TLS_CONNECTION (openssl)))
+        return G_TLS_CONNECTION_BASE_OK;
+
+      if (error && !*error)
+        *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_EOF, _("%s: The connection is broken"), err_prefix);
+    }
+  else if (error && !*error)
     *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
 
   return G_TLS_CONNECTION_BASE_ERROR;
