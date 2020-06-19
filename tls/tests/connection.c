@@ -2481,6 +2481,13 @@ test_connection_binding_match_tls_unique (TestConnection *test,
   g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
                                                   G_TLS_CHANNEL_BINDING_TLS_UNIQUE, server_cb, NULL));
 
+#ifdef BACKEND_IS_OPENSSL
+  /* GnuTLS returns empty binding for TLS1.3, let's pretend it didn't happen
+   * see https://gitlab.com/gnutls/gnutls/-/issues/1041 */
+  g_assert_cmpint (client_cb->len, >, 0);
+  g_assert_cmpint (server_cb->len, >, 0);
+#endif
+
   client_b64 = g_base64_encode (client_cb->data, client_cb->len);
   server_b64 = g_base64_encode (server_cb->data, server_cb->len);
   g_assert_cmpstr (client_b64, ==, server_b64);
