@@ -224,8 +224,11 @@ _openssl_alpn_select_cb (SSL                  *ssl,
   GTlsConnectionBase *tls = arg;
   int ret = SSL_TLSEXT_ERR_NOACK;
   gchar **advertised_protocols = NULL;
+  gchar *logbuf;
 
-  g_tls_log_debug (tls, "ALPN their protocols: %s", in);
+  logbuf = g_strndup ((const gchar *)in, inlen);
+  g_tls_log_debug (tls, "ALPN their protocols: %s", logbuf);
+  g_free (logbuf);
 
   g_object_get (G_OBJECT (tls),
                 "advertised-protocols", &advertised_protocols,
@@ -249,13 +252,21 @@ _openssl_alpn_select_cb (SSL                  *ssl,
                                (guint8 *)advertised_protocols[i],
                                len);
         }
-      g_tls_log_debug (tls, "ALPN our protocols: %s", protocols->data);
+      logbuf = g_strndup ((const gchar *)protocols->data, protocols->len);
+      g_tls_log_debug (tls, "ALPN our protocols: %s", logbuf);
+      g_free (logbuf);
+
+      /* pointer to memory inside in[0..inlen] is returned on success
+       * pointer to protocols->data is returned on failure */
       ret = SSL_select_next_proto (&spd, &slen,
-                                   protocols->data, protocols->len,
-                                   in, inlen);
+                                   in, inlen,
+                                   protocols->data, protocols->len);
       if (ret == OPENSSL_NPN_NEGOTIATED)
         {
-          g_tls_log_debug (tls, "ALPN selected protocol [%d]%s", slen, spd);
+          logbuf = g_strndup ((const gchar *)spd, slen);
+          g_tls_log_debug (tls, "ALPN selected protocol %s", logbuf);
+          g_free (logbuf);
+
           ret = SSL_TLSEXT_ERR_OK;
           *out = spd;
           *outlen = slen;
@@ -309,7 +320,12 @@ g_tls_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
       if (ret)
         g_tls_log_debug (tls, "Error setting ALPN protocols: %d", ret);
       else
-        g_tls_log_debug (tls, "Setting ALPN protocols to [%d]%s", protocols->len, protocols->data);
+        {
+          gchar *logbuf = g_strndup ((const gchar *)protocols->data, protocols->len);
+
+          g_tls_log_debug (tls, "Setting ALPN protocols to %s", logbuf);
+          g_free (logbuf);
+        }
       g_byte_array_unref (protocols);
     }
 }
