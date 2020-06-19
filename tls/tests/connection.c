@@ -1946,11 +1946,6 @@ test_unclean_close_by_server (TestConnection *test,
   GTlsConnection *client_connection;
   gssize nread;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, HANDSHAKE_ONLY);
   client = g_socket_client_new ();
   g_socket_client_set_tls (client, TRUE);
