@@ -402,7 +402,10 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = SSL_renegotiate (ssl);
+  if (SSL_version(ssl) == TLS1_3_VERSION)
+    ret = SSL_key_update (ssl, SSL_KEY_UPDATE_REQUESTED);
+  else
+    ret = SSL_renegotiate (ssl);
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, timeout, status,
                   _("Error performing TLS handshake"), error);
 
