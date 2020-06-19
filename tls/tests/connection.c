@@ -135,6 +135,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
       /* The outstanding accept_async will hold a ref on test->service,
        * which we want to wait for it to release if we're valgrinding.
        */
+      g_socket_listener_close (G_SOCKET_LISTENER (test->service));
       g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
       g_object_unref (test->service);
       WAIT_UNTIL_UNSET (test->service);
@@ -1069,12 +1070,6 @@ static void
 test_client_auth_rehandshake (TestConnection *test,
                               gconstpointer   data)
 {
-#ifdef BACKEND_IS_OPENSSL
-  /* FIXME: this doesn't make sense, we should support safe renegotation */
-  g_test_skip ("the server avoids rehandshake to avoid the security problem CVE-2009-3555");
-  return;
-#endif
-
   test->rehandshake = TRUE;
   test_client_auth_connection (test, data);
 }
@@ -1787,11 +1782,6 @@ static void
 test_simultaneous_async_rehandshake (TestConnection *test,
                                      gconstpointer   data)
 {
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
   test->rehandshake = TRUE;
   test_simultaneous_async (test, data);
 }
@@ -1886,11 +1876,6 @@ static void
 test_simultaneous_sync_rehandshake (TestConnection *test,
                                     gconstpointer   data)
 {
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
   test->rehandshake = TRUE;
   test_simultaneous_sync (test, data);
 }
@@ -1985,6 +1970,7 @@ test_unclean_close_by_server (TestConnection *test,
   g_clear_error (&test->read_error);
   g_clear_object (&test->service);
   g_clear_object (&test->server_connection);
+  g_clear_object (&test->client_connection);
   test->server_ever_handshaked = FALSE;
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, HANDSHAKE_ONLY);
 
