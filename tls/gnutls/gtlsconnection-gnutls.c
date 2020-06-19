@@ -36,6 +36,7 @@
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
 #include "gtlsclientconnection-gnutls.h"
+#include "gtlslog.h"
 
 #ifdef G_OS_WIN32
 #include <winsock2.h>
@@ -861,6 +862,7 @@ _gnutls_get_binding_tls_unique (GTlsConnectionGnutls *gnutls,
     {
       if (data != NULL)
         {
+          g_tls_log_debug (gnutls, "tls-unique binding size %d", cb.size);
           g_free (g_byte_array_steal (data, NULL));
           g_byte_array_append (data, cb.data, cb.size);
         }
