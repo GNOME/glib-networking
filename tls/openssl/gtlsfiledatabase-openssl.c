@@ -451,7 +451,8 @@ g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
   if (!X509_STORE_load_locations (store, file_database->anchor_filename, NULL))
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Failed to load file path: %s"),
+                   _("Failed to populate trust list from %s: %s"),
+                   file_database->anchor_filename,
                    ERR_error_string (ERR_get_error (), NULL));
       return FALSE;
     }

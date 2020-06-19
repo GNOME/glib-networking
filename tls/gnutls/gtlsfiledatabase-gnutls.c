@@ -30,6 +30,7 @@
 #include "gtlsfiledatabase-gnutls.h"
 
 #include <gio/gio.h>
+#include <glib/gi18n-lib.h>
 
 #include "gtlscertificate-gnutls.h"
 
@@ -142,9 +143,18 @@ g_tls_file_database_gnutls_populate_trust_list (GTlsDatabaseGnutls        *self,
                                                 gnutls_x509_trust_list_t   trust_list,
                                                 GError                   **error)
 {
-  gnutls_x509_trust_list_add_trust_file (trust_list,
-                                         G_TLS_FILE_DATABASE_GNUTLS (self)->anchor_filename,
-                                         NULL, GNUTLS_X509_FMT_PEM, 0, 0);
+  int ret = gnutls_x509_trust_list_add_trust_file (trust_list,
+                                                   G_TLS_FILE_DATABASE_GNUTLS (self)->anchor_filename,
+                                                   NULL, GNUTLS_X509_FMT_PEM, 0, 0);
+
+  if (ret < 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Failed to populate trust list from %s: %s"),
+                   G_TLS_FILE_DATABASE_GNUTLS (self)->anchor_filename, gnutls_strerror (ret));
+      return FALSE;
+    }
+
   return TRUE;
 }
 
