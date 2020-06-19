@@ -2182,11 +2182,6 @@ test_garbage_database (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this is not yet passing with openssl");
-  return;
-#endif
-
   test->database = g_tls_file_database_new (tls_test_file_path ("garbage.pem"), &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
@@ -2211,7 +2206,9 @@ test_garbage_database (TestConnection *test,
    * no valid certificates.
    */
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+#ifdef BACKEND_IS_GNUTLS
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#endif
 }
 
 static void

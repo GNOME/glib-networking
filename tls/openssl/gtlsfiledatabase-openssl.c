@@ -31,6 +31,8 @@
 #include <glib/gi18n-lib.h>
 #include "openssl-include.h"
 
+#include "gtlslog.h"
+
 struct _GTlsFileDatabaseOpenssl
 {
   GTlsDatabaseOpenssl parent_instance;
@@ -450,10 +452,17 @@ g_tls_file_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
 
   if (!X509_STORE_load_locations (store, file_database->anchor_filename, NULL))
     {
+      /* To be consistent with GnuTLS which does not report any failures,
+       * just creates empty database, disable error reporting and just
+       * print debug warning */
+      /*
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Failed to load file path: %s"),
                    ERR_error_string (ERR_get_error (), NULL));
       return FALSE;
+      */
+      g_tls_log_debug (self, "Cannot load X509 data from %s",
+                       file_database->anchor_filename);
     }
 
   subjects = bytes_multi_table_new ();
