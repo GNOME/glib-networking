@@ -2267,11 +2267,6 @@ test_alpn (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this is not yet passing with openssl");
-  return;
-#endif
-
   test->server_protocols = server_protocols;
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
