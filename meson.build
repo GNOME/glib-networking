@@ -96,6 +96,15 @@ else
     # so we check for it manually here in this case, if we can't find those files
     # Based on the CMake check for OpenSSL in CURL's CMakeLists.txt,
     # on which headers we should check for
+
+    # OpenSSL's MSVC NMake Makefiles prepends the library filenames with 'lib',
+    # so we must prepend the libraries with 'lib' on MSVC, except for the pre-1.1.x
+    # ssleay32.lib
+    openssl_lib_prefix = ''
+    if cc.get_argument_syntax() == 'msvc'
+      openssl_lib_prefix = 'lib'
+    endif
+
     openssl_headers = []
     foreach h : ['crypto.h', 'engine.h', 'err.h', 'pem.h',
                  'rsa.h', 'ssl.h', 'x509.h', 'rand.h', 'tls1.h']
@@ -106,11 +115,11 @@ else
     # so we need to look for the correct pair
 
     # Find either libcrypto.lib (1.1.x) or libeay32.lib (1.0.x or earlier) first
-    libcrypto_dep = cc.find_library('crypto', required: false)
+    libcrypto_dep = cc.find_library('@0@crypto'.format(openssl_lib_prefix), required: false)
     if libcrypto_dep.found()
-      libssl = 'ssl'
+      libssl = '@0@ssl'.format(openssl_lib_prefix)
     else
-      libcrypto_dep = cc.find_library('eay32', required: openssl_option)
+      libcrypto_dep = cc.find_library('@0@eay32'.format(openssl_lib_prefix), required: openssl_option)
       libssl = 'ssleay32'
     endif
 
