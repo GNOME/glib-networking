@@ -1,3 +1,10 @@
+2.65.1 - July 2, 2020
+=====================
+
+ - Fix peer-certificate[-errors] props set too soon (#127)
+ - Implement ALPN for OpenSSL backend (!126, Ruslan Marchenko)
+ - Fix Windows build (!127, Cun-wei Fan)
+
 2.64.3 - May 28, 2020
 =====================
 
