@@ -138,13 +138,18 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 
   if (g_tls_connection_base_is_handshaking (tls) && !g_tls_connection_base_ever_handshaked (tls))
     {
-      if (reason == SSL_R_BAD_PACKET_LENGTH ||
-          reason == SSL_R_UNKNOWN_ALERT_TYPE ||
-          reason == SSL_R_DECRYPTION_FAILED ||
-          reason == SSL_R_DECRYPTION_FAILED_OR_BAD_RECORD_MAC ||
-          reason == SSL_R_BAD_PROTOCOL_VERSION_NUMBER ||
-          reason == SSL_R_SSLV3_ALERT_HANDSHAKE_FAILURE ||
-          reason == SSL_R_UNKNOWN_PROTOCOL)
+      if (reason == SSL_R_SSLV3_ALERT_HANDSHAKE_FAILURE && my_error)
+        {
+          g_propagate_error (error, my_error);
+          return G_TLS_CONNECTION_BASE_ERROR;
+        }
+      else if (reason == SSL_R_BAD_PACKET_LENGTH ||
+               reason == SSL_R_UNKNOWN_ALERT_TYPE ||
+               reason == SSL_R_DECRYPTION_FAILED ||
+               reason == SSL_R_DECRYPTION_FAILED_OR_BAD_RECORD_MAC ||
+               reason == SSL_R_BAD_PROTOCOL_VERSION_NUMBER ||
+               reason == SSL_R_SSLV3_ALERT_HANDSHAKE_FAILURE ||
+               reason == SSL_R_UNKNOWN_PROTOCOL)
         {
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
