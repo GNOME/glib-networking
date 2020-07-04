@@ -1190,11 +1190,6 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   g_test_bug ("793712");
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
@@ -1226,7 +1221,11 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+#if BACKEND_IS_OPENSSL
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+#else
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#endif
 }
 
 static void
@@ -1290,11 +1289,6 @@ test_client_auth_request_fail (TestConnection *test,
   GError *error = NULL;
   GTlsInteraction *interaction;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
@@ -1336,7 +1330,11 @@ test_client_auth_request_fail (TestConnection *test,
       /* G_FILE_ERROR_ACCES is the error returned by our mock interaction object
        * when the GTlsInteraction's certificate request fails.
        */
+#if BACKEND_IS_OPENSSL
+      g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+#else
       g_assert_error (test->read_error, G_FILE_ERROR, G_FILE_ERROR_ACCES);
+#endif
     }
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 

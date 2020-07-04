@@ -273,17 +273,21 @@ handshake_thread_retrieve_certificate (SSL       *ssl,
       EVP_PKEY *key;
 
       key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
-      /* increase ref count */
+
+      if (key != NULL)
+        {
+          /* increase ref count */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-      CRYPTO_add (&key->references, 1, CRYPTO_LOCK_EVP_PKEY);
+          CRYPTO_add (&key->references, 1, CRYPTO_LOCK_EVP_PKEY);
 #else
-      EVP_PKEY_up_ref (key);
+          EVP_PKEY_up_ref (key);
 #endif
-      *pkey = key;
+          *pkey = key;
 
-      *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
+          *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
 
-      return 1;
+          return 1;
+        }
     }
 
   g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
