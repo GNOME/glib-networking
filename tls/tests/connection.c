@@ -1215,10 +1215,17 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   /* All validation in this test */
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
+#if BACKEND_IS_OPENSSL && defined(G_OS_WIN32)
+  test->ignore_client_close_error = TRUE;
+#endif
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
   wait_until_server_finished (test);
+
+#if BACKEND_IS_OPENSSL && defined(G_OS_WIN32)
+  test->ignore_client_close_error = FALSE;
+#endif
 
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
 #if BACKEND_IS_OPENSSL
