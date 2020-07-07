@@ -6,6 +6,7 @@ tls/gnutls/gtlscertificate-gnutls.c
 tls/gnutls/gtlsclientconnection-gnutls.c
 tls/gnutls/gtlsconnection-gnutls.c
 tls/gnutls/gtlsdatabase-gnutls.c
+tls/gnutls/gtlsfiledatabase-gnutls.c
 tls/gnutls/gtlsserverconnection-gnutls.c
 tls/openssl/gtlscertificate-openssl.c
 tls/openssl/gtlsclientconnection-openssl.c
