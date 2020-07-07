@@ -6,10 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
-"issues\n"
-"POT-Creation-Date: 2020-05-28 23:32+0000\n"
-"PO-Revision-Date: 2020-06-25 12:50+0500\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2020-07-07 14:30+0000\n"
+"PO-Revision-Date: 2020-07-07 22:17+0500\n"
 "Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
 "Language-Team: Kazakh <kk_KZ@googlegroups.com>\n"
 "Language: kk\n"
@@ -38,8 +37,7 @@ msgstr "Байланыс жабылды"
 #.
 #: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
-msgstr ""
-"TLS сәлемдемесін орындау кезінде бұғаттау әрекетін орындау мүмкін емес"
+msgstr "TLS сәлемдемесін орындау кезінде бұғаттау әрекетін орындау мүмкін емес"
 
 #: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
@@ -49,22 +47,23 @@ msgstr "Сокет Е/Ш күту мерзімі аяқталған"
 msgid "Server required TLS certificate"
 msgstr "Сервер TLS сертификатын талап етеді"
 
-#: tls/base/gtlsconnection-base.c:1460
+#: tls/base/gtlsconnection-base.c:1449
 msgid "Peer does not support safe renegotiation"
 msgstr "Торап қауіпсіз түрде байланысты қайта келістіруді қолдамайды"
 
-#: tls/base/gtlsconnection-base.c:1597 tls/gnutls/gtlsconnection-gnutls.c:347
-#: tls/openssl/gtlsconnection-openssl.c:183
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Жарамсыз TLS сертификаты"
 
-#: tls/base/gtlsconnection-base.c:2063
+#: tls/base/gtlsconnection-base.c:2059
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Қабылдау жалаушаларына қолдау жоқ"
 
-#: tls/base/gtlsconnection-base.c:2215
+#: tls/base/gtlsconnection-base.c:2211
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Жіберу жалаушаларына қолдау жоқ"
@@ -100,8 +99,8 @@ msgstr "Сертификат ұсынылмады"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:139
 #: tls/gnutls/gtlsconnection-gnutls.c:157
-#: tls/openssl/gtlsclientconnection-openssl.c:409
-#: tls/openssl/gtlsserverconnection-openssl.c:465
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Жаңа TLS  байланысын жасау мүмкін емес: %s"
@@ -109,7 +108,7 @@ msgstr "Жаңа TLS  байланысын жасау мүмкін емес: %s"
 #: tls/gnutls/gtlsconnection-gnutls.c:291
 #: tls/gnutls/gtlsconnection-gnutls.c:302
 #: tls/gnutls/gtlsconnection-gnutls.c:316
-#: tls/openssl/gtlsconnection-openssl.c:150
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "Торап TLS байланысты орнату сәлемдемесін орындай алмады: %s"
@@ -119,7 +118,7 @@ msgid "TLS connection closed unexpectedly"
 msgstr "TLS байланысты күтпегенде жабылды"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:339
-#: tls/openssl/gtlsconnection-openssl.c:175
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS байланысының торабы сертификатты жібермеген"
 
@@ -148,21 +147,21 @@ msgid "Error performing TLS handshake: %s"
 msgstr "TLS байланысты орнату сәлемдемесін орындау қатесі: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:818
-#: tls/openssl/gtlsconnection-openssl.c:251
-#: tls/openssl/gtlsconnection-openssl.c:301
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "TLS байланысты орнату сәлемдемесін орындау қатесі"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:867
 #: tls/gnutls/gtlsconnection-gnutls.c:927
-#: tls/openssl/gtlsconnection-openssl.c:408
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "TLS сокетінен деректерді оқу қатесі"
 
 #. flags
 #: tls/gnutls/gtlsconnection-gnutls.c:949
 #: tls/gnutls/gtlsconnection-gnutls.c:1013
-#: tls/openssl/gtlsconnection-openssl.c:452
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "TLS сокетіне деректерді жазу қатесі"
 
@@ -196,41 +195,59 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Жүйелік сенімді сақтау қоймасын жүктеу сәтсіз аяқталды: %s"
 
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:454
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "%s адресінен сенімділер тізімін толтыру сәтсіз аяқталды: %s"
+
 #: tls/gnutls/gtlsserverconnection-gnutls.c:122
 #: tls/openssl/gtlsserverconnection-openssl.c:172
 #: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "Сертификатта жеке кілт жоқ"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:307
-#: tls/openssl/gtlsclientconnection-openssl.c:358
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
 #: tls/openssl/gtlsserverconnection-openssl.c:347
-#: tls/openssl/gtlsserverconnection-openssl.c:398
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "TLS контекстін жасау мүмкін емес: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:191
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
+#, c-format
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "MAX хаттамасын %ld мәніне орнату мүмкін емес: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Жарамсыз TLS сертификаттау орталығы"
 
-#: tls/openssl/gtlsconnection-openssl.c:199
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "Дайджест RSA кілті үшін тым үлкен"
 
-#: tls/openssl/gtlsconnection-openssl.c:489
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "Қауіпсіз қайта келістіру сөндірілген"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+#| msgid "Connection is closed"
+msgid "%s: The connection is broken"
+msgstr "%s: Байланыс бұзылған"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "TLS жабу әрекетін орындау қатесі"
 
 #: tls/openssl/gtlsdatabase-openssl.c:227
 msgid "Could not create CA store"
 msgstr "СО қоймасын жасау мүмкін емес"
-
-#: tls/openssl/gtlsfiledatabase-openssl.c:454
-#, c-format
-msgid "Failed to load file path: %s"
-msgstr "Файл жолын жүктеу сәтсіз аяқталды: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:179
 #: tls/openssl/gtlsserverconnection-openssl.c:247
@@ -243,6 +260,9 @@ msgstr "Сертификаттың жеке кілтіне қатысты мәс
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Сертификатта мәселе бар: %s"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Файл жолын жүктеу сәтсіз аяқталды: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "Әрекет блоктайды"
