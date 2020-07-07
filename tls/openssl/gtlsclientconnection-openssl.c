@@ -273,17 +273,21 @@ handshake_thread_retrieve_certificate (SSL       *ssl,
       EVP_PKEY *key;
 
       key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
-      /* increase ref count */
+
+      if (key != NULL)
+        {
+          /* increase ref count */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-      CRYPTO_add (&key->references, 1, CRYPTO_LOCK_EVP_PKEY);
+          CRYPTO_add (&key->references, 1, CRYPTO_LOCK_EVP_PKEY);
 #else
-      EVP_PKEY_up_ref (key);
+          EVP_PKEY_up_ref (key);
 #endif
-      *pkey = key;
+          *pkey = key;
 
-      *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
+          *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
 
-      return 1;
+          return 1;
+        }
     }
 
   g_tls_connection_base_handshake_thread_set_missing_requested_client_certificate (tls);
@@ -295,7 +299,7 @@ static gboolean
 set_cipher_list (GTlsClientConnectionOpenssl  *client,
                  GError                      **error)
 {
-  const gchar *cipher_list;
+  const gchar *cipher_list, *proto;
 
   cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
   if (!cipher_list)
@@ -307,6 +311,23 @@ set_cipher_list (GTlsClientConnectionOpenssl  *client,
                    _("Could not create TLS context: %s"),
                    ERR_error_string (ERR_get_error (), NULL));
       return FALSE;
+    }
+
+  proto = g_getenv ("G_TLS_OPENSSL_MAX_PROTO");
+  if (proto)
+    {
+      gint64 version = g_ascii_strtoll (proto, NULL, 0);
+
+      if (version > 0 && version < G_MAXINT64)
+        {
+          if (!SSL_CTX_set_max_proto_version (client->ssl_ctx, (int)version))
+            {
+              g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                           _("Could not set MAX protocol to %ld: %s"),
+                           version, ERR_error_string (ERR_get_error (), NULL));
+              return FALSE;
+            }
+        }
     }
 
   return TRUE;

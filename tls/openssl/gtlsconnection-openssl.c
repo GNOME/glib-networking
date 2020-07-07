@@ -138,13 +138,18 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 
   if (g_tls_connection_base_is_handshaking (tls) && !g_tls_connection_base_ever_handshaked (tls))
     {
-      if (reason == SSL_R_BAD_PACKET_LENGTH ||
-          reason == SSL_R_UNKNOWN_ALERT_TYPE ||
-          reason == SSL_R_DECRYPTION_FAILED ||
-          reason == SSL_R_DECRYPTION_FAILED_OR_BAD_RECORD_MAC ||
-          reason == SSL_R_BAD_PROTOCOL_VERSION_NUMBER ||
-          reason == SSL_R_SSLV3_ALERT_HANDSHAKE_FAILURE ||
-          reason == SSL_R_UNKNOWN_PROTOCOL)
+      if (reason == SSL_R_SSLV3_ALERT_HANDSHAKE_FAILURE && my_error)
+        {
+          g_propagate_error (error, my_error);
+          return G_TLS_CONNECTION_BASE_ERROR;
+        }
+      else if (reason == SSL_R_BAD_PACKET_LENGTH ||
+               reason == SSL_R_UNKNOWN_ALERT_TYPE ||
+               reason == SSL_R_DECRYPTION_FAILED ||
+               reason == SSL_R_DECRYPTION_FAILED_OR_BAD_RECORD_MAC ||
+               reason == SSL_R_BAD_PROTOCOL_VERSION_NUMBER ||
+               reason == SSL_R_SSLV3_ALERT_HANDSHAKE_FAILURE ||
+               reason == SSL_R_UNKNOWN_PROTOCOL)
         {
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
@@ -201,13 +206,34 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
+  if (reason == SSL_R_NO_RENEGOTIATION)
+    {
+      g_clear_error (&my_error);
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                           _("Secure renegotiation is disabled"));
+      return G_TLS_CONNECTION_BASE_REHANDSHAKE;
+    }
+
   if (my_error)
     g_propagate_error (error, my_error);
   else
     /* FIXME: this is just for debug */
     g_message ("end_openssl_io %s: %d, %d, %d", G_IS_TLS_CLIENT_CONNECTION (openssl) ? "client" : "server", err_code, err_lib, reason);
 
-  if (error && !*error)
+  if (ret == 0 && err == 0 && err_lib == 0 && err_code == SSL_ERROR_SYSCALL
+      && (direction == G_IO_IN || direction == G_IO_OUT))
+    {
+      /* SSL_ERROR_SYSCALL usually means we have no bloody idea what has happened
+       * but when ret for read or write is 0 and all others error codes as well
+       * - this is normally Early EOF condition
+       */
+      if (!g_tls_connection_get_require_close_notify (G_TLS_CONNECTION (openssl)))
+        return G_TLS_CONNECTION_BASE_OK;
+
+      if (error && !*error)
+        *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_EOF, _("%s: The connection is broken"), err_prefix);
+    }
+  else if (error && !*error)
     *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
 
   return G_TLS_CONNECTION_BASE_ERROR;
@@ -376,7 +402,7 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
   GTlsConnectionOpenssl *openssl;
   GTlsConnectionBaseStatus status;
   SSL *ssl;
-  int ret;
+  int ret = 1; /* always look on the bright side of life */
 
   /* On a client-side connection, SSL_renegotiate() itself will start
    * a rehandshake, so we only need to do something special here for
@@ -390,7 +416,13 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
-  ret = SSL_renegotiate (ssl);
+  if (SSL_version(ssl) >= TLS1_3_VERSION)
+    ret = SSL_key_update (ssl, SSL_KEY_UPDATE_REQUESTED);
+  else if (SSL_get_secure_renegotiation_support (ssl) && !(SSL_get_options(ssl) & SSL_OP_NO_RENEGOTIATION))
+    /* remote and local peers both can rehandshake */
+    ret = SSL_renegotiate (ssl);
+  else
+    g_tls_log_debug (tls, "Secure renegotiation is not supported");
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, timeout, status,
                   _("Error performing TLS handshake"), error);
 

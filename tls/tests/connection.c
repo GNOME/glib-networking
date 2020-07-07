@@ -135,6 +135,7 @@ teardown_connection (TestConnection *test, gconstpointer data)
       /* The outstanding accept_async will hold a ref on test->service,
        * which we want to wait for it to release if we're valgrinding.
        */
+      g_socket_listener_close (G_SOCKET_LISTENER (test->service));
       g_object_add_weak_pointer (G_OBJECT (test->service), (gpointer *)&test->service);
       g_object_unref (test->service);
       WAIT_UNTIL_UNSET (test->service);
@@ -1069,12 +1070,6 @@ static void
 test_client_auth_rehandshake (TestConnection *test,
                               gconstpointer   data)
 {
-#ifdef BACKEND_IS_OPENSSL
-  /* FIXME: this doesn't make sense, we should support safe renegotation */
-  g_test_skip ("the server avoids rehandshake to avoid the security problem CVE-2009-3555");
-  return;
-#endif
-
   test->rehandshake = TRUE;
   test_client_auth_connection (test, data);
 }
@@ -1195,11 +1190,6 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   g_test_bug ("793712");
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
@@ -1225,13 +1215,24 @@ test_client_auth_fail_missing_client_private_key (TestConnection *test,
   /* All validation in this test */
   g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
                                                 G_TLS_CERTIFICATE_VALIDATE_ALL);
+#if BACKEND_IS_OPENSSL && defined(G_OS_WIN32)
+  test->ignore_client_close_error = TRUE;
+#endif
 
   read_test_data_async (test);
   g_main_loop_run (test->loop);
   wait_until_server_finished (test);
 
+#if BACKEND_IS_OPENSSL && defined(G_OS_WIN32)
+  test->ignore_client_close_error = FALSE;
+#endif
+
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+#if BACKEND_IS_OPENSSL
+  g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED);
+#else
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#endif
 }
 
 static void
@@ -1295,11 +1296,6 @@ test_client_auth_request_fail (TestConnection *test,
   GError *error = NULL;
   GTlsInteraction *interaction;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
@@ -1336,6 +1332,7 @@ test_client_auth_request_fail (TestConnection *test,
    * as we expect, just not with the desired error.
    */
   if (!g_error_matches (test->read_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS) &&
+      !g_error_matches (test->read_error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED) &&
       !g_error_matches (test->read_error, G_TLS_ERROR, G_TLS_ERROR_EOF))
     {
       /* G_FILE_ERROR_ACCES is the error returned by our mock interaction object
@@ -1787,11 +1784,6 @@ static void
 test_simultaneous_async_rehandshake (TestConnection *test,
                                      gconstpointer   data)
 {
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
   test->rehandshake = TRUE;
   test_simultaneous_async (test, data);
 }
@@ -1886,11 +1878,6 @@ static void
 test_simultaneous_sync_rehandshake (TestConnection *test,
                                     gconstpointer   data)
 {
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this needs more research on openssl");
-  return;
-#endif
-
   test->rehandshake = TRUE;
   test_simultaneous_sync (test, data);
 }
@@ -1946,11 +1933,6 @@ test_unclean_close_by_server (TestConnection *test,
   GTlsConnection *client_connection;
   gssize nread;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, HANDSHAKE_ONLY);
   client = g_socket_client_new ();
   g_socket_client_set_tls (client, TRUE);
@@ -1990,6 +1972,7 @@ test_unclean_close_by_server (TestConnection *test,
   g_clear_error (&test->read_error);
   g_clear_object (&test->service);
   g_clear_object (&test->server_connection);
+  g_clear_object (&test->client_connection);
   test->server_ever_handshaked = FALSE;
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, HANDSHAKE_ONLY);
 
@@ -2182,14 +2165,10 @@ test_garbage_database (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this is not yet passing with openssl");
-  return;
-#endif
-
   test->database = g_tls_file_database_new (tls_test_file_path ("garbage.pem"), &error);
-  g_assert_no_error (error);
-  g_assert_nonnull (test->database);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC);
+  g_assert_null (test->database);
+  g_clear_error (&error);
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
@@ -2211,7 +2190,9 @@ test_garbage_database (TestConnection *test,
    * no valid certificates.
    */
   g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+#ifdef BACKEND_IS_GNUTLS
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#endif
 }
 
 static void
@@ -2372,11 +2353,6 @@ test_sync_op_during_handshake (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this is not yet passing with openssl");
-  return;
-#endif
-
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
@@ -2407,11 +2383,6 @@ test_socket_timeout (TestConnection *test,
   GSocketClient *client;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("this new test does not work with openssl, more research needed");
-  return;
-#endif
-
   test->incoming_connection_delay = (gulong)(1.1 * G_USEC_PER_SEC);
 
   start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_CLOSE);
@@ -2436,7 +2407,9 @@ test_socket_timeout (TestConnection *test,
   wait_until_server_finished (test);
 
   g_assert_error (test->read_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
+#ifndef BACKEND_IS_OPENSSL
   g_assert_error (test->server_error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS);
+#endif
 }
 
 static void
