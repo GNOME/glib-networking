@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/glib-networking/master:v10
+image: registry.gitlab.gnome.org/gnome/glib-networking/master:v11
 
 fedora-x86_64:
   tags: [ privileged ]

@@ -2,7 +2,7 @@
 
 set -e
 
-TAG="registry.gitlab.gnome.org/gnome/glib-networking/master:v10"
+TAG="registry.gitlab.gnome.org/gnome/glib-networking/master:v11"
 
 cd "$(dirname "$0")"
 
