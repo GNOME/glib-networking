@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2020-01-31 14:56+0000\n"
-"PO-Revision-Date: 2020-03-09 18:46+0200\n"
+"POT-Creation-Date: 2020-07-07 13:28+0000\n"
+"PO-Revision-Date: 2020-07-07 21:04+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
@@ -17,14 +17,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<"
 "=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 20.03.70\n"
+"X-Generator: Lokalize 20.07.70\n"
 "X-Project-Style: gnome\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Внутрішня помилка розв'язника проксі."
 
-#: tls/base/gtlsconnection-base.c:538 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -37,38 +37,39 @@ msgstr "З'єднання розірвано"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:612
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr ""
-"Не можна виконувати дію з блокування під час узгодження зв'язку за допомогою"
-" TLS"
+"Не можна виконувати дію з блокування під час узгодження зв'язку за допомогою "
+"TLS"
 
-#: tls/base/gtlsconnection-base.c:677 tls/base/gtlsconnection-base.c:1219
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "Перевищено час очікування на введення-виведення з гнізда"
 
-#: tls/base/gtlsconnection-base.c:845
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "Сервер потребує сертифікат TLS"
 
-#: tls/base/gtlsconnection-base.c:1451
+#: tls/base/gtlsconnection-base.c:1449
 msgid "Peer does not support safe renegotiation"
 msgstr ""
-"У налаштуваннях стороннього вузла не передбачено підтримки безпечного"
-" повторного узгодження"
+"У налаштуваннях стороннього вузла не передбачено підтримки безпечного "
+"повторного узгодження"
 
-#: tls/base/gtlsconnection-base.c:1586 tls/gnutls/gtlsconnection-gnutls.c:347
-#: tls/openssl/gtlsconnection-openssl.c:184
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Неприпустимий сертифікат TLS"
 
-#: tls/base/gtlsconnection-base.c:2051
+#: tls/base/gtlsconnection-base.c:2059
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Підтримки прапорців отримання не передбачено"
 
-#: tls/base/gtlsconnection-base.c:2203
+#: tls/base/gtlsconnection-base.c:2211
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Підтримки прапорців надсилання не передбачено"
@@ -104,8 +105,8 @@ msgstr "Не надано даних сертифіката"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:139
 #: tls/gnutls/gtlsconnection-gnutls.c:157
-#: tls/openssl/gtlsclientconnection-openssl.c:408
-#: tls/openssl/gtlsserverconnection-openssl.c:463
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Неможливо створити з'єднання TLS: %s"
@@ -113,9 +114,8 @@ msgstr "Неможливо створити з'єднання TLS: %s"
 #: tls/gnutls/gtlsconnection-gnutls.c:291
 #: tls/gnutls/gtlsconnection-gnutls.c:302
 #: tls/gnutls/gtlsconnection-gnutls.c:316
-#: tls/openssl/gtlsconnection-openssl.c:151
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
-#| msgid "Peer failed to perform TLS handshake"
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "Не вдалося виконати узгодження зв'язку за допомогою TLS: %s"
 
@@ -124,8 +124,7 @@ msgid "TLS connection closed unexpectedly"
 msgstr "Раптово закрито з'єднання TLS"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:339
-#: tls/openssl/gtlsconnection-openssl.c:176
-#| msgid "TLS connection closed unexpectedly"
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "Вузол з'єднання TLS не надіслав сертифіката"
 
@@ -143,13 +142,14 @@ msgstr "Виявлено спробу атаки із використанням
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] ""
-"Повідомлення є надто великим для з'єднання DTLS; максимальний розмір — %u байт"
+"Повідомлення є надто великим для з'єднання DTLS; максимальний розмір — %u "
+"байт"
 msgstr[1] ""
-"Повідомлення є надто великим для з'єднання DTLS; максимальний розмір — %u"
-" байти"
+"Повідомлення є надто великим для з'єднання DTLS; максимальний розмір — %u "
+"байти"
 msgstr[2] ""
-"Повідомлення є надто великим для з'єднання DTLS; максимальний розмір — %u"
-" байтів"
+"Повідомлення є надто великим для з'єднання DTLS; максимальний розмір — %u "
+"байтів"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
@@ -161,28 +161,25 @@ msgid "Error performing TLS handshake: %s"
 msgstr "Помилка під час виконання узгодження з'єднання за допомогою TLS: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:818
-#: tls/openssl/gtlsconnection-openssl.c:252
-#: tls/openssl/gtlsconnection-openssl.c:302
-#| msgid "Error performing TLS handshake: %s"
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "Помилка під час виконання узгодження зв'язку за допомогою TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:864
-#: tls/gnutls/gtlsconnection-gnutls.c:924
-#: tls/openssl/gtlsconnection-openssl.c:409
-#| msgid "Error reading data from TLS socket: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "Помилка зчитування даних з гнізда TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:946
-#: tls/gnutls/gtlsconnection-gnutls.c:1010
-#: tls/openssl/gtlsconnection-openssl.c:453
-#| msgid "Error writing data to TLS socket: %s"
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "Помилка запису даних у гніздо TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:980
+#: tls/gnutls/gtlsconnection-gnutls.c:983
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -190,7 +187,7 @@ msgstr[0] "Повідомлення розміром %lu байт є надто 
 msgstr[1] "Повідомлення розміром %lu байти є надто великим для з'єднання DTLS"
 msgstr[2] "Повідомлення розміром %lu байтів є надто великим для з'єднання DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:982
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -198,7 +195,7 @@ msgstr[0] "(максимальним є значення у %u байт)"
 msgstr[1] "(максимальним є значення у %u байти)"
 msgstr[2] "(максимальним є значення у %u байтів)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1029
+#: tls/gnutls/gtlsconnection-gnutls.c:1032
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Помилка закриття TLS: %s"
@@ -208,8 +205,8 @@ msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
 msgstr ""
-"Не вдалося завантажити загальносистемне сховище довірених сертифікатів:"
-" GnuTLS не налаштовано із загально системною довірою"
+"Не вдалося завантажити загальносистемне сховище довірених сертифікатів: "
+"GnuTLS не налаштовано із загально системною довірою"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:187
 #, c-format
@@ -219,52 +216,69 @@ msgstr ""
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:122
 #: tls/openssl/gtlsserverconnection-openssl.c:172
-#: tls/openssl/gtlsserverconnection-openssl.c:226
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "Сертифікат не має закритого ключа"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:306
-#: tls/openssl/gtlsclientconnection-openssl.c:357
-#: tls/openssl/gtlsserverconnection-openssl.c:345
-#: tls/openssl/gtlsserverconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
-#| msgid "Could not create TLS connection: %s"
 msgid "Could not create TLS context: %s"
 msgstr "Не вдалося створити контекст TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:192
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
 #, c-format
-#| msgid "Unacceptable TLS certificate"
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "Не вдалося встановити для MAX протоколу значення %ld: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
+#, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Неприйнятна служба сертифікації TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:200
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "Контрольна сума є надто великою для ключа RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:490
-#| msgid "Error performing TLS close: %s"
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "Безпечне повторне узгодження вимкнено"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+#| msgid "Connection is closed"
+msgid "%s: The connection is broken"
+msgstr "%s: з'єднання є непрацездатним"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "Помилка закриття TLS"
 
 #: tls/openssl/gtlsdatabase-openssl.c:227
-#| msgid "Could not create TLS connection: %s"
 msgid "Could not create CA store"
 msgstr "Не вдалося створити сховище CA"
 
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
-msgid "Failed to load file path: %s"
-msgstr "Не вдалося завантажити файл за шляхом: %s"
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Не вдалося заповнити список довіри на основі %s: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:179
-#: tls/openssl/gtlsserverconnection-openssl.c:245
+#: tls/openssl/gtlsserverconnection-openssl.c:247
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Маємо проблему із закритим ключем сертифіката: %s"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:188
-#: tls/openssl/gtlsserverconnection-openssl.c:237
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Маємо проблему із сертифікатом: %s"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Не вдалося завантажити файл за шляхом: %s"
