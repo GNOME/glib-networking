@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-08-02 07:13+0000\n"
-"PO-Revision-Date: 2019-08-04 15:15+0200\n"
+"POT-Creation-Date: 2020-07-07 13:28+0000\n"
+"PO-Revision-Date: 2020-07-07 15:34+0200\n"
 "Last-Translator: Daniel Șerbănescu <daniel [at] serbanescu [dot] dk>\n"
 "Language-Team: Romanian Gnome Team <gnomero-list@lists.sourceforge.net>\n"
 "Language: ro\n"
@@ -16,14 +16,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2);\n"
-"X-Generator: Poedit 2.2.3\n"
+"X-Generator: Poedit 2.3.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Eroare internă în rezolvantul proxy."
 
-#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -36,34 +36,35 @@ msgstr "Conexiunea este închisă"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:560
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Nu se poate efectua operația de blocare în timpul handshake-ului TLS"
 
-#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1160
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "I/O de soclu a depășit limita de timp"
 
-#: tls/base/gtlsconnection-base.c:787
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "Serverul necesită certificat TLS"
 
-#: tls/base/gtlsconnection-base.c:1381
+#: tls/base/gtlsconnection-base.c:1449
 msgid "Peer does not support safe renegotiation"
 msgstr "Partenerul nu suportă renegociere în siguranță"
 
-#: tls/base/gtlsconnection-base.c:1509 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:184
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Certificat TLS inacceptabil"
 
-#: tls/base/gtlsconnection-base.c:1930
+#: tls/base/gtlsconnection-base.c:2059
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Fanioanele de primire nu sunt suportate"
 
-#: tls/base/gtlsconnection-base.c:2074
+#: tls/base/gtlsconnection-base.c:2211
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Trimite fanioanele care nu sunt suportate"
@@ -97,48 +98,42 @@ msgstr "Nu s-a putut parsa cheia privată PEM: %s"
 msgid "No certificate data provided"
 msgstr "Nu s-au furnizat date de certificat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:520
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:157
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nu s-a putut crea conexiunea TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:151
+#: tls/gnutls/gtlsconnection-gnutls.c:291
+#: tls/gnutls/gtlsconnection-gnutls.c:302
+#: tls/gnutls/gtlsconnection-gnutls.c:316
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr ""
 "Celălalt capăt al conexiunii nu a reușit să efectueze handshake-ul TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:260
-msgid "Peer requested illegal TLS rehandshake"
-msgstr ""
-"Celălalt capăt al conexiunii a solicitat ilegal reefectuarea handshake-ului "
-"TLS"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:324
 msgid "TLS connection closed unexpectedly"
 msgstr "Conexiunea TLS a fost închisă în mod neașteptat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:176
+#: tls/gnutls/gtlsconnection-gnutls.c:339
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "Partenerul conexiunii TLS nu a trimis un certificat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:355
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Partenerul a trimis o alertă TLS fatală: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:365
 msgid "Protocol version downgrade attack detected"
 msgstr "Atac de retrogradare a versiunii protocolului detectat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:374
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -147,35 +142,35 @@ msgstr[1] "Mesajul este prea mare pentru conexiunea DTLS; maxim este %u octeți"
 msgstr[2] ""
 "Mesajul este prea mare pentru conexiunea DTLS; maxim este %u de octeți"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
 msgstr "Operația a depășit limita de timp"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:790
+#: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Eroare la executarea handshake-ului TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:893
-#: tls/openssl/gtlsconnection-openssl.c:269
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/gnutls/gtlsconnection-gnutls.c:818
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "Eroare la executarea handshake-ului TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:939
-#: tls/gnutls/gtlsconnection-gnutls.c:999
-#: tls/openssl/gtlsconnection-openssl.c:426
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "Eroare la citirea datelor de la soclul TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/gnutls/gtlsconnection-gnutls.c:1085
-#: tls/openssl/gtlsconnection-openssl.c:470
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "Eroare la scrierea datelor la soclul TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1055
+#: tls/gnutls/gtlsconnection-gnutls.c:983
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -186,7 +181,7 @@ msgstr[1] ""
 msgstr[2] ""
 "Mesajul de dimensiunea %lu de octeți este prea mare pentru conexiunea DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -194,7 +189,7 @@ msgstr[0] "(maxim este %u octet)"
 msgstr[1] "(maxim este %u octeți)"
 msgstr[2] "(maxim este %u de octeți)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1104
+#: tls/gnutls/gtlsconnection-gnutls.c:1032
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Eroare la executarea închiderii TLS: %s"
@@ -212,29 +207,45 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Nu s-a putut încărca stocarea de încredere a sistemului: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsserverconnection-gnutls.c:122
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "Certificatul nu are nicio cheie privată"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:410
-#: tls/openssl/gtlsclientconnection-openssl.c:467
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Nu s-a putut crea contextul TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:192
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
+#, c-format
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "Nu s-a putut stabili protocolul MAX la %ld: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Autoritate de certificat TLS inacceptabilă"
 
-#: tls/openssl/gtlsconnection-openssl.c:200
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "Extras prea mare pentru cheia RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:507
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "Renegocierea sigură este dezactivată"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: Conexiunea este deteriorată"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "Eroare la executarea închiderii TLS"
 
@@ -244,18 +255,28 @@ msgstr "Nu s-a putut crea spațiul de stocare CA"
 
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
-msgid "Failed to load file path: %s"
-msgstr "Nu s-a putut încărca calea fișierului: %s"
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Nu s-a putut umple lista de încredere de la %s: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:247
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Este o problemă la cheia privată a certificatului: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Este o problemă la certificatul: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Este o problemă la cheia privată a certificatului: %s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr ""
+#~ "Celălalt capăt al conexiunii a solicitat ilegal reefectuarea handshake-"
+#~ "ului TLS"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Nu s-a putut încărca calea fișierului: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "Operația ar bloca"
