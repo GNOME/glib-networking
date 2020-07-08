@@ -1,36 +1,54 @@
-image: registry.gitlab.gnome.org/gnome/glib-networking/master:v11
+image: registry.gitlab.gnome.org/gnome/glib-networking/master:v12
 
 fedora-x86_64:
-  tags: [ privileged ]
   stage: build
   script:
-    # Sadly, GCC 9's LeakSanitizer is quite crashy, #86.
-    # So we will run our tests under asan only once.
-    - meson -Db_sanitize=address
-            -Dgnutls=enabled
-            -Dopenssl=enabled
-            -Dlibproxy=enabled
-            -Dgnome_proxy=enabled
-            -Dwerror=true
-            build/
-    - ninja -C build/
-    - ASAN_OPTIONS=fast_unwind_on_malloc=0 meson test --verbose --timeout-multiplier=10 -C build/
-    - rm -rf build/
-
-    # Now again, this time without asan. We will additionally test installation.
     - meson --prefix=$HOME/glib-networking-installed
             -Dgnutls=enabled
             -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
             -Dwerror=true
-            build/
-    - ninja -C build/
-    - meson test -v -C build/ --repeat=500
-    - meson install -C build/
+            _build/
+    - ninja -C _build/
+    - meson test -v -C _build/ --repeat=500
+    - meson install -C _build/
   artifacts:
     paths:
-      - build/test-results
+      - _build/test-results
+    when: on_failure
+
+fedora-x86_64-asan:
+  tags: [ privileged ]
+  stage: build
+  script:
+    - meson -Db_sanitize=address
+            -Dgnutls=enabled
+            -Dopenssl=enabled
+            -Dlibproxy=enabled
+            -Dgnome_proxy=enabled
+            -Dwerror=true
+            _build/
+    - ninja -C _build/
+    - ASAN_OPTIONS=fast_unwind_on_malloc=0 meson test --verbose --timeout-multiplier=10 -C _build/
+  artifacts:
+    paths:
+      - _build/test-results
+    when: on_failure
+
+fedora-x86_64-scan-build:
+  stage: build
+  script:
+    - meson -Dgnutls=enabled
+            -Dopenssl=enabled
+            -Dlibproxy=enabled
+            -Dgnome_proxy=enabled
+            -Dwerror=true
+            _build/
+    - ninja -C _build/ scan-build
+  artifacts:
+    paths:
+      - _build/meson-logs/scanbuild
     when: on_failure
 
 vs2017-x64:
