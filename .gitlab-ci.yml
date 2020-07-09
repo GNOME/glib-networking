@@ -43,7 +43,7 @@ fedora-x86_64-scan-build:
             -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
-            --werror
+            -Dwerror=true
             _build/
     - ninja -C _build/ scan-build
     - bash -c 'if [[ -n "$(ls -A _build/meson-logs/scanbuild/)" ]]; then echo "Scan build log found, assuming defects exist"; exit 1; fi'
