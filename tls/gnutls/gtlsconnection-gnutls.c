@@ -978,7 +978,6 @@ g_tls_connection_gnutls_write_message (GTlsConnectionBase  *tls,
       char *message;
       guint mtu = gnutls_dtls_get_data_mtu (priv->session);
 
-      ret = GNUTLS_E_LARGE_PACKET;
       message = g_strdup_printf("%s %s",
                                 ngettext ("Message of size %lu byte is too large for DTLS connection",
                                           "Message of size %lu bytes is too large for DTLS connection", total_message_size),

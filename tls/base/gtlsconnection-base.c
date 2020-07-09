@@ -1987,7 +1987,7 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
                                     GError             **error)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  GTlsConnectionBaseStatus status;
+  GTlsConnectionBaseStatus status = G_TLS_CONNECTION_BASE_OK;
   gssize nread;
 
   g_tls_log_debug (tls, "starting to read messages from TLS connection");
@@ -2015,7 +2015,6 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
               g_clear_pointer (&priv->app_data_buf, g_byte_array_unref);
             else
               g_byte_array_remove_range (priv->app_data_buf, 0, count);
-            status = G_TLS_CONNECTION_BASE_OK;
           }
       }
     else

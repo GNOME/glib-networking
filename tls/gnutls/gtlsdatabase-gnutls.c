@@ -170,7 +170,7 @@ initialize_tables (gnutls_x509_trust_list_t  trust_list,
   GBytes *issuer = NULL;
   gint gerr;
 
-  while ((gerr = gnutls_x509_trust_list_iter_get_ca (trust_list, &iter, &cert)) == 0)
+  while (gnutls_x509_trust_list_iter_get_ca (trust_list, &iter, &cert) == 0)
     {
       gerr = gnutls_x509_crt_get_raw_dn (cert, &dn);
       if (gerr < 0)
