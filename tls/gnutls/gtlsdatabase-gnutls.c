@@ -430,28 +430,44 @@ g_tls_database_gnutls_lookup_certificates_issued_by (GTlsDatabase             *d
   return issued;
 }
 
+typedef struct {
+  gnutls_x509_crt_t *chain;
+  guint              length;
+} CertificateChain;
+
+static CertificateChain *
+certificate_chain_new (void)
+{
+  return g_new0 (CertificateChain, 1);
+}
+
 static void
-convert_certificate_chain_to_gnutls (GTlsCertificateGnutls  *chain,
-                                     gnutls_x509_crt_t     **gnutls_chain,
-                                     guint                  *gnutls_chain_length)
+certificate_chain_free (CertificateChain *chain)
+{
+  g_free (chain->chain);
+  g_free (chain);
+}
+
+static CertificateChain *
+convert_certificate_chain_to_gnutls (GTlsCertificateGnutls *chain)
 {
   GTlsCertificate *cert;
-  guint i;
+  CertificateChain *gnutls_chain;
+  guint i = 0;
 
-  g_assert (gnutls_chain);
-  g_assert (gnutls_chain_length);
+  gnutls_chain = certificate_chain_new ();
 
-  for (*gnutls_chain_length = 0, cert = G_TLS_CERTIFICATE (chain);
-       cert; cert = g_tls_certificate_get_issuer (cert))
-    ++(*gnutls_chain_length);
+  for (cert = G_TLS_CERTIFICATE (chain); cert; cert = g_tls_certificate_get_issuer (cert))
+    gnutls_chain->length++;
 
-  *gnutls_chain = g_new0 (gnutls_x509_crt_t, *gnutls_chain_length);
+  gnutls_chain->chain = g_new (gnutls_x509_crt_t, gnutls_chain->length);
 
-  for (i = 0, cert = G_TLS_CERTIFICATE (chain);
-       cert; cert = g_tls_certificate_get_issuer (cert), ++i)
-    (*gnutls_chain)[i] = g_tls_certificate_gnutls_get_cert (G_TLS_CERTIFICATE_GNUTLS (cert));
+  for (cert = G_TLS_CERTIFICATE (chain); cert; cert = g_tls_certificate_get_issuer (cert), i++)
+    gnutls_chain->chain[i] = g_tls_certificate_gnutls_get_cert (G_TLS_CERTIFICATE_GNUTLS (cert));
 
-  g_assert (i == *gnutls_chain_length);
+  g_assert (i == gnutls_chain->length);
+
+  return gnutls_chain;
 }
 
 static GTlsCertificateFlags
@@ -468,8 +484,7 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
   GTlsDatabaseGnutlsPrivate *priv = g_tls_database_gnutls_get_instance_private (self);
   GTlsCertificateFlags result;
   guint gnutls_result;
-  gnutls_x509_crt_t *certs;
-  guint certs_length;
+  CertificateChain *gnutls_chain;
   const char *hostname = NULL;
   char *free_hostname = NULL;
   int gerr;
@@ -481,15 +496,14 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
-  convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain),
-                                       &certs, &certs_length);
+  gnutls_chain = convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain));
   gerr = gnutls_x509_trust_list_verify_crt (priv->trust_list,
-                                            certs, certs_length,
+                                            gnutls_chain->chain, gnutls_chain->length,
                                             0, &gnutls_result, NULL);
 
   if (gerr != 0 || g_cancellable_set_error_if_cancelled (cancellable, error))
     {
-      g_free (certs);
+      certificate_chain_free (gnutls_chain);
       return G_TLS_CERTIFICATE_GENERIC_ERROR;
     }
 
@@ -508,12 +522,12 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
     }
   if (hostname)
     {
-      if (!gnutls_x509_crt_check_hostname (certs[0], hostname))
+      if (!gnutls_x509_crt_check_hostname (gnutls_chain->chain[0], hostname))
         result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
       g_free (free_hostname);
     }
 
-  g_free (certs);
+  certificate_chain_free (gnutls_chain);
   return result;
 }
 
