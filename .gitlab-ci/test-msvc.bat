@@ -9,13 +9,13 @@ set BUILD_DIR=c:\gnet
 :: NOTE: uncomment this in a branch in order to update the depenencies. We do not
 :: build it each time to avoid spending so much of time building openssl and glib
 :: so we just keep it cached in c:\gnet
-::@RD /S /Q %BUILD_DIR%
+@RD /S /Q %BUILD_DIR%
 
-::git clone --depth 1 https://github.com/wingtk/gvsbuild.git || goto :error
+git clone --depth 1 https://github.com/wingtk/gvsbuild.git -b glib-2-65 || goto :error
 
-::pushd gvsbuild
-::python.exe build.py --verbose --debug build -p x64 --vs-ver 15 --build-dir %BUILD_DIR% openssl glib || goto :error
-::popd
+pushd gvsbuild
+python.exe build.py --verbose --debug build -p x64 --vs-ver 15 --build-dir %BUILD_DIR% openssl glib || goto :error
+popd
 
 set DEPS_DIR=%BUILD_DIR%\gtk\x64\release
 set PATH=%DEPS_DIR%\bin;%PATH%
