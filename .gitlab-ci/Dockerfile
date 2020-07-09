@@ -3,7 +3,10 @@ FROM fedora:rawhide
 RUN dnf update -y \
     && dnf install -y 'dnf-command(builddep)' \
     && dnf builddep -y glib-networking \
-    && dnf install -y libasan openssl-devel crypto-policies-scripts \
+    && dnf install -y clang-analyzer \
+                      crypto-policies-scripts \
+                      libasan \
+                      openssl-devel \
     && dnf clean all
 
 ARG HOST_USER_ID=5555
