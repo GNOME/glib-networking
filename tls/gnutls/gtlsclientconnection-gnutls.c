@@ -397,7 +397,7 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
    * the algorithms given in pk_algos.
    */
 
-  had_accepted_cas = gnutls->accepted_cas != NULL;
+  had_accepted_cas = gnutls->accepted_cas != NULL && gnutls->accepted_cas->len > 0;
 
   accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
   for (i = 0; i < nreqs; i++)
@@ -411,7 +411,7 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
     g_ptr_array_unref (gnutls->accepted_cas);
   gnutls->accepted_cas = accepted_cas;
 
-  gnutls->accepted_cas_changed = gnutls->accepted_cas || had_accepted_cas;
+  gnutls->accepted_cas_changed = (gnutls->accepted_cas && gnutls->accepted_cas->len > 0) || had_accepted_cas;
 
   clear_gnutls_certificate_copy (gnutls);
   g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
