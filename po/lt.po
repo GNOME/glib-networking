@@ -2,14 +2,14 @@
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # Algimantas Margevičius <margevicius.algimantas@gmail.com>, 2011.
-# Aurimas Černius <aurisc4@gmail.com>, 2011-2019.
+# Aurimas Černius <aurisc4@gmail.com>, 2011-2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-08-11 09:13+0000\n"
-"PO-Revision-Date: 2019-08-18 22:16+0300\n"
+"POT-Creation-Date: 2020-07-07 13:28+0000\n"
+"PO-Revision-Date: 2020-07-12 20:32+0300\n"
 "Last-Translator: Aurimas Černius <aurisc4@gmail.com>\n"
 "Language-Team: Lietuvių <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
@@ -18,13 +18,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
 "%100<10 || n%100>=20) ? 1 : 2)\n"
-"X-Generator: Gtranslator 3.32.1\n"
+"X-Generator: Gtranslator 3.36.0\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Tarpininkų nustatytojo vidinė klaida."
 
-#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -37,34 +37,35 @@ msgstr "Ryšys užvertas"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:560
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "TLS išankstinio suderinimo metu negalima vykdyti bloko operacijos"
 
-#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1160
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "Baigėsi lizdo I/O skirtas laikas"
 
-#: tls/base/gtlsconnection-base.c:787
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "Serveris reikalauja TLS liudijimo"
 
-#: tls/base/gtlsconnection-base.c:1381
+#: tls/base/gtlsconnection-base.c:1449
 msgid "Peer does not support safe renegotiation"
 msgstr "Porininkas nepalaiko saugaus pakartotinio ryšio užmezgimo"
 
-#: tls/base/gtlsconnection-base.c:1509 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:184
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nepriimtinas TLS liudijimas"
 
-#: tls/base/gtlsconnection-base.c:1930
+#: tls/base/gtlsconnection-base.c:2059
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Požymių gavimas nėra palaikomas"
 
-#: tls/base/gtlsconnection-base.c:2074
+#: tls/base/gtlsconnection-base.c:2211
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Požymių siuntimas nėra palaikomas"
@@ -98,46 +99,41 @@ msgstr "Nepavyko perskaityti PEM privataus rakto: %s"
 msgid "No certificate data provided"
 msgstr "Nėra pateiktų liudijimo duomenų"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:520
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:157
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nepavyko užmegsti TLS ryšio: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:151
+#: tls/gnutls/gtlsconnection-gnutls.c:291
+#: tls/gnutls/gtlsconnection-gnutls.c:302
+#: tls/gnutls/gtlsconnection-gnutls.c:316
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
-#| msgid "Peer failed to perform TLS handshake"
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "Kita pusė neatliko TLS rankos paspaudimo: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:260
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "Kita pusė paprašė neteisingo pakartotinio TLS išankstinio suderinimo"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:324
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS ryšys netikėtai užsivėrė"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:176
+#: tls/gnutls/gtlsconnection-gnutls.c:339
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS ryšio porininkas neatsiuntė liudijimo"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:355
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Porininkas atsiuntė kritinį TLS perspėjimą: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:365
 msgid "Protocol version downgrade attack detected"
 msgstr "Aptikta protokolo versijos pažeminimo ataka"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:374
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -145,35 +141,35 @@ msgstr[0] "Žinutė yra per didelė DTLS ryšiui; didžiausia yra %u baitas"
 msgstr[1] "Žinutė yra per didelė DTLS ryšiui; didžiausia yra %u baitai"
 msgstr[2] "Žinutė yra per didelė DTLS ryšiui; didžiausia yra %u baitų"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
 msgstr "Baigėsi operacijai skirtas laikas"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:790
+#: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Klaida užmezgant TLS ryšį: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:893
-#: tls/openssl/gtlsconnection-openssl.c:269
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/gnutls/gtlsconnection-gnutls.c:818
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "Klaida atliekant TLS išankstinį suderinimą"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:939
-#: tls/gnutls/gtlsconnection-gnutls.c:999
-#: tls/openssl/gtlsconnection-openssl.c:426
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "Klaida skaitant duomenis iš TLS lizdo"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/gnutls/gtlsconnection-gnutls.c:1085
-#: tls/openssl/gtlsconnection-openssl.c:470
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "Klaida rašant duomenis į TLS lizdą"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1055
+#: tls/gnutls/gtlsconnection-gnutls.c:983
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -181,7 +177,7 @@ msgstr[0] "Žinutė, kurios dydis %lu baitas, yra per didelė DTLS ryšiui"
 msgstr[1] "Žinutė, kurios dydis %lu baitai, yra per didelė DTLS ryšiui"
 msgstr[2] "Žinutė, kurios dydis %lu baitų, yra per didelė DTLS ryšiui"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -189,7 +185,7 @@ msgstr[0] "(didžiausia yra %u baitas)"
 msgstr[1] "(didžiausia yra %u baitai)"
 msgstr[2] "(didžiausia yra %u baitų)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1104
+#: tls/gnutls/gtlsconnection-gnutls.c:1032
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Klaida atliekant TLS užvėrimą: %s"
@@ -207,53 +203,79 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Nepavyko įkelti sistemos pasitikėjimo saugyklos: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsserverconnection-gnutls.c:122
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "Liudijimas neturi privataus rakto"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:410
-#: tls/openssl/gtlsclientconnection-openssl.c:467
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Nepavyko sukurti TLS konteksto: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:192
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
 #, c-format
-#| msgid "Unacceptable TLS certificate"
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "Nepavyko nustatyti MAX protokolo į %ld: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
+#, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Nepriimtina TLS liudijimo įstaiga"
 
-#: tls/openssl/gtlsconnection-openssl.c:200
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "Santrauka per didelė RSA raktui"
 
-#: tls/openssl/gtlsconnection-openssl.c:507
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "Saugus perderinimas yra išjungtas"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+#| msgid "Connection is closed"
+msgid "%s: The connection is broken"
+msgstr "%s: ryšys yra sugadintas"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "Klaida atliekant TLS užvėrimą"
 
 #: tls/openssl/gtlsdatabase-openssl.c:227
-#| msgid "Could not create TLS context: %s"
 msgid "Could not create CA store"
 msgstr "Nepavyko sukurti liudijimų įstaigų saugyklos"
 
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
 #| msgid "Failed to load system trust store: %s"
-msgid "Failed to load file path: %s"
-msgstr "Nepavyko įkelti failo kelio: %s"
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Nepavyko įkelti sistemos pasitikėjimo sąrašo iš %s: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:247
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Yra problema su liudijimo privačiu raktu: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Yra problema su liudijimu: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Yra problema su liudijimo privačiu raktu: %s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr ""
+#~ "Kita pusė paprašė neteisingo pakartotinio TLS išankstinio suderinimo"
+
+#~| msgid "Failed to load system trust store: %s"
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Nepavyko įkelti failo kelio: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "Veiksmas blokuosis"
