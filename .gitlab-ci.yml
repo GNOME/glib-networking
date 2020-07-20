@@ -19,7 +19,7 @@ fedora-x86_64:
     when: on_failure
 
 fedora-x86_64-asan:
-  tags: [ privileged ]
+  tags: [ asan ]
   stage: build
   script:
     - meson -Db_sanitize=address
