@@ -10,9 +10,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-09-07 15:14+0000\n"
-"PO-Revision-Date: 2019-09-10 23:25+0800\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2020-07-07 13:28+0000\n"
+"PO-Revision-Date: 2020-07-22 22:19-0400\n"
 "Last-Translator: Dingzhong Chen <wsxy162@gmail.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
@@ -20,13 +21,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Gtranslator 3.32.1\n"
+"X-Generator: Poedit 2.4\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "代理服务器解析器内部错误。"
 
-#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -39,34 +40,35 @@ msgstr "连接被关闭"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:560
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "无法在 TLS 握手期间执行阻塞操作"
 
-#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1160
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "套接字 I/O 超时"
 
-#: tls/base/gtlsconnection-base.c:787
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "服务器需要 TLS 证书"
 
-#: tls/base/gtlsconnection-base.c:1381
+#: tls/base/gtlsconnection-base.c:1449
 msgid "Peer does not support safe renegotiation"
 msgstr "对等端不支持安全再协商"
 
-#: tls/base/gtlsconnection-base.c:1509 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:184
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "无法接受的 TLS 证书"
 
-#: tls/base/gtlsconnection-base.c:1930
+#: tls/base/gtlsconnection-base.c:2059
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "不支持接收标志"
 
-#: tls/base/gtlsconnection-base.c:2074
+#: tls/base/gtlsconnection-base.c:2211
 #, c-format
 msgid "Send flags are not supported"
 msgstr "不支持发送标志"
@@ -100,91 +102,87 @@ msgstr "无法分析 PEM 私钥：%s"
 msgid "No certificate data provided"
 msgstr "没有提供证书数据"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:520
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:157
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "无法创建 TLS 连接：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:151
+#: tls/gnutls/gtlsconnection-gnutls.c:291
+#: tls/gnutls/gtlsconnection-gnutls.c:302
+#: tls/gnutls/gtlsconnection-gnutls.c:316
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "执行 TLS 握手失败：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:260
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "请求了无效的 TLS 再握手"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:324
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS 连接被异常关闭"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:176
+#: tls/gnutls/gtlsconnection-gnutls.c:339
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS 连接的对方未发送证书"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:355
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "对方发送了致命 TLS 警报：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:365
 msgid "Protocol version downgrade attack detected"
 msgstr "检测到协议降级攻击"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:374
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "消息对于 DTLS 连接太长；最大为 %u 字节"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
 msgstr "操作超时"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:790
+#: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "执行 TLS 握手时出错：%s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:893
-#: tls/openssl/gtlsconnection-openssl.c:269
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/gnutls/gtlsconnection-gnutls.c:818
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "执行 TLS 握手时出错"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:939
-#: tls/gnutls/gtlsconnection-gnutls.c:999
-#: tls/openssl/gtlsconnection-openssl.c:426
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "从 TLS 套接字读取数据时出错"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/gnutls/gtlsconnection-gnutls.c:1085
-#: tls/openssl/gtlsconnection-openssl.c:470
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "向 TLS 套接字写入数据时出错"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1055
+#: tls/gnutls/gtlsconnection-gnutls.c:983
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "%lu 字节大小的消息对于 DTLS 连接太大了"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "（最大为 %u 字节）"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1104
+#: tls/gnutls/gtlsconnection-gnutls.c:1032
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "执行 TLS 关闭时出错：%s"
@@ -200,29 +198,45 @@ msgstr "无法载入系统信任存储：GnuTLS 未配置系统信任库"
 msgid "Failed to load system trust store: %s"
 msgstr "无法载入系统信任存储：%s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsserverconnection-gnutls.c:122
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "证书没有私钥"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:410
-#: tls/openssl/gtlsclientconnection-openssl.c:467
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "无法创建 TLS 上下文：%s"
 
-#: tls/openssl/gtlsconnection-openssl.c:192
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
+#, c-format
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "无法将 MAX 协议设置为 %ld：%s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "无法接受的 TLS 证书颁发机构"
 
-#: tls/openssl/gtlsconnection-openssl.c:200
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "摘要对于 RSA 密钥太大了"
 
-#: tls/openssl/gtlsconnection-openssl.c:507
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "安全重协商已被禁用"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s：连接已中断"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "执行 TLS 关闭时出错"
 
@@ -232,18 +246,26 @@ msgstr "无法创建 CA 存储"
 
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
-msgid "Failed to load file path: %s"
-msgstr "无法载入文件路径：%s"
+msgid "Failed to populate trust list from %s: %s"
+msgstr "无法从 %s 产生信任列表：%s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:247
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "证书私钥存在问题：%s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "证书存在问题：%s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "证书私钥存在问题：%s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "请求了无效的 TLS 再握手"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "无法载入文件路径：%s"
 
 #~ msgid "Operation would block"
 #~ msgstr "操作被阻塞"
