@@ -52,7 +52,7 @@ glib_dep = dependency('glib-2.0', version: '>= 2.63.0',
   fallback: ['glib', 'libglib_dep'])
 gio_dep = dependency('gio-2.0',
   fallback: ['glib', 'libgio_dep'])
-gobject_dep = dependency('gio-2.0',
+gobject_dep = dependency('gobject-2.0',
   fallback: ['glib', 'libgobject_dep'])
 gmodule_dep = dependency('gmodule-2.0',
   fallback: ['glib', 'libgmodule_dep'])
