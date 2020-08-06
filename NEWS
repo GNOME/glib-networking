@@ -1,3 +1,8 @@
+2.65.90 - August 6, 2020
+========================
+
+ - Many fixes to OpenSSL backend (!128, RUslan Marchenko)
+
 2.65.1 - July 2, 2020
 =====================
 
