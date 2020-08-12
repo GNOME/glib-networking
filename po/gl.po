@@ -5,29 +5,29 @@
 # Proxecto Trasno - Adaptación do software libre á lingua galega:  Se desexas
 # colaborar connosco, podes atopar máis información en <http://trasno.net>
 # Fran Diéguez <frandieguez@ubuntu.com>, 2011.
-# Fran Dieguez <frandieguez@gnome.org>, 2011, 2012, 2017, 2018, 2019.
+# Fran Dieguez <frandieguez@gnome.org>, 2011-2020.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
-"issues\n"
-"POT-Creation-Date: 2019-07-04 09:53+0000\n"
-"PO-Revision-Date: 2019-08-25 18:11+0200\n"
+"Project-Id-Version: unnamed project\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2020-07-07 13:28+0000\n"
+"PO-Revision-Date: 2020-08-13 01:06+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
-"Language-Team: Galician\n"
+"Language-Team: Galician <proxecto@trasno.gal>\n"
 "Language: gl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 3.36.0\n"
 "X-Project-Style: gnome\n"
 
 #: proxy/libproxy/glibproxyresolver.c:159
 msgid "Proxy resolver internal error."
 msgstr "Erro interno do resolvedor de proxy."
 
-#: tls/base/gtlsconnection-base.c:479 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -40,36 +40,37 @@ msgstr "A conexión está pechada"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:549
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr ""
 "Produciuse un erro ao realizar a operación de bloqueo durante a negociación "
 "TLS"
 
-#: tls/base/gtlsconnection-base.c:612 tls/base/gtlsconnection-base.c:1118
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "Tempo de espera do Socket de E/S superado"
 
-#: tls/base/gtlsconnection-base.c:1339
-msgid "Peer does not support safe renegotiation"
-msgstr "O par non admite a renegociación segura"
-
-#: tls/base/gtlsconnection-base.c:1382
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "O servidor require un certificado TLS"
 
-#: tls/base/gtlsconnection-base.c:1477 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:172
+#: tls/base/gtlsconnection-base.c:1449
+msgid "Peer does not support safe renegotiation"
+msgstr "O par non admite a renegociación segura"
+
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceptábel"
 
-#: tls/base/gtlsconnection-base.c:1884
+#: tls/base/gtlsconnection-base.c:2059
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "As bandeiras de recepción non se admiten"
 
-#: tls/base/gtlsconnection-base.c:2019
+#: tls/base/gtlsconnection-base.c:2211
 #, c-format
 msgid "Send flags are not supported"
 msgstr "As bandeiras de envío non se admiten"
@@ -103,45 +104,41 @@ msgstr "Non foi posíbel analizar a chave privada PEM: %s"
 msgid "No certificate data provided"
 msgstr "Non se forneceu ningún dato do certificado"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:522
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:157
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Non foi posíbel crear a conexión TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:291
+#: tls/gnutls/gtlsconnection-gnutls.c:302
+#: tls/gnutls/gtlsconnection-gnutls.c:316
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "O par fallou ao realizar a negociación TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:248
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "O par solicitou unha renegociación TLS inaceptábel"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:324
 msgid "TLS connection closed unexpectedly"
 msgstr "A conexión TLS pechouse de forma inesperada"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:164
+#: tls/gnutls/gtlsconnection-gnutls.c:339
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "O par da conexión TLS non enviou un certificado"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:355
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "O par envióu unha alerta TLS fatal: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:365
 msgid "Protocol version downgrade attack detected"
 msgstr "Ataque de degradación de versión do protocolo detectada"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:374
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -150,35 +147,35 @@ msgstr[0] ""
 msgstr[1] ""
 "O mensaxe é demasiado largo para a conexión DTLS; o máximo é %u bytes"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
 msgstr "A operación superou o tempo máximo permitido"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:780
+#: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Produciuse un erro ao realizar a negociación TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:883
-#: tls/openssl/gtlsconnection-openssl.c:257
-#: tls/openssl/gtlsconnection-openssl.c:307
+#: tls/gnutls/gtlsconnection-gnutls.c:818
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "Produciuse un erro ao realizar a negociación TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:929
-#: tls/gnutls/gtlsconnection-gnutls.c:989
-#: tls/openssl/gtlsconnection-openssl.c:414
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "Produciuse un erro ao ler datos do socket TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1011
-#: tls/gnutls/gtlsconnection-gnutls.c:1075
-#: tls/openssl/gtlsconnection-openssl.c:458
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "Produciuse un erro ao escribir datos no socket TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1045
+#: tls/gnutls/gtlsconnection-gnutls.c:983
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -187,14 +184,14 @@ msgstr[0] ""
 msgstr[1] ""
 "O mensaxe de %lu bytes de tamaño é demasiado largo para a conexión DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1047
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(o máximo é %u byte)"
 msgstr[1] "(o máximo é %u bytes)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1094
+#: tls/gnutls/gtlsconnection-gnutls.c:1032
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Produciuse un erro ao pechar o TLS: %s"
@@ -212,29 +209,47 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Produciuse un fallo ao cargar o almacén de confianza do sistema: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsserverconnection-gnutls.c:122
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "O certificado no ten unha chave privada"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:412
-#: tls/openssl/gtlsclientconnection-openssl.c:469
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Non foi posíbel crear o contexto de TLS: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:180
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
+#, c-format
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "Non foi posíbel estabelecer o protocolo MAX a %ld: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Certificado de autoridade TLS inaceptábel"
 
-#: tls/openssl/gtlsconnection-openssl.c:188
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "O Digest é demasiado grande para unha chave RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:495
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "A renegociación segura está desactivada"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+#| msgid "Connection is closed"
+msgid "%s: The connection is broken"
+msgstr "%s: A conexión está rota"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "Produciuse un erro ao pechar o TLS"
 
@@ -244,18 +259,27 @@ msgstr "Non foi posíbel crear o almacén de CA: %s"
 
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
-msgid "Failed to load file path: %s"
-msgstr "Produciuse un fallo ao cargar a ruta do ficheiro: %s"
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Produciuse un fallo ao cargar a lista de confianza desde %s: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:247
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Hai un problema coa chave privada do certificado: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Hai un problema co certificado: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Hai un problema coa chave privada do certificado: %s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "O par solicitou unha renegociación TLS inaceptábel"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Produciuse un fallo ao cargar a ruta do ficheiro: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "A operación bloquearase"
