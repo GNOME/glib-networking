@@ -120,6 +120,11 @@ copy_proxies (gchar **proxies)
   return copy;
 }
 
+/* FIXME: this function should be removed and replaced by a call to
+ * px_proxy_factory_free_proxies() once libproxy 0.4.16 is released.
+ * Sadly libproxy does not have any version check macros so it will
+ * have to be a hard dep.
+ */
 static void
 free_libproxy_proxies (gchar **proxies)
 {
