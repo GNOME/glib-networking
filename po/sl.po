@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-08-24 14:41+0000\n"
-"PO-Revision-Date: 2019-08-24 19:37+0200\n"
+"POT-Creation-Date: 2020-08-15 09:48+0000\n"
+"PO-Revision-Date: 2020-08-19 21:44+0200\n"
 "Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl_SI\n"
@@ -20,13 +20,13 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
 "%100==4 ? 3 : 0);\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.3\n"
 
-#: proxy/libproxy/glibproxyresolver.c:159
+#: proxy/libproxy/glibproxyresolver.c:164
 msgid "Proxy resolver internal error."
 msgstr "Notranja napaka razreševalnika posredniškega strežnika."
 
-#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -39,34 +39,35 @@ msgstr "Povezava je zaprta"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:560
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Ni mogoče izvesti opravila med izvajanjem izmenjave signalov TLS"
 
-#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1160
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "Vtič V/I naprave je časovno potekel"
 
-#: tls/base/gtlsconnection-base.c:787
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "Strežnik zahteva potrdilo TLS"
 
-#: tls/base/gtlsconnection-base.c:1381
+#: tls/base/gtlsconnection-base.c:1449
 msgid "Peer does not support safe renegotiation"
 msgstr "Soležnik ne omogoča varnega usklajevanja"
 
-#: tls/base/gtlsconnection-base.c:1509 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:184
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nesprejemljivo potrdilo TLS"
 
-#: tls/base/gtlsconnection-base.c:1930
+#: tls/base/gtlsconnection-base.c:2058
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Prejemanje zastavic ni podprto"
 
-#: tls/base/gtlsconnection-base.c:2074
+#: tls/base/gtlsconnection-base.c:2210
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Pošiljanje zastavic ni podprto"
@@ -100,45 +101,41 @@ msgstr "Zasebnega ključa PEM ni mogoče razčleniti: %s"
 msgid "No certificate data provided"
 msgstr "Podatki potrdila niso podani"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:520
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:157
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Povezave TLS ni mogoče ustvariti: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:151
+#: tls/gnutls/gtlsconnection-gnutls.c:291
+#: tls/gnutls/gtlsconnection-gnutls.c:302
+#: tls/gnutls/gtlsconnection-gnutls.c:316
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "Soležniku ni uspelo izvesti izmenjave signalov TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:260
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "Soležnik je zahteval nedovoljeno ponovno izmenjavo signalov TLS"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:324
 msgid "TLS connection closed unexpectedly"
 msgstr "Povezava TLS je nepričakovano končana"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:176
+#: tls/gnutls/gtlsconnection-gnutls.c:339
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "Povezani soležnik ni vrnil veljavnega potrdila TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:355
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Soležnik vrača usodno opozorilo TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:365
 msgid "Protocol version downgrade attack detected"
 msgstr "Zaznan je napad ponižanja različice protokola"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:374
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -152,35 +149,35 @@ msgstr[2] ""
 msgstr[3] ""
 "Sporočilo je preveliko za povezavo DTLS; največja možna vrednost je %u bajti."
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
 msgstr "Opravilo je časovno poteklo"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:790
+#: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Napaka med izvajanjem izmenjave signalov TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:893
-#: tls/openssl/gtlsconnection-openssl.c:269
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/gnutls/gtlsconnection-gnutls.c:818
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "Napaka med izvajanjem izmenjave signalov TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:939
-#: tls/gnutls/gtlsconnection-gnutls.c:999
-#: tls/openssl/gtlsconnection-openssl.c:426
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "Napaka med branjem podatkov iz vtiča TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/gnutls/gtlsconnection-gnutls.c:1085
-#: tls/openssl/gtlsconnection-openssl.c:470
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "Napaka med zapisovanjem podatkov v vtič TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1055
+#: tls/gnutls/gtlsconnection-gnutls.c:982
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -189,7 +186,7 @@ msgstr[1] "Sporočilo velikosti %lu bajta je preveliko za povezavo DTLS."
 msgstr[2] "Sporočilo velikosti %lu bajtov je preveliko za povezavo DTLS."
 msgstr[3] "Sporočilo velikosti %lu bajtov je preveliko za povezavo DTLS."
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#: tls/gnutls/gtlsconnection-gnutls.c:984
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -198,12 +195,12 @@ msgstr[1] "(največ %u bajt)"
 msgstr[2] "(največ %u bajta)"
 msgstr[3] "(največ %u bajti)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1104
+#: tls/gnutls/gtlsconnection-gnutls.c:1031
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Napaka med izvajanjem zapiranja TLS: %s"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:553
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
 msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
@@ -211,34 +208,56 @@ msgstr ""
 "Nalaganje varne sistemske shrambe je spodletelo: protokol GnuTLS ni ustrezno "
 "nastavljen"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:187
+#: tls/gnutls/gtlsdatabase-gnutls.c:572 tls/openssl/gtlsdatabase-openssl.c:187
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Nalaganje varne sistemske shrambe je spodletelo: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:454
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Nalaganje varnega seznama iz %s je spodletelo: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:122
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "Potrdilo nima določenega zasebnega ključa"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:410
-#: tls/openssl/gtlsclientconnection-openssl.c:467
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Povezave TLS ni mogoče ustvariti: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:192
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
+#, c-format
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "Protokola MAX ni mogoče nastaviti na %ld: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Nesprejemljiv pooblastitelj potrdila TLS"
 
-#: tls/openssl/gtlsconnection-openssl.c:200
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "Povzetek je preobsežen za ključ RSA"
 
-#: tls/openssl/gtlsconnection-openssl.c:507
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "Varno ponovno povezovanje je onemogočeno"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: povezava je okvarjena."
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "Napaka med izvajanjem zapiranja TLS"
 
@@ -246,20 +265,23 @@ msgstr "Napaka med izvajanjem zapiranja TLS"
 msgid "Could not create CA store"
 msgstr "Ni mogoče ustvariti shrambe CA"
 
-#: tls/openssl/gtlsfiledatabase-openssl.c:454
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:247
 #, c-format
-msgid "Failed to load file path: %s"
-msgstr "Nalaganje poti datoteke je spodletelo: %s"
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Prišlo je do napake v zasebnem ključu potrdila: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Prišlo je do napake med uporabo potrdila: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Prišlo je do napake v zasebnem ključu potrdila: %s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "Soležnik je zahteval nedovoljeno ponovno izmenjavo signalov TLS"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Nalaganje poti datoteke je spodletelo: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "Opravilo bi zaustavilo delovanje"
