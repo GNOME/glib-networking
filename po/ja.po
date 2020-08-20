@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
 "POT-Creation-Date: 2020-08-06 21:52+0000\n"
-"PO-Revision-Date: 2020-02-12 00:00+0900\n"
+"PO-Revision-Date: 2020-08-20 19:00+0900\n"
 "Last-Translator: sicklylife <translation@sicklylife.jp>\n"
 "Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
 "Language: ja\n"
@@ -218,10 +218,9 @@ msgstr "TLS コンテキストを作成できませんでした: %s"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:326
 #: tls/openssl/gtlsserverconnection-openssl.c:362
-#, fuzzy, c-format
-#| msgid "Could not parse PEM certificate: %s"
+#, c-format
 msgid "Could not set MAX protocol to %ld: %s"
-msgstr "PEM 形式の証明書を解析できませんでした: %s"
+msgstr "MAX プロトコルを %ld に設定できませんでした: %s"
 
 #: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
@@ -237,10 +236,9 @@ msgid "Secure renegotiation is disabled"
 msgstr ""
 
 #: tls/openssl/gtlsconnection-openssl.c:234
-#, fuzzy, c-format
-#| msgid "Connection is closed"
+#, c-format
 msgid "%s: The connection is broken"
-msgstr "コネクションが切断されています"
+msgstr "%s: コネクションが切断されています"
 
 #: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
@@ -248,7 +246,7 @@ msgstr "TLS クローズ実行中にエラーが発生しました"
 
 #: tls/openssl/gtlsdatabase-openssl.c:227
 msgid "Could not create CA store"
-msgstr ""
+msgstr "CA ストアを作成できませんでした"
 
 #: tls/openssl/gtlsserverconnection-openssl.c:179
 #: tls/openssl/gtlsserverconnection-openssl.c:247
