@@ -551,6 +551,19 @@ g_tls_connection_openssl_pop_io (GTlsConnectionBase  *tls,
                                                                                       success, error);
 }
 
+static gboolean
+g_tls_connection_openssl_check (GTlsConnectionBase *tls,
+                                GIOCondition        direction)
+{
+  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
+  SSL *ssl = g_tls_connection_openssl_get_ssl (openssl);
+
+  if (direction & G_IO_IN)
+    return SSL_has_pending (ssl);
+
+  return FALSE;
+}
+
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
                                void                  *buffer,
@@ -687,6 +700,7 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
   base_class->push_io                                    = g_tls_connection_openssl_push_io;
   base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
+  base_class->check                                      = g_tls_connection_openssl_check;
   base_class->read_fn                                    = g_tls_connection_openssl_read;
   base_class->write_fn                                   = g_tls_connection_openssl_write;
   base_class->close_fn                                   = g_tls_connection_openssl_close;
