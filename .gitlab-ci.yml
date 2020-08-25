@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/glib-networking/master:v12
+image: registry.gitlab.gnome.org/gnome/glib-networking/master:v14
 
 fedora-x86_64:
   stage: build
@@ -10,7 +10,7 @@ fedora-x86_64:
             -Dgnome_proxy=enabled
             -Dwerror=true
             _build/
-    - ninja -C _build/
+    - meson compile -C _build/
     - meson test -v -C _build/ --repeat=500
     - meson install -C _build/
   artifacts:
@@ -29,7 +29,7 @@ fedora-x86_64-asan:
             -Dgnome_proxy=enabled
             -Dwerror=true
             _build/
-    - ninja -C _build/
+    - meson compile -C _build/
     - ASAN_OPTIONS=fast_unwind_on_malloc=0 meson test --verbose --timeout-multiplier=10 -C _build/
   artifacts:
     paths:
@@ -45,7 +45,7 @@ fedora-x86_64-scan-build:
             -Dgnome_proxy=enabled
             -Dwerror=true
             _build/
-    - ninja -C _build/ scan-build
+    - scan-build meson compile -C _build/
     - bash -c 'if [[ -n "$(ls -A _build/meson-logs/scanbuild/)" ]]; then echo "Scan build log found, assuming defects exist"; exit 1; fi'
   artifacts:
     paths:
