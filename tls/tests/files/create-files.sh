@@ -80,10 +80,6 @@ msg "Concatenating server certificate and private key into a single file"
 cat server.pem > server-and-key.pem
 cat server-key.pem >> server-and-key.pem
 
-msg "Updating digest of the new certificate in connections.c"
-DIGEST=$( openssl x509 -outform der -in server.pem | openssl sha256 -binary | base64 | sed 's/\//\\\//g' )
-sed -i "/define SERVER_CERT_DIGEST_B64/s/\"\([^\"]\+\)\"/\"$DIGEST\"/" ../connection.c
-
 msg "Converting server certificate from PEM to DER"
 openssl x509 -in server.pem -outform DER -out server.der
 
