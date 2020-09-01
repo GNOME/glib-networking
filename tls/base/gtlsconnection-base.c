@@ -2184,7 +2184,7 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
       return nwrote;
     }
 
-  g_tls_log_debug (tls, "writting data to TLS connection has failed: %s", status_to_string (status));
+  g_tls_log_debug (tls, "writing data to TLS connection has failed: %s", status_to_string (status));
   return -1;
 }
 
@@ -2221,7 +2221,7 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
       return nwrote;
     }
 
-  g_tls_log_debug (tls, "writting messages to TLS connection has failed: %s", status_to_string (status));
+  g_tls_log_debug (tls, "writing messages to TLS connection has failed: %s", status_to_string (status));
   return -1;
 }
 
