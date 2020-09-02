@@ -458,6 +458,165 @@ g_tls_connection_openssl_retrieve_peer_certificate (GTlsConnectionBase *tls)
   return G_TLS_CERTIFICATE (chain);
 }
 
+static gboolean
+openssl_get_binding_tls_unique (GTlsConnectionOpenssl  *tls,
+                                GByteArray             *data,
+                                GError                **error)
+{
+  SSL *ssl = g_tls_connection_openssl_get_ssl (tls);
+  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
+  gboolean resumed = SSL_session_reused (ssl);
+  size_t len = 64;
+
+  /* This is a drill */
+  if (!data)
+    return TRUE;
+
+  do {
+    g_byte_array_set_size (data, len);
+    if ((resumed && is_client) || (!resumed && !is_client))
+      len = SSL_get_peer_finished (ssl, data->data, data->len);
+    else
+      len = SSL_get_finished (ssl, data->data, data->len);
+  } while (len > data->len);
+
+  if (len > 0)
+    {
+      g_byte_array_set_size (data, len);
+      return TRUE;
+    }
+  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+               _("Channel binding data tls-unique is not available"));
+  return FALSE;
+}
+
+static gboolean
+openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
+                                          GByteArray             *data,
+                                          GError                **error)
+{
+  SSL *ssl = g_tls_connection_openssl_get_ssl (tls);
+  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
+  int algo_nid;
+  const EVP_MD *algo = NULL;
+  X509 *crt;
+
+  if (is_client)
+    crt = SSL_get_peer_certificate (ssl);
+  else
+    crt = SSL_get_certificate (ssl);
+
+  if (!crt)
+    {
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+                   _("X.509 Certificate is not available on the connection"));
+      return FALSE;
+    }
+
+  if (!OBJ_find_sigid_algs (X509_get_signature_nid (crt), &algo_nid, NULL))
+    {
+      X509_free (crt);
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                   _("Unable to obtain certificate signature algorithm"));
+      return FALSE;
+    }
+
+  /* This is a drill */
+  if (!data)
+    {
+      X509_free (crt);
+      return TRUE;
+    }
+
+  switch (algo_nid)
+    {
+    case NID_md5:
+    case NID_sha1:
+      algo_nid = NID_sha256;
+      break;
+    case NID_md5_sha1:
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+                   _("Current X.509 certificate uses unknown or unsupported signature algorithm"));
+      return FALSE;
+    }
+
+  g_byte_array_set_size (data, EVP_MAX_MD_SIZE);
+  algo = EVP_get_digestbynid (algo_nid);
+  if (X509_digest (crt, algo, data->data, &(data->len)))
+    {
+      X509_free (crt);
+      return TRUE;
+    }
+
+  X509_free (crt);
+  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+               _("Failed to generate X.509 certificate digest"));
+  return FALSE;
+}
+
+#define RFC5705_LABEL_DATA "EXPORTER-Channel-Binding"
+#define RFC5705_LABEL_LEN 24
+static gboolean
+openssl_get_binding_tls_exporter (GTlsConnectionOpenssl  *tls,
+                                  GByteArray             *data,
+                                  GError                **error)
+{
+  SSL *ssl = g_tls_connection_openssl_get_ssl (tls);
+  size_t  ctx_len = 0;
+  guint8 *context = (guint8 *)"";
+  int ret;
+
+  if (!data)
+    return TRUE;
+
+  g_byte_array_set_size (data, 32);
+  ret = SSL_export_keying_material (ssl,
+                                    data->data, data->len,
+                                    RFC5705_LABEL_DATA, RFC5705_LABEL_LEN,
+                                    context, ctx_len,
+                                    1 /* use context */);
+
+  if (ret > 0)
+    return TRUE;
+
+  if (ret < 0)
+    g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+                 _("TLS Connection does not support TLS-Exporter feature"));
+  else
+    g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                 _("Unexpected error while exporting keying data"));
+
+  return FALSE;
+}
+
+static gboolean
+g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase      *tls,
+                                                   GTlsChannelBindingType   type,
+                                                   GByteArray              *data,
+                                                   GError                 **error)
+{
+  GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
+
+  /* XXX: remove the cast once public enum supports exporter */
+  switch ((int)type)
+    {
+    case G_TLS_CHANNEL_BINDING_TLS_UNIQUE:
+      return openssl_get_binding_tls_unique (openssl, data, error);
+      /* fall through */
+    case G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT:
+      return openssl_get_binding_tls_server_end_point (openssl, data, error);
+      /* fall through */
+    case 100500:
+      return openssl_get_binding_tls_exporter (openssl, data, error);
+      /* fall through */
+    default:
+      /* Anyone to implement tls-unique-for-telnet? */
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
+                   _("Requested channel binding type is not implemented"));
+    }
+  return FALSE;
+}
+
 static GTlsConnectionBaseStatus
 g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
                                                      gint64               timeout,
@@ -685,6 +844,7 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_openssl_handshake_thread_handshake;
   base_class->retrieve_peer_certificate                  = g_tls_connection_openssl_retrieve_peer_certificate;
+  base_class->get_channel_binding_data                   = g_tls_connection_openssl_get_channel_binding_data;
   base_class->push_io                                    = g_tls_connection_openssl_push_io;
   base_class->pop_io                                     = g_tls_connection_openssl_pop_io;
   base_class->read_fn                                    = g_tls_connection_openssl_read;
