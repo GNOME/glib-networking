@@ -79,9 +79,6 @@ struct _GTlsConnectionBaseClass
 
   gboolean                    (*is_session_resumed)         (GTlsConnectionBase   *tls);
 
-  gboolean                    (*check)                      (GTlsConnectionBase   *tls,
-                                                             GIOCondition          direction);
-
   void                        (*push_io)                    (GTlsConnectionBase   *tls,
                                                              GIOCondition          direction,
                                                              gint64                timeout,
