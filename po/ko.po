@@ -1,15 +1,15 @@
 # Korean translation for glib-networking.
 # This file is distributed under the same license as the glib-networking package.
 #
-# Changwoo Ryu <cwryu@debian.org>, 2011-2013, 2017-2019.
+# Changwoo Ryu <cwryu@debian.org>, 2011-2013, 2017-2020.
 #
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-07-04 09:53+0000\n"
-"PO-Revision-Date: 2019-08-26 19:46+0900\n"
+"POT-Creation-Date: 2020-07-07 13:28+0000\n"
+"PO-Revision-Date: 2020-08-31 00:55+0900\n"
 "Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
 "Language-Team: Korean <gnome-kr@googlegroups.com>\n"
 "Language: ko\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "프록시 리졸버 내부 오류."
 
-#: tls/base/gtlsconnection-base.c:479 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -35,34 +35,35 @@ msgstr "연결이 닫혔습니다"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:549
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "TLS 핸드셰이킹 중에 블로킹 동작을 수행할 수 없습니다."
 
-#: tls/base/gtlsconnection-base.c:612 tls/base/gtlsconnection-base.c:1118
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "소켓 입출력 제한 시간이 넘었습니다"
 
-#: tls/base/gtlsconnection-base.c:1339
-msgid "Peer does not support safe renegotiation"
-msgstr "상대가 안전한 재협상을 지원하지 않습니다"
-
-#: tls/base/gtlsconnection-base.c:1382
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "서버에 TLS 인증서가 필요합니다"
 
-#: tls/base/gtlsconnection-base.c:1477 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:172
+#: tls/base/gtlsconnection-base.c:1449
+msgid "Peer does not support safe renegotiation"
+msgstr "상대가 안전한 재협상을 지원하지 않습니다"
+
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "TLS 핸드셰이킹을 받아들일 수 없습니다"
 
-#: tls/base/gtlsconnection-base.c:1884
+#: tls/base/gtlsconnection-base.c:2059
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "받기 플래그를 지원하지 않습니다"
 
-#: tls/base/gtlsconnection-base.c:2019
+#: tls/base/gtlsconnection-base.c:2211
 #, c-format
 msgid "Send flags are not supported"
 msgstr "보내기 플래그를 지원하지 않습니다"
@@ -96,92 +97,88 @@ msgstr "PEM 개인 키를 파싱할 수 없습니다: %s"
 msgid "No certificate data provided"
 msgstr "인증서 데이터를 제공하지 않았습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:522
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:157
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS 연결을 만들 수 없습니다: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:291
+#: tls/gnutls/gtlsconnection-gnutls.c:302
+#: tls/gnutls/gtlsconnection-gnutls.c:316
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "상대편이 TLS 핸드셰이킹에 실패했습니다: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:248
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "상대편이 잘못된 TLS 핸드셰이킹을 요청했습니다"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:324
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS 연결이 예상치 못하게 닫혔습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:164
+#: tls/gnutls/gtlsconnection-gnutls.c:339
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS 연결 상대가 인증서를 보내지 않았습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:355
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "상대가 치명적인 TLS 알림을 보냈습니다: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:365
 msgid "Protocol version downgrade attack detected"
 msgstr "프로토콜 버전 다운그레이드 공격 감지됨"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:374
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] ""
 "DTLS 연결에 사용하기에는 메시지 크기가 너무 큽니다: 최대는 %u바이트입니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
 msgstr "작업이 제한 시간을 넘었습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:780
+#: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS 핸드셰이킹에 오류가 발생했습니다: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:883
-#: tls/openssl/gtlsconnection-openssl.c:257
-#: tls/openssl/gtlsconnection-openssl.c:307
+#: tls/gnutls/gtlsconnection-gnutls.c:818
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "TLS 핸드셰이킹에 오류가 발생했습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:929
-#: tls/gnutls/gtlsconnection-gnutls.c:989
-#: tls/openssl/gtlsconnection-openssl.c:414
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "TLS 소켓에서 데이터를 읽는데 오류가 발생했습니다"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1011
-#: tls/gnutls/gtlsconnection-gnutls.c:1075
-#: tls/openssl/gtlsconnection-openssl.c:458
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1013
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "TLS 소켓에 데이터를 쓰는데 오류가 발생했습니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1045
+#: tls/gnutls/gtlsconnection-gnutls.c:983
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "크기가 %lu바이트인 메시지는 DTLS 연결에 사용하기에는 너무 큽니다"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1047
+#: tls/gnutls/gtlsconnection-gnutls.c:985
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(최대는 %u바이트입니다)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1094
+#: tls/gnutls/gtlsconnection-gnutls.c:1032
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS 닫기에 오류가 발생했습니다: %s"
@@ -199,29 +196,46 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "시스템 신뢰 정보를 읽어들이는데 실패했습니다: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsserverconnection-gnutls.c:122
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "인증서에 개인 키가 없습니다"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:412
-#: tls/openssl/gtlsclientconnection-openssl.c:469
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "TLS 컨텍스트를 만들 수 없습니다: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:180
+# 참고: OpenSSL SSL_CTX_set_max_proto_version()
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
+#, c-format
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "최대 프로토콜 버전을 %ld(으)로 설정할 수 없습니다: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "TLS 인증 기관을 받아들일 수 없습니다"
 
-#: tls/openssl/gtlsconnection-openssl.c:188
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "다이제스트 값이 RSA 키에서 너무 큽니다"
 
-#: tls/openssl/gtlsconnection-openssl.c:495
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "보안 재협상 기능을 사용하지 않습니다"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: 연결이 끊겼습니다"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "TLS 닫기에 오류가 발생했습니다"
 
@@ -231,18 +245,26 @@ msgstr "인증서 저장소를 만들 수 없습니다: %s"
 
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
-msgid "Failed to load file path: %s"
-msgstr "파일 경로를 읽어들이는데 실패했습니다: %s"
+msgid "Failed to populate trust list from %s: %s"
+msgstr "%s에서 신뢰 목록을 덧붙이는데 실패했습니다: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:247
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "인증서 비밀 키에 문제가 있습니다: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "인증서에 문제가 있습니다: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "인증서 비밀 키에 문제가 있습니다: %s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "상대편이 잘못된 TLS 핸드셰이킹을 요청했습니다"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "파일 경로를 읽어들이는데 실패했습니다: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "작업이 중지됩니다"
