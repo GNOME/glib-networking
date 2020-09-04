@@ -950,25 +950,30 @@ tls_source_sync (GTlsConnectionBaseSource *tls_source)
 {
   GTlsConnectionBase *tls = tls_source->tls;
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-  gboolean check;
-  gboolean base_check;
-  gboolean io_waiting;
-  gboolean op_waiting;
+  gboolean io_waiting, op_waiting;
 
   /* Was the source destroyed earlier in this main context iteration? */
   if (g_source_is_destroyed ((GSource *)tls_source))
     return;
 
-  check = g_tls_connection_base_check (tls, tls_source->condition);
-  base_check = g_tls_connection_base_base_check (tls, tls_source->condition);
+  g_mutex_lock (&priv->op_mutex);
+  if (((tls_source->condition & G_IO_IN) && priv->reading) ||
+      ((tls_source->condition & G_IO_OUT) && priv->writing) ||
+      (priv->handshaking && !priv->need_finish_handshake))
+    op_waiting = TRUE;
+  else
+    op_waiting = FALSE;
 
-  op_waiting = !check && base_check;
-  io_waiting = check && !base_check;
+  if (!op_waiting && !priv->need_handshake &&
+      !priv->need_finish_handshake)
+    io_waiting = TRUE;
+  else
+    io_waiting = FALSE;
+  g_mutex_unlock (&priv->op_mutex);
 
   if (op_waiting == tls_source->op_waiting &&
       io_waiting == tls_source->io_waiting)
     return;
-
   tls_source->op_waiting = op_waiting;
   tls_source->io_waiting = io_waiting;
 
