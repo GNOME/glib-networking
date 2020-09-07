@@ -1,29 +1,29 @@
 # Hungarian translation for glib-networking.
-# Copyright (C) 2011, 2012, 2017, 2018, 2019. Free Software Foundation, Inc.
+# Copyright (C) 2011, 2012, 2017, 2018, 2019, 2020. Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-networking package.
 #
 # Gabor Kelemen <kelemeng at gnome dot hu>, 2011, 2012.
-# Balázs Úr <ur.balazs at fsf dot hu>, 2012, 2017, 2018, 2019.
+# Balázs Úr <ur.balazs at fsf dot hu>, 2012, 2017, 2018, 2019, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2019-08-18 19:17+0000\n"
-"PO-Revision-Date: 2019-08-24 23:22+0200\n"
+"POT-Creation-Date: 2020-09-01 18:13+0000\n"
+"PO-Revision-Date: 2020-09-07 22:44+0200\n"
 "Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 18.12.3\n"
+"X-Generator: Lokalize 19.12.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: proxy/libproxy/glibproxyresolver.c:159
+#: proxy/libproxy/glibproxyresolver.c:164
 msgid "Proxy resolver internal error."
 msgstr "Proxyfeloldó belső hiba."
 
-#: tls/base/gtlsconnection-base.c:490 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -36,34 +36,35 @@ msgstr "A kapcsolat lezárva"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:560
+#: tls/base/gtlsconnection-base.c:618
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "A blokkoló művelet nem végezhető el a TLS-kézfogás alatt"
 
-#: tls/base/gtlsconnection-base.c:623 tls/base/gtlsconnection-base.c:1160
+#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
 msgstr "A foglalat túllépte az I/O időkorlátot"
 
-#: tls/base/gtlsconnection-base.c:787
+#: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
 msgstr "A kiszolgáló TLS-tanúsítványt kért"
 
-#: tls/base/gtlsconnection-base.c:1381
+#: tls/base/gtlsconnection-base.c:1449
 msgid "Peer does not support safe renegotiation"
 msgstr "A partner nem támogatja a biztonságos újraegyeztetést"
 
-#: tls/base/gtlsconnection-base.c:1509 tls/gnutls/gtlsconnection-gnutls.c:419
-#: tls/openssl/gtlsconnection-openssl.c:184
+#: tls/base/gtlsconnection-base.c:1593 tls/gnutls/gtlsconnection-gnutls.c:347
+#: tls/openssl/gtlsconnection-openssl.c:189
+#: tls/openssl/gtlsconnection-openssl.c:484
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Elfogadhatatlan TLS-tanúsítvány"
 
-#: tls/base/gtlsconnection-base.c:1930
+#: tls/base/gtlsconnection-base.c:2058
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "A fogadási jelzők nem támogatottak"
 
-#: tls/base/gtlsconnection-base.c:2074
+#: tls/base/gtlsconnection-base.c:2210
 #, c-format
 msgid "Send flags are not supported"
 msgstr "A küldési jelzők nem támogatottak"
@@ -97,100 +98,95 @@ msgstr "A PEM személyes kulcs nem dolgozható fel: %s"
 msgid "No certificate data provided"
 msgstr "Nincsenek megadva tanúsítványadatok"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:224
-#: tls/openssl/gtlsclientconnection-openssl.c:520
-#: tls/openssl/gtlsserverconnection-openssl.c:399
+#: tls/gnutls/gtlsconnection-gnutls.c:139
+#: tls/gnutls/gtlsconnection-gnutls.c:157
+#: tls/openssl/gtlsclientconnection-openssl.c:430
+#: tls/openssl/gtlsserverconnection-openssl.c:482
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nem sikerült létrehozni a TLS-kapcsolatot: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:353
-#: tls/gnutls/gtlsconnection-gnutls.c:364
-#: tls/gnutls/gtlsconnection-gnutls.c:388
-#: tls/openssl/gtlsconnection-openssl.c:151
+#: tls/gnutls/gtlsconnection-gnutls.c:291
+#: tls/gnutls/gtlsconnection-gnutls.c:302
+#: tls/gnutls/gtlsconnection-gnutls.c:316
+#: tls/openssl/gtlsconnection-openssl.c:156
 #, c-format
-#| msgid "Peer failed to perform TLS handshake"
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "A partner nem tudta végrehajtani a TLS-kézfogást: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:375
-#: tls/openssl/gtlsconnection-openssl.c:260
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "A partner illegális ismételt TLS-kézfogást kért"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:396
+#: tls/gnutls/gtlsconnection-gnutls.c:324
 msgid "TLS connection closed unexpectedly"
 msgstr "A TLS-kapcsolat váratlanul befejeződött"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:411
-#: tls/openssl/gtlsconnection-openssl.c:176
+#: tls/gnutls/gtlsconnection-gnutls.c:339
+#: tls/openssl/gtlsconnection-openssl.c:181
 msgid "TLS connection peer did not send a certificate"
 msgstr "A TLS kapcsolat partner nem küldött tanúsítványt"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:427
+#: tls/gnutls/gtlsconnection-gnutls.c:355
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "A partner végzetes TLS riasztást küldött: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:365
 msgid "Protocol version downgrade attack detected"
 msgstr "Protokoll verzió visszaminősítéses támadás észlelve"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:374
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "Az üzenet túl nagy a DTLS kapcsolathoz; legfeljebb %u bájt lehet"
 msgstr[1] "Az üzenet túl nagy a DTLS kapcsolathoz; legfeljebb %u bájt lehet"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:455
+#: tls/gnutls/gtlsconnection-gnutls.c:383
 msgid "The operation timed out"
 msgstr "A művelet túllépte az időkorlátot"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:790
+#: tls/gnutls/gtlsconnection-gnutls.c:715
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Hiba a TLS-kézfogás végrehajtásakor: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:893
-#: tls/openssl/gtlsconnection-openssl.c:269
-#: tls/openssl/gtlsconnection-openssl.c:319
+#: tls/gnutls/gtlsconnection-gnutls.c:818
+#: tls/openssl/gtlsconnection-openssl.c:427
+#: tls/openssl/gtlsconnection-openssl.c:477
 msgid "Error performing TLS handshake"
 msgstr "Hiba a TLS-kézfogás végrehajtásakor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:939
-#: tls/gnutls/gtlsconnection-gnutls.c:999
-#: tls/openssl/gtlsconnection-openssl.c:426
+#: tls/gnutls/gtlsconnection-gnutls.c:867
+#: tls/gnutls/gtlsconnection-gnutls.c:927
+#: tls/openssl/gtlsconnection-openssl.c:588
 msgid "Error reading data from TLS socket"
 msgstr "Hiba az adatok olvasásakor a TLS-foglalatból"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1021
-#: tls/gnutls/gtlsconnection-gnutls.c:1085
-#: tls/openssl/gtlsconnection-openssl.c:470
+#: tls/gnutls/gtlsconnection-gnutls.c:949
+#: tls/gnutls/gtlsconnection-gnutls.c:1012
+#: tls/openssl/gtlsconnection-openssl.c:632
 msgid "Error writing data to TLS socket"
 msgstr "Hiba az adatok TLS-foglalatba írásakor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1055
+#: tls/gnutls/gtlsconnection-gnutls.c:982
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "A(z) %lu bájt méretű üzenet túl nagy a DTLS kapcsolathoz"
 msgstr[1] "A(z) %lu bájt méretű üzenet túl nagy a DTLS kapcsolathoz"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#: tls/gnutls/gtlsconnection-gnutls.c:984
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(legfeljebb %u bájt)"
 msgstr[1] "(legfeljebb %u bájt)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1104
+#: tls/gnutls/gtlsconnection-gnutls.c:1031
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Hiba a TLS-lezárás végrehajtásakor: %s"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:553
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
 msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
@@ -198,34 +194,59 @@ msgstr ""
 "Nem sikerült betölteni a rendszer megbízhatósági tárát: a GnuTLS nem "
 "rendszer megbízhatósággal lett beállítva"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:558 tls/openssl/gtlsdatabase-openssl.c:187
+#: tls/gnutls/gtlsdatabase-gnutls.c:572 tls/openssl/gtlsdatabase-openssl.c:187
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Nem sikerült betölteni a rendszer megbízhatósági tárát: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:137
-#: tls/openssl/gtlsserverconnection-openssl.c:90
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:454
+#, c-format
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Nem sikerült feltölteni a megbízhatósági listát innen: %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:122
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "A tanúsítványnak nincs személyes kulcsa"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:410
-#: tls/openssl/gtlsclientconnection-openssl.c:467
-#: tls/openssl/gtlsserverconnection-openssl.c:288
-#: tls/openssl/gtlsserverconnection-openssl.c:339
+#: tls/openssl/gtlsclientconnection-openssl.c:311
+#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsserverconnection-openssl.c:347
+#: tls/openssl/gtlsserverconnection-openssl.c:415
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "Nem sikerült létrehozni TLS-környezetet: %s"
 
-#: tls/openssl/gtlsconnection-openssl.c:192
+#: tls/openssl/gtlsclientconnection-openssl.c:326
+#: tls/openssl/gtlsserverconnection-openssl.c:362
+#, c-format
+#| msgid "Could not parse PEM certificate: %s"
+msgid "Could not set MAX protocol to %ld: %s"
+msgstr "A MAX protokoll nem állítható erre: %ld: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Elfogadhatatlan TLS hitelesítésszolgáltató"
 
-#: tls/openssl/gtlsconnection-openssl.c:200
+#: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
 msgstr "A kivonat túl nagy az RSA kulcshoz"
 
-#: tls/openssl/gtlsconnection-openssl.c:507
+#: tls/openssl/gtlsconnection-openssl.c:213
+msgid "Secure renegotiation is disabled"
+msgstr "A biztonságos újraegyeztetés le van tiltva"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+#, c-format
+#| msgid "Connection is closed"
+msgid "%s: The connection is broken"
+msgstr "%s: A kapcsolat megszakadt"
+
+#: tls/openssl/gtlsconnection-openssl.c:669
 msgid "Error performing TLS close"
 msgstr "Hiba a TLS-lezárás végrehajtásakor"
 
@@ -233,17 +254,20 @@ msgstr "Hiba a TLS-lezárás végrehajtásakor"
 msgid "Could not create CA store"
 msgstr "Nem sikerült létrehozni a CA-tárat"
 
-#: tls/openssl/gtlsfiledatabase-openssl.c:454
+#: tls/openssl/gtlsserverconnection-openssl.c:179
+#: tls/openssl/gtlsserverconnection-openssl.c:247
 #, c-format
-msgid "Failed to load file path: %s"
-msgstr "Nem sikerült betölteni a fájlútvonalat: %s"
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Probléma van a tanúsítvány személyes kulcsával: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:101
+#: tls/openssl/gtlsserverconnection-openssl.c:188
+#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Probléma van a tanúsítvánnyal: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:109
-#, c-format
-msgid "There is a problem with the certificate private key: %s"
-msgstr "Probléma van a tanúsítvány személyes kulcsával: %s"
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "A partner illegális ismételt TLS-kézfogást kért"
+
+#~ msgid "Failed to load file path: %s"
+#~ msgstr "Nem sikerült betölteni a fájlútvonalat: %s"
