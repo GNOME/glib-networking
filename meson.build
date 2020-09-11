@@ -1,6 +1,6 @@
 project(
   'glib-networking', 'c',
-  version: '2.65.90',
+  version: '2.66.0',
   license: 'LGPL2.1+',
   meson_version: '>= 0.50.0',
   default_options: ['c_std=c99']

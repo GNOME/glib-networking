@@ -1,7 +1,12 @@
+2.66.0 - September 11, 2020
+===========================
+
+- Updated translations
+
 2.65.90 - August 6, 2020
 ========================
 
- - Many fixes to OpenSSL backend (!128, RUslan Marchenko)
+ - Many fixes to OpenSSL backend (!128, Ruslan Marchenko)
 
 2.65.1 - July 2, 2020
 =====================
