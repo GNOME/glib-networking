@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2020-09-01 16:09+0000\n"
-"PO-Revision-Date: 2020-09-01 19:27+0300\n"
+"POT-Creation-Date: 2020-09-17 17:07+0000\n"
+"PO-Revision-Date: 2020-09-17 20:08+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -190,14 +190,15 @@ msgstr "Немає доступу до сертифікат X.509 з'єднан�
 
 #: tls/gnutls/gtlsconnection-gnutls.c:933
 #, c-format
-msgid "X.509 certififcate is not available or is of unknown format: %s"
+#| msgid "X.509 certififcate is not available or is of unknown format: %s"
+msgid "X.509 certificate is not available or is of unknown format: %s"
 msgstr "Сертифікат X.509 є недоступним або записаним у невідомому форматі: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:944
 #: tls/openssl/gtlsconnection-openssl.c:520
 #, c-format
-#| msgid "Unacceptable TLS certificate authority"
-msgid "Unable to obtain certificate signature algoritm"
+#| msgid "Unable to obtain certificate signature algoritm"
+msgid "Unable to obtain certificate signature algorithm"
 msgstr "Не вдалося отримати алгоритм підписування сертифіката"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:960
@@ -206,8 +207,8 @@ msgstr "Не вдалося отримати алгоритм підписува
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
 msgstr ""
-"У поточному сертифікаті X.509 використано невідомий або непідтримуваний"
-" алгоритм підписування"
+"У поточному сертифікаті X.509 використано невідомий або непідтримуваний "
+"алгоритм підписування"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1046
 #: tls/openssl/gtlsconnection-openssl.c:615
