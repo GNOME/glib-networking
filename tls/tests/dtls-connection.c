@@ -116,7 +116,7 @@ setup_connection (TestConnection *test, gconstpointer data)
           g_main_context_iteration (NULL, FALSE);         \
         }                                                 \
                                                           \
-      g_assert (!(var));                                  \
+      g_assert_true (!(var));                             \
     }
 
 static void
@@ -791,7 +791,7 @@ main (int   argc,
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
-  g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
+  g_assert_cmpint (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND), ==, 0);
 
   g_test_add ("/dtls/" BACKEND "/connection/basic/blocking", TestConnection, &blocking,
               setup_connection, test_basic_connection, teardown_connection);

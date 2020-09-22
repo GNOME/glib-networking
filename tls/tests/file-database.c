@@ -544,7 +544,7 @@ main (int   argc,
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
-  g_assert (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
+  g_assert_cmpint (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND), ==, 0);
 
   g_test_add_func ("/tls/" BACKEND "/backend/default-database-is-singleton",
                    test_default_database_is_singleton);
