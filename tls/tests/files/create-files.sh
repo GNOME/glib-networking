@@ -38,7 +38,7 @@ read -p "Press [Enter] key to continue..." key
 echo "00" > serial
 
 msg "Creating CA private key for obsolete/untrusted CA"
-openssl genrsa -out old-ca-key.pem 1024
+openssl genrsa -out old-ca-key.pem 2048
 
 msg "Creating CA certificate for obsolete/untrusted CA"
 openssl req -x509 -new -config ssl/old-ca.conf -days 10950 -key old-ca-key.pem -out old-ca.pem
@@ -48,7 +48,7 @@ openssl req -x509 -new -config ssl/old-ca.conf -days 10950 -key old-ca-key.pem -
 #######################################################################
 
 msg "Creating CA private key"
-openssl genrsa -out ca-key.pem 1024
+openssl genrsa -out ca-key.pem 2048
 
 msg "Creating CA certificate"
 openssl req -x509 -new -config ssl/ca.conf -days 10950 -key ca-key.pem -out ca.pem
@@ -68,7 +68,7 @@ openssl x509 -req -in root-ca-csr.pem -days 10950 -CA old-ca.pem -CAkey old-ca-k
 #######################################################################
 
 msg "Creating server private key"
-openssl genrsa -out server-key.pem 1024
+openssl genrsa -out server-key.pem 2048
 
 msg "Creating server certificate request"
 openssl req -config ssl/server.conf -key server-key.pem -new -out server-csr.pem
@@ -163,7 +163,7 @@ cat server-self.pem >> non-ca.pem
 echo "00" > intermediate-serial
 
 msg "Creating intermediate CA private key"
-openssl genrsa -out intermediate-ca-key.pem 1024
+openssl genrsa -out intermediate-ca-key.pem 2048
 
 msg "Creating intermediate CA certificate request"
 openssl req -config ssl/intermediate-ca.conf -key intermediate-ca-key.pem -new -out intermediate-ca-csr.pem
@@ -176,7 +176,7 @@ openssl x509 -req -in intermediate-ca-csr.pem -days 9125 -CA ca.pem -CAkey ca-ke
 #######################################################################
 
 msg "Creating server (intermediate CA) private key"
-openssl genrsa -out server-intermediate-key.pem 1024
+openssl genrsa -out server-intermediate-key.pem 2048
 
 msg "Creating server (intermediate CA) certificate request"
 openssl req -config ssl/server-intermediate.conf -key server-intermediate-key.pem -new -out server-intermediate-csr.pem
