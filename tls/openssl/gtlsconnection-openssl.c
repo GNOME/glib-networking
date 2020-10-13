@@ -524,7 +524,8 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
   /* This is a drill */
   if (!data)
     {
-      X509_free (crt);
+      if (is_client)
+        X509_free (crt);
       return TRUE;
     }
 
@@ -537,6 +538,8 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
     case NID_md5_sha1:
       g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
                    _("Current X.509 certificate uses unknown or unsupported signature algorithm"));
+      if (is_client)
+        X509_free (crt);
       return FALSE;
     }
 
@@ -544,11 +547,13 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
   algo = EVP_get_digestbynid (algo_nid);
   if (X509_digest (crt, algo, data->data, &(data->len)))
     {
-      X509_free (crt);
+      if (is_client)
+        X509_free (crt);
       return TRUE;
     }
 
-  X509_free (crt);
+  if (is_client)
+    X509_free (crt);
   g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
                _("Failed to generate X.509 certificate digest"));
   return FALSE;
