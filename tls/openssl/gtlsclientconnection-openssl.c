@@ -36,8 +36,6 @@
 #include "gtlscertificate-openssl.h"
 #include <glib/gi18n-lib.h>
 
-#define DEFAULT_CIPHER_LIST "HIGH:!DSS:!aNULL@STRENGTH"
-
 struct _GTlsClientConnectionOpenssl
 {
   GTlsConnectionOpenssl parent_instance;
@@ -302,15 +300,15 @@ set_cipher_list (GTlsClientConnectionOpenssl  *client,
   const gchar *cipher_list, *proto;
 
   cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
-  if (!cipher_list)
-    cipher_list = DEFAULT_CIPHER_LIST;
-
-  if (!SSL_CTX_set_cipher_list (client->ssl_ctx, cipher_list))
+  if (cipher_list)
     {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Could not create TLS context: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
+      if (!SSL_CTX_set_cipher_list (client->ssl_ctx, cipher_list))
+        {
+          g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                       _("Could not set TLS cipher list: %s"),
+                       ERR_error_string (ERR_get_error (), NULL));
+          return FALSE;
+        }
     }
 
   proto = g_getenv ("G_TLS_OPENSSL_MAX_PROTO");
