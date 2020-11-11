@@ -42,7 +42,7 @@ symbol_map = join_paths(meson.current_source_dir(), meson.project_name() + '.map
 
 module_ldflags = []
 
-if host_system.contains('linux')
+if host_system.contains('linux') or host_system == 'android'
   test_ldflag = '-Wl,--version-script,' + symbol_map
   module_ldflags += cc.get_supported_link_arguments(test_ldflag)
 endif
