@@ -50,7 +50,7 @@ void g_tls_log (GLogLevelFlags  level,
   va_end (args);
 
   if (ret <= 0)
-    return;
+    goto out;
 
   if (conn && G_IS_TLS_CONNECTION (conn)) {
     if (G_IS_TLS_CLIENT_CONNECTION (conn))
@@ -71,6 +71,7 @@ void g_tls_log (GLogLevelFlags  level,
                     "CODE_FUNC", func,
                     "MESSAGE", "%s%s", header, message);
 
+out:
   g_free (header);
   g_free (message);
   g_free (thread);
