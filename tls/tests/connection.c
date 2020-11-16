@@ -1050,7 +1050,6 @@ test_client_auth_connection (TestConnection *test,
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client2-and-key.pem"), &error);
   g_assert_no_error (error);
   g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
-  g_object_unref (cert);
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
 
   read_test_data_async (test);
@@ -1064,6 +1063,7 @@ test_client_auth_connection (TestConnection *test,
   peer = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (test->server_connection));
   g_assert_nonnull (peer);
   g_assert_true (g_tls_certificate_is_same (peer, cert));
+  g_object_unref (cert);
 }
 
 static void
