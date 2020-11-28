@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2020-09-17 17:07+0000\n"
-"PO-Revision-Date: 2020-09-17 20:08+0300\n"
+"POT-Creation-Date: 2020-10-30 14:42+0000\n"
+"PO-Revision-Date: 2020-11-28 10:19+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -65,7 +65,7 @@ msgstr ""
 
 #: tls/base/gtlsconnection-base.c:1628 tls/gnutls/gtlsconnection-gnutls.c:348
 #: tls/openssl/gtlsconnection-openssl.c:189
-#: tls/openssl/gtlsconnection-openssl.c:643
+#: tls/openssl/gtlsconnection-openssl.c:648
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Неприпустимий сертифікат TLS"
@@ -111,8 +111,8 @@ msgstr "Не надано даних сертифіката"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:140
 #: tls/gnutls/gtlsconnection-gnutls.c:158
-#: tls/openssl/gtlsclientconnection-openssl.c:430
-#: tls/openssl/gtlsserverconnection-openssl.c:482
+#: tls/openssl/gtlsclientconnection-openssl.c:428
+#: tls/openssl/gtlsserverconnection-openssl.c:480
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Неможливо створити з'єднання TLS: %s"
@@ -168,7 +168,7 @@ msgstr "Помилка під час виконання узгодження з'
 
 #: tls/gnutls/gtlsconnection-gnutls.c:819
 #: tls/openssl/gtlsconnection-openssl.c:427
-#: tls/openssl/gtlsconnection-openssl.c:636
+#: tls/openssl/gtlsconnection-openssl.c:641
 msgid "Error performing TLS handshake"
 msgstr "Помилка під час виконання узгодження зв'язку за допомогою TLS"
 
@@ -190,19 +190,17 @@ msgstr "Немає доступу до сертифікат X.509 з'єднан�
 
 #: tls/gnutls/gtlsconnection-gnutls.c:933
 #, c-format
-#| msgid "X.509 certififcate is not available or is of unknown format: %s"
 msgid "X.509 certificate is not available or is of unknown format: %s"
 msgstr "Сертифікат X.509 є недоступним або записаним у невідомому форматі: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:944
 #: tls/openssl/gtlsconnection-openssl.c:520
 #, c-format
-#| msgid "Unable to obtain certificate signature algoritm"
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Не вдалося отримати алгоритм підписування сертифіката"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:960
-#: tls/openssl/gtlsconnection-openssl.c:539
+#: tls/openssl/gtlsconnection-openssl.c:540
 #, c-format
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
@@ -211,21 +209,21 @@ msgstr ""
 "алгоритм підписування"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1046
-#: tls/openssl/gtlsconnection-openssl.c:615
+#: tls/openssl/gtlsconnection-openssl.c:620
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Запитаний тип прив'язки каналів не реалізовано"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1067
 #: tls/gnutls/gtlsconnection-gnutls.c:1127
-#: tls/openssl/gtlsconnection-openssl.c:747
+#: tls/openssl/gtlsconnection-openssl.c:752
 msgid "Error reading data from TLS socket"
 msgstr "Помилка зчитування даних з гнізда TLS"
 
 #. flags
 #: tls/gnutls/gtlsconnection-gnutls.c:1149
 #: tls/gnutls/gtlsconnection-gnutls.c:1212
-#: tls/openssl/gtlsconnection-openssl.c:791
+#: tls/openssl/gtlsconnection-openssl.c:796
 msgid "Error writing data to TLS socket"
 msgstr "Помилка запису даних у гніздо TLS"
 
@@ -271,24 +269,29 @@ msgid "Failed to populate trust list from %s: %s"
 msgstr "Не вдалося заповнити список довіри на основі %s: %s"
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:122
-#: tls/openssl/gtlsserverconnection-openssl.c:172
-#: tls/openssl/gtlsserverconnection-openssl.c:228
+#: tls/openssl/gtlsserverconnection-openssl.c:170
+#: tls/openssl/gtlsserverconnection-openssl.c:226
 msgid "Certificate has no private key"
 msgstr "Сертифікат не має закритого ключа"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:311
-#: tls/openssl/gtlsclientconnection-openssl.c:379
-#: tls/openssl/gtlsserverconnection-openssl.c:347
-#: tls/openssl/gtlsserverconnection-openssl.c:415
+#: tls/openssl/gtlsclientconnection-openssl.c:308
+#: tls/openssl/gtlsserverconnection-openssl.c:344
 #, c-format
-msgid "Could not create TLS context: %s"
-msgstr "Не вдалося створити контекст TLS: %s"
+#| msgid "Could not create TLS context: %s"
+msgid "Could not set TLS cipher list: %s"
+msgstr "Не вдалося встановити список шифрувань TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:326
-#: tls/openssl/gtlsserverconnection-openssl.c:362
+#: tls/openssl/gtlsclientconnection-openssl.c:324
+#: tls/openssl/gtlsserverconnection-openssl.c:360
 #, c-format
 msgid "Could not set MAX protocol to %ld: %s"
 msgstr "Не вдалося встановити для MAX протоколу значення %ld: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:377
+#: tls/openssl/gtlsserverconnection-openssl.c:413
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Не вдалося створити контекст TLS: %s"
 
 #: tls/openssl/gtlsconnection-openssl.c:197
 #, c-format
@@ -318,22 +321,22 @@ msgstr "Дані прив'язки каналів для tls-unique не дос�
 msgid "X.509 Certificate is not available on the connection"
 msgstr "Немає доступу до сертифікат X.509 з'єднання"
 
-#: tls/openssl/gtlsconnection-openssl.c:553
+#: tls/openssl/gtlsconnection-openssl.c:558
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
 msgstr "Не вдалося створити контрольну суму сертифіката X.509"
 
-#: tls/openssl/gtlsconnection-openssl.c:584
+#: tls/openssl/gtlsconnection-openssl.c:589
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "У з'єднанні TLS не передбачено підтримки можливості TLS-Exporter"
 
-#: tls/openssl/gtlsconnection-openssl.c:587
+#: tls/openssl/gtlsconnection-openssl.c:592
 #, c-format
 msgid "Unexpected error while exporting keying data"
 msgstr "Неочікувана помилка під час експортування пов'язаних із ключем даних"
 
-#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:833
 msgid "Error performing TLS close"
 msgstr "Помилка закриття TLS"
 
@@ -341,14 +344,14 @@ msgstr "Помилка закриття TLS"
 msgid "Could not create CA store"
 msgstr "Не вдалося створити сховище CA"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:179
-#: tls/openssl/gtlsserverconnection-openssl.c:247
+#: tls/openssl/gtlsserverconnection-openssl.c:177
+#: tls/openssl/gtlsserverconnection-openssl.c:245
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Маємо проблему із закритим ключем сертифіката: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:188
-#: tls/openssl/gtlsserverconnection-openssl.c:239
+#: tls/openssl/gtlsserverconnection-openssl.c:186
+#: tls/openssl/gtlsserverconnection-openssl.c:237
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "Маємо проблему із сертифікатом: %s"
