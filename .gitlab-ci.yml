@@ -21,6 +21,9 @@ fedora-x86_64:
 fedora-x86_64-asan:
   tags: [ asan ]
   stage: build
+  variables:
+    PKCS11SPY_PATH: disabled
+    ASAN_OPTIONS: fast_unwind_on_malloc=0
   script:
     - meson -Db_sanitize=address
             -Dgnutls=enabled
@@ -30,7 +33,7 @@ fedora-x86_64-asan:
             -Dwerror=true
             _build/
     - meson compile -C _build/
-    - ASAN_OPTIONS=fast_unwind_on_malloc=0 meson test --verbose --timeout-multiplier=10 -C _build/
+    - meson test --verbose --timeout-multiplier=10 -C _build/
   artifacts:
     paths:
       - _build/test-results
