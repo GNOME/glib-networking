@@ -2002,7 +2002,7 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
       {
         nread = 0;
 
-        for (guint i = 0; i < num_vectors; i++)
+        for (guint i = 0; i < num_vectors && priv->app_data_buf; i++)
           {
             gsize count;
             GInputVector *vec = &vectors[i];
