@@ -1067,11 +1067,26 @@ test_client_auth_connection (TestConnection *test,
   g_object_unref (cert);
 }
 
+#ifdef BACKEND_IS_GNUTLS
+static void
+run_until_object_is_destroyed (GMainContext *context,
+                               GWeakRef     *weak_ref)
+{
+  GObject *object;
+
+  while ((object = g_weak_ref_get (weak_ref)))
+    {
+      g_object_unref (object);
+      g_main_context_iteration (context, FALSE);
+    }
+}
+#endif
+
 static void
 test_client_auth_pkcs11_connection (TestConnection *test,
                                     gconstpointer   data)
 {
-#if !defined (BACKEND_IS_GNUTLS)
+#ifndef BACKEND_IS_GNUTLS
   g_test_skip ("This backend does not support PKCS #11");
 #else
   GIOStream *connection;
@@ -1081,6 +1096,7 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   gboolean cas_changed;
   GSocketClient *client;
   GTlsInteraction *interaction;
+  GWeakRef weak_ref;
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
@@ -1093,6 +1109,8 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
   g_object_unref (connection);
+
+  g_weak_ref_init (&weak_ref, test->client_connection);
 
   g_tls_connection_set_interaction (G_TLS_CONNECTION (test->client_connection), interaction);
   g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
@@ -1127,6 +1145,13 @@ test_client_auth_pkcs11_connection (TestConnection *test,
   g_object_unref (cert);
   g_object_unref (test->client_connection);
   g_clear_object (&test->server_connection);
+
+  /* The mock PKCS#11 module allows only a single PKCS#11 connection at a time.
+   * This means we have to ensure the original GTlsClientConnection is finalized
+   * before creating the next one.
+   */
+  run_until_object_is_destroyed (test->context, &weak_ref);
+  g_weak_ref_clear (&weak_ref);
 
   /* Now start a new connection to the same server with a different client cert.
    * Also test using a single URI matching both the cert and private key.
