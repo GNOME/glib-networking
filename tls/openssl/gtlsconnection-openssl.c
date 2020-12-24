@@ -241,6 +241,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   return G_TLS_CONNECTION_BASE_ERROR;
 }
 
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
 static int
 _openssl_alpn_select_cb (SSL                  *ssl,
                          const unsigned char **out,
@@ -383,6 +384,7 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase  *tls,
       *negotiated_protocol = g_strndup ((gchar *)data, len);
     }
 }
+#endif
 
 #define BEGIN_OPENSSL_IO(openssl, direction, timeout, cancellable)          \
   do {                                                                      \
@@ -851,8 +853,10 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 
   object_class->finalize                                 = g_tls_connection_openssl_finalize;
 
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   base_class->prepare_handshake                          = g_tls_connection_openssl_prepare_handshake;
   base_class->complete_handshake                         = g_tls_connection_openssl_complete_handshake;
+#endif
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_openssl_handshake_thread_safe_renegotiation_status;
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_openssl_handshake_thread_handshake;
