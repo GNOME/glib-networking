@@ -206,6 +206,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
+#ifdef SSL_R_NO_RENEGOTIATION
   if (reason == SSL_R_NO_RENEGOTIATION)
     {
       g_clear_error (&my_error);
@@ -213,6 +214,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
                            _("Secure renegotiation is disabled"));
       return G_TLS_CONNECTION_BASE_REHANDSHAKE;
     }
+#endif
 
   if (my_error)
     g_propagate_error (error, my_error);
@@ -416,6 +418,8 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
   ssl = g_tls_connection_openssl_get_ssl (openssl);
 
   BEGIN_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, timeout, cancellable);
+
+#if OPENSSL_VERSION_NUMBER >= 0x10101000L
   if (SSL_version(ssl) >= TLS1_3_VERSION)
     ret = SSL_key_update (ssl, SSL_KEY_UPDATE_REQUESTED);
   else if (SSL_get_secure_renegotiation_support (ssl) && !(SSL_get_options(ssl) & SSL_OP_NO_RENEGOTIATION))
@@ -423,6 +427,10 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
     ret = SSL_renegotiate (ssl);
   else
     g_tls_log_debug (tls, "Secure renegotiation is not supported");
+#else
+  ret = SSL_renegotiate (ssl);
+#endif
+
   END_OPENSSL_IO (openssl, G_IO_IN | G_IO_OUT, ret, timeout, status,
                   _("Error performing TLS handshake"), error);
 
