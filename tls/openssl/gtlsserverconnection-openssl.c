@@ -333,7 +333,7 @@ static gboolean
 set_cipher_list (GTlsServerConnectionOpenssl  *server,
                  GError                      **error)
 {
-  const gchar *cipher_list, *proto;
+  const gchar *cipher_list;
 
   cipher_list = g_getenv ("G_TLS_OPENSSL_CIPHER_LIST");
   if (cipher_list)
@@ -346,6 +346,16 @@ set_cipher_list (GTlsServerConnectionOpenssl  *server,
           return FALSE;
         }
     }
+
+  return TRUE;
+}
+
+static gboolean
+set_max_protocol (GTlsServerConnectionOpenssl  *server,
+                  GError                      **error)
+{
+#ifdef SSL_CTX_set_max_proto_version
+  const gchar *proto;
 
   proto = g_getenv ("G_TLS_OPENSSL_MAX_PROTO");
   if (proto)
@@ -363,6 +373,7 @@ set_cipher_list (GTlsServerConnectionOpenssl  *server,
             }
         }
     }
+#endif
 
   return TRUE;
 }
@@ -416,6 +427,9 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
     }
 
   if (!set_cipher_list (server, error))
+    return FALSE;
+
+  if (!set_max_protocol (server, error))
     return FALSE;
 
   /* Only TLS 1.2 or higher */
