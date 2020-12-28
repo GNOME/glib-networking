@@ -11,11 +11,15 @@ set BUILD_DIR=c:\gnet
 :: so we just keep it cached in c:\gnet
 ::@RD /S /Q %BUILD_DIR%
 
-::git clone --depth 1 https://github.com/wingtk/gvsbuild.git || goto :error
+IF EXIST %BUILD_DIR% GOTO NOGVSBUILD
 
-::pushd gvsbuild
-::python.exe build.py --verbose --debug build -p x64 --vs-ver 15 --build-dir %BUILD_DIR% openssl glib || goto :error
-::popd
+git clone --depth 1 https://github.com/wingtk/gvsbuild.git -b wip/nacho/glib-2-67 || goto :error
+
+pushd gvsbuild
+python.exe build.py --verbose --debug build -p x64 --vs-ver 15 --build-dir %BUILD_DIR% openssl glib || goto :error
+popd
+
+:NOGVSBUILD
 
 set DEPS_DIR=%BUILD_DIR%\gtk\x64\release
 set PATH=%DEPS_DIR%\bin;%PATH%
