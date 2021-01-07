@@ -1,3 +1,16 @@
+2.68.alpha - January 7, 2021
+============================
+
+ - Download and validate missing intermediate certificates (requires GnuTLS 3.7) (#96)
+ - OpenSSL backend now uses system crypto policy (#106)
+ - Remove use of g_assert in testsuite (#137)
+ - Restore support for old versions of OpenSSL (#156)
+ - Implement TLS channel bindings API (!139, Ruslan Marchenko)
+ - Implement PKCS#11 API (!140, Patrick Griffis)
+ - Update testsuite for Fedora 33 crypto policy (!141)
+ - Fix NULL dereference in g_tls_connection_base_read_message (!144, Vladimir D. Seleznev)
+ - Fix a couple code issues found by Coverity
+
 2.66.0 - September 11, 2020
 ===========================
 
