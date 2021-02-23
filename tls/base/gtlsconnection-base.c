@@ -148,7 +148,7 @@ typedef struct
   GError        *write_error;
   GCancellable  *write_cancellable;
 
-  gboolean       successful_posthandshake_op;
+  gboolean       successful_read_op;
 
   gboolean       is_system_certdb;
   gboolean       database_is_unset;
@@ -826,18 +826,24 @@ g_tls_connection_base_real_pop_io (GTlsConnectionBase  *tls,
     }
 
   if (priv->missing_requested_client_certificate &&
-      !priv->successful_posthandshake_op)
+      !priv->successful_read_op)
     {
       g_assert (G_IS_TLS_CLIENT_CONNECTION (tls));
 
       /* Probably the server requires a client certificate, but we failed to
-       * provide one. With TLS 1.3 the server is no longer able to tell us
+       * provide one. With TLS 1.3, the server is no longer able to tell us
        * this, so we just have to guess. If there is an error from the TLS
        * interaction (request for user certificate), we provide that. Otherwise,
        * guess that G_TLS_ERROR_CERTIFICATE_REQUIRED is probably appropriate.
        * This could be wrong, but only applies to the small minority of
        * connections where a client cert is requested but not provided, and then
-       * then only if the client has never successfully read or written.
+       * then only if the client has never successfully read any data from the
+       * connection. This should hopefully be a rare enough case that returning
+       * G_TLS_ERROR_CERTIFICATE_REQUIRED incorrectly should not be common.
+       * Beware that a successful write operation does *not* indicate that the
+       * server has accepted our certificate: a write op can succeed on the
+       * client side before the client notices that the server has closed the
+       * connection.
        */
       if (priv->interaction_error)
         {
@@ -2004,7 +2010,7 @@ g_tls_connection_base_read (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
+      priv->successful_read_op = TRUE;
       g_tls_log_debug (tls, "successfully read %" G_GSSIZE_FORMAT " bytes from TLS connection", nread);
       return nread;
     }
@@ -2064,7 +2070,7 @@ g_tls_connection_base_read_message (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
+      priv->successful_read_op = TRUE;
       g_tls_log_debug (tls, "successfully read %" G_GSSIZE_FORMAT " bytes from TLS connection", nread);
       return nread;
     }
@@ -2146,7 +2152,7 @@ g_tls_connection_base_receive_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
-  priv->successful_posthandshake_op = TRUE;
+  priv->successful_read_op = TRUE;
   return i;
 }
 
@@ -2158,7 +2164,6 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
                              GCancellable        *cancellable,
                              GError             **error)
 {
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nwrote;
 
@@ -2179,7 +2184,6 @@ g_tls_connection_base_write (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
       g_tls_log_debug (tls, "successfully write %" G_GSSIZE_FORMAT " bytes to TLS connection", nwrote);
       return nwrote;
     }
@@ -2196,7 +2200,6 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
                                      GCancellable        *cancellable,
                                      GError             **error)
 {
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseStatus status;
   gssize nwrote;
 
@@ -2216,7 +2219,6 @@ g_tls_connection_base_write_message (GTlsConnectionBase  *tls,
 
   if (status == G_TLS_CONNECTION_BASE_OK)
     {
-      priv->successful_posthandshake_op = TRUE;
       g_tls_log_debug (tls, "successfully write %" G_GSSIZE_FORMAT " bytes to TLS connection", nwrote);
       return nwrote;
     }
@@ -2235,7 +2237,6 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
                                      GError         **error)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (datagram_based);
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   guint i;
   GError *child_error = NULL;
 
@@ -2286,7 +2287,6 @@ g_tls_connection_base_send_messages (GDatagramBased  *datagram_based,
       return -1;
     }
 
-  priv->successful_posthandshake_op = TRUE;
   return i;
 }
 
