@@ -1,18 +1,20 @@
 # German translation for glib-networking.
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
-# Mario Blättermann <mario.blaettermann@gmail.com>, 2011-2013, 2017-2018.
+#
 # Christian Kirbach <Christian.Kirbach@gmail.com>, 2011-2012.
 # Wolfgang Stöggl <c72578@yahoo.de>, 2011-2012.
+# Mario Blättermann <mario.blaettermann@gmail.com>, 2011-2013, 2017-2018.
 # Tim Sabsch <tim@sabsch.com>, 2019-2020.
+# Philipp Kiemle <philipp.kiemle@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2020-12-05 08:11+0000\n"
-"PO-Revision-Date: 2020-12-26 15:48+0100\n"
-"Last-Translator: Christian Kirbach <christian.kirbach@gmail.com>\n"
+"POT-Creation-Date: 2021-01-19 20:14+0000\n"
+"PO-Revision-Date: 2021-02-26 09:59+0100\n"
+"Last-Translator: Philipp Kiemle <philipp.kiemle@gmail.com>\n"
 "Language-Team: Deutsch <gnome-de@gnome.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -55,7 +57,7 @@ msgstr "Server benötigt ein TLS-Zertifikat"
 #: tls/base/gtlsconnection-base.c:1425
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
-msgstr ""
+msgstr "Handshake nicht beendet, noch keine Informationen über Kanal-Bindung"
 
 #: tls/base/gtlsconnection-base.c:1484
 msgid "Peer does not support safe renegotiation"
@@ -63,7 +65,7 @@ msgstr "Die Gegenstelle unterstützt keine sichere Neuverhandlung"
 
 #: tls/base/gtlsconnection-base.c:1628 tls/gnutls/gtlsconnection-gnutls.c:428
 #: tls/openssl/gtlsconnection-openssl.c:189
-#: tls/openssl/gtlsconnection-openssl.c:648
+#: tls/openssl/gtlsconnection-openssl.c:658
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nicht akzeptables TLS-Zertifikat"
@@ -114,8 +116,8 @@ msgstr "Keine Zertifikatdaten bereitgestellt"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:143
 #: tls/gnutls/gtlsconnection-gnutls.c:161
-#: tls/openssl/gtlsclientconnection-openssl.c:428
-#: tls/openssl/gtlsserverconnection-openssl.c:480
+#: tls/openssl/gtlsclientconnection-openssl.c:442
+#: tls/openssl/gtlsserverconnection-openssl.c:494
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS-Verbindung konnte nicht erstellt werden: %s"
@@ -165,8 +167,8 @@ msgstr "Fehler bei der Ausführung des TLS-Handshake: %s"
 
 # Handshake ist ein Fachbegriff für den Vorgang der Verbindungsaushandlung
 #: tls/gnutls/gtlsconnection-gnutls.c:899
-#: tls/openssl/gtlsconnection-openssl.c:427
-#: tls/openssl/gtlsconnection-openssl.c:641
+#: tls/openssl/gtlsconnection-openssl.c:437
+#: tls/openssl/gtlsconnection-openssl.c:651
 msgid "Error performing TLS handshake"
 msgstr "Fehler bei der Ausführung des TLS-Handshake"
 
@@ -193,13 +195,13 @@ msgid "X.509 certificate is not available or is of unknown format: %s"
 msgstr "Kein X.509-Zertifikat verfügbar, oder unbekanntes Format: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1024
-#: tls/openssl/gtlsconnection-openssl.c:520
+#: tls/openssl/gtlsconnection-openssl.c:530
 #, c-format
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Signaturalgorithmus des Zertifikats konnte nicht ermittelt werden"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1040
-#: tls/openssl/gtlsconnection-openssl.c:540
+#: tls/openssl/gtlsconnection-openssl.c:550
 #, c-format
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
@@ -208,21 +210,21 @@ msgstr ""
 "Signieralgorithmus"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1126
-#: tls/openssl/gtlsconnection-openssl.c:620
+#: tls/openssl/gtlsconnection-openssl.c:630
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Der angeforderte Kanal-Bindungstyp ist nicht implementiert"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1147
 #: tls/gnutls/gtlsconnection-gnutls.c:1207
-#: tls/openssl/gtlsconnection-openssl.c:752
+#: tls/openssl/gtlsconnection-openssl.c:762
 msgid "Error reading data from TLS socket"
 msgstr "Fehler beim Lesen der Daten aus dem TLS-Socket"
 
 #. flags
 #: tls/gnutls/gtlsconnection-gnutls.c:1229
 #: tls/gnutls/gtlsconnection-gnutls.c:1292
-#: tls/openssl/gtlsconnection-openssl.c:796
+#: tls/openssl/gtlsconnection-openssl.c:806
 msgid "Error writing data to TLS socket"
 msgstr "Fehler beim Schreiben der Daten in den TLS-Socket"
 
@@ -277,14 +279,14 @@ msgstr "Das Zertifikat hat keinen geheimen Schlüssel"
 msgid "Could not set TLS cipher list: %s"
 msgstr "TLS-Chiffre-Liste konnte nicht eingestellt werden: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:324
-#: tls/openssl/gtlsserverconnection-openssl.c:360
+#: tls/openssl/gtlsclientconnection-openssl.c:334
+#: tls/openssl/gtlsserverconnection-openssl.c:370
 #, c-format
 msgid "Could not set MAX protocol to %ld: %s"
 msgstr "MAX-Protokoll konnte nicht auf %ld eingestellt werden: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:377
-#: tls/openssl/gtlsserverconnection-openssl.c:413
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:424
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "TLS-Kontext konnte nicht erstellt werden: %s"
@@ -298,41 +300,41 @@ msgstr "Nicht akzeptable TLS-Zertifizierungsstelle"
 msgid "Digest too big for RSA key"
 msgstr "Auszug ist zu groß für RSA-Schlüssel"
 
-#: tls/openssl/gtlsconnection-openssl.c:213
+#: tls/openssl/gtlsconnection-openssl.c:214
 msgid "Secure renegotiation is disabled"
 msgstr "Sichere Neuverhandlung ist deaktiviert"
 
-#: tls/openssl/gtlsconnection-openssl.c:234
+#: tls/openssl/gtlsconnection-openssl.c:236
 #, c-format
 msgid "%s: The connection is broken"
 msgstr "%s: Die Verbindung ist fehlerhaft"
 
-#: tls/openssl/gtlsconnection-openssl.c:489
+#: tls/openssl/gtlsconnection-openssl.c:499
 #, c-format
 msgid "Channel binding data tls-unique is not available"
 msgstr "Kanal-Bindungstyp tls-unique ist nicht verfügbar"
 
-#: tls/openssl/gtlsconnection-openssl.c:512
+#: tls/openssl/gtlsconnection-openssl.c:522
 #, c-format
 msgid "X.509 Certificate is not available on the connection"
 msgstr "X.509-Zertifikat ist nicht für die Verbindung verfügbar"
 
-#: tls/openssl/gtlsconnection-openssl.c:558
+#: tls/openssl/gtlsconnection-openssl.c:568
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
 msgstr "Berechnen der Prüfsumme des X.509-Zertifikats ist fehlgeschlagen"
 
-#: tls/openssl/gtlsconnection-openssl.c:589
+#: tls/openssl/gtlsconnection-openssl.c:599
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "TLS-Verbindung unterstützt die TLS-Exporter-Funktion nicht"
 
-#: tls/openssl/gtlsconnection-openssl.c:592
+#: tls/openssl/gtlsconnection-openssl.c:602
 #, c-format
 msgid "Unexpected error while exporting keying data"
 msgstr "Unerwarteter Fehler beim Export der Schlüsselring-Daten"
 
-#: tls/openssl/gtlsconnection-openssl.c:833
+#: tls/openssl/gtlsconnection-openssl.c:843
 msgid "Error performing TLS close"
 msgstr "Fehler beim Schließen der TLS-Verbindung"
 
