@@ -374,9 +374,9 @@ end_gnutls_io (GTlsConnectionGnutls  *gnutls,
           return G_TLS_CONNECTION_BASE_ERROR;
         }
 
-      if (status == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
-          status == GNUTLS_E_DECRYPTION_FAILED ||
-          status == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
+      if (ret == GNUTLS_E_UNEXPECTED_PACKET_LENGTH ||
+          ret == GNUTLS_E_DECRYPTION_FAILED ||
+          ret == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
         {
           g_clear_error (&my_error);
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_NOT_TLS,
