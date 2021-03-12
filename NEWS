@@ -1,3 +1,9 @@
+2.68.rc - March 12, 2021
+========================
+
+ - Improve heuristic for returning G_TLS_ERROR_CERTIFICATE_REQUIRED
+ - Fix check for certain handshake failure conditions
+
 2.68.alpha - January 7, 2021
 ============================
 
