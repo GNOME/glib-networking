@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+set -e
 
 msg() {
   echo
@@ -29,7 +31,7 @@ echo
 echo "                   *** IMPORTANT ***"
 echo
 
-read -p "Press [Enter] key to continue..." key
+read -p "Press [Enter] key to continue..."
 
 #######################################################################
 ### Obsolete/Untrusted Root CA
