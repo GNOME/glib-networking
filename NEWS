@@ -1,3 +1,8 @@
+2.68.0 - March 19, 2021
+=======================
+
+ - Fix double free in GnuTLS client certificate request code (!147)
+
 2.68.rc - March 12, 2021
 ========================
 
