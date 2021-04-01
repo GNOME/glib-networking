@@ -43,7 +43,7 @@ typedef struct
    */
   GMutex mutex;
 
-  /* read-only after construct */
+  /* Read-only after construct, but still has to be protected by the mutex. */
   gnutls_x509_trust_list_t trust_list;
 
   /*
@@ -496,10 +496,12 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
+  g_mutex_lock (&priv->mutex);
   gnutls_chain = convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain));
   gerr = gnutls_x509_trust_list_verify_crt (priv->trust_list,
                                             gnutls_chain->chain, gnutls_chain->length,
                                             0, &gnutls_result, NULL);
+  g_mutex_unlock (&priv->mutex);
 
   if (gerr != 0 || g_cancellable_set_error_if_cancelled (cancellable, error))
     {
