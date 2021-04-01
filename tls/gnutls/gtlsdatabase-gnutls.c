@@ -43,7 +43,7 @@ typedef struct
    */
   GMutex mutex;
 
-  /* read-only after construct */
+  /* Read-only after construct, but still has to be protected by the mutex. */
   gnutls_x509_trust_list_t trust_list;
 
   /*
@@ -501,6 +501,7 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
+  g_mutex_lock (&priv->mutex);
   g_assert (!priv->verify_chain_cancellable);
   priv->verify_chain_cancellable = cancellable;
   gnutls_chain = convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain));
@@ -508,6 +509,7 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
                                             gnutls_chain->chain, gnutls_chain->length,
                                             0, &gnutls_result, NULL);
   priv->verify_chain_cancellable = NULL;
+  g_mutex_unlock (&priv->mutex);
 
   if (gerr != 0 || g_cancellable_set_error_if_cancelled (cancellable, error))
     {
@@ -609,6 +611,8 @@ issuer_missing_cb (gnutls_x509_trust_list_t   tlist,
    * Authority Information Access, RFC 5280 §4.2.2.1. Also see:
    * https://blogs.gnome.org/mcatanzaro/2015/01/30/mozilla-is-responsible-for-the-redhat-corpmerchandise-com-fiasco/
    */
+
+  /* Note: priv->mutex is already locked by g_tls_database_gnutls_verify_chain(). */
 
   for (int i = 0; ; i++)
     {
