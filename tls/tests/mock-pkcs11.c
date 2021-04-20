@@ -1308,6 +1308,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_FindObjectsInit)(CK_SESSION_HANDLE hSession, CK_ATTR
                 else if (CKA_LABEL == pTemplate[i].type)
                 {
                         const char *cka_label_value = (char*)pTemplate[i].pValue;
+                        g_clear_pointer (&mock_search_template_label, g_free);
                         mock_search_template_label = g_strndup (cka_label_value, pTemplate[i].ulValueLen);
                 }
                 else
