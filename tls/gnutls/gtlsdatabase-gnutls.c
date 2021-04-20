@@ -34,6 +34,7 @@
 #include <gnutls/x509.h>
 
 #include "gtlscertificate-gnutls.h"
+#include "gtlshttp.h"
 
 typedef struct
 {
@@ -595,8 +596,7 @@ issuer_missing_cb (gnutls_x509_trust_list_t   tlist,
   GTlsDatabaseGnutls *self = gnutls_x509_trust_list_get_ptr (tlist);
   GTlsDatabaseGnutlsPrivate *priv = g_tls_database_gnutls_get_instance_private (self);
   gnutls_datum_t datum;
-  GFile *file = NULL;
-  GFileInputStream *istream = NULL;
+  GInputStream *istream = NULL;
   char *aia = NULL;
   char *scheme = NULL;
   int gerr;
@@ -659,11 +659,10 @@ issuer_missing_cb (gnutls_x509_trust_list_t   tlist,
       goto out;
     }
 
-  file = g_file_new_for_uri (aia);
-  istream = g_file_read (file, priv->verify_chain_cancellable, &error);
+  istream = g_tls_request_uri (aia, priv->verify_chain_cancellable, &error);
   if (!istream)
     {
-      g_warning ("Failed to download missing issuer certificate from Authority Information Access URI %s: failed g_file_read (do you need to install gvfs?): %s",
+      g_warning ("Failed to download missing issuer certificate from Authority Information Access URI %s: %s",
                  aia, error->message);
       goto out;
     }
@@ -671,7 +670,7 @@ issuer_missing_cb (gnutls_x509_trust_list_t   tlist,
   der = g_byte_array_sized_new (sizeof (buffer));
   do
     {
-      n_read = g_input_stream_read (G_INPUT_STREAM (istream), buffer, sizeof (buffer),
+      n_read = g_input_stream_read (istream, buffer, sizeof (buffer),
                                     priv->verify_chain_cancellable, &error);
       if (n_read == -1)
         {
@@ -700,8 +699,6 @@ issuer_missing_cb (gnutls_x509_trust_list_t   tlist,
 out:
   if (error)
     g_error_free (error);
-  if (file)
-    g_object_unref (file);
   if (istream)
     g_object_unref (istream);
   if (der)

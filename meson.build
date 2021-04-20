@@ -75,6 +75,10 @@ gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required
 
 backends = []
 
+# *** Check for dl          ***
+have_rtld_noload = cc.has_header_symbol('dlfcn.h', 'RTLD_NOLOAD')
+config_h.set('HAVE_RTLD_NOLOAD', have_rtld_noload)
+
 # *** Checks for GnuTLS     ***
 gnutls_dep = dependency('gnutls', version: '>= 3.6.5', required: get_option('gnutls'))
 
