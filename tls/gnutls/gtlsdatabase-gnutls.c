@@ -707,6 +707,7 @@ out:
   if (der)
     g_byte_array_unref (der);
   gnutls_free (datum.data);
+  g_free (scheme);
   g_free (aia);
   return ret;
 }
