@@ -1,3 +1,9 @@
+2.68.1 - April 22, 2021
+=======================
+
+ - Fix threadsafety issue in certificate verification (!148)
+ - Temporarily remove support for downloading missing intermediate certificates with GnuTLS 3.7 (#160)
+
 2.68.0 - March 19, 2021
 =======================
 
