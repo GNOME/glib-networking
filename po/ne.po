@@ -6,10 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Gnome Nepali Translation Project\n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
-"issues\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
 "POT-Creation-Date: 2020-12-04 17:58+0000\n"
-"PO-Revision-Date: 2021-04-20 21:33+0545\n"
+"PO-Revision-Date: 2021-04-25 06:34+0545\n"
 "Last-Translator: Pawan Chitrakar <chautari@gmail.com>\n"
 "Language-Team: Nepali Translation Team <chautari@gmail.com>\n"
 "Language: ne\n"
@@ -42,7 +41,7 @@ msgstr "TLS ह्यान्डसेक गर्दा अवरोध स�
 
 #: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1225
 msgid "Socket I/O timed out"
-msgstr ""
+msgstr "सकेट I/O समय समाप्ति भयो"
 
 #: tls/base/gtlsconnection-base.c:851
 msgid "Server required TLS certificate"
@@ -51,11 +50,11 @@ msgstr "सर्भर TLS प्रमाणपत्र आवश्यक"
 #: tls/base/gtlsconnection-base.c:1425
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
-msgstr ""
+msgstr "ह्यान्डसेक समाप्त भएको छैन, अहिलेसम्म च्यानल बाइन्डिङ सूचना छैन"
 
 #: tls/base/gtlsconnection-base.c:1484
 msgid "Peer does not support safe renegotiation"
-msgstr ""
+msgstr "साथीले सुरक्षित पुन: वार्ता समर्थन गर्दैन"
 
 #: tls/base/gtlsconnection-base.c:1628 tls/gnutls/gtlsconnection-gnutls.c:428
 #: tls/openssl/gtlsconnection-openssl.c:189
@@ -136,18 +135,18 @@ msgstr "समान TLS जडानले प्रमाणपत्र प�
 #: tls/gnutls/gtlsconnection-gnutls.c:436
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
-msgstr ""
+msgstr "साथीले घातक TLS चेतावनी पठायो: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:446
 msgid "Protocol version downgrade attack detected"
-msgstr ""
+msgstr "प्रोटोकल संस्करण अवनति आक्रमण पत्ता लाग्यो"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:455
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "डीटीएलएस जडानका लागि सन्देश अति ठूलो छ; अधिकतम %u बाइट हो"
+msgstr[1] "डीटीएलएस जडानका लागि सन्देश अति ठूलो छ; अधिकतम %u बाइट हो"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:464
 msgid "The operation timed out"
@@ -174,7 +173,7 @@ msgstr ""
 #: tls/gnutls/gtlsconnection-gnutls.c:961
 #, c-format
 msgid "Channel binding data for tls-unique is not yet available"
-msgstr "tls-unique का लागि च्यानल बाइन्डिङ डेटा अहिले सम्म उपलब्ध छैन"
+msgstr "च्यानल बाइन्डिङ डेटा tls-unique का लागि अहिले सम्म उपलब्ध छैन"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:988
 #: tls/gnutls/gtlsconnection-gnutls.c:1000
@@ -191,20 +190,20 @@ msgstr "X.509 प्रमाणपत्र उपलब्ध छैन वा
 #: tls/openssl/gtlsconnection-openssl.c:520
 #, c-format
 msgid "Unable to obtain certificate signature algorithm"
-msgstr ""
+msgstr "प्रमाणपत्र हस्ताक्षर अल्गोरिदम फेला पार्न असक्षम"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1040
 #: tls/openssl/gtlsconnection-openssl.c:540
 #, c-format
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
-msgstr ""
+msgstr "हालको X. 509 प्रमाणपत्रले अज्ञात वा असमर्थित हस्ताक्षर अल्गोरिदम प्रयोग गर्दछ"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1126
 #: tls/openssl/gtlsconnection-openssl.c:620
 #, c-format
 msgid "Requested channel binding type is not implemented"
-msgstr ""
+msgstr "अनुरोध गरिएको च्यानल बाइन्डिङ प्रकार कार्यान्वयन गरिएको छैन"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1147
 #: tls/gnutls/gtlsconnection-gnutls.c:1207
@@ -223,8 +222,8 @@ msgstr "TLS सकेटमा डाटा लेख्दा त्रुट�
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "DTLS जडानका लागि %lu बाइट साइजको सन्देश अति ठूलो छ"
+msgstr[1] "DTLS जडानका लागि %lu बाइट साइजको सन्देश अति ठूलो छ"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1264
 #, c-format
@@ -243,17 +242,19 @@ msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
 msgstr ""
+"प्रणाली विश्वास भण्डार लोड गर्न असफल भयो: GnuTLS प्रणाली विश्वाससँग कन्फिगर गरिएको "
+"थिएन ।"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:580 tls/openssl/gtlsdatabase-openssl.c:187
 #, c-format
 msgid "Failed to load system trust store: %s"
-msgstr ""
+msgstr "प्रणाली विश्वास भण्डार लोड गर्न असफल भयो: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:454
 #, c-format
 msgid "Failed to populate trust list from %s: %s"
-msgstr ""
+msgstr "%s: %s विश्वास सूचीमा राख्न असफल"
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:124
 #: tls/openssl/gtlsserverconnection-openssl.c:170
@@ -286,7 +287,7 @@ msgstr "अवैध TLS प्रमाणपत्र अधिकार"
 
 #: tls/openssl/gtlsconnection-openssl.c:205
 msgid "Digest too big for RSA key"
-msgstr ""
+msgstr "RSA कुञ्जीका लागि अति ठूलो डाइजेस्ट"
 
 #: tls/openssl/gtlsconnection-openssl.c:213
 msgid "Secure renegotiation is disabled"
@@ -310,17 +311,17 @@ msgstr "जडानमा X.५०९ प्रमाणपत्र उपल�
 #: tls/openssl/gtlsconnection-openssl.c:558
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
-msgstr ""
+msgstr "X. 509 प्रमाणपत्र उत्पन्न गर्न असफल भयो"
 
 #: tls/openssl/gtlsconnection-openssl.c:589
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
-msgstr ""
+msgstr "TLS जडानले TLS-निर्यातकर्ता विशेषता समर्थन गर्दैन"
 
 #: tls/openssl/gtlsconnection-openssl.c:592
 #, c-format
 msgid "Unexpected error while exporting keying data"
-msgstr ""
+msgstr "कुञ्जी डेटा निर्यात गर्दा अनपेक्षित त्रुटि"
 
 #: tls/openssl/gtlsconnection-openssl.c:833
 msgid "Error performing TLS close"
