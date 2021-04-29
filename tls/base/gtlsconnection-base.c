@@ -161,6 +161,9 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 
   gchar        **advertised_protocols;
   gchar         *negotiated_protocol;
+
+  GTlsProtocolVersion  protocol_version;
+  gchar               *ciphersuite_name;
 } GTlsConnectionBasePrivate;
 
 static void g_tls_connection_base_dtls_connection_iface_init (GDtlsConnectionInterface *iface);
@@ -212,6 +215,8 @@ enum
   PROP_PEER_CERTIFICATE_ERRORS,
   PROP_ADVERTISED_PROTOCOLS,
   PROP_NEGOTIATED_PROTOCOL,
+  PROP_PROTOCOL_VERSION,
+  PROP_CIPHERSUITE_NAME
 };
 
 gboolean
@@ -282,6 +287,8 @@ g_tls_connection_base_finalize (GObject *object)
   g_clear_pointer (&priv->advertised_protocols, g_strfreev);
   g_clear_pointer (&priv->negotiated_protocol, g_free);
 
+  g_clear_pointer (&priv->ciphersuite_name, g_free);
+
   G_OBJECT_CLASS (g_tls_connection_base_parent_class)->finalize (object);
 }
 
@@ -349,6 +356,14 @@ g_tls_connection_base_get_property (GObject    *object,
 
     case PROP_NEGOTIATED_PROTOCOL:
       g_value_set_string (value, priv->negotiated_protocol);
+      break;
+
+    case PROP_PROTOCOL_VERSION:
+      g_value_set_enum (value, priv->protocol_version);
+      break;
+
+    case PROP_CIPHERSUITE_NAME:
+      g_value_set_string (value, priv->ciphersuite_name);
       break;
 
     default:
@@ -1616,12 +1631,16 @@ finish_handshake (GTlsConnectionBase  *tls,
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   gchar *original_negotiated_protocol;
+  gchar *original_ciphersuite_name;
+  GTlsProtocolVersion original_protocol_version;
   gboolean success;
   GError *my_error = NULL;
 
   g_tls_log_debug (tls, "finishing TLS handshake");
 
   original_negotiated_protocol = g_steal_pointer (&priv->negotiated_protocol);
+  original_ciphersuite_name = g_steal_pointer (&priv->ciphersuite_name);
+  original_protocol_version = priv->protocol_version;
 
   success = g_task_propagate_boolean (task, &my_error);
   if (success)
@@ -1659,15 +1678,24 @@ finish_handshake (GTlsConnectionBase  *tls,
         }
     }
 
-  if (tls_class->complete_handshake)
-    {
-      /* If we already have an error, ignore further errors. */
-      tls_class->complete_handshake (tls, success, &priv->negotiated_protocol, my_error ? NULL : &my_error);
+  tls_class->complete_handshake (tls,
+                                 success,
+                                 &priv->negotiated_protocol,
+                                 &priv->protocol_version,
+                                 &priv->ciphersuite_name,
+                                 /* If we already have an error, ignore further errors. */
+                                 my_error ? NULL : &my_error);
 
-      if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
-        g_object_notify (G_OBJECT (tls), "negotiated-protocol");
-    }
+  if (g_strcmp0 (original_negotiated_protocol, priv->negotiated_protocol) != 0)
+    g_object_notify (G_OBJECT (tls), "negotiated-protocol");
   g_free (original_negotiated_protocol);
+
+  if (original_protocol_version != priv->protocol_version)
+    g_object_notify (G_OBJECT (tls), "protocol-version");
+
+  if (g_strcmp0 (original_ciphersuite_name, priv->ciphersuite_name) != 0)
+    g_object_notify (G_OBJECT (tls), "ciphersuite-name");
+  g_free (original_ciphersuite_name);
 
   if (my_error && priv->started_handshake)
     priv->handshake_error = g_error_copy (my_error);
@@ -2777,6 +2805,8 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   g_object_class_override_property (gobject_class, PROP_PEER_CERTIFICATE_ERRORS, "peer-certificate-errors");
   g_object_class_override_property (gobject_class, PROP_ADVERTISED_PROTOCOLS, "advertised-protocols");
   g_object_class_override_property (gobject_class, PROP_NEGOTIATED_PROTOCOL, "negotiated-protocol");
+  g_object_class_override_property (gobject_class, PROP_PROTOCOL_VERSION, "protocol-version");
+  g_object_class_override_property (gobject_class, PROP_CIPHERSUITE_NAME, "ciphersuite-name");
 }
 
 static void

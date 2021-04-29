@@ -75,6 +75,8 @@ struct _GTlsConnectionBaseClass
   void                        (*complete_handshake)         (GTlsConnectionBase   *tls,
                                                              gboolean              handshake_succeeded,
                                                              gchar               **negotiated_protocol,
+                                                             GTlsProtocolVersion  *protocol_version,
+                                                             gchar               **ciphersuite_name,
                                                              GError              **error);
 
   gboolean                    (*is_session_resumed)         (GTlsConnectionBase   *tls);

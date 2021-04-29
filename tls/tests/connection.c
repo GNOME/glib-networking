@@ -2937,6 +2937,37 @@ test_peer_certificate_notify (TestConnection *test,
 #endif
 }
 
+static void
+test_tls_info (TestConnection *test,
+               gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  g_assert_cmpint (g_tls_connection_get_protocol_version (G_TLS_CONNECTION (test->client_connection)), ==, G_TLS_PROTOCOL_VERSION_UNKNOWN);
+  g_assert_null (g_tls_connection_get_ciphersuite_name (G_TLS_CONNECTION (test->client_connection)));
+
+  /* No validation at all in this test */
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                0);
+
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_assert_cmpint (g_tls_connection_get_protocol_version (G_TLS_CONNECTION (test->client_connection)), !=, G_TLS_PROTOCOL_VERSION_UNKNOWN);
+  g_assert_nonnull (g_tls_connection_get_ciphersuite_name (G_TLS_CONNECTION (test->client_connection)));
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -3067,6 +3098,8 @@ main (int   argc,
               setup_connection, test_connection_binding_match_tls_server_end_point, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/binding/match-tls-exporter", TestConnection, NULL,
               setup_connection, test_connection_binding_match_tls_exporter, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/tls-info", TestConnection, NULL,
+              setup_connection, test_tls_info, teardown_connection);
 
   ret = g_test_run ();
 

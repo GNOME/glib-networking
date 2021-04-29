@@ -493,16 +493,23 @@ g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
 }
 
 static void
-g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
-                                                   gboolean             handshake_succeeded,
-                                                   gchar              **negotiated_protocol,
-                                                   GError             **error)
+g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase   *tls,
+                                                   gboolean              handshake_succeeded,
+                                                   gchar               **negotiated_protocol,
+                                                   GTlsProtocolVersion  *protocol_version,
+                                                   gchar               **ciphersuite_name,
+                                                   GError              **error)
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
   gnutls_session_t session;
   gnutls_protocol_t version;
 
-  G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->complete_handshake (tls, handshake_succeeded, negotiated_protocol, error);
+  G_TLS_CONNECTION_BASE_CLASS (g_tls_client_connection_gnutls_parent_class)->complete_handshake (tls,
+                                                                                                 handshake_succeeded,
+                                                                                                 negotiated_protocol,
+                                                                                                 protocol_version,
+                                                                                                 ciphersuite_name,
+                                                                                                 error);
 
   /* It may have changed during the handshake, but we have to wait until here
    * because we can't emit notifies on the handshake thread.

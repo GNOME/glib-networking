@@ -907,23 +907,75 @@ g_tls_connection_gnutls_handshake_thread_handshake (GTlsConnectionBase  *tls,
   return status;
 }
 
+static GTlsProtocolVersion
+glib_protocol_version_from_gnutls (gnutls_protocol_t protocol_version)
+{
+  switch (protocol_version)
+    {
+    case GNUTLS_SSL3:
+      return G_TLS_PROTOCOL_VERSION_SSL_3_0;
+    case GNUTLS_TLS1_0:
+      return G_TLS_PROTOCOL_VERSION_TLS_1_0;
+    case GNUTLS_TLS1_1:
+      return G_TLS_PROTOCOL_VERSION_TLS_1_1;
+    case GNUTLS_TLS1_2:
+      return G_TLS_PROTOCOL_VERSION_TLS_1_2;
+    case GNUTLS_TLS1_3:
+      return G_TLS_PROTOCOL_VERSION_TLS_1_3;
+    case GNUTLS_DTLS0_9:
+      return G_TLS_PROTOCOL_VERSION_UNKNOWN;
+    case GNUTLS_DTLS1_0:
+      return G_TLS_PROTOCOL_VERSION_DTLS_1_0;
+    case GNUTLS_DTLS1_2:
+      return G_TLS_PROTOCOL_VERSION_DTLS_1_2;
+    default:
+      return G_TLS_PROTOCOL_VERSION_UNKNOWN;
+    }
+}
+
+static gchar *
+get_ciphersuite_name (gnutls_session_t session)
+{
+  gnutls_protocol_t protocol_version = gnutls_protocol_get_version (session);
+
+  if (protocol_version <= GNUTLS_TLS1_2 ||
+      (protocol_version >= GNUTLS_DTLS0_9 && protocol_version <= GNUTLS_DTLS1_2))
+    {
+      return g_strdup (gnutls_cipher_suite_get_name (gnutls_kx_get (session),
+                                                     gnutls_cipher_get (session),
+                                                     gnutls_mac_get (session)));
+    }
+
+  return g_strdup_printf ("TLS_%s_%s",
+                          gnutls_cipher_get_name (gnutls_cipher_get (session)),
+                          gnutls_digest_get_name (gnutls_prf_hash_get (session)));
+
+}
+
 static void
-g_tls_connection_gnutls_complete_handshake (GTlsConnectionBase  *tls,
-                                            gboolean             handshake_succeeded,
-                                            gchar              **negotiated_protocol,
-                                            GError             **error)
+g_tls_connection_gnutls_complete_handshake (GTlsConnectionBase   *tls,
+                                            gboolean              handshake_succeeded,
+                                            gchar               **negotiated_protocol,
+                                            GTlsProtocolVersion  *protocol_version,
+                                            gchar               **ciphersuite_name,
+                                            GError              **error)
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   gnutls_datum_t protocol;
 
-  if (handshake_succeeded &&
-      gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 &&
+  if (!handshake_succeeded)
+    return;
+
+  if (gnutls_alpn_get_selected_protocol (priv->session, &protocol) == 0 &&
       protocol.size > 0)
     {
       g_assert (!*negotiated_protocol);
       *negotiated_protocol = g_strndup ((gchar *)protocol.data, protocol.size);
     }
+
+  *protocol_version = glib_protocol_version_from_gnutls (gnutls_protocol_get_version (priv->session));
+  *ciphersuite_name = get_ciphersuite_name (priv->session);
 }
 
 static gboolean
