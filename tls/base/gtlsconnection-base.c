@@ -1447,6 +1447,26 @@ g_tls_connection_base_dtls_get_binding_data (GDtlsConnection         *conn,
                                                  type, data, error);
 }
 
+#if GLIB_CHECK_VERSION(2, 69, 0)
+static const gchar *
+g_tls_connection_base_get_negotiated_protocol (GTlsConnection *conn)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  return priv->negotiated_protocol;
+}
+#endif
+
+static const gchar *
+g_tls_connection_base_dtls_get_negotiated_protocol (GDtlsConnection *conn)
+{
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+
+  return priv->negotiated_protocol;
+}
+
 static void
 handshake_thread (GTask        *task,
                   gpointer      object,
@@ -2542,15 +2562,6 @@ g_tls_connection_base_dtls_set_advertised_protocols (GDtlsConnection     *conn,
   g_object_set (conn, "advertised-protocols", protocols, NULL);
 }
 
-const gchar *
-g_tls_connection_base_dtls_get_negotiated_protocol (GDtlsConnection *conn)
-{
-  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
-  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
-
-  return priv->negotiated_protocol;
-}
-
 GDatagramBased *
 g_tls_connection_base_get_base_socket (GTlsConnectionBase *tls)
 {
@@ -2733,10 +2744,13 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
   gobject_class->set_property = g_tls_connection_base_set_property;
   gobject_class->finalize     = g_tls_connection_base_finalize;
 
-  connection_class->handshake        = g_tls_connection_base_handshake;
-  connection_class->handshake_async  = g_tls_connection_base_handshake_async;
-  connection_class->handshake_finish = g_tls_connection_base_handshake_finish;
-  connection_class->get_binding_data = g_tls_connection_base_get_binding_data;
+  connection_class->handshake               = g_tls_connection_base_handshake;
+  connection_class->handshake_async         = g_tls_connection_base_handshake_async;
+  connection_class->handshake_finish        = g_tls_connection_base_handshake_finish;
+  connection_class->get_binding_data        = g_tls_connection_base_get_binding_data;
+#if GLIB_CHECK_VERSION(2, 69, 0)
+  connection_class->get_negotiated_protocol = g_tls_connection_base_get_negotiated_protocol;
+#endif
 
   iostream_class->get_input_stream  = g_tls_connection_base_get_input_stream;
   iostream_class->get_output_stream = g_tls_connection_base_get_output_stream;
