@@ -468,7 +468,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetTokenInfo)(CK_SLOT_ID slotID, CK_TOKEN_INFO_PTR p
         pInfo->ulMaxSessionCount = token.ulMaxSessionCount;
         pInfo->ulSessionCount = (CK_TRUE == pkcs11_mock_session_opened) ? 1 : 0;
         pInfo->ulMaxRwSessionCount = token.ulMaxRwSessionCount;
-        pInfo->ulRwSessionCount = ((CK_TRUE == pkcs11_mock_session_opened) && ((CKS_RO_PUBLIC_SESSION != pkcs11_mock_session_state) || (CKS_RO_USER_FUNCTIONS != pkcs11_mock_session_state))) ? 1 : 0;
+        pInfo->ulRwSessionCount = (CK_TRUE == pkcs11_mock_session_opened) ? 1 : 0;
         pInfo->ulMaxPinLen = token.ulMaxPinLen;
         pInfo->ulMinPinLen = token.ulMinPinLen;
         pInfo->ulTotalPublicMemory = token.ulTotalPublicMemory;
@@ -946,8 +946,6 @@ CK_DEFINE_FUNCTION(CK_RV, C_CreateObject)(CK_SESSION_HANDLE hSession, CK_ATTRIBU
 
 CK_DEFINE_FUNCTION(CK_RV, C_CopyObject)(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject, CK_ATTRIBUTE_PTR pTemplate, CK_ULONG ulCount, CK_OBJECT_HANDLE_PTR phNewObject)
 {
-        CK_ULONG i = 0;
-
         if (CK_FALSE == pkcs11_mock_initialized)
                 return CKR_CRYPTOKI_NOT_INITIALIZED;
 
@@ -959,18 +957,6 @@ CK_DEFINE_FUNCTION(CK_RV, C_CopyObject)(CK_SESSION_HANDLE hSession, CK_OBJECT_HA
 
         if (NULL == phNewObject)
                 return CKR_ARGUMENTS_BAD;
-
-        if ((NULL != pTemplate) && (0 >= ulCount))
-        {
-                for (i = 0; i < ulCount; i++)
-                {
-                        if (NULL == pTemplate[i].pValue)
-                                return CKR_ATTRIBUTE_VALUE_INVALID;
-
-                        if (0 >= pTemplate[i].ulValueLen)
-                                return CKR_ATTRIBUTE_VALUE_INVALID;
-                }
-        }
 
         *phNewObject = PKCS11_MOCK_CK_OBJECT_HANDLE_DATA;
 
@@ -2799,9 +2785,6 @@ CK_DEFINE_FUNCTION(CK_RV, C_UnwrapKey)(CK_SESSION_HANDLE hSession, CK_MECHANISM_
 
 CK_DEFINE_FUNCTION(CK_RV, C_DeriveKey)(CK_SESSION_HANDLE hSession, CK_MECHANISM_PTR pMechanism, CK_OBJECT_HANDLE hBaseKey, CK_ATTRIBUTE_PTR pTemplate, CK_ULONG ulAttributeCount, CK_OBJECT_HANDLE_PTR phKey)
 {
-        CK_ULONG i = 0;
-
-
         if (CK_FALSE == pkcs11_mock_initialized)
                 return CKR_CRYPTOKI_NOT_INITIALIZED;
 
@@ -2822,18 +2805,6 @@ CK_DEFINE_FUNCTION(CK_RV, C_DeriveKey)(CK_SESSION_HANDLE hSession, CK_MECHANISM_
 
         if (NULL == phKey)
                 return CKR_ARGUMENTS_BAD;
-
-        if ((NULL != pTemplate) && (0 >= ulAttributeCount))
-        {
-                for (i = 0; i < ulAttributeCount; i++)
-                {
-                        if (NULL == pTemplate[i].pValue)
-                                return CKR_ATTRIBUTE_VALUE_INVALID;
-
-                        if (0 >= pTemplate[i].ulValueLen)
-                                return CKR_ATTRIBUTE_VALUE_INVALID;
-                }
-        }
 
         *phKey = PKCS11_MOCK_CK_OBJECT_HANDLE_SECRET_KEY;
 
