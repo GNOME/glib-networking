@@ -427,7 +427,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetSlotInfo)(CK_SLOT_ID slotID, CK_SLOT_INFO_PTR pIn
         if (CK_FALSE == pkcs11_mock_initialized)
                 return CKR_CRYPTOKI_NOT_INITIALIZED;
 
-        if (slotID > G_N_ELEMENTS (mock_slots))
+        if (slotID >= G_N_ELEMENTS (mock_slots))
                 return CKR_SLOT_ID_INVALID;
 
         if (NULL == pInfo)
@@ -1027,7 +1027,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetAttributeValue)(CK_SESSION_HANDLE hSession, CK_OB
         if ((CK_FALSE == pkcs11_mock_session_opened) || (PKCS11_MOCK_CK_SESSION_ID != hSession))
                 return CKR_SESSION_HANDLE_INVALID;
 
-        if (hObject > G_N_ELEMENTS (mock_objects))
+        if (hObject >= G_N_ELEMENTS (mock_objects))
                 return CKR_OBJECT_HANDLE_INVALID;
 
         if (NULL == pTemplate)
@@ -1972,7 +1972,7 @@ CK_DEFINE_FUNCTION(CK_RV, C_SignInit)(CK_SESSION_HANDLE hSession, CK_MECHANISM_P
         if ((CK_FALSE == pkcs11_mock_session_opened) || (PKCS11_MOCK_CK_SESSION_ID != hSession))
                 return CKR_SESSION_HANDLE_INVALID;
 
-        if (hKey > G_N_ELEMENTS(mock_objects) || mock_objects[hKey].object_class != CKO_PRIVATE_KEY)
+        if (hKey >= G_N_ELEMENTS(mock_objects) || mock_objects[hKey].object_class != CKO_PRIVATE_KEY)
                 return CKR_KEY_HANDLE_INVALID;
 
         if (NULL == pMechanism)
