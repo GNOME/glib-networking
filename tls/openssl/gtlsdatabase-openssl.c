@@ -31,6 +31,10 @@
 #include <glib/gi18n-lib.h>
 #include "openssl-include.h"
 
+#ifdef __APPLE__
+#include <Security/Security.h>
+#endif
+
 typedef struct
 {
   /*
@@ -181,6 +185,44 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
                                             X509_STORE           *store,
                                             GError              **error)
 {
+#ifdef __APPLE__
+  CFArrayRef anchors;
+  OSStatus ret;
+  CFIndex i;
+
+  ret = SecTrustCopyAnchorCertificates (&anchors);
+  if (ret != errSecSuccess)
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                           _("Could not get trusted anchors from Keychain"));
+      return FALSE;
+    }
+
+  for (i = 0; i < CFArrayGetCount (anchors); i++)
+    {
+      SecCertificateRef cert;
+      CFDataRef data;
+
+      cert = (SecCertificateRef)CFArrayGetValueAtIndex (anchors, i);
+      data = SecCertificateCopyData (cert);
+      if (data)
+        {
+          X509 *x;
+          const unsigned char *pdata;
+
+          pdata = (const unsigned char *)CFDataGetBytePtr (data);
+
+          x = d2i_X509 (NULL, &pdata, CFDataGetLength (data));
+          if (x)
+            X509_STORE_add_cert (store, x);
+
+          CFRelease (data);
+        }
+    }
+
+  CFRelease (anchors);
+#endif
+
   if (!X509_STORE_set_default_paths (store))
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,

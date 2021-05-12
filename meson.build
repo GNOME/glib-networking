@@ -190,6 +190,10 @@ if gnutls_dep.found()
 endif
 
 if backends.contains('openssl')
+  if ['darwin', 'ios'].contains(host_system)
+    security_dep = dependency('appleframeworks', modules : ['Security'])
+  endif
+
   subdir('tls/openssl')
 endif
 

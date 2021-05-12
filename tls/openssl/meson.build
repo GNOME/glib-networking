@@ -24,6 +24,12 @@ deps = [
   tlsbase_dep,
 ]
 
+if ['darwin', 'ios'].contains(host_system)
+  deps += [
+    security_dep,
+  ]
+endif
+
 module = shared_module(
   'gioopenssl',
   sources: sources,
