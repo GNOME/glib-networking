@@ -749,7 +749,7 @@ g_tls_connection_base_real_push_io (GTlsConnectionBase *tls,
 
   if (direction & G_IO_IN)
     {
-      priv->read_timeout = timeout;;
+      priv->read_timeout = timeout;
       priv->read_cancellable = cancellable;
       g_clear_error (&priv->read_error);
     }
