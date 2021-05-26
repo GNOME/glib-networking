@@ -105,18 +105,18 @@ setup_connection (TestConnection *test, gconstpointer data)
 }
 
 /* Waits about 10 seconds for @var to be NULL/FALSE */
-#define WAIT_UNTIL_UNSET(var)                             \
-  if (var)                                                \
-    {                                                     \
-      int i;                                              \
-                                                          \
-      for (i = 0; i < 13 && (var); i++)                   \
-        {                                                 \
-          g_usleep (1000 * (1 << i));                     \
-          g_main_context_iteration (NULL, FALSE);         \
-        }                                                 \
-                                                          \
-      g_assert_true (!(var));                             \
+#define WAIT_UNTIL_UNSET(var)                                     \
+  if (var)                                                        \
+    {                                                             \
+      int i;                                                      \
+                                                                  \
+      for (i = 0; i < 13 && (var); i++)                           \
+        {                                                         \
+          g_usleep (1000 * (1 << i));                             \
+          g_main_context_iteration (test->client_context, FALSE); \
+        }                                                         \
+                                                                  \
+      g_assert_true (!(var));                                     \
     }
 
 /* Waits about 10 seconds for @var's ref_count to drop to 1 */
@@ -637,7 +637,7 @@ read_test_data_async (TestConnection *test)
                                                   G_SOCKET_MSG_NONE,
                                                   test->test_data->client_timeout,
                                                   NULL, &test->read_error);
-      g_main_context_iteration (NULL, FALSE);
+      g_main_context_iteration (test->client_context, FALSE);
     }
   while (g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
 
