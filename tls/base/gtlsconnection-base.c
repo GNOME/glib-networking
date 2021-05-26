@@ -2687,6 +2687,28 @@ g_tls_connection_base_handshake_thread_request_certificate (GTlsConnectionBase *
   return res != G_TLS_INTERACTION_FAILED;
 }
 
+gboolean
+g_tls_connection_base_handshake_thread_ask_password (GTlsConnectionBase *tls,
+                                                     GTlsPassword       *password)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsInteractionResult res = G_TLS_INTERACTION_UNHANDLED;
+  GTlsInteraction *interaction;
+
+  g_return_val_if_fail (G_IS_TLS_CONNECTION_BASE (tls), FALSE);
+
+  g_clear_error (&priv->interaction_error);
+
+  interaction = g_tls_connection_get_interaction (G_TLS_CONNECTION (tls));
+  if (!interaction)
+    return FALSE;
+
+  res = g_tls_interaction_invoke_ask_password (interaction, password,
+                                               priv->read_cancellable,
+                                               &priv->interaction_error);
+  return res != G_TLS_INTERACTION_FAILED;
+}
+
 void
 g_tls_connection_base_handshake_thread_buffer_application_data (GTlsConnectionBase *tls,
                                                                 guint8             *data,

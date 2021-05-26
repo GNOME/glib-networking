@@ -528,7 +528,10 @@ g_tls_certificate_gnutls_copy  (GTlsCertificateGnutls  *gnutls,
       status = gnutls_privkey_import_pkcs11_url (*pkey,
                                                  gnutls->private_key_pkcs11_uri ? gnutls->private_key_pkcs11_uri : gnutls->pkcs11_uri);
       if (status != GNUTLS_E_SUCCESS)
-        g_warning ("Failed to copy PKCS #11 private key: %s", gnutls_strerror (status));
+        {
+          *pkey = NULL;
+          g_info ("Failed to copy PKCS #11 private key: %s", gnutls_strerror (status));
+        }
     }
   else
     {

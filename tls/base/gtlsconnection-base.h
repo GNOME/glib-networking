@@ -194,6 +194,9 @@ gboolean                  g_tls_connection_base_ever_handshaked         (GTlsCon
 
 gboolean                  g_tls_connection_base_handshake_thread_request_certificate
                                                                         (GTlsConnectionBase  *tls);
+gboolean                  g_tls_connection_base_handshake_thread_ask_password
+                                                                        (GTlsConnectionBase *tls,
+                                                                         GTlsPassword       *password);
 
 void                      g_tls_connection_base_handshake_thread_buffer_application_data
                                                                         (GTlsConnectionBase *tls,

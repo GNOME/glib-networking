@@ -238,12 +238,9 @@ on_pin_request (void         *userdata,
                 size_t        pin_max)
 {
   GTlsConnection *connection = G_TLS_CONNECTION (userdata);
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (G_TLS_CONNECTION_GNUTLS (connection));
   GTlsInteraction *interaction = g_tls_connection_get_interaction (connection);
-  GTlsInteractionResult result;
   GTlsPassword *password;
   GTlsPasswordFlags password_flags = 0;
-  GError *error = NULL;
   gchar *description;
   int ret = -1;
 
@@ -259,37 +256,19 @@ on_pin_request (void         *userdata,
 
   description = g_strdup_printf (" %s (%s)", token_label, token_url);
   password = g_tls_password_new (password_flags, description);
-  result = g_tls_interaction_invoke_ask_password (interaction, password,
-                                                  priv->cancellable,
-                                                  &error);
-  g_free (description);
-
-  switch (result)
-    {
-    case G_TLS_INTERACTION_FAILED:
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("Error getting PIN: %s", error->message);
-      g_error_free (error);
-      break;
-    case G_TLS_INTERACTION_UNHANDLED:
-      break;
-    case G_TLS_INTERACTION_HANDLED:
+  if (g_tls_connection_base_handshake_thread_ask_password (G_TLS_CONNECTION_BASE (connection), password))
       {
         gsize password_size;
         const guchar *password_data = g_tls_password_get_value (password, &password_size);
         if (password_size > pin_max)
-          g_warning ("PIN is larger than max PIN size");
+          g_info ("PIN is larger than max PIN size");
 
         memcpy (pin, password_data, MIN (password_size, pin_max));
         ret = GNUTLS_E_SUCCESS;
-        break;
-      }
-    default:
-      g_assert_not_reached ();
     }
 
+  g_free (description);
   g_object_unref (password);
-
   return ret;
 }
 
