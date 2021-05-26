@@ -257,7 +257,7 @@ on_rehandshake_finish (GObject        *object,
                                                &message, 1,
                                                G_SOCKET_MSG_NONE, 0, NULL,
                                                &test->server_error);
-      g_main_context_iteration (NULL, FALSE);
+      g_main_context_iteration (test->server_context, FALSE);
     }
   while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
 
@@ -304,7 +304,7 @@ on_rehandshake_finish_threaded (GObject      *object,
                                                &message, 1,
                                                G_SOCKET_MSG_NONE, 0, NULL,
                                                &test->server_error);
-      g_main_context_iteration (NULL, FALSE);
+      g_main_context_iteration (test->server_context, FALSE);
     }
   while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
 
@@ -429,7 +429,7 @@ on_incoming_connection (GSocket       *socket,
                                                &message, 1,
                                                G_SOCKET_MSG_NONE, 0, NULL,
                                                &test->server_error);
-      g_main_context_iteration (NULL, FALSE);
+      g_main_context_iteration (test->server_context, FALSE);
     }
   while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
 
@@ -530,7 +530,7 @@ on_incoming_connection_threaded (GSocket      *socket,
                                                G_SOCKET_MSG_NONE,
                                                test->test_data->server_timeout, NULL,
                                                &test->server_error);
-      g_main_context_iteration (NULL, FALSE);
+      g_main_context_iteration (test->server_context, FALSE);
     }
   while (g_error_matches (test->server_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK));
 
