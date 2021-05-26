@@ -176,6 +176,7 @@ gtls_bio_write (BIO        *bio,
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
         BIO_set_retry_write (bio);
 
+      g_clear_error (gbio->write_error);
       g_propagate_error (gbio->write_error, error);
     }
 
@@ -218,6 +219,7 @@ gtls_bio_read (BIO  *bio,
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
         BIO_set_retry_read (bio);
 
+      g_clear_error (gbio->read_error);
       g_propagate_error (gbio->read_error, error);
     }
 
