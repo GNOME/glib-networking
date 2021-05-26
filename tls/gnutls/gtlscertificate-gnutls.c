@@ -42,6 +42,10 @@ enum
   PROP_ISSUER,
   PROP_PKCS11_URI,
   PROP_PRIVATE_KEY_PKCS11_URI,
+  PROP_NOT_VALID_BEFORE,
+  PROP_NOT_VALID_AFTER,
+  PROP_SUBJECT_NAME,
+  PROP_ISSUER_NAME,
 };
 
 struct _GTlsCertificateGnutls
@@ -97,6 +101,9 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
   char *certificate_pem;
   int status;
   size_t size;
+  gnutls_x509_dn_t dn;
+  gnutls_datum_t data;
+  time_t time;
 
   switch (prop_id)
     {
@@ -155,6 +162,44 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 
     case PROP_PRIVATE_KEY_PKCS11_URI:
       g_value_set_string (value, gnutls->private_key_pkcs11_uri);
+      break;
+
+    case PROP_NOT_VALID_BEFORE:
+      time = gnutls_x509_crt_get_activation_time (gnutls->cert);
+      if (time != (time_t)-1)
+        g_value_take_boxed (value, g_date_time_new_from_unix_utc (time));
+      break;
+
+    case PROP_NOT_VALID_AFTER:
+      time = gnutls_x509_crt_get_expiration_time (gnutls->cert);
+      if (time != (time_t)-1)
+        g_value_take_boxed (value, g_date_time_new_from_unix_utc (time));
+      break;
+
+    case PROP_SUBJECT_NAME:
+      status = gnutls_x509_crt_get_subject (gnutls->cert, &dn);
+      if (status != GNUTLS_E_SUCCESS)
+        return;
+
+      status = gnutls_x509_dn_get_str (dn, &data);
+      if (status != GNUTLS_E_SUCCESS)
+        return;
+
+      g_value_take_string (value, g_strndup ((gchar *)data.data, data.size));
+      gnutls_free (data.data);
+      break;
+
+    case PROP_ISSUER_NAME:
+      status = gnutls_x509_crt_get_issuer (gnutls->cert, &dn);
+      if (status != GNUTLS_E_SUCCESS)
+        return;
+
+      status = gnutls_x509_dn_get_str (dn, &data);
+      if (status != GNUTLS_E_SUCCESS)
+        return;
+
+      g_value_take_string (value, g_strndup ((gchar *)data.data, data.size));
+      gnutls_free (data.data);
       break;
 
     default:
@@ -411,6 +456,10 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
   g_object_class_override_property (gobject_class, PROP_PKCS11_URI, "pkcs11-uri");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PKCS11_URI, "private-key-pkcs11-uri");
+  g_object_class_override_property (gobject_class, PROP_NOT_VALID_BEFORE, "not-valid-before");
+  g_object_class_override_property (gobject_class, PROP_NOT_VALID_AFTER, "not-valid-after");
+  g_object_class_override_property (gobject_class, PROP_SUBJECT_NAME, "subject-name");
+  g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
 }
 
 static void

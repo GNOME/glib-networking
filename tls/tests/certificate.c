@@ -576,6 +576,88 @@ test_certificate_is_same (void)
   g_object_unref (three);
 }
 
+static void
+test_certificate_not_valid_before (void)
+{
+  const gchar *EXPECTED_NOT_VALID_BEFORE = "2020-10-12T17:49:44Z";
+
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  GDateTime *actual;
+  gchar *actual_str;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
+  g_assert_no_error (error);
+
+  actual = g_tls_certificate_get_not_valid_before (cert);
+  g_assert_nonnull (actual);
+  actual_str = g_date_time_format_iso8601 (actual);
+  g_assert_cmpstr (actual_str, ==, EXPECTED_NOT_VALID_BEFORE);
+  g_free (actual_str);
+  g_date_time_unref (actual);
+  g_object_unref (cert);
+}
+
+static void
+test_certificate_not_valid_after (void)
+{
+  const gchar *EXPECTED_NOT_VALID_AFTER = "2045-10-06T17:49:44Z";
+
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  GDateTime *actual;
+  gchar *actual_str;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
+  g_assert_no_error (error);
+
+  actual = g_tls_certificate_get_not_valid_after (cert);
+  g_assert_nonnull (actual);
+  actual_str = g_date_time_format_iso8601 (actual);
+  g_assert_cmpstr (actual_str, ==, EXPECTED_NOT_VALID_AFTER);
+  g_free (actual_str);
+  g_date_time_unref (actual);
+  g_object_unref (cert);
+}
+
+static void
+test_certificate_subject_name (void)
+{
+  const gchar *EXPECTED_SUBJECT_NAME = "DC=COM,DC=EXAMPLE,CN=server.example.com";
+
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  gchar *actual;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
+  g_assert_no_error (error);
+
+  actual = g_tls_certificate_get_subject_name (cert);
+  g_assert_nonnull (actual);
+  g_assert_cmpstr (actual, ==, EXPECTED_SUBJECT_NAME);
+  g_free (actual);
+  g_object_unref (cert);
+}
+
+static void
+test_certificate_issuer_name (void)
+{
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  gchar *actual;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
+  g_assert_no_error (error);
+
+  actual = g_tls_certificate_get_issuer_name (cert);
+  g_assert_nonnull (actual);
+  // For GnuTLS the full string includes ",EMAIL=ca@example.com" at the end while
+  // OpenSSL includes ",emailAddress=ca@example.com" at the end
+  g_assert (strstr (actual, "DC=COM,DC=EXAMPLE,OU=Certificate Authority,CN=ca.example.com"));
+  g_free (actual);
+  g_object_unref (cert);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -633,6 +715,11 @@ main (int   argc,
               setup_verify, test_verify_certificate_bad_combo, teardown_verify);
 
   g_test_add_func ("/tls/" BACKEND "/certificate/is-same", test_certificate_is_same);
+
+  g_test_add_func ("/tls/" BACKEND "/certificate/not-valid-before", test_certificate_not_valid_before);
+  g_test_add_func ("/tls/" BACKEND "/certificate/not-valid-after", test_certificate_not_valid_after);
+  g_test_add_func ("/tls/" BACKEND "/certificate/subject-name", test_certificate_subject_name);
+  g_test_add_func ("/tls/" BACKEND "/certificate/issuer-name", test_certificate_issuer_name);
 
   return g_test_run();
 }

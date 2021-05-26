@@ -55,7 +55,11 @@ enum
   PROP_CERTIFICATE_PEM,
   PROP_PRIVATE_KEY,
   PROP_PRIVATE_KEY_PEM,
-  PROP_ISSUER
+  PROP_ISSUER,
+  PROP_NOT_VALID_BEFORE,
+  PROP_NOT_VALID_AFTER,
+  PROP_SUBJECT_NAME,
+  PROP_ISSUER_NAME,
 };
 
 static void     g_tls_certificate_openssl_initable_iface_init (GInitableIface  *iface);
@@ -93,6 +97,13 @@ g_tls_certificate_openssl_get_property (GObject    *object,
   BIO *bio;
   char *certificate_pem;
   int size;
+
+  const ASN1_TIME *time_asn1;
+  struct tm time_tm;
+  GDateTime *time;
+  GTimeZone *tz;
+  X509_NAME *name;
+  const char *name_string;
 
   switch (prop_id)
     {
@@ -132,6 +143,42 @@ g_tls_certificate_openssl_get_property (GObject    *object,
 
     case PROP_ISSUER:
       g_value_set_object (value, openssl->issuer);
+      break;
+
+    case PROP_NOT_VALID_BEFORE:
+      time_asn1 = X509_get0_notBefore (openssl->cert);
+      ASN1_TIME_to_tm (time_asn1, &time_tm);
+      tz = g_time_zone_new_utc ();
+      time = g_date_time_new (tz, time_tm.tm_year + 1900, time_tm.tm_mon + 1, time_tm.tm_mday, time_tm.tm_hour, time_tm.tm_min, time_tm.tm_sec);
+      g_value_take_boxed (value, time);
+      g_time_zone_unref (tz);
+      break;
+
+    case PROP_NOT_VALID_AFTER:
+      time_asn1 = X509_get0_notAfter (openssl->cert);
+      ASN1_TIME_to_tm (time_asn1, &time_tm);
+      tz = g_time_zone_new_utc ();
+      time = g_date_time_new (tz, time_tm.tm_year + 1900, time_tm.tm_mon + 1, time_tm.tm_mday, time_tm.tm_hour, time_tm.tm_min, time_tm.tm_sec);
+      g_value_take_boxed (value, time);
+      g_time_zone_unref (tz);
+      break;
+
+    case PROP_SUBJECT_NAME:
+      bio = BIO_new (BIO_s_mem ());
+      name = X509_get_subject_name (openssl->cert);
+      X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS);
+      BIO_get_mem_data (bio, (char **)&name_string);
+      g_value_set_string (value, name_string);
+      BIO_free_all (bio);
+      break;
+
+    case PROP_ISSUER_NAME:
+      bio = BIO_new (BIO_s_mem ());
+      name = X509_get_issuer_name (openssl->cert);
+      X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS);
+      BIO_get_mem_data (bio, &name_string);
+      g_value_set_string (value, name_string);
+      BIO_free_all (bio);
       break;
 
     default:
@@ -359,6 +406,10 @@ g_tls_certificate_openssl_class_init (GTlsCertificateOpensslClass *klass)
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
+  g_object_class_override_property (gobject_class, PROP_NOT_VALID_BEFORE, "not-valid-before");
+  g_object_class_override_property (gobject_class, PROP_NOT_VALID_AFTER, "not-valid-after");
+  g_object_class_override_property (gobject_class, PROP_SUBJECT_NAME, "subject-name");
+  g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
 }
 
 static void

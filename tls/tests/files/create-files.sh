@@ -17,6 +17,17 @@ echo "                   *** IMPORTANT ***"
 echo
 echo "This script depends on datefudge, openssl, and python3's cryptography module."
 echo
+echo "A few manual changes need to be made."
+echo "certificate.c:test_certificate_not_valid_before"
+echo "and certificate.c:test_certificate_not_valid_after have"
+echo "EXPECTED_NOT_VALID_BEFORE and EXPECTED_NOT_VALID_AFTER"
+echo "that needs to be changed to match corresponding validity dates"
+echo "that are part of the new certificate named server.pem."
+echo "One way to obtain the new values is to inspect the output of:"
+echo "$ openssl x509 -inform pem -in ./tls/tests/files/server.pem -noout -text"
+echo
+echo "                   *** IMPORTANT ***"
+echo
 
 read -p "Press [Enter] key to continue..."
 
