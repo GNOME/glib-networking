@@ -29,24 +29,27 @@
 
 typedef struct {
   GIOStream *io_stream;
+  GDatagramBased *socket;
   GCancellable *read_cancellable;
   GCancellable *write_cancellable;
-  gboolean read_blocking;
-  gboolean write_blocking;
   GError **read_error;
   GError **write_error;
-  GMainContext *context;
-  GMainLoop *loop;
 } GTlsBio;
+
+typedef struct {
+  gboolean done;
+  gboolean timed_out;
+} WaitData;
 
 static void
 free_gbio (gpointer user_data)
 {
   GTlsBio *bio = (GTlsBio *)user_data;
 
-  g_object_unref (bio->io_stream);
-  g_main_context_unref (bio->context);
-  g_main_loop_unref (bio->loop);
+  if (bio->io_stream)
+    g_object_unref (bio->io_stream);
+  else
+    g_object_unref (bio->socket);
   g_free (bio);
 }
 
@@ -131,6 +134,9 @@ gtls_bio_ctrl (BIO  *b,
     case BIO_CTRL_POP:
       ret = 0;
       break;
+    case BIO_CTRL_DGRAM_QUERY_MTU:
+      ret = 1400; /* Same as the GnuTLS backend */
+      break;
     default:
       g_debug ("Got unsupported command: %d", cmd);
       ret = 0;
@@ -165,11 +171,28 @@ gtls_bio_write (BIO        *bio,
 #endif
 
   BIO_clear_retry_flags (bio);
-  written = g_pollable_stream_write (g_io_stream_get_output_stream (gbio->io_stream),
-                                     in, inl,
-                                     gbio->write_blocking,
-                                     gbio->write_cancellable,
-                                     &error);
+  if (gbio->io_stream)
+    {
+      written = g_pollable_stream_write (g_io_stream_get_output_stream (gbio->io_stream),
+                                         in, inl,
+                                         FALSE,
+                                         gbio->write_cancellable,
+                                         &error);
+    }
+  else
+    {
+      GOutputVector vector = { in, inl };
+      GOutputMessage message = { NULL, &vector, 1, 0, NULL, 0 };
+
+      written = g_datagram_based_send_messages (gbio->socket,
+                                                &message, 1, 0,
+                                                0,
+                                                gbio->write_cancellable,
+                                                &error);
+
+      if (written > 0)
+        written = message.bytes_sent;
+    }
 
   if (written == -1)
     {
@@ -208,11 +231,28 @@ gtls_bio_read (BIO  *bio,
 #endif
 
   BIO_clear_retry_flags (bio);
-  read = g_pollable_stream_read (g_io_stream_get_input_stream (gbio->io_stream),
-                                 out, outl,
-                                 gbio->read_blocking,
-                                 gbio->read_cancellable,
-                                 &error);
+  if (gbio->io_stream)
+    {
+      read = g_pollable_stream_read (g_io_stream_get_input_stream (gbio->io_stream),
+                                     out, outl,
+                                     FALSE,
+                                     gbio->read_cancellable,
+                                     &error);
+    }
+  else
+    {
+      GInputVector vector = { out, outl };
+      GInputMessage message = { NULL, &vector, 1, 0, 0, NULL, NULL };
+
+      read = g_datagram_based_receive_messages (gbio->socket,
+                                                &message, 1, 0,
+                                                0,
+                                                gbio->read_cancellable,
+                                                &error);
+
+      if (read > 0)
+        read = message.bytes_received;
+    }
 
   if (read == -1)
     {
@@ -284,8 +324,8 @@ BIO_s_gtls (void)
 }
 #endif
 
-BIO *
-g_tls_bio_new (GIOStream *io_stream)
+static BIO *
+g_tls_bio_alloc (GTlsBio **out_gbio)
 {
   BIO *ret;
   GTlsBio *gbio;
@@ -295,9 +335,6 @@ g_tls_bio_new (GIOStream *io_stream)
     return NULL;
 
   gbio = g_new0 (GTlsBio, 1);
-  gbio->io_stream = g_object_ref (io_stream);
-  gbio->context = g_main_context_new ();
-  gbio->loop = g_main_loop_new (gbio->context, FALSE);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
   ret->ptr = gbio;
@@ -306,6 +343,31 @@ g_tls_bio_new (GIOStream *io_stream)
   BIO_set_data (ret, gbio);
   BIO_set_init (ret, 1);
 #endif
+
+  *out_gbio = gbio;
+  return ret;
+}
+
+BIO *
+g_tls_bio_new_from_iostream (GIOStream *io_stream)
+{
+  BIO *ret;
+  GTlsBio *gbio;
+
+  ret = g_tls_bio_alloc (&gbio);
+  gbio->io_stream = g_object_ref (io_stream);
+
+  return ret;
+}
+
+BIO *
+g_tls_bio_new_from_datagram_based (GDatagramBased *socket)
+{
+  BIO *ret;
+  GTlsBio *gbio;
+
+  ret = g_tls_bio_alloc (&gbio);
+  gbio->socket = g_object_ref (socket);
 
   return ret;
 }
@@ -324,22 +386,6 @@ g_tls_bio_set_read_cancellable (BIO          *bio,
   gbio = BIO_get_data (bio);
 #endif
   gbio->read_cancellable = cancellable;
-}
-
-void
-g_tls_bio_set_read_blocking (BIO      *bio,
-                             gboolean  blocking)
-{
-  GTlsBio *gbio;
-
-  g_return_if_fail (bio);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
-  gbio = BIO_get_data (bio);
-#endif
-  gbio->read_blocking = blocking;
 }
 
 void
@@ -375,22 +421,6 @@ g_tls_bio_set_write_cancellable (BIO          *bio,
 }
 
 void
-g_tls_bio_set_write_blocking (BIO          *bio,
-                              gboolean      blocking)
-{
-  GTlsBio *gbio;
-
-  g_return_if_fail (bio);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
-  gbio = BIO_get_data (bio);
-#endif
-  gbio->write_blocking = blocking;
-}
-
-void
 g_tls_bio_set_write_error (BIO     *bio,
                            GError **error)
 {
@@ -407,25 +437,51 @@ g_tls_bio_set_write_error (BIO     *bio,
 }
 
 static gboolean
-on_source_ready (GObject *pollable_stream,
-                 gpointer user_data)
+on_pollable_source_ready (GObject *pollable_stream,
+                          gpointer user_data)
 {
-  GMainLoop *loop = user_data;
+  WaitData *wait_data = user_data;
 
-  g_main_loop_quit (loop);
+  wait_data->done = TRUE;
 
   return G_SOURCE_REMOVE;
 }
 
-void
+static gboolean
+on_datagram_source_ready (GDatagramBased *datagram_based,
+                          GIOCondition condition,
+                          gpointer user_data)
+{
+  WaitData *wait_data = user_data;
+
+  wait_data->done = TRUE;
+
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean
+on_timeout_source_ready (gpointer user_data)
+{
+  WaitData *wait_data = user_data;
+
+  wait_data->done = TRUE;
+  wait_data->timed_out = TRUE;
+
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
 g_tls_bio_wait_available (BIO          *bio,
                           GIOCondition  condition,
+                          gint64        timeout,
                           GCancellable *cancellable)
 {
   GTlsBio *gbio;
-  GSource *source;
+  WaitData wait_data;
+  GMainContext *ctx;
+  GSource *io_source, *timeout_source;
 
-  g_return_if_fail (bio);
+  g_return_val_if_fail (bio, FALSE);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
   gbio = (GTlsBio *)bio->ptr;
@@ -433,21 +489,54 @@ g_tls_bio_wait_available (BIO          *bio,
   gbio = BIO_get_data (bio);
 #endif
 
-  g_main_context_push_thread_default (gbio->context);
+  wait_data.done = FALSE;
+  wait_data.timed_out = FALSE;
 
-  if (condition & G_IO_IN)
-    source = g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (g_io_stream_get_input_stream (gbio->io_stream)),
-                                                    cancellable);
+  ctx = g_main_context_new ();
+  g_main_context_push_thread_default (ctx);
+
+  if (gbio->io_stream)
+    {
+      if (condition & G_IO_IN)
+        io_source = g_pollable_input_stream_create_source (G_POLLABLE_INPUT_STREAM (g_io_stream_get_input_stream (gbio->io_stream)),
+                                                           cancellable);
+      else
+        io_source = g_pollable_output_stream_create_source (G_POLLABLE_OUTPUT_STREAM (g_io_stream_get_output_stream (gbio->io_stream)),
+                                                            cancellable);
+      g_source_set_callback (io_source, (GSourceFunc)on_pollable_source_ready, &wait_data, NULL);
+    }
   else
-    source = g_pollable_output_stream_create_source (G_POLLABLE_OUTPUT_STREAM (g_io_stream_get_output_stream (gbio->io_stream)),
-                                                     cancellable);
+    {
+      io_source = g_datagram_based_create_source (gbio->socket, condition, cancellable);
+      g_source_set_callback (io_source, (GSourceFunc)on_datagram_source_ready, &wait_data, NULL);
+    }
+  g_source_attach (io_source, ctx);
 
-  g_source_set_callback (source, (GSourceFunc)on_source_ready, gbio->loop, NULL);
-  g_source_attach (source, gbio->context);
+  if (timeout >= 0)
+    {
+      timeout_source = g_timeout_source_new (timeout / 1000);
+      g_source_set_callback (timeout_source, (GSourceFunc)on_timeout_source_ready, &wait_data, NULL);
+      g_source_attach (timeout_source, ctx);
+    }
+  else
+    {
+      timeout_source = NULL;
+    }
 
-  g_main_loop_run (gbio->loop);
-  g_main_context_pop_thread_default (gbio->context);
+  while (!wait_data.done)
+    g_main_context_iteration (ctx, TRUE);
 
-  g_source_destroy (source);
-  g_source_unref (source);
+  if (timeout_source)
+    {
+      g_source_destroy (timeout_source);
+      g_source_unref (timeout_source);
+    }
+
+  g_source_destroy (io_source);
+  g_source_unref (io_source);
+
+  g_main_context_pop_thread_default (ctx);
+  g_main_context_unref (ctx);
+
+  return !wait_data.timed_out;
 }

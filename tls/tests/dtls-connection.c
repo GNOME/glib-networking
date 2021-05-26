@@ -31,7 +31,9 @@
 #include "mock-interaction.h"
 
 #include <gio/gio.h>
+#ifdef BACKEND_IS_GNUTLS
 #include <gnutls/gnutls.h>
+#endif
 
 #include <sys/types.h>
 #include <string.h>

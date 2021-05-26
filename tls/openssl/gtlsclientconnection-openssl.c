@@ -70,7 +70,9 @@ G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionOpenssl, g_tls_client_connection_op
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_tls_client_connection_openssl_initable_interface_init)
                          G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
-                                                g_tls_client_connection_openssl_client_connection_interface_init))
+                                                g_tls_client_connection_openssl_client_connection_interface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CLIENT_CONNECTION,
+                                                NULL));
 
 static void
 g_tls_client_connection_openssl_finalize (GObject *object)
@@ -381,7 +383,14 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   client->session = SSL_SESSION_new ();
 
-  client->ssl_ctx = SSL_CTX_new (SSLv23_client_method ());
+  client->ssl_ctx = SSL_CTX_new (g_tls_connection_base_is_dtls (G_TLS_CONNECTION_BASE (client))
+#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
+                                 ? DTLS_client_method ()
+                                 : TLS_client_method ());
+#else
+                                 ? DTLSv1_client_method ()
+                                 : SSLv23_client_method ());
+#endif
   if (!client->ssl_ctx)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,

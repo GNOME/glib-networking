@@ -26,21 +26,22 @@
 
 #pragma once
 
-#include "glib.h"
-
 /* Due to name clashes between Windows and openssl headers we have to
  * make sure windows.h is included before openssl and that we undef the
- * clashing macros.
+ * clashing macros. We also need `struct timeval` for DTLSv1_get_timeout(),
+ * and the following header also covers it for Windows.
  */
+#include <gio/gnetworking.h>
 #ifdef G_OS_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 /* These are defined by the Windows headers, but clash with openssl */
 #undef X509_NAME
 #undef X509_CERT_PAIR
 #undef X509_EXTENSIONS
 #undef OCSP_REQUEST
 #undef OCSP_RESPONSE
+#else
+/* Need `struct timeval` for DTLSv1_get_timeout() */
+#include <sys/time.h>
 #endif
 
 #include <openssl/ssl.h>

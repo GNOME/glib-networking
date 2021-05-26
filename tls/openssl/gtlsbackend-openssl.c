@@ -239,6 +239,8 @@ g_tls_backend_openssl_interface_init (GTlsBackendInterface *iface)
   iface->get_server_connection_type = g_tls_server_connection_openssl_get_type;
   iface->get_file_database_type = g_tls_file_database_openssl_get_type;
   iface->get_default_database = g_tls_backend_openssl_get_default_database;
+  iface->get_dtls_client_connection_type = g_tls_client_connection_openssl_get_type;
+  iface->get_dtls_server_connection_type = g_tls_server_connection_openssl_get_type;
 }
 
 void

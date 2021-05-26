@@ -30,13 +30,12 @@
 
 G_BEGIN_DECLS
 
-BIO       *g_tls_bio_new                   (GIOStream    *io_stream);
+BIO       *g_tls_bio_new_from_iostream     (GIOStream *io_stream);
+
+BIO       *g_tls_bio_new_from_datagram_based (GDatagramBased *socket);
 
 void       g_tls_bio_set_read_cancellable  (BIO          *bio,
                                             GCancellable *cancellable);
-
-void       g_tls_bio_set_read_blocking     (BIO          *bio,
-                                            gboolean      blocking);
 
 void       g_tls_bio_set_read_error        (BIO          *bio,
                                             GError      **error);
@@ -44,14 +43,12 @@ void       g_tls_bio_set_read_error        (BIO          *bio,
 void       g_tls_bio_set_write_cancellable (BIO          *bio,
                                             GCancellable *cancellable);
 
-void       g_tls_bio_set_write_blocking    (BIO          *bio,
-                                            gboolean      blocking);
-
 void       g_tls_bio_set_write_error       (BIO          *bio,
                                             GError      **error);
 
-void       g_tls_bio_wait_available        (BIO          *bio,
+gboolean   g_tls_bio_wait_available        (BIO          *bio,
                                             GIOCondition  condition,
+                                            gint64        timeout,
                                             GCancellable *cancellable);
 
 G_END_DECLS

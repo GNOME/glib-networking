@@ -51,11 +51,6 @@ test_programs = [
 
 foreach backend: backends
   foreach program: test_programs
-    # OpenSSL does not support DTLS yet.
-    if program[0] == 'dtls-connection' and backend == 'openssl'
-      continue
-    endif
-
     program_name = program[0] + '-' + backend
 
     test_conf = configuration_data()
