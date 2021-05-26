@@ -115,7 +115,7 @@ setup_connection (TestConnection *test, gconstpointer data)
       for (i = 0; i < 13 && (var); i++)                      \
         {                                                    \
           g_usleep (1000 * (1 << i));                        \
-          g_main_context_iteration (NULL, FALSE);            \
+          g_main_context_iteration (test->context, FALSE);   \
         }                                                    \
                                                              \
       g_assert_true (!(var));                                \
@@ -1988,7 +1988,7 @@ test_simultaneous_sync (TestConnection *test,
    * receive the connection and spawn the server thread.
    */
   while (!test->server_connection)
-    g_main_context_iteration (NULL, FALSE);
+    g_main_context_iteration (test->context, FALSE);
 
   g_thread_join (write_thread);
   g_thread_join (read_thread);
@@ -2251,7 +2251,7 @@ test_output_stream_close (TestConnection *test,
                                     handshake_completed, &handshake_complete);
 
   while (!handshake_complete)
-    g_main_context_iteration (NULL, TRUE);
+    g_main_context_iteration (test->context, TRUE);
 
   ret = g_output_stream_close (g_io_stream_get_output_stream (test->client_connection),
                                NULL, &error);
