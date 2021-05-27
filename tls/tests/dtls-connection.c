@@ -27,6 +27,7 @@
 
 #include "config.h"
 
+#include "lossy-socket.h"
 #include "mock-interaction.h"
 
 #include <gio/gio.h>
@@ -68,6 +69,8 @@ typedef struct {
   gboolean server_should_disappear;  /* whether the server should stop responding before sending a message */
   gboolean server_should_close;  /* whether the server should close gracefully once it’s sent a message */
   GTlsAuthenticationMode auth_mode;
+  IOPredicateFunc client_loss_inducer;
+  IOPredicateFunc server_loss_inducer;
 } TestData;
 
 typedef struct {
@@ -77,6 +80,7 @@ typedef struct {
   GMainContext *server_context;
   gboolean loop_finished;
   GSocket *server_socket;
+  GDatagramBased *server_transport;
   GSource *server_source;
   GTlsDatabase *database;
   GDatagramBased *server_connection;
@@ -155,6 +159,8 @@ teardown_connection (TestConnection *test, gconstpointer data)
       test->server_connection = NULL;
     }
 
+  g_clear_object (&test->server_transport);
+
   if (test->server_socket)
     {
       g_socket_close (test->server_socket, &error);
@@ -219,6 +225,16 @@ start_server (TestConnection *test)
                                           g_inet_socket_address_get_port (iaddr));
 
   test->server_socket = socket;
+  if (test->test_data->server_loss_inducer)
+    {
+      test->server_transport = lossy_socket_new (G_DATAGRAM_BASED (socket),
+                                                 test->test_data->server_loss_inducer,
+                                                 test);
+    }
+  else
+    {
+      test->server_transport = G_DATAGRAM_BASED (g_object_ref (socket));
+    }
   test->server_running = TRUE;
 }
 
@@ -396,7 +412,7 @@ on_incoming_connection (GSocket       *socket,
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
   g_assert_no_error (error);
 
-  test->server_connection = g_dtls_server_connection_new (G_DATAGRAM_BASED (socket),
+  test->server_connection = g_dtls_server_connection_new (test->server_transport,
                                                           cert, &error);
   g_debug ("%s: Server connection %p on socket %p", G_STRFUNC, test->server_connection, socket);
   g_assert_no_error (error);
@@ -502,7 +518,7 @@ on_incoming_connection_threaded (GSocket      *socket,
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
   g_assert_no_error (error);
 
-  test->server_connection = g_dtls_server_connection_new (G_DATAGRAM_BASED (socket),
+  test->server_connection = g_dtls_server_connection_new (test->server_transport,
                                                           cert, &error);
   g_debug ("%s: Server connection %p on socket %p", G_STRFUNC, test->server_connection, socket);
   g_assert_no_error (error);
@@ -603,6 +619,7 @@ start_server_and_connect_to_it (TestConnection         *test,
 {
   GError *error = NULL;
   GSocket *socket;
+  GDatagramBased *transport;
 
   start_server_service (test, threaded);
 
@@ -613,7 +630,19 @@ start_server_and_connect_to_it (TestConnection         *test,
   g_socket_connect (socket, test->address, NULL, &error);
   g_assert_no_error (error);
 
-  return G_DATAGRAM_BASED (socket);
+  if (test->test_data->client_loss_inducer)
+    {
+      transport = lossy_socket_new (G_DATAGRAM_BASED (socket),
+                                    test->test_data->client_loss_inducer,
+                                    test);
+      g_object_unref (socket);
+    }
+  else
+    {
+      transport = G_DATAGRAM_BASED (socket);
+    }
+
+  return transport;
 }
 
 static void
@@ -745,6 +774,16 @@ test_connection_timeouts_read (TestConnection *test,
   g_assert_error (test->read_error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT);
 }
 
+static IODecision
+drop_first_outgoing (const IODetails *io,
+                     gpointer         user_data)
+{
+  if (io->direction == IO_OUT && io->serial == 1)
+    return IO_DROP;
+
+  return IO_KEEP;
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -755,6 +794,7 @@ main (int   argc,
     FALSE,  /* server_should_disappear */
     TRUE, /* server_should_close */
     G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+    NULL, NULL, /* loss inducers */
   };
   const TestData server_timeout = {
     1000 * G_USEC_PER_SEC,  /* server_timeout */
@@ -762,6 +802,7 @@ main (int   argc,
     FALSE,  /* server_should_disappear */
     TRUE, /* server_should_close */
     G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+    NULL, NULL, /* loss inducers */
   };
   const TestData nonblocking = {
     0,  /* server_timeout */
@@ -769,6 +810,7 @@ main (int   argc,
     FALSE,  /* server_should_disappear */
     TRUE, /* server_should_close */
     G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+    NULL, NULL, /* loss inducers */
   };
   const TestData client_timeout = {
     0,  /* server_timeout */
@@ -776,6 +818,23 @@ main (int   argc,
     TRUE,  /* server_should_disappear */
     TRUE, /* server_should_close */
     G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+    NULL, NULL, /* loss inducers */
+  };
+  const TestData client_loss = {
+    -1,  /* server_timeout */
+    0,  /* client_timeout */
+    FALSE,  /* server_should_disappear */
+    TRUE, /* server_should_close */
+    G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+    drop_first_outgoing, NULL, /* loss inducers */
+  };
+  const TestData server_loss = {
+    -1,  /* server_timeout */
+    0,  /* client_timeout */
+    FALSE,  /* server_should_disappear */
+    TRUE, /* server_should_close */
+    G_TLS_AUTHENTICATION_NONE,  /* auth_mode */
+    NULL, drop_first_outgoing, /* loss inducers */
   };
   int ret;
   int i;
@@ -825,6 +884,11 @@ main (int   argc,
   g_test_add ("/dtls/" BACKEND "/connection/timeouts/read", TestConnection, &client_timeout,
               setup_connection, test_connection_timeouts_read,
               teardown_connection);
+
+  g_test_add ("/dtls/" BACKEND "/connection/lossy/client", TestConnection, &client_loss,
+              setup_connection, test_basic_connection, teardown_connection);
+  g_test_add ("/dtls/" BACKEND "/connection/lossy/server", TestConnection, &server_loss,
+              setup_connection, test_basic_connection, teardown_connection);
 
   ret = g_test_run ();
 
