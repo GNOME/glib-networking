@@ -254,6 +254,13 @@ on_pin_request (void         *userdata,
   if (callback_flags & GNUTLS_PIN_FINAL_TRY || attempt > 5) /* Give up at some point */
     password_flags |= G_TLS_PASSWORD_FINAL_TRY;
 
+  if (callback_flags & GNUTLS_PIN_USER)
+    password_flags |= G_TLS_PASSWORD_PKCS11_USER;
+  if (callback_flags & GNUTLS_PIN_SO)
+    password_flags |= G_TLS_PASSWORD_PKCS11_SECURITY_OFFICER;
+  if (callback_flags & GNUTLS_PIN_CONTEXT_SPECIFIC)
+    password_flags |= G_TLS_PASSWORD_PKCS11_CONTEXT_SPECIFIC;
+
   description = g_strdup_printf (" %s (%s)", token_label, token_url);
   password = g_tls_password_new (password_flags, description);
   if (g_tls_connection_base_handshake_thread_ask_password (G_TLS_CONNECTION_BASE (connection), password))
