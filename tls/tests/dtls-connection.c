@@ -119,6 +119,21 @@ setup_connection (TestConnection *test, gconstpointer data)
       g_assert_true (!(var));                             \
     }
 
+/* Waits about 10 seconds for @var's ref_count to drop to 1 */
+#define WAIT_UNTIL_UNREFFED(var)                                  \
+  if (var)                                                        \
+    {                                                             \
+      int i;                                                      \
+                                                                  \
+      for (i = 0; i < 13 && G_OBJECT (var)->ref_count > 1; i++)   \
+        {                                                         \
+          g_usleep (1000 * (1 << i));                             \
+          g_main_context_iteration (test->client_context, FALSE); \
+        }                                                         \
+                                                                  \
+      g_assert_cmpuint (G_OBJECT (var)->ref_count, ==, 1);        \
+    }
+
 static void
 teardown_connection (TestConnection *test, gconstpointer data)
 {
@@ -135,10 +150,9 @@ teardown_connection (TestConnection *test, gconstpointer data)
     {
       WAIT_UNTIL_UNSET (test->server_running);
 
-      g_object_add_weak_pointer (G_OBJECT (test->server_connection),
-                                 (gpointer *)&test->server_connection);
+      WAIT_UNTIL_UNREFFED (test->server_connection);
       g_object_unref (test->server_connection);
-      WAIT_UNTIL_UNSET (test->server_connection);
+      test->server_connection = NULL;
     }
 
   if (test->server_socket)
@@ -149,25 +163,23 @@ teardown_connection (TestConnection *test, gconstpointer data)
       /* The outstanding accept_async will hold a ref on test->server_socket,
        * which we want to wait for it to release if we're valgrinding.
        */
-      g_object_add_weak_pointer (G_OBJECT (test->server_socket), (gpointer *)&test->server_socket);
+      WAIT_UNTIL_UNREFFED (test->server_socket);
       g_object_unref (test->server_socket);
-      WAIT_UNTIL_UNSET (test->server_socket);
+      test->server_socket = NULL;
     }
 
   if (test->client_connection)
     {
-      g_object_add_weak_pointer (G_OBJECT (test->client_connection),
-                                 (gpointer *)&test->client_connection);
+      WAIT_UNTIL_UNREFFED (test->client_connection);
       g_object_unref (test->client_connection);
-      WAIT_UNTIL_UNSET (test->client_connection);
+      test->client_connection = NULL;
     }
 
   if (test->database)
     {
-      g_object_add_weak_pointer (G_OBJECT (test->database),
-                                 (gpointer *)&test->database);
+      WAIT_UNTIL_UNREFFED (test->database);
       g_object_unref (test->database);
-      WAIT_UNTIL_UNSET (test->database);
+      test->database = NULL;
     }
 
   g_clear_object (&test->address);
