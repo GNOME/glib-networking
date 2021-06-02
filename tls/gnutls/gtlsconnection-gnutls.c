@@ -646,11 +646,11 @@ static gboolean
 read_pollable_cb (GPollableInputStream *istream,
                   gpointer              user_data)
 {
-  gboolean *read_done = user_data;
+  gboolean *done = user_data;
 
-  *read_done = TRUE;
+  *done = TRUE;
 
-  return G_SOURCE_CONTINUE;
+  return G_SOURCE_REMOVE;
 }
 
 static gboolean
@@ -658,19 +658,30 @@ read_datagram_based_cb (GDatagramBased *datagram_based,
                         GIOCondition    condition,
                         gpointer        user_data)
 {
-  gboolean *read_done = user_data;
+  gboolean *done = user_data;
 
-  *read_done = TRUE;
+  *done = TRUE;
 
-  return G_SOURCE_CONTINUE;
+  return G_SOURCE_REMOVE;
 }
 
 static gboolean
 read_timeout_cb (gpointer user_data)
 {
-  gboolean *timed_out = user_data;
+  gboolean *done = user_data;
 
-  *timed_out = TRUE;
+  *done = TRUE;
+
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean
+read_cancelled_cb (GCancellable *cancellable,
+                   gpointer      user_data)
+{
+  gboolean *done = user_data;
+
+  *done = TRUE;
 
   return G_SOURCE_REMOVE;
 }
@@ -691,15 +702,17 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
   if (ms > 0)
     {
       GMainContext *ctx = NULL;
-      GSource *read_source = NULL, *timeout_source = NULL;
-      gboolean read_done = FALSE, timed_out = FALSE;
+      GSource *read_source = NULL;
+      GSource *timeout_source = NULL;
+      GSource *cancellable_source = NULL;
+      gboolean done = FALSE;
 
       ctx = g_main_context_new ();
 
       /* Create a timeout source. */
       timeout_source = g_timeout_source_new (ms);
       g_source_set_callback (timeout_source, (GSourceFunc)read_timeout_cb,
-                             &timed_out, NULL);
+                             &done, NULL);
 
       /* Create a read source. We cannot use g_source_set_ready_time() on this
        * to combine it with the @timeout_source, as that could mess with the
@@ -709,28 +722,35 @@ g_tls_connection_gnutls_pull_timeout_func (gnutls_transport_ptr_t transport_data
           read_source = g_datagram_based_create_source (g_tls_connection_base_get_base_socket (tls),
                                                         G_IO_IN, NULL);
           g_source_set_callback (read_source, (GSourceFunc)read_datagram_based_cb,
-                                 &read_done, NULL);
+                                 &done, NULL);
         }
       else
         {
           read_source = g_pollable_input_stream_create_source (g_tls_connection_base_get_base_istream (tls),
                                                                NULL);
           g_source_set_callback (read_source, (GSourceFunc)read_pollable_cb,
-                                 &read_done, NULL);
+                                 &done, NULL);
         }
+
+      cancellable_source = g_cancellable_source_new (g_tls_connection_base_get_read_cancellable (tls));
+      g_source_set_callback (cancellable_source, (GSourceFunc)read_cancelled_cb,
+                             &done, NULL);
 
       g_source_attach (read_source, ctx);
       g_source_attach (timeout_source, ctx);
+      g_source_attach (cancellable_source, ctx);
 
-      while (!read_done && !timed_out)
+      while (!done)
         g_main_context_iteration (ctx, TRUE);
 
       g_source_destroy (read_source);
       g_source_destroy (timeout_source);
+      g_source_destroy (cancellable_source);
 
       g_main_context_unref (ctx);
       g_source_unref (read_source);
       g_source_unref (timeout_source);
+      g_source_unref (cancellable_source);
 
       /* If @read_source was dispatched due to cancellation, the resulting error
        * will be handled in g_tls_connection_gnutls_pull_func(). */
