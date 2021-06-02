@@ -14,7 +14,7 @@ fedora-x86_64:
             -Dwerror=true
             _build/
     - meson compile -C _build/
-    - meson test -v -C _build/ --repeat=500
+    - meson test -v -C _build/ --repeat=1000
     - meson install -C _build/
   artifacts:
     paths:
