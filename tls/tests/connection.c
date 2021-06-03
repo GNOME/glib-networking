@@ -2097,6 +2097,9 @@ test_unclean_close_by_server (TestConnection *test,
    * disabling require_close_notify.
    */
   g_clear_error (&test->read_error);
+  g_clear_object (&test->address);
+  g_clear_object (&test->identity);
+  g_socket_service_stop (test->service);
   g_clear_object (&test->service);
   g_clear_object (&test->server_connection);
   g_clear_object (&test->client_connection);
@@ -2801,8 +2804,14 @@ test_connection_missing_server_identity (TestConnection *test,
   g_clear_error (&test->read_error);
   g_clear_error (&test->server_error);
 
+  g_clear_object (&test->address);
+  g_clear_object (&test->identity);
+
   g_clear_object (&test->client_connection);
   g_clear_object (&test->server_connection);
+
+  g_socket_service_stop (test->service);
+  g_clear_object (&test->service);
 
   /* Now do the same thing again, this time ignoring bad identity. */
 
