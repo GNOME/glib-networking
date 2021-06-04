@@ -364,13 +364,13 @@ set_max_protocol (GTlsServerConnectionOpenssl  *server,
     {
       gint64 version = g_ascii_strtoll (proto, NULL, 0);
 
-      if (version > 0 && version < G_MAXINT64)
+      if (version > 0 && version < G_MAXINT)
         {
           if (!SSL_CTX_set_max_proto_version (server->ssl_ctx, (int)version))
             {
               g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                           _("Could not set MAX protocol to %ld: %s"),
-                           version, ERR_error_string (ERR_get_error (), NULL));
+                           _("Could not set MAX protocol to %d: %s"),
+                           (int)version, ERR_error_string (ERR_get_error (), NULL));
               return FALSE;
             }
         }
