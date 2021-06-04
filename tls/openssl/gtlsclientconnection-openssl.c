@@ -326,14 +326,14 @@ set_max_protocol (GTlsClientConnectionOpenssl  *client,
   proto = g_getenv ("G_TLS_OPENSSL_MAX_PROTO");
   if (proto)
     {
-      gint64 version = g_ascii_strtoll (proto, NULL, 0);
+      int version = g_ascii_strtoll (proto, NULL, 0);
 
-      if (version > 0 && version < G_MAXINT64)
+      if (version > 0 && version < G_MAXINT)
         {
-          if (!SSL_CTX_set_max_proto_version (client->ssl_ctx, (int)version))
+          if (!SSL_CTX_set_max_proto_version (client->ssl_ctx, version))
             {
               g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                           _("Could not set MAX protocol to %ld: %s"),
+                           _("Could not set MAX protocol to %d: %s"),
                            version, ERR_error_string (ERR_get_error (), NULL));
               return FALSE;
             }
