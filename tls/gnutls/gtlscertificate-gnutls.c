@@ -46,6 +46,8 @@ enum
   PROP_NOT_VALID_AFTER,
   PROP_SUBJECT_NAME,
   PROP_ISSUER_NAME,
+  PROP_DNS_NAMES,
+  PROP_IP_ADDRESSES,
 };
 
 struct _GTlsCertificateGnutls
@@ -88,6 +90,60 @@ g_tls_certificate_gnutls_finalize (GObject *object)
   g_clear_error (&gnutls->construct_error);
 
   G_OBJECT_CLASS (g_tls_certificate_gnutls_parent_class)->finalize (object);
+}
+
+static GPtrArray *
+get_subject_alt_names (GTlsCertificateGnutls          *cert,
+                       gnutls_x509_subject_alt_name_t  type)
+{
+  GPtrArray *data = NULL;
+  guint8 *san = NULL;
+  size_t san_size;
+  guint san_type;
+  guint critical;
+  guint i;
+  guint status;
+
+  if (type == GNUTLS_SAN_IPADDRESS)
+    data = g_ptr_array_new_with_free_func (g_object_unref);
+  else
+    data = g_ptr_array_new_with_free_func ((GDestroyNotify)g_bytes_unref);
+
+  for (i = 0; ; i++)
+  {
+    san_size = 0;
+    san = NULL;
+    status = gnutls_x509_crt_get_subject_alt_name2 (cert->cert, i, san, &san_size, &san_type, &critical);
+    if (status == GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE)
+      return data;
+    else if (san_type != (guint)type)
+      continue;
+
+    if (san_size == 0)
+      continue;
+
+    san = g_malloc (san_size);
+    status = gnutls_x509_crt_get_subject_alt_name2 (cert->cert, i, san, &san_size, &san_type, &critical);
+    if (status == (guint)type)
+      {
+        if (status == (guint)GNUTLS_SAN_IPADDRESS)
+          {
+            if (san_size == 4)
+              g_ptr_array_add (data, g_inet_address_new_from_bytes (san, G_SOCKET_FAMILY_IPV4));
+            else if (san_size == 16)
+              g_ptr_array_add (data, g_inet_address_new_from_bytes (san, G_SOCKET_FAMILY_IPV6));
+          }
+        else
+          {
+            g_assert (status == (guint)GNUTLS_SAN_DNSNAME);
+            g_ptr_array_add (data, g_bytes_new (san, san_size));
+          }
+      }
+
+    g_free (san);
+  }
+
+  return data;
 }
 
 static void
@@ -200,6 +256,14 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 
       g_value_take_string (value, g_strndup ((gchar *)data.data, data.size));
       gnutls_free (data.data);
+      break;
+
+    case PROP_DNS_NAMES:
+      g_value_take_boxed (value, get_subject_alt_names (gnutls, GNUTLS_SAN_DNSNAME));
+      break;
+
+    case PROP_IP_ADDRESSES:
+      g_value_take_boxed (value, get_subject_alt_names (gnutls, GNUTLS_SAN_IPADDRESS));
       break;
 
     default:
@@ -460,6 +524,8 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_NOT_VALID_AFTER, "not-valid-after");
   g_object_class_override_property (gobject_class, PROP_SUBJECT_NAME, "subject-name");
   g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
+  g_object_class_override_property (gobject_class, PROP_DNS_NAMES, "dns-names");
+  g_object_class_override_property (gobject_class, PROP_IP_ADDRESSES, "ip-addresses");
 }
 
 static void

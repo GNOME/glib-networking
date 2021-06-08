@@ -658,6 +658,51 @@ test_certificate_issuer_name (void)
   g_object_unref (cert);
 }
 
+static void
+test_certificate_dns_names (void)
+{
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  GPtrArray *actual;
+  const gchar *dns_name = "server.example.com";
+  GBytes *expected = g_bytes_new_static (dns_name, strlen (dns_name));
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (cert);
+
+  actual = g_tls_certificate_get_dns_names (cert);
+  g_assert_nonnull (actual);
+  g_assert_cmpuint (actual->len, ==, 1);
+  g_assert_true (g_ptr_array_find_with_equal_func (actual, expected, (GEqualFunc)g_bytes_equal, NULL));
+
+  g_ptr_array_free (actual, FALSE);
+  g_bytes_unref (expected);
+  g_object_unref (cert);
+}
+
+static void
+test_certificate_ip_addresses (void)
+{
+  GTlsCertificate *cert;
+  GError *error = NULL;
+  GPtrArray *actual;
+  GInetAddress *expected = g_inet_address_new_from_string ("192.168.1.10");
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (cert);
+
+  actual = g_tls_certificate_get_ip_addresses (cert);
+  g_assert_nonnull (actual);
+  g_assert_cmpuint (actual->len, ==, 1);
+  g_assert_true (g_ptr_array_find_with_equal_func (actual, expected, (GEqualFunc)g_inet_address_equal, NULL));
+
+  g_ptr_array_free (actual, TRUE);
+  g_object_unref (expected);
+  g_object_unref (cert);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -720,6 +765,8 @@ main (int   argc,
   g_test_add_func ("/tls/" BACKEND "/certificate/not-valid-after", test_certificate_not_valid_after);
   g_test_add_func ("/tls/" BACKEND "/certificate/subject-name", test_certificate_subject_name);
   g_test_add_func ("/tls/" BACKEND "/certificate/issuer-name", test_certificate_issuer_name);
+  g_test_add_func ("/tls/" BACKEND "/certificate/dns-names", test_certificate_dns_names);
+  g_test_add_func ("/tls/" BACKEND "/certificate/ip-addresses", test_certificate_ip_addresses);
 
   return g_test_run();
 }

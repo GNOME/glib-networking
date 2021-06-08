@@ -60,6 +60,8 @@ enum
   PROP_NOT_VALID_AFTER,
   PROP_SUBJECT_NAME,
   PROP_ISSUER_NAME,
+  PROP_DNS_NAMES,
+  PROP_IP_ADDRESSES,
 };
 
 static void     g_tls_certificate_openssl_initable_iface_init (GInitableIface  *iface);
@@ -83,6 +85,55 @@ g_tls_certificate_openssl_finalize (GObject *object)
   g_clear_error (&openssl->construct_error);
 
   G_OBJECT_CLASS (g_tls_certificate_openssl_parent_class)->finalize (object);
+}
+
+static GPtrArray *
+get_subject_alt_names (GTlsCertificateOpenssl *cert,
+                       guint                   type)
+{
+  GPtrArray *data = NULL;
+  STACK_OF (GENERAL_NAME) *sans;
+  const guint8 *san = NULL;
+  size_t san_size;
+  guint alt_occurrences;
+  guint i;
+
+  if (type == GEN_IPADD)
+    data = g_ptr_array_new_with_free_func (g_object_unref);
+  else
+    data = g_ptr_array_new_with_free_func ((GDestroyNotify)g_bytes_unref);
+
+  sans = X509_get_ext_d2i (cert->cert, NID_subject_alt_name, NULL, NULL);
+  if (sans)
+    {
+      alt_occurrences = sk_GENERAL_NAME_num (sans);
+      for (i = 0; i < alt_occurrences; i++)
+        {
+          const GENERAL_NAME *value = sk_GENERAL_NAME_value (sans, i);
+          if (value->type != type)
+            continue;
+
+          if (type == GEN_IPADD)
+            {
+              g_assert (value->type == GEN_IPADD);
+              san = ASN1_STRING_get0_data (value->d.ip);
+              san_size = ASN1_STRING_length (value->d.ip);
+              if (san_size == 4)
+                g_ptr_array_add (data, g_inet_address_new_from_bytes (san, G_SOCKET_FAMILY_IPV4));
+              else if (san_size == 16)
+                g_ptr_array_add (data, g_inet_address_new_from_bytes (san, G_SOCKET_FAMILY_IPV6));
+            }
+          else
+            {
+              g_assert (value->type == GEN_DNS);
+              san = ASN1_STRING_get0_data (value->d.ia5);
+              san_size = ASN1_STRING_length (value->d.ia5);
+              g_ptr_array_add (data, g_bytes_new (san, san_size));
+            }
+          }
+    }
+
+  return data;
 }
 
 static void
@@ -181,6 +232,14 @@ g_tls_certificate_openssl_get_property (GObject    *object,
       BIO_get_mem_data (bio, &name_string);
       g_value_set_string (value, name_string);
       BIO_free_all (bio);
+      break;
+
+    case PROP_DNS_NAMES:
+      g_value_take_boxed (value, get_subject_alt_names (openssl, GEN_DNS));
+      break;
+
+    case PROP_IP_ADDRESSES:
+      g_value_take_boxed (value, get_subject_alt_names (openssl, GEN_IPADD));
       break;
 
     default:
@@ -412,6 +471,8 @@ g_tls_certificate_openssl_class_init (GTlsCertificateOpensslClass *klass)
   g_object_class_override_property (gobject_class, PROP_NOT_VALID_AFTER, "not-valid-after");
   g_object_class_override_property (gobject_class, PROP_SUBJECT_NAME, "subject-name");
   g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
+  g_object_class_override_property (gobject_class, PROP_DNS_NAMES, "dns-names");
+  g_object_class_override_property (gobject_class, PROP_IP_ADDRESSES, "ip-addresses");
 }
 
 static void
