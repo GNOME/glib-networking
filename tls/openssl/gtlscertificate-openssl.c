@@ -137,6 +137,69 @@ get_subject_alt_names (GTlsCertificateOpenssl *cert,
 }
 
 static void
+export_privkey_to_der (GTlsCertificateOpenssl  *openssl,
+                       guint8                 **output_data,
+                       long                    *output_size)
+{
+  PKCS8_PRIV_KEY_INFO *pkcs8;
+  BIO *bio = NULL;
+  const guint8 *data;
+
+  if (!openssl->key)
+    goto err;
+
+  pkcs8 = EVP_PKEY2PKCS8 (openssl->key);
+  if (!pkcs8)
+    goto err;
+
+  bio = BIO_new (BIO_s_mem ());
+  if (i2d_PKCS8_PRIV_KEY_INFO_bio (bio, pkcs8) == 0)
+    goto err;
+
+  *output_size = BIO_get_mem_data (bio, (char **)&data);
+  if (*output_size <= 0)
+    goto err;
+
+  *output_data = g_malloc (*output_size);
+  memcpy (*output_data, data, *output_size);
+  return;
+
+err:
+  if (bio)
+    BIO_free_all (bio);
+  *output_data = NULL;
+  *output_size = 0;
+}
+
+static char *
+export_privkey_to_pem (GTlsCertificateOpenssl *openssl)
+{
+  int ret;
+  BIO *bio = NULL;
+  const char *data = NULL;
+  char *result = NULL;
+
+  if (!openssl->key)
+    return NULL;
+
+  bio = BIO_new (BIO_s_mem ());
+  ret = PEM_write_bio_PKCS8PrivateKey (bio, openssl->key, NULL, NULL, 0, NULL, NULL);
+  if (ret == 0)
+    goto out;
+
+  ret = BIO_write (bio, "\0", 1);
+  if (ret != 1)
+    goto out;
+
+  BIO_get_mem_data (bio, (char **)&data);
+  result = g_strdup (data);
+
+out:
+  BIO_free_all (bio);
+  return result;
+}
+
+static void
 g_tls_certificate_openssl_get_property (GObject    *object,
                                         guint       prop_id,
                                         GValue     *value,
@@ -146,8 +209,9 @@ g_tls_certificate_openssl_get_property (GObject    *object,
   GByteArray *certificate;
   guint8 *data;
   BIO *bio;
+  GByteArray *byte_array;
   char *certificate_pem;
-  int size;
+  long size;
 
   const ASN1_TIME *time_asn1;
   struct tm time_tm;
@@ -190,6 +254,19 @@ g_tls_certificate_openssl_get_property (GObject    *object,
 
           BIO_free_all (bio);
         }
+      break;
+
+    case PROP_PRIVATE_KEY:
+      export_privkey_to_der (openssl, &data, &size);
+      if (size > 0 && (gint64)size <= G_MAXUINT)
+        {
+          byte_array = g_byte_array_new_take (data, size);
+          g_value_take_boxed (value, byte_array);
+        }
+      break;
+
+    case PROP_PRIVATE_KEY_PEM:
+      g_value_take_string (value, export_privkey_to_pem (openssl));
       break;
 
     case PROP_ISSUER:

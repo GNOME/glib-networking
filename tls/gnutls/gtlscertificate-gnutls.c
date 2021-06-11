@@ -147,14 +147,54 @@ get_subject_alt_names (GTlsCertificateGnutls          *cert,
 }
 
 static void
+export_privkey (GTlsCertificateGnutls  *gnutls,
+                gnutls_x509_crt_fmt_t   format,
+                void                  **output_data,
+                size_t                 *output_size)
+{
+  gnutls_x509_privkey_t x509_privkey;
+  int status;
+
+  if (!gnutls->key)
+    goto err;
+
+  status = gnutls_privkey_export_x509 (gnutls->key, &x509_privkey);
+  if (status != 0)
+    goto err;
+
+  *output_size = 0;
+  status = gnutls_x509_privkey_export_pkcs8 (x509_privkey,
+                                             format,
+                                             NULL, GNUTLS_PKCS_PLAIN,
+                                             NULL, output_size);
+  if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
+    goto err;
+
+  *output_data = g_malloc (*output_size);
+  status = gnutls_x509_privkey_export_pkcs8 (x509_privkey,
+                                             format,
+                                             NULL, GNUTLS_PKCS_PLAIN,
+                                             *output_data, output_size);
+  if (status == 0)
+    return;
+
+  g_free (*output_data);
+
+err:
+  *output_data = NULL;
+  *output_size = 0;
+}
+
+static void
 g_tls_certificate_gnutls_get_property (GObject    *object,
                                        guint       prop_id,
                                        GValue     *value,
                                        GParamSpec *pspec)
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (object);
-  GByteArray *certificate;
-  char *certificate_pem;
+  GByteArray *byte_array;
+  char *pem;
+  guint8 *der;
   int status;
   size_t size;
   gnutls_x509_dn_t dn;
@@ -169,21 +209,21 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
                                        GNUTLS_X509_FMT_DER,
                                        NULL, &size);
       if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
-        certificate = NULL;
+        byte_array = NULL;
       else
         {
-          certificate = g_byte_array_sized_new (size);
-          certificate->len = size;
+          byte_array = g_byte_array_sized_new (size);
+          byte_array->len = size;
           status = gnutls_x509_crt_export (gnutls->cert,
                                            GNUTLS_X509_FMT_DER,
-                                           certificate->data, &size);
+                                           byte_array->data, &size);
           if (status != 0)
             {
-              g_byte_array_free (certificate, TRUE);
-              certificate = NULL;
+              g_byte_array_free (byte_array, TRUE);
+              byte_array = NULL;
             }
         }
-      g_value_take_boxed (value, certificate);
+      g_value_take_boxed (value, byte_array);
       break;
 
     case PROP_CERTIFICATE_PEM:
@@ -192,20 +232,32 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
                                        GNUTLS_X509_FMT_PEM,
                                        NULL, &size);
       if (status != GNUTLS_E_SHORT_MEMORY_BUFFER)
-        certificate_pem = NULL;
+        pem = NULL;
       else
         {
-          certificate_pem = g_malloc (size);
+          pem = g_malloc (size);
           status = gnutls_x509_crt_export (gnutls->cert,
                                            GNUTLS_X509_FMT_PEM,
-                                           certificate_pem, &size);
+                                           pem, &size);
           if (status != 0)
-            {
-              g_free (certificate_pem);
-              certificate_pem = NULL;
-            }
+            g_clear_pointer (&pem, g_free);
         }
-      g_value_take_string (value, certificate_pem);
+      g_value_take_string (value, pem);
+      break;
+
+    case PROP_PRIVATE_KEY:
+      export_privkey (gnutls, GNUTLS_X509_FMT_DER, (void **)&der, &size);
+      if (size > 0 && size <= G_MAXUINT)
+        {
+          byte_array = g_byte_array_new_take (der, size);
+          g_value_take_boxed (value, byte_array);
+        }
+      break;
+
+    case PROP_PRIVATE_KEY_PEM:
+      export_privkey (gnutls, GNUTLS_X509_FMT_PEM, (void **)&pem, &size);
+      if (size > 0)
+        g_value_take_string (value, pem);
       break;
 
     case PROP_ISSUER:

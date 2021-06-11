@@ -67,7 +67,10 @@ typedef struct {
   GByteArray *cert_der;
   gchar *key_pem;
   gsize key_pem_length;
+  gchar *key_pem_pkcs8;
+  gsize key_pem_pkcs8_length;
   GByteArray *key_der;
+  GByteArray *key_der_pkcs8;
 } TestCertificate;
 
 static void
@@ -96,12 +99,24 @@ setup_certificate (TestCertificate *test, gconstpointer data)
                        &test->key_pem_length, &error);
   g_assert_no_error (error);
 
+  g_file_get_contents (tls_test_file_path ("server-key-pkcs8.pem"), &test->key_pem_pkcs8,
+                       &test->key_pem_pkcs8_length, &error);
+  g_assert_no_error (error);
+
   g_file_get_contents (tls_test_file_path ("server-key.der"),
                        &contents, &length, &error);
   g_assert_no_error (error);
 
   test->key_der = g_byte_array_new ();
   g_byte_array_append (test->key_der, (guint8 *)contents, length);
+  g_free (contents);
+
+  g_file_get_contents (tls_test_file_path ("server-key-pkcs8.der"),
+                       &contents, &length, &error);
+  g_assert_no_error (error);
+
+  test->key_der_pkcs8 = g_byte_array_new ();
+  g_byte_array_append (test->key_der_pkcs8, (guint8 *)contents, length);
   g_free (contents);
 }
 
@@ -113,7 +128,9 @@ teardown_certificate (TestCertificate *test,
   g_byte_array_free (test->cert_der, TRUE);
 
   g_free (test->key_pem);
+  g_free (test->key_pem_pkcs8);
   g_byte_array_free (test->key_der, TRUE);
+  g_byte_array_free (test->key_der_pkcs8, TRUE);
 }
 
 static void
@@ -266,6 +283,63 @@ test_create_certificate_pkcs11 (TestCertificate *test,
 
   g_assert_no_error (error);
   g_assert_nonnull (cert);
+#endif
+}
+
+static void
+test_private_key (TestCertificate *test,
+                  gconstpointer    data)
+{
+  GTlsCertificate *cert;
+  GByteArray *der;
+  char *pem;
+  GError *error = NULL;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-and-key.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
+
+  g_object_get (cert,
+                "private-key", &der,
+                "private-key-pem", &pem,
+                NULL);
+  g_assert_cmpmem (der->data, der->len, test->key_der_pkcs8->data, test->key_der_pkcs8->len);
+  g_assert_cmpstr (pem, ==, test->key_pem_pkcs8);
+
+  g_byte_array_unref (der);
+  g_free (pem);
+  g_object_unref (cert);
+}
+
+static void
+test_private_key_pkcs11 (TestCertificate *test,
+                         gconstpointer    data)
+{
+#if !defined (BACKEND_IS_GNUTLS)
+  g_test_skip ("This backend does not support PKCS #11");
+#else
+  GTlsCertificate *cert;
+  GByteArray *der;
+  char *pem;
+  GError *error = NULL;
+
+  cert = g_initable_new (test->cert_gtype, NULL, &error,
+                         "pkcs11-uri", "pkcs11:model=mock;token=Mock%20Certificate;object=Mock%20Certificate",
+                         NULL);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
+
+  /* Cannot access private key because the GTlsCertificate only knows its
+   * PKCS #11 handle. It doesn't actually have the private key in memory.
+   */
+  g_object_get (cert,
+                "private-key", &der,
+                "private-key-pem", &pem,
+                NULL);
+  g_assert_null (der);
+  g_assert_null (pem);
+
+  g_object_unref (cert);
 #endif
 }
 
@@ -737,6 +811,10 @@ main (int   argc,
               setup_certificate, test_create_certificate_with_garbage_input, teardown_certificate);
   g_test_add ("/tls/" BACKEND "/certificate/pkcs11", TestCertificate, NULL,
               setup_certificate, test_create_certificate_pkcs11, teardown_certificate);
+  g_test_add ("/tls/" BACKEND "/certificate/private-key", TestCertificate, NULL,
+              setup_certificate, test_private_key, teardown_certificate);
+  g_test_add ("/tls/" BACKEND "/certificate/private-key-pkcs11", TestCertificate, NULL,
+              setup_certificate, test_private_key_pkcs11, teardown_certificate);
 
   g_test_add_func ("/tls/" BACKEND "/certificate/create-chain", test_create_certificate_chain);
   g_test_add_func ("/tls/" BACKEND "/certificate/create-no-chain", test_create_certificate_no_chain);

@@ -76,6 +76,10 @@ openssl x509 -in server.pem -outform DER -out server.der
 msg "Converting server private key from PEM to DER"
 openssl rsa -in server-key.pem -outform DER -out server-key.der
 
+msg "Converting server private key to PKCS #8"
+openssl pkcs8 -topk8 -in server-key.pem -outform PEM -nocrypt -out server-key-pkcs8.pem
+openssl pkcs8 -topk8 -in server-key.pem -outform DER -nocrypt -out server-key-pkcs8.der
+
 #######################################################################
 ### Server (self-signed)
 #######################################################################
