@@ -312,3 +312,96 @@ g_tls_database_openssl_new (GError **error)
 
   return g_initable_new (G_TYPE_TLS_DATABASE_OPENSSL, NULL, error, NULL);
 }
+
+GTlsCertificateFlags
+g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
+                                             GTlsCertificate     *chain,
+                                             OCSP_RESPONSE       *resp)
+{
+  GTlsCertificateFlags errors = 0;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
+  !defined(OPENSSL_NO_OCSP)
+  GTlsDatabaseOpensslPrivate *priv;
+  STACK_OF(X509) *chain_openssl = NULL;
+  OCSP_BASICRESP *basic_resp = NULL;
+  int ocsp_status = 0;
+  int i;
+
+  ocsp_status = OCSP_response_status (resp);
+  if (ocsp_status != OCSP_RESPONSE_STATUS_SUCCESSFUL)
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  basic_resp = OCSP_response_get1_basic (resp);
+  if (basic_resp == NULL)
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  chain_openssl = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
+  priv = g_tls_database_openssl_get_instance_private (self);
+  if ((chain_openssl == NULL) ||
+      (priv->store == NULL))
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  if (OCSP_basic_verify (basic_resp, chain_openssl, priv->store, 0) <= 0)
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  for (i = 0; i < OCSP_resp_count (basic_resp); i++)
+    {
+      OCSP_SINGLERESP *single_resp = OCSP_resp_get0 (basic_resp, i);
+      ASN1_GENERALIZEDTIME *revocation_time = NULL;
+      ASN1_GENERALIZEDTIME *this_update_time = NULL;
+      ASN1_GENERALIZEDTIME *next_update_time = NULL;
+      int crl_reason = 0;
+      int cert_status = 0;
+
+      if (single_resp == NULL)
+        continue;
+
+      cert_status = OCSP_single_get0_status (single_resp,
+                                             &crl_reason,
+                                             &revocation_time,
+                                             &this_update_time,
+                                             &next_update_time);
+      if (!OCSP_check_validity (this_update_time,
+                                next_update_time,
+                                300L,
+                                -1L))
+        {
+          errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+          goto end;
+        }
+
+      switch (cert_status)
+        {
+        case V_OCSP_CERTSTATUS_GOOD:
+          break;
+        case V_OCSP_CERTSTATUS_REVOKED:
+          errors = G_TLS_CERTIFICATE_REVOKED;
+          goto end;
+        case V_OCSP_CERTSTATUS_UNKNOWN:
+          errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+          goto end;
+        }
+    }
+
+end:
+  if (basic_resp)
+    OCSP_BASICRESP_free (basic_resp);
+
+  if (resp)
+    OCSP_RESPONSE_free (resp);
+
+#endif
+  return errors;
+}
