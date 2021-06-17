@@ -1257,6 +1257,7 @@ static GTlsCertificateFlags
 verify_peer_certificate (GTlsConnectionBase *tls,
                          GTlsCertificate    *peer_certificate)
 {
+  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GSocketConnectable *peer_identity = NULL;
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GTlsDatabase *database;
@@ -1302,6 +1303,9 @@ verify_peer_certificate (GTlsConnectionBase *tls,
           g_clear_error (&error);
         }
     }
+
+  if (tls_class->verify_peer_certificate)
+    errors |= tls_class->verify_peer_certificate (tls, peer_certificate, errors);
 
   return errors;
 }
