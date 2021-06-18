@@ -24,10 +24,6 @@ echo "A few manual changes need to be made. The first certificate"
 echo "in ca-roots.pem and ca-roots-bad.pem need to be replaced by"
 echo "the contents of ca.pem."
 echo
-echo "Also, file-database.c:test_lookup_certificates_issued_by has"
-echo "an ISSUER variable that needs to be changed by the CA identifier"
-echo "(read the comment in that function) if you modify this script."
-echo
 echo "                   *** IMPORTANT ***"
 echo
 
@@ -190,6 +186,13 @@ msg "Concatenating server (intermediate CA) chain into a file"
 cat server-intermediate.pem > chain.pem
 cat intermediate-ca.pem >> chain.pem
 cat ca.pem >> chain.pem
+
+#######################################################################
+### Update test database
+#######################################################################
+
+msg "Updating test database"
+./update-test-database.py ca.pem ../file-database.h
 
 #######################################################################
 ### Cleanup

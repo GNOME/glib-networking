@@ -26,6 +26,8 @@
 
 #include "config.h"
 
+#include "file-database.h"
+
 #include <gio/gio.h>
 
 #include <sys/types.h>
@@ -467,24 +469,8 @@ certificate_is_in_list (GList *certificates,
 static void
 test_lookup_certificates_issued_by (void)
 {
-  /* This data is generated from the frob-certificate test tool in gcr library.
-   * To regenerate (from e.g. a directory containing gcr and glib-networking):
-   *
-   * $ gcr/_build/ui/test-frob-certificate glib-networking/tls/tests/files/ca.pem
-   *
-   * Then copy the hex that is printed after "subject" (not "issuer"!) and add
-   * the missing 'x's.
-   */
-  const guchar ISSUER[] = "\x30\x81\x86\x31\x13\x30\x11\x06\x0A\x09\x92\x26\x89\x93\xF2"
-                          "\x2C\x64\x01\x19\x16\x03\x43\x4F\x4D\x31\x17\x30\x15\x06\x0A"
-                          "\x09\x92\x26\x89\x93\xF2\x2C\x64\x01\x19\x16\x07\x45\x58\x41"
-                          "\x4D\x50\x4C\x45\x31\x1E\x30\x1C\x06\x03\x55\x04\x0B\x0C\x15"
-                          "\x43\x65\x72\x74\x69\x66\x69\x63\x61\x74\x65\x20\x41\x75\x74"
-                          "\x68\x6F\x72\x69\x74\x79\x31\x17\x30\x15\x06\x03\x55\x04\x03"
-                          "\x0C\x0E\x63\x61\x2E\x65\x78\x61\x6D\x70\x6C\x65\x2E\x63\x6F"
-                          "\x6D\x31\x1D\x30\x1B\x06\x09\x2A\x86\x48\x86\xF7\x0D\x01\x09"
-                          "\x01\x16\x0E\x63\x61\x40\x65\x78\x61\x6D\x70\x6C\x65\x2E\x63"
-                          "\x6F\x6D";
+  /* This data is generated from the update-test-database.py script */
+  const guchar ISSUER[] = ISSUER_DATA;
 
   GList *certificates;
   GByteArray *issuer_dn;
