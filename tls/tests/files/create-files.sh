@@ -20,9 +20,7 @@ echo "a couple of certificates (sudo password will be requested). This"
 echo "is because it uses the OpenSSL x509 utility instead of the ca"
 echo "utility which allows to set a starting date for the certificates."
 echo
-echo "A few manual changes need to be made. The first certificate"
-echo "in ca-roots.pem and ca-roots-bad.pem need to be replaced by"
-echo "the contents of ca.pem."
+echo "Note that one of the scripts requires python3's cryptography module."
 echo
 echo "                   *** IMPORTANT ***"
 echo
@@ -186,6 +184,14 @@ msg "Concatenating server (intermediate CA) chain into a file"
 cat server-intermediate.pem > chain.pem
 cat intermediate-ca.pem >> chain.pem
 cat ca.pem >> chain.pem
+
+#######################################################################
+### Updating CA Root files
+#######################################################################
+
+msg "Updating CA Root files"
+./update-chain-with-new-root.py ca-roots.pem ca.pem
+./update-chain-with-new-root.py ca-roots-bad.pem ca.pem
 
 #######################################################################
 ### Update test database
