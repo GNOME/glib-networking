@@ -15,14 +15,7 @@ echo "needed to run the Unit Test."
 echo
 echo "                   *** IMPORTANT ***"
 echo
-echo "This script will change the system date momentarily to generate"
-echo "a couple of certificates (sudo password will be requested). This"
-echo "is because it uses the OpenSSL x509 utility instead of the ca"
-echo "utility which allows to set a starting date for the certificates."
-echo
-echo "Note that one of the scripts requires python3's cryptography module."
-echo
-echo "                   *** IMPORTANT ***"
+echo "This script depends on datefudge, openssl, and python3's cryptography module."
 echo
 
 read -p "Press [Enter] key to continue..."
@@ -113,15 +106,11 @@ cat client-key.pem >> client-and-key.pem
 # It is not possible to specify the start and end date using the "x509" tool.
 # It would be better to use the "ca" tool. Sorry!
 msg "Creating client certificate (past)"
-sudo date -s "17 JUL 2000 18:00:00"
-openssl x509 -req -in client-csr.pem -days 365 -startdate -enddate -CA ca.pem -CAkey ca-key.pem -CAserial serial -out client-past.pem
-sudo hwclock -s
+datefudge "17 JUL 2000 18:00:00" openssl x509 -req -in client-csr.pem -days 365 -startdate -enddate -CA ca.pem -CAkey ca-key.pem -CAserial serial -out client-past.pem
 touch client-past.pem
 
 msg "Creating client certificate (future)"
-sudo date -s "17 JUL 2060 18:00:00"
-openssl x509 -req -in client-csr.pem -days 365 -startdate -enddate -CA ca.pem -CAkey ca-key.pem -CAserial serial -out client-future.pem
-sudo hwclock -s
+datefudge "17 JUL 2060 18:00:00" openssl x509 -req -in client-csr.pem -days 365 -startdate -enddate -CA ca.pem -CAkey ca-key.pem -CAserial serial -out client-future.pem
 touch client-future.pem
 
 msg "Creating second client key pair"
