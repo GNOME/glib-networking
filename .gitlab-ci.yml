@@ -6,7 +6,9 @@ fedora-x86_64:
     # Remove for PKCS11 logs, otherwise generates a lot of noise hitting gitlab's limit
     PKCS11SPY_PATH: disabled
   script:
+    - cp .gitlab-ci/lcovrc ~/.lcovrc
     - meson --prefix=$HOME/glib-networking-installed
+            -Db_coverage=true
             -Dgnutls=enabled
             -Dopenssl=enabled
             -Dlibproxy=enabled
@@ -16,10 +18,13 @@ fedora-x86_64:
     - meson compile -C _build/
     - meson test -v -C _build/ --repeat=1000
     - meson install -C _build/
+    - ninja -C _build coverage-html
   artifacts:
     paths:
       - _build/test-results
-    when: on_failure
+      - _build/meson-logs/coveragereport
+    when: always
+  coverage: '/^\s+lines\.+:\s+([\d.]+\%)\s+/'
 
 fedora-x86_64-asan:
   tags: [ asan ]
