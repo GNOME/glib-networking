@@ -676,7 +676,7 @@ test_certificate_dns_names (void)
   g_assert_cmpuint (actual->len, ==, 1);
   g_assert_true (g_ptr_array_find_with_equal_func (actual, expected, (GEqualFunc)g_bytes_equal, NULL));
 
-  g_ptr_array_free (actual, FALSE);
+  g_ptr_array_free (actual, TRUE);
   g_bytes_unref (expected);
   g_object_unref (cert);
 }
