@@ -152,7 +152,7 @@ export_privkey (GTlsCertificateGnutls  *gnutls,
                 void                  **output_data,
                 size_t                 *output_size)
 {
-  gnutls_x509_privkey_t x509_privkey;
+  gnutls_x509_privkey_t x509_privkey = NULL;
   int status;
 
   if (!gnutls->key)
@@ -181,6 +181,9 @@ export_privkey (GTlsCertificateGnutls  *gnutls,
   g_free (*output_data);
 
 err:
+  if (x509_privkey)
+    gnutls_x509_privkey_deinit (x509_privkey);
+
   *output_data = NULL;
   *output_size = 0;
 }
