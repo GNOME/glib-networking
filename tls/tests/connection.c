@@ -2942,6 +2942,7 @@ test_tls_info (TestConnection *test,
                gconstpointer   data)
 {
   GIOStream *connection;
+  char *ciphersuite_name;
   GError *error = NULL;
 
   connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
@@ -2965,7 +2966,9 @@ test_tls_info (TestConnection *test,
   g_assert_no_error (test->server_error);
 
   g_assert_cmpint (g_tls_connection_get_protocol_version (G_TLS_CONNECTION (test->client_connection)), !=, G_TLS_PROTOCOL_VERSION_UNKNOWN);
-  g_assert_nonnull (g_tls_connection_get_ciphersuite_name (G_TLS_CONNECTION (test->client_connection)));
+  ciphersuite_name = g_tls_connection_get_ciphersuite_name (G_TLS_CONNECTION (test->client_connection));
+  g_assert_nonnull (ciphersuite_name);
+  g_free (ciphersuite_name);
 }
 
 int
