@@ -2562,6 +2562,8 @@ test_connection_binding_match_tls_unique (TestConnection *test,
   GIOStream *connection;
   GByteArray *client_cb, *server_cb;
   gchar *client_b64, *server_b64;
+  gboolean client_supports_tls_unique;
+  gboolean server_supports_tls_unique;
   GError *error = NULL;
 
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
@@ -2590,38 +2592,39 @@ test_connection_binding_match_tls_unique (TestConnection *test,
   read_test_data_async (test);
   g_main_loop_run (test->loop);
 
-  /* Smoke test: ensure both sides support tls-unique */
-  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
-                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL, NULL));
-  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
-                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL, NULL));
+  /* tls-unique is supported by the OpenSSL backend always. It's supported by
+   * the GnuTLS backend only with TLS 1.2 or older. Since the test needs to be
+   * independent of backend and TLS version, this is allowed to fail....
+   */
+  client_supports_tls_unique = g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                                                          G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL, NULL);
+  server_supports_tls_unique = g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                                                          G_TLS_CHANNEL_BINDING_TLS_UNIQUE, NULL, NULL);
+  g_assert_cmpint (client_supports_tls_unique, ==, server_supports_tls_unique);
 
   /* Real test: retrieve bindings and compare */
-  client_cb = g_byte_array_new ();
-  server_cb = g_byte_array_new ();
-  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
-                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, client_cb, NULL));
-  g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
-                                                  G_TLS_CHANNEL_BINDING_TLS_UNIQUE, server_cb, NULL));
+  if (client_supports_tls_unique)
+    {
+      client_cb = g_byte_array_new ();
+      server_cb = g_byte_array_new ();
+      g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
+                                                                G_TLS_CHANNEL_BINDING_TLS_UNIQUE, client_cb, NULL));
+      g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
+                                                                G_TLS_CHANNEL_BINDING_TLS_UNIQUE, server_cb, NULL));
+      g_assert_cmpint (client_cb->len, >, 0);
+      g_assert_cmpint (server_cb->len, >, 0);
 
-#ifdef BACKEND_IS_OPENSSL
-  g_assert_cmpint (client_cb->len, >, 0);
-  g_assert_cmpint (server_cb->len, >, 0);
-#else
-  /* GnuTLS returns empty binding for TLS1.3, let's pretend it didn't happen
-   * see https://gitlab.com/gnutls/gnutls/-/issues/1041 */
-  if (client_cb->len == 0 && server_cb->len == 0)
-    g_test_skip ("GnuTLS missing support for tls-unique over TLS1.3");
-#endif
+      client_b64 = g_base64_encode (client_cb->data, client_cb->len);
+      server_b64 = g_base64_encode (server_cb->data, server_cb->len);
+      g_assert_cmpstr (client_b64, ==, server_b64);
 
-  client_b64 = g_base64_encode (client_cb->data, client_cb->len);
-  server_b64 = g_base64_encode (server_cb->data, server_cb->len);
-  g_assert_cmpstr (client_b64, ==, server_b64);
-
-  g_free (client_b64);
-  g_free (server_b64);
-  g_byte_array_unref (client_cb);
-  g_byte_array_unref (server_cb);
+      g_free (client_b64);
+      g_free (server_b64);
+      g_byte_array_unref (client_cb);
+      g_byte_array_unref (server_cb);
+    }
+  else
+    g_test_skip ("tls-unique is not supported");
 
   /* drop the mic */
   close_server_connection (test);
