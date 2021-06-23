@@ -176,16 +176,19 @@ export_privkey (GTlsCertificateGnutls  *gnutls,
                                              NULL, GNUTLS_PKCS_PLAIN,
                                              *output_data, output_size);
   if (status == 0)
-    return;
+    {
+      gnutls_x509_privkey_deinit (x509_privkey);
+      return;
+    }
 
   g_free (*output_data);
 
 err:
-  if (x509_privkey)
-    gnutls_x509_privkey_deinit (x509_privkey);
-
   *output_data = NULL;
   *output_size = 0;
+
+  if (x509_privkey)
+    gnutls_x509_privkey_deinit (x509_privkey);
 }
 
 static void
