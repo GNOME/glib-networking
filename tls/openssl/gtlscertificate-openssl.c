@@ -131,6 +131,10 @@ get_subject_alt_names (GTlsCertificateOpenssl *cert,
               g_ptr_array_add (data, g_bytes_new (san, san_size));
             }
           }
+
+      for (i = 0; i < alt_occurrences; i++)
+        GENERAL_NAME_free (sk_GENERAL_NAME_value (sans, i));
+      sk_GENERAL_NAME_free (sans);
     }
 
   return data;
@@ -162,13 +166,16 @@ export_privkey_to_der (GTlsCertificateOpenssl  *openssl,
 
   *output_data = g_malloc (*output_size);
   memcpy (*output_data, data, *output_size);
-  return;
+  goto out;
 
 err:
-  if (bio)
-    BIO_free_all (bio);
   *output_data = NULL;
   *output_size = 0;
+out:
+  if (bio)
+    BIO_free_all (bio);
+  if (pkcs8)
+    PKCS8_PRIV_KEY_INFO_free (pkcs8);
 }
 
 static char *
