@@ -456,12 +456,10 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
   g_object_class_override_property (gobject_class, PROP_PKCS11_URI, "pkcs11-uri");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PKCS11_URI, "private-key-pkcs11-uri");
-#if GLIB_CHECK_VERSION(2, 69, 0)
   g_object_class_override_property (gobject_class, PROP_NOT_VALID_BEFORE, "not-valid-before");
   g_object_class_override_property (gobject_class, PROP_NOT_VALID_AFTER, "not-valid-after");
   g_object_class_override_property (gobject_class, PROP_SUBJECT_NAME, "subject-name");
   g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
-#endif
 }
 
 static void
