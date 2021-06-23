@@ -929,19 +929,20 @@ g_tls_connection_gnutls_is_session_resumed (GTlsConnectionBase *tls)
 }
 
 static gboolean
-gnutls_get_binding_tls_unique (GTlsConnectionGnutls  *gnutls,
-                               GByteArray            *data,
-                               GError               **error)
+gnutls_get_binding (GTlsConnectionGnutls      *gnutls,
+                    GByteArray                *data,
+                    gnutls_channel_binding_t   binding,
+                    GError                   **error)
 {
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   gnutls_datum_t cb;
-  int ret = gnutls_session_channel_binding (priv->session, GNUTLS_CB_TLS_UNIQUE, &cb);
+  int ret = gnutls_session_channel_binding (priv->session, binding, &cb);
 
   if (ret == GNUTLS_E_SUCCESS)
     {
       if (data != NULL)
         {
-          g_tls_log_debug (gnutls, "tls-unique binding size %d", cb.size);
+          g_tls_log_debug (gnutls, "binding size %d", cb.size);
           g_free (g_byte_array_steal (data, NULL));
           g_byte_array_append (data, cb.data, cb.size);
         }
@@ -953,11 +954,11 @@ gnutls_get_binding_tls_unique (GTlsConnectionGnutls  *gnutls,
     {
     case GNUTLS_E_UNIMPLEMENTED_FEATURE:
       g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
-                   _("Channel binding type tls-unique is not implemented in the TLS library"));
+                   _("Channel binding type is not implemented in the TLS library"));
       break;
     case GNUTLS_E_CHANNEL_BINDING_NOT_AVAILABLE:
       g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
-                   _("Channel binding data for tls-unique is not yet available"));
+                   _("Channel binding data is not yet available"));
       break;
     default:
       g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
@@ -967,10 +968,21 @@ gnutls_get_binding_tls_unique (GTlsConnectionGnutls  *gnutls,
 }
 
 static gboolean
+gnutls_get_binding_tls_unique (GTlsConnectionGnutls  *gnutls,
+                               GByteArray            *data,
+                               GError               **error)
+{
+  return gnutls_get_binding (gnutls, data, GNUTLS_CB_TLS_UNIQUE, error);
+}
+
+static gboolean
 gnutls_get_binding_tls_server_end_point (GTlsConnectionGnutls  *gnutls,
                                          GByteArray            *data,
                                          GError               **error)
 {
+#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
+  return gnutls_get_binding (gnutls, data, GNUTLS_CB_TLS_SERVER_END_POINT, error);
+#else
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   const gnutls_datum_t *ders;
   unsigned int num_certs = 1;
@@ -1065,10 +1077,14 @@ gnutls_get_binding_tls_server_end_point (GTlsConnectionGnutls  *gnutls,
   g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
                "%s", gnutls_strerror(ret));
   return FALSE;
+#endif
 }
 
+#if !(GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7)
 #define RFC5705_LABEL_DATA "EXPORTER-Channel-Binding"
 #define RFC5705_LABEL_LEN 24
+#endif
+
 /* Experimental binding for TLS1.3, see
  * https://datatracker.ietf.org/doc/draft-ietf-kitten-tls-channel-bindings-for-tls13 */
 static gboolean
@@ -1076,6 +1092,9 @@ gnutls_get_binding_tls_exporter (GTlsConnectionGnutls  *gnutls,
                                  GByteArray            *data,
                                  GError               **error)
 {
+#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
+  return gnutls_get_binding (gnutls, data, GNUTLS_CB_TLS_EXPORTER, error);
+#else
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   int ret;
   gsize ctx_len = 0;
@@ -1097,6 +1116,7 @@ gnutls_get_binding_tls_exporter (GTlsConnectionGnutls  *gnutls,
   g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
                "%s", gnutls_strerror (ret));
   return FALSE;
+#endif
 }
 
 static gboolean
