@@ -41,13 +41,16 @@ struct _GTlsDatabaseGnutlsClass
 {
   GTlsDatabaseClass parent_class;
 
-  gchar    *(*create_handle_for_certificate)  (GTlsDatabaseGnutls        *self,
-                                               GBytes                    *der);
-  gboolean  (*populate_trust_list)            (GTlsDatabaseGnutls        *self,
-                                               gnutls_x509_trust_list_t   trust_list,
-                                               GError                   **error);
+  gchar    *(*create_handle_for_certificate)  (GTlsDatabaseGnutls                *self,
+                                               GBytes                            *der);
+  gboolean  (*populate_trust_list)            (GTlsDatabaseGnutls                *self,
+                                               gnutls_x509_trust_list_t           trust_list,
+                                               GError                           **error);
 };
 
 GTlsDatabaseGnutls *g_tls_database_gnutls_new (GError **error);
+
+gnutls_certificate_credentials_t g_tls_database_gnutls_get_credentials (GTlsDatabaseGnutls  *self,
+                                                                        GError             **error);
 
 G_END_DECLS

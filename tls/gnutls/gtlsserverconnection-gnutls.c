@@ -219,16 +219,26 @@ g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
 }
 
 static void
+g_tls_server_connection_gnutls_update_credentials (GTlsConnectionGnutls             *gnutls,
+                                                   gnutls_certificate_credentials_t  credentials)
+{
+  gnutls_certificate_set_retrieve_function2 (credentials, g_tls_server_connection_gnutls_handshake_thread_retrieve_function);
+}
+
+static void
 g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GTlsConnectionBaseClass *base_class = G_TLS_CONNECTION_BASE_CLASS (klass);
+  GTlsConnectionGnutlsClass *gnutls_class = G_TLS_CONNECTION_GNUTLS_CLASS (klass);
 
   gobject_class->finalize     = g_tls_server_connection_gnutls_finalize;
   gobject_class->get_property = g_tls_server_connection_gnutls_get_property;
   gobject_class->set_property = g_tls_server_connection_gnutls_set_property;
 
   base_class->prepare_handshake  = g_tls_server_connection_gnutls_prepare_handshake;
+
+  gnutls_class->update_credentials = g_tls_server_connection_gnutls_update_credentials;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }

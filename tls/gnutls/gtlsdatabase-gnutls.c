@@ -566,26 +566,6 @@ g_tls_database_gnutls_create_handle_for_certificate (GTlsDatabaseGnutls *self,
   return uri;
 }
 
-static gboolean
-g_tls_database_gnutls_populate_trust_list (GTlsDatabaseGnutls        *self,
-                                           gnutls_x509_trust_list_t   trust_list,
-                                           GError                   **error)
-{
-  int gerr = gnutls_x509_trust_list_add_system_trust (trust_list, 0, 0);
-  if (gerr == GNUTLS_E_UNIMPLEMENTED_FEATURE)
-    {
-      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                           _("Failed to load system trust store: GnuTLS was not configured with a system trust"));
-    }
-  else if (gerr < 0)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Failed to load system trust store: %s"),
-                   gnutls_strerror (gerr));
-    }
-  return gerr >= 0;
-}
-
 #if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
 static int
 issuer_missing_cb (gnutls_x509_trust_list_t   tlist,
@@ -710,6 +690,82 @@ out:
 }
 #endif
 
+static gboolean
+g_tls_database_gnutls_populate_trust_list (GTlsDatabaseGnutls        *self,
+                                           gnutls_x509_trust_list_t   trust_list,
+                                           GError                   **error)
+{
+  int gerr = gnutls_x509_trust_list_add_system_trust (trust_list, 0, 0);
+  if (gerr == GNUTLS_E_UNIMPLEMENTED_FEATURE)
+    {
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                           _("Failed to load system trust store: GnuTLS was not configured with a system trust"));
+    }
+  else if (gerr < 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Failed to load system trust store: %s"),
+                   gnutls_strerror (gerr));
+    }
+  return gerr >= 0;
+}
+
+static gnutls_x509_trust_list_t
+create_trust_list (GTlsDatabaseGnutls  *self,
+                   GError             **error)
+{
+  GTlsDatabaseGnutlsClass *database_class = G_TLS_DATABASE_GNUTLS_GET_CLASS (self);
+  gnutls_x509_trust_list_t trust_list;
+  int ret;
+
+  ret = gnutls_x509_trust_list_init (&trust_list, 0);
+  if (ret != 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, "Failed to initialize trust list: %s", gnutls_strerror (ret));
+      return NULL;
+    }
+
+#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
+  gnutls_x509_trust_list_set_getissuer_function (trust_list, issuer_missing_cb);
+  gnutls_x509_trust_list_set_ptr (trust_list, self);
+#endif
+
+  g_assert (database_class->populate_trust_list);
+  if (!database_class->populate_trust_list (self, trust_list, error))
+    {
+      gnutls_x509_trust_list_deinit (trust_list, TRUE);
+      return NULL;
+    }
+
+  return trust_list;
+}
+
+gnutls_certificate_credentials_t
+g_tls_database_gnutls_get_credentials (GTlsDatabaseGnutls  *self,
+                                       GError             **error)
+{
+  gnutls_certificate_credentials_t credentials;
+  gnutls_x509_trust_list_t trust_list = NULL;
+  int ret;
+
+  ret = gnutls_certificate_allocate_credentials (&credentials);
+  if (ret != 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, "Failed to allocate credentials: %s", gnutls_strerror (ret));
+      return NULL;
+    }
+
+  trust_list = create_trust_list (self, error);
+  if (!trust_list)
+    {
+      gnutls_certificate_free_credentials (credentials);
+      return NULL;
+    }
+
+  gnutls_certificate_set_trust_list (credentials, trust_list, 0);
+  return credentials;
+}
+
 static void
 g_tls_database_gnutls_class_init (GTlsDatabaseGnutlsClass *klass)
 {
@@ -744,18 +800,9 @@ g_tls_database_gnutls_initable_init (GInitable     *initable,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return FALSE;
 
-  gnutls_x509_trust_list_init (&trust_list, 0);
-#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
-  gnutls_x509_trust_list_set_getissuer_function (trust_list, issuer_missing_cb);
-  gnutls_x509_trust_list_set_ptr (trust_list, self);
-#endif
-
-  g_assert (G_TLS_DATABASE_GNUTLS_GET_CLASS (self)->populate_trust_list);
-  if (!G_TLS_DATABASE_GNUTLS_GET_CLASS (self)->populate_trust_list (self, trust_list, error))
-    {
-      result = FALSE;
-      goto out;
-    }
+  trust_list = create_trust_list (self, error);
+  if (!trust_list)
+    return FALSE;
 
   subjects = bytes_multi_table_new ();
   issuers = bytes_multi_table_new ();
@@ -795,7 +842,6 @@ g_tls_database_gnutls_initable_init (GInitable     *initable,
       g_mutex_unlock (&priv->mutex);
     }
 
-out:
   if (trust_list)
     gnutls_x509_trust_list_deinit (trust_list, 1);
   if (subjects)

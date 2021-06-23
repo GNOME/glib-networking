@@ -36,6 +36,7 @@
 #include "gtlsbackend-gnutls.h"
 #include "gtlscertificate-gnutls.h"
 #include "gtlsclientconnection-gnutls.h"
+#include "gtlsdatabase-gnutls.h"
 #include "gtlslog.h"
 
 #ifdef G_OS_WIN32
@@ -111,6 +112,55 @@ g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
     g_warning ("Failed to set GnuTLS session priority: %s", gnutls_strerror (ret));
 }
 
+static void
+update_credentials_cb (GObject    *gobject,
+                       GParamSpec *pspec,
+                       gpointer    user_data)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (gobject);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  GTlsConnectionGnutlsClass *connection_class = G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls);
+  gnutls_certificate_credentials_t credentials;
+  GTlsDatabase *database;
+  GError *error = NULL;
+  int ret;
+
+  database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
+  if (database)
+    {
+      credentials = g_tls_database_gnutls_get_credentials (G_TLS_DATABASE_GNUTLS (database), &error);
+      if (!credentials)
+        {
+          g_warning ("Failed to update credentials: %s", error->message);
+          g_error_free (error);
+          return;
+        }
+    }
+  else
+    {
+      ret = gnutls_certificate_allocate_credentials (&credentials);
+      if (ret != 0)
+        {
+          g_warning ("Failed to update credentials: %s", gnutls_strerror (ret));
+          return;
+        }
+    }
+
+  ret = gnutls_credentials_set (priv->session, GNUTLS_CRD_CERTIFICATE, credentials);
+  if (ret != 0)
+    {
+      g_warning ("Failed to update credentials: %s", gnutls_strerror (ret));
+      gnutls_certificate_free_credentials (credentials);
+      return;
+    }
+
+  gnutls_certificate_free_credentials (priv->creds);
+  priv->creds = credentials;
+
+  g_assert (connection_class->update_credentials);
+  connection_class->update_credentials (gnutls, credentials);
+}
+
 static gboolean
 g_tls_connection_gnutls_initable_init (GInitable     *initable,
                                        GCancellable  *cancellable,
@@ -118,11 +168,13 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  GTlsDatabase *database;
   GIOStream *base_io_stream = NULL;
   GDatagramBased *base_socket = NULL;
   gboolean client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
   guint flags = client ? GNUTLS_CLIENT : GNUTLS_SERVER;
-  int status;
+  GError *my_error = NULL;
+  gboolean success = FALSE;
   int ret;
 
   g_object_get (gnutls,
@@ -136,33 +188,45 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   if (base_socket)
     flags |= GNUTLS_DATAGRAM;
 
-  ret = gnutls_certificate_allocate_credentials (&priv->creds);
-  if (ret != GNUTLS_E_SUCCESS)
+  database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
+  if (database)
     {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Could not create TLS connection: %s"),
-                   gnutls_strerror (ret));
-      g_clear_object (&base_io_stream);
-      g_clear_object (&base_socket);
-      return FALSE;
+      priv->creds = g_tls_database_gnutls_get_credentials (G_TLS_DATABASE_GNUTLS (database), &my_error);
+      if (!priv->creds)
+        {
+          g_propagate_prefixed_error (error, my_error, _("Could not create TLS connection:"));
+          goto out;
+        }
     }
+  else
+    {
+      ret = gnutls_certificate_allocate_credentials (&priv->creds);
+      if (ret != 0)
+        {
+          g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                       _("Could not create TLS connection: %s"),
+                       gnutls_strerror (ret));
+          goto out;
+        }
+    }
+
+  g_signal_connect (gnutls, "notify::database", G_CALLBACK (update_credentials_cb), NULL);
+  g_signal_connect (gnutls, "notify::use-system-certdb", G_CALLBACK (update_credentials_cb), NULL);
 
   gnutls_init (&priv->session, flags);
 
   gnutls_session_set_ptr (priv->session, gnutls);
   gnutls_session_set_verify_function (priv->session, verify_certificate_cb);
 
-  status = gnutls_credentials_set (priv->session,
-                                   GNUTLS_CRD_CERTIFICATE,
-                                   priv->creds);
-  if (status != 0)
+  ret = gnutls_credentials_set (priv->session,
+                                GNUTLS_CRD_CERTIFICATE,
+                                priv->creds);
+  if (ret != 0)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS connection: %s"),
-                   gnutls_strerror (status));
-      g_clear_object (&base_io_stream);
-      g_clear_object (&base_socket);
-      return FALSE;
+                   gnutls_strerror (ret));
+      goto out;
     }
 
   gnutls_transport_set_push_function (priv->session,
@@ -184,10 +248,13 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   if (flags & GNUTLS_DATAGRAM)
     gnutls_dtls_set_mtu (priv->session, 1400);
 
+  success = TRUE;
+
+out:
   g_clear_object (&base_io_stream);
   g_clear_object (&base_socket);
 
-  return TRUE;
+  return success;
 }
 
 static void
@@ -907,6 +974,69 @@ g_tls_connection_gnutls_handshake_thread_handshake (GTlsConnectionBase  *tls,
   return status;
 }
 
+static GTlsCertificateFlags
+g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
+                                      GTlsCertificate          *chain,
+                                      const gchar              *purpose,
+                                      GSocketConnectable       *identity,
+                                      GTlsInteraction          *interaction,
+                                      GTlsDatabaseVerifyFlags   flags,
+                                      GCancellable             *cancellable,
+                                      GError                  **error)
+{
+  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
+  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
+  GTlsCertificateFlags errors = 0;
+  const char *hostname = NULL;
+  char *free_hostname = NULL;
+  guint gnutls_result;
+  int ret;
+
+  /* There are several different ways to perform certificate verification with
+   * GnuTLS, but they all fall into one of two categories:
+   *
+   * (a) outside the context of a TLS session
+   * (b) within the context of a TLS session
+   *
+   * (a) is done by g_tls_database_verify_chain() and implemented using one of
+   * several different functions of gnutls_x509_trust_list_t, e.g.
+   * gnutls_x509_trust_list_verify_crt2() or one of the related functions.
+   *
+   * (b) is what we're doing here. The recommended way is to use
+   * gnutls_session_set_verify_cert(), but we can't do that because that would
+   * leave no way to implement the accept-certificate signal. The other way is
+   * to use gnutls_certificate_verify_peers3() or one of the related functions.
+   * This adds additional smarts that are not possible when using GTlsDatabase
+   * directly. For example, it checks name constraints, key usage, and basic
+   * constraints. It also checks for stapled OCSP responses. Verification will
+   * fail if the OCSP response indicates the certificate has been revoked.
+   * Verification will also fail if the Must-Staple flag is set but the OCSP
+   * response is missing. Nice! This uses the gnutls_certificate_credentials_t
+   * set on the gnutls_session_t by gnutls_credentials_set().
+   */
+
+  if (G_IS_NETWORK_ADDRESS (identity))
+    hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (identity));
+  else if (G_IS_NETWORK_SERVICE (identity))
+    hostname = g_network_service_get_domain (G_NETWORK_SERVICE (identity));
+  else if (G_IS_INET_SOCKET_ADDRESS (identity))
+    {
+      GInetAddress *addr;
+
+      addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity));
+      hostname = free_hostname = g_inet_address_to_string (addr);
+    }
+
+  ret = gnutls_certificate_verify_peers3 (priv->session, hostname, &gnutls_result);
+  if (ret != 0)
+    errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+  else
+    errors = g_tls_certificate_gnutls_convert_flags (gnutls_result);
+
+  g_free (free_hostname);
+  return errors;
+}
+
 static GTlsProtocolVersion
 glib_protocol_version_from_gnutls (gnutls_protocol_t protocol_version)
 {
@@ -949,7 +1079,6 @@ get_ciphersuite_name (gnutls_session_t session)
   return g_strdup_printf ("TLS_%s_%s",
                           gnutls_cipher_get_name (gnutls_cipher_get (session)),
                           gnutls_digest_get_name (gnutls_prf_hash_get (session)));
-
 }
 
 static void
@@ -1427,6 +1556,7 @@ g_tls_connection_gnutls_class_init (GTlsConnectionGnutlsClass *klass)
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_gnutls_handshake_thread_request_rehandshake;
   base_class->handshake_thread_handshake                 = g_tls_connection_gnutls_handshake_thread_handshake;
   base_class->retrieve_peer_certificate                  = g_tls_connection_gnutls_retrieve_peer_certificate;
+  base_class->verify_chain                               = g_tls_connection_gnutls_verify_chain;
   base_class->complete_handshake                         = g_tls_connection_gnutls_complete_handshake;
   base_class->is_session_resumed                         = g_tls_connection_gnutls_is_session_resumed;
   base_class->get_channel_binding_data                   = g_tls_connection_gnutls_get_channel_binding_data;

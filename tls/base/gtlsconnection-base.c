@@ -1258,6 +1258,7 @@ verify_peer_certificate (GTlsConnectionBase *tls,
                          GTlsCertificate    *peer_certificate)
 {
   GSocketConnectable *peer_identity = NULL;
+  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GTlsDatabase *database;
   GTlsCertificateFlags errors = 0;
   gboolean is_client;
@@ -1285,14 +1286,15 @@ verify_peer_certificate (GTlsConnectionBase *tls,
     {
       GError *error = NULL;
 
-      errors |= g_tls_database_verify_chain (database, peer_certificate,
-                                             is_client ?
-                                             G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER :
-                                             G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
-                                             peer_identity,
-                                             g_tls_connection_get_interaction (G_TLS_CONNECTION (tls)),
-                                             G_TLS_DATABASE_VERIFY_NONE,
-                                             NULL, &error);
+      g_assert (tls_class->verify_chain);
+      errors |= tls_class->verify_chain (tls,
+                                         peer_certificate,
+                                         is_client ? G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER : G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
+                                         peer_identity,
+                                         g_tls_connection_get_interaction (G_TLS_CONNECTION (tls)),
+                                         G_TLS_DATABASE_VERIFY_NONE,
+                                         NULL,
+                                         &error);
       if (error)
         {
           g_tls_log_debug (tls, "failure verifying certificate chain: %s", error->message);

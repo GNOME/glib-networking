@@ -484,6 +484,41 @@ g_tls_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
 }
 #endif
 
+static GTlsCertificateFlags
+g_tls_connection_openssl_verify_chain (GTlsConnectionBase       *tls,
+                                       GTlsCertificate          *chain,
+                                       const gchar              *purpose,
+                                       GSocketConnectable       *identity,
+                                       GTlsInteraction          *interaction,
+                                       GTlsDatabaseVerifyFlags   flags,
+                                       GCancellable             *cancellable,
+                                       GError                  **error)
+{
+  GTlsDatabase *database;
+  GTlsCertificateFlags errors = 0;
+  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
+
+  database = g_tls_connection_get_database (G_TLS_CONNECTION (tls));
+  if (database)
+    {
+      errors |= g_tls_database_verify_chain (database,
+                                             chain,
+                                             is_client ? G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER : G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
+                                             identity,
+                                             g_tls_connection_get_interaction (G_TLS_CONNECTION (tls)),
+                                             G_TLS_DATABASE_VERIFY_NONE,
+                                             NULL,
+                                             error);
+    }
+  else
+    {
+      errors |= G_TLS_CERTIFICATE_UNKNOWN_CA;
+      errors |= g_tls_certificate_verify (chain, identity, NULL);
+    }
+
+  return errors;
+}
+
 static GTlsProtocolVersion
 glib_protocol_version_from_openssl (int protocol_version)
 {
@@ -1039,6 +1074,7 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 #if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   base_class->prepare_handshake                          = g_tls_connection_openssl_prepare_handshake;
 #endif
+  base_class->verify_chain                               = g_tls_connection_openssl_verify_chain;
   base_class->complete_handshake                         = g_tls_connection_openssl_complete_handshake;
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_openssl_handshake_thread_safe_renegotiation_status;
   base_class->handshake_thread_request_rehandshake       = g_tls_connection_openssl_handshake_thread_request_rehandshake;
