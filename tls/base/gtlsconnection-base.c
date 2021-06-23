@@ -99,7 +99,10 @@ typedef struct
   gboolean               peer_certificate_examined;
 
   gboolean               require_close_notify;
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   GTlsRehandshakeMode    rehandshake_mode;
+G_GNUC_END_IGNORE_DEPRECATIONS
 
   /* need_handshake means the next claim_op() will get diverted into
    * an implicit handshake (unless it's an OP_HANDSHAKE or OP_CLOSE*).

@@ -29,7 +29,7 @@ common_flags = [
   '-DG_LOG_USE_STRUCTURED',
   '-DLOCALE_DIR="@0@"'.format(localedir),
   '-DG_DISABLE_DEPRECATED',
-  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_56'
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_70'
 ]
 
 add_project_arguments(common_flags, language: 'c')
@@ -48,7 +48,7 @@ if host_system.contains('linux') or host_system == 'android'
 endif
 
 # *** Check GLib GIO        ***
-glib_dep = dependency('glib-2.0', version: '>= 2.67.0',
+glib_dep = dependency('glib-2.0', version: '>= 2.69.0',
   fallback: ['glib', 'libglib_dep'])
 gio_dep = dependency('gio-2.0',
   fallback: ['glib', 'libgio_dep'])
