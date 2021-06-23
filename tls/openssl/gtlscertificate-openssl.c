@@ -406,10 +406,12 @@ g_tls_certificate_openssl_class_init (GTlsCertificateOpensslClass *klass)
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY, "private-key");
   g_object_class_override_property (gobject_class, PROP_PRIVATE_KEY_PEM, "private-key-pem");
   g_object_class_override_property (gobject_class, PROP_ISSUER, "issuer");
+#if GLIB_CHECK_VERSION(2, 69, 0)
   g_object_class_override_property (gobject_class, PROP_NOT_VALID_BEFORE, "not-valid-before");
   g_object_class_override_property (gobject_class, PROP_NOT_VALID_AFTER, "not-valid-after");
   g_object_class_override_property (gobject_class, PROP_SUBJECT_NAME, "subject-name");
   g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
+#endif
 }
 
 static void

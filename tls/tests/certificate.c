@@ -576,6 +576,7 @@ test_certificate_is_same (void)
   g_object_unref (three);
 }
 
+#if GLIB_CHECK_VERSION(2, 69, 0)
 static void
 test_certificate_not_valid_before (void)
 {
@@ -657,6 +658,7 @@ test_certificate_issuer_name (void)
   g_free (actual);
   g_object_unref (cert);
 }
+#endif
 
 int
 main (int   argc,
@@ -716,10 +718,12 @@ main (int   argc,
 
   g_test_add_func ("/tls/" BACKEND "/certificate/is-same", test_certificate_is_same);
 
+#if GLIB_CHECK_VERSION(2, 69, 0)
   g_test_add_func ("/tls/" BACKEND "/certificate/not-valid-before", test_certificate_not_valid_before);
   g_test_add_func ("/tls/" BACKEND "/certificate/not-valid-after", test_certificate_not_valid_after);
   g_test_add_func ("/tls/" BACKEND "/certificate/subject-name", test_certificate_subject_name);
   g_test_add_func ("/tls/" BACKEND "/certificate/issuer-name", test_certificate_issuer_name);
+#endif
 
   return g_test_run();
 }
