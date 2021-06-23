@@ -10,23 +10,9 @@ msg() {
 cd `dirname $0`
 
 echo
-echo "This script re-generates all private keys and certificates"
-echo "needed to run the Unit Test."
-echo
-echo "                   *** IMPORTANT ***"
-echo
-echo "This script depends on datefudge, openssl, and python3's cryptography module."
-echo
-echo "A few manual changes need to be made."
-echo "certificate.c:test_certificate_not_valid_before"
-echo "and certificate.c:test_certificate_not_valid_after have"
-echo "EXPECTED_NOT_VALID_BEFORE and EXPECTED_NOT_VALID_AFTER"
-echo "that needs to be changed to match corresponding validity dates"
-echo "that are part of the new certificate named server.pem."
-echo "One way to obtain the new values is to inspect the output of:"
-echo "$ openssl x509 -inform pem -in ./tls/tests/files/server.pem -noout -text"
-echo
-echo "                   *** IMPORTANT ***"
+echo "This script regenerates all private keys and certificates"
+echo "needed to run glib-networking tests. Please note this script"
+echo "depends on datefudge, openssl, and python3's cryptography module."
 echo
 
 read -p "Press [Enter] key to continue..."
@@ -194,11 +180,12 @@ msg "Updating CA Root files"
 ./update-chain-with-new-root.py ca-roots-bad.pem ca.pem
 
 #######################################################################
-### Update test database
+### Update test expectations
 #######################################################################
 
-msg "Updating test database"
+msg "Updating test expectations"
 ./update-test-database.py ca.pem ../file-database.h
+./update-certificate-test.py server.pem ../certificate.h
 
 #######################################################################
 ### Cleanup

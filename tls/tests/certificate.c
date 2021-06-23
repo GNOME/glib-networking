@@ -24,6 +24,8 @@
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
 
+#include "certificate.h"
+
 #include <gio/gio.h>
 
 #ifdef BACKEND_IS_GNUTLS
@@ -579,8 +581,6 @@ test_certificate_is_same (void)
 static void
 test_certificate_not_valid_before (void)
 {
-  const gchar *EXPECTED_NOT_VALID_BEFORE = "2020-10-12T17:49:44Z";
-
   GTlsCertificate *cert;
   GError *error = NULL;
   GDateTime *actual;
@@ -601,8 +601,6 @@ test_certificate_not_valid_before (void)
 static void
 test_certificate_not_valid_after (void)
 {
-  const gchar *EXPECTED_NOT_VALID_AFTER = "2045-10-06T17:49:44Z";
-
   GTlsCertificate *cert;
   GError *error = NULL;
   GDateTime *actual;
@@ -623,8 +621,7 @@ test_certificate_not_valid_after (void)
 static void
 test_certificate_subject_name (void)
 {
-  const gchar *EXPECTED_SUBJECT_NAME = "DC=COM,DC=EXAMPLE,CN=server.example.com";
-
+  const char *EXPECTED_SUBJECT_NAME = "DC=COM,DC=EXAMPLE,CN=server.example.com";
   GTlsCertificate *cert;
   GError *error = NULL;
   gchar *actual;
