@@ -167,6 +167,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
       bio = BIO_new (BIO_s_mem ());
       name = X509_get_subject_name (openssl->cert);
       X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS);
+      BIO_write (bio, "\0", 1);
       BIO_get_mem_data (bio, (char **)&name_string);
       g_value_set_string (value, name_string);
       BIO_free_all (bio);
@@ -176,6 +177,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
       bio = BIO_new (BIO_s_mem ());
       name = X509_get_issuer_name (openssl->cert);
       X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS);
+      BIO_write (bio, "\0", 1);
       BIO_get_mem_data (bio, &name_string);
       g_value_set_string (value, name_string);
       BIO_free_all (bio);
