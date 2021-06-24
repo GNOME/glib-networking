@@ -35,6 +35,7 @@
 
 #include "gtlscertificate-gnutls.h"
 #include "gtlshttp.h"
+#include "gtlsgnutls-version.h"
 
 typedef struct
 {
@@ -566,7 +567,7 @@ g_tls_database_gnutls_create_handle_for_certificate (GTlsDatabaseGnutls *self,
   return uri;
 }
 
-#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
+#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 1)
 static int
 issuer_missing_cb (gnutls_x509_trust_list_t   tlist,
                    const gnutls_x509_crt_t    crt,
@@ -725,7 +726,7 @@ create_trust_list (GTlsDatabaseGnutls  *self,
       return NULL;
     }
 
-#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
+#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 1)
   gnutls_x509_trust_list_set_getissuer_function (trust_list, issuer_missing_cb);
   gnutls_x509_trust_list_set_ptr (trust_list, self);
 #endif

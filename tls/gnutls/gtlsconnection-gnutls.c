@@ -38,6 +38,7 @@
 #include "gtlsclientconnection-gnutls.h"
 #include "gtlsdatabase-gnutls.h"
 #include "gtlslog.h"
+#include "gtlsgnutls-version.h"
 
 #ifdef G_OS_WIN32
 #include <winsock2.h>
@@ -1168,7 +1169,7 @@ gnutls_get_binding_tls_server_end_point (GTlsConnectionGnutls  *gnutls,
                                          GByteArray            *data,
                                          GError               **error)
 {
-#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
+#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 2)
   return gnutls_get_binding (gnutls, data, GNUTLS_CB_TLS_SERVER_END_POINT, error);
 #else
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
@@ -1268,7 +1269,7 @@ gnutls_get_binding_tls_server_end_point (GTlsConnectionGnutls  *gnutls,
 #endif
 }
 
-#if !(GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7)
+#if !GTLS_GNUTLS_CHECK_VERSION(3, 7, 2)
 #define RFC5705_LABEL_DATA "EXPORTER-Channel-Binding"
 #define RFC5705_LABEL_LEN 24
 #endif
@@ -1280,7 +1281,7 @@ gnutls_get_binding_tls_exporter (GTlsConnectionGnutls  *gnutls,
                                  GByteArray            *data,
                                  GError               **error)
 {
-#if GNUTLS_VERSION_MAJOR > 3 || GNUTLS_VERSION_MAJOR == 3 && GNUTLS_VERSION_MINOR >= 7
+#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 2)
   return gnutls_get_binding (gnutls, data, GNUTLS_CB_TLS_EXPORTER, error);
 #else
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
