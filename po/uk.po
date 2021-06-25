@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2021-06-24 16:52+0000\n"
-"PO-Revision-Date: 2021-06-24 22:14+0300\n"
+"POT-Creation-Date: 2021-06-25 16:32+0000\n"
+"PO-Revision-Date: 2021-06-25 19:50+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -63,7 +63,7 @@ msgstr ""
 "У налаштуваннях стороннього вузла не передбачено підтримки безпечного "
 "повторного узгодження"
 
-#: tls/base/gtlsconnection-base.c:1678 tls/gnutls/gtlsconnection-gnutls.c:481
+#: tls/base/gtlsconnection-base.c:1678 tls/gnutls/gtlsconnection-gnutls.c:482
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:834
 #, c-format
@@ -114,46 +114,52 @@ msgstr "Не вдалося імпортувати адресу сертифік
 msgid "No certificate data provided"
 msgstr "Не надано даних сертифіката"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:197
-#| msgid "Could not create TLS connection: %s"
+#: tls/gnutls/gtlscertificate-gnutls.c:806
+#: tls/gnutls/gtlsconnection-gnutls.c:1033
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr ""
+"Неможливо перевірити ідентичність вузла неочікуваного типу %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:198
 msgid "Could not create TLS connection:"
 msgstr "Неможливо створити з'єднання TLS:"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:207
-#: tls/gnutls/gtlsconnection-gnutls.c:227
+#: tls/gnutls/gtlsconnection-gnutls.c:208
+#: tls/gnutls/gtlsconnection-gnutls.c:228
 #: tls/openssl/gtlsclientconnection-openssl.c:458
 #: tls/openssl/gtlsserverconnection-openssl.c:503
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Неможливо створити з'єднання TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:425
-#: tls/gnutls/gtlsconnection-gnutls.c:436
-#: tls/gnutls/gtlsconnection-gnutls.c:450
+#: tls/gnutls/gtlsconnection-gnutls.c:426
+#: tls/gnutls/gtlsconnection-gnutls.c:437
+#: tls/gnutls/gtlsconnection-gnutls.c:451
 #: tls/openssl/gtlsconnection-openssl.c:176
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "Не вдалося виконати узгодження зв'язку за допомогою TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:458
+#: tls/gnutls/gtlsconnection-gnutls.c:459
 msgid "TLS connection closed unexpectedly"
 msgstr "Раптово закрито з'єднання TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:473
+#: tls/gnutls/gtlsconnection-gnutls.c:474
 #: tls/openssl/gtlsconnection-openssl.c:201
 msgid "TLS connection peer did not send a certificate"
 msgstr "Вузол з'єднання TLS не надіслав сертифіката"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:489
+#: tls/gnutls/gtlsconnection-gnutls.c:490
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Вузлом надіслано попередження щодо критичної помилки TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:499
+#: tls/gnutls/gtlsconnection-gnutls.c:500
 msgid "Protocol version downgrade attack detected"
 msgstr "Виявлено спробу атаки із використанням заниження версії протоколу"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:508
+#: tls/gnutls/gtlsconnection-gnutls.c:509
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -167,48 +173,48 @@ msgstr[2] ""
 "Повідомлення є надто великим для з'єднання DTLS; максимальний розмір — %u "
 "байтів"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:517
+#: tls/gnutls/gtlsconnection-gnutls.c:518
 msgid "The operation timed out"
 msgstr "Час очікування на завершення дії вичерпано"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:869
+#: tls/gnutls/gtlsconnection-gnutls.c:870
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Помилка під час виконання узгодження з'єднання за допомогою TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:972
+#: tls/gnutls/gtlsconnection-gnutls.c:973
 #: tls/openssl/gtlsconnection-openssl.c:618
 msgid "Error performing TLS handshake"
 msgstr "Помилка під час виконання узгодження зв'язку за допомогою TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1145
+#: tls/gnutls/gtlsconnection-gnutls.c:1152
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Тип прив'язки каналу не реалізовано у бібліотеці TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1149
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Дані прив'язки каналів ще не доступні"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1187
-#: tls/gnutls/gtlsconnection-gnutls.c:1199
+#: tls/gnutls/gtlsconnection-gnutls.c:1194
+#: tls/gnutls/gtlsconnection-gnutls.c:1206
 #, c-format
 msgid "X.509 certificate is not available on the connection"
 msgstr "Немає доступу до сертифікат X.509 з'єднання"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1212
+#: tls/gnutls/gtlsconnection-gnutls.c:1219
 #, c-format
 msgid "X.509 certificate is not available or is of unknown format: %s"
 msgstr "Сертифікат X.509 є недоступним або записаним у невідомому форматі: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1223
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
 #: tls/openssl/gtlsconnection-openssl.c:709
 #, c-format
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Не вдалося отримати алгоритм підписування сертифіката"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1239
+#: tls/gnutls/gtlsconnection-gnutls.c:1246
 #: tls/openssl/gtlsconnection-openssl.c:729
 #, c-format
 msgid ""
@@ -217,27 +223,27 @@ msgstr ""
 "У поточному сертифікаті X.509 використано невідомий або непідтримуваний "
 "алгоритм підписування"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1340
 #: tls/openssl/gtlsconnection-openssl.c:809
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Запитаний тип прив'язки каналів не реалізовано"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1354
-#: tls/gnutls/gtlsconnection-gnutls.c:1414
+#: tls/gnutls/gtlsconnection-gnutls.c:1361
+#: tls/gnutls/gtlsconnection-gnutls.c:1421
 #: tls/openssl/gtlsconnection-openssl.c:827
 #: tls/openssl/gtlsconnection-openssl.c:923
 msgid "Error reading data from TLS socket"
 msgstr "Помилка зчитування даних з гнізда TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1436
-#: tls/gnutls/gtlsconnection-gnutls.c:1499
+#: tls/gnutls/gtlsconnection-gnutls.c:1443
+#: tls/gnutls/gtlsconnection-gnutls.c:1506
 #: tls/openssl/gtlsconnection-openssl.c:1002
 msgid "Error writing data to TLS socket"
 msgstr "Помилка запису даних у гніздо TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1469
+#: tls/gnutls/gtlsconnection-gnutls.c:1476
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -245,7 +251,7 @@ msgstr[0] "Повідомлення розміром %lu байт є надто 
 msgstr[1] "Повідомлення розміром %lu байти є надто великим для з'єднання DTLS"
 msgstr[2] "Повідомлення розміром %lu байтів є надто великим для з'єднання DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1471
+#: tls/gnutls/gtlsconnection-gnutls.c:1478
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -253,12 +259,12 @@ msgstr[0] "(максимальним є значення у %u байт)"
 msgstr[1] "(максимальним є значення у %u байти)"
 msgstr[2] "(максимальним є значення у %u байтів)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1518
+#: tls/gnutls/gtlsconnection-gnutls.c:1525
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Помилка закриття TLS: %s"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:702
+#: tls/gnutls/gtlsdatabase-gnutls.c:688
 msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
@@ -266,7 +272,7 @@ msgstr ""
 "Не вдалося завантажити загальносистемне сховище довірених сертифікатів: "
 "GnuTLS не налаштовано із загально системною довірою"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:707 tls/openssl/gtlsdatabase-openssl.c:229
+#: tls/gnutls/gtlsdatabase-gnutls.c:693 tls/openssl/gtlsdatabase-openssl.c:229
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr ""
