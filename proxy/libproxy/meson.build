@@ -66,7 +66,6 @@ executable(
   sources,
   include_directories: top_inc,
   dependencies: deps,
-  c_args: '-DGLIBPROXY_PACRUNNER',
   install: true,
   install_dir: libexecdir
 )
