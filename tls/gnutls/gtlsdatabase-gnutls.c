@@ -532,11 +532,23 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
       addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity));
       hostname = free_hostname = g_inet_address_to_string (addr);
     }
+
   if (hostname)
     {
       if (!gnutls_x509_crt_check_hostname (gnutls_chain->chain[0], hostname))
         result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
       g_free (free_hostname);
+    }
+  else if (identity)
+    {
+      /* If identity is NULL, then the application has requested that we not
+       * verify identity. But if the application passes an identity of a
+       * type we don't expect, then the application surely expects it to be
+       * used, so we'd better not fail silently.
+       */
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Cannot verify peer identity of unexpected type %s"), G_OBJECT_TYPE_NAME (identity));
+      result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
     }
 
   certificate_chain_free (gnutls_chain);

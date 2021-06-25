@@ -1027,12 +1027,18 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
       addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity));
       hostname = free_hostname = g_inet_address_to_string (addr);
     }
+  else if (identity)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Cannot verify peer identity of unexpected type %s"), G_OBJECT_TYPE_NAME (identity));
+      errors |= G_TLS_CERTIFICATE_BAD_IDENTITY;
+    }
 
   ret = gnutls_certificate_verify_peers3 (priv->session, hostname, &gnutls_result);
   if (ret != 0)
-    errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+    errors |= G_TLS_CERTIFICATE_GENERIC_ERROR;
   else
-    errors = g_tls_certificate_gnutls_convert_flags (gnutls_result);
+    errors |= g_tls_certificate_gnutls_convert_flags (gnutls_result);
 
   g_free (free_hostname);
   return errors;
