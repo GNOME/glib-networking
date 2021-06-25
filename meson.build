@@ -92,7 +92,7 @@ if openssl_option.disabled()
   openssl_dep = []
 else
   # XXX: https://github.com/mesonbuild/meson/issues/2945
-  openssl_dep = dependency('openssl', required: false)
+  openssl_dep = dependency('openssl', version: '>= 1.0.2', required: false)
   if openssl_dep.found()
     backends += ['openssl']
   else

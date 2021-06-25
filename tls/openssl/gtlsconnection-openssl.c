@@ -365,7 +365,6 @@ perform_openssl_io (GTlsConnectionOpenssl  *openssl,
   return status;
 }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
 static int
 _openssl_alpn_select_cb (SSL                  *ssl,
                          const unsigned char **out,
@@ -482,7 +481,6 @@ g_tls_connection_openssl_prepare_handshake (GTlsConnectionBase  *tls,
       g_byte_array_unref (protocols);
     }
 }
-#endif
 
 static GTlsCertificateFlags
 g_tls_connection_openssl_verify_chain (GTlsConnectionBase       *tls,
@@ -562,7 +560,6 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase   *tls,
   ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (tls));
   session = SSL_get_session (ssl);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   SSL_get0_alpn_selected (ssl, &data, &len);
 
   g_tls_log_debug (tls, "negotiated ALPN protocols: [%d]%p", len, data);
@@ -572,7 +569,6 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase   *tls,
       g_assert (!*negotiated_protocol);
       *negotiated_protocol = g_strndup ((gchar *)data, len);
     }
-#endif
 
   *protocol_version = glib_protocol_version_from_openssl (SSL_SESSION_get_protocol_version (session));
   *ciphersuite_name = g_strdup (SSL_get_cipher_name (ssl));
@@ -1071,9 +1067,7 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 
   object_class->finalize                                 = g_tls_connection_openssl_finalize;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   base_class->prepare_handshake                          = g_tls_connection_openssl_prepare_handshake;
-#endif
   base_class->verify_chain                               = g_tls_connection_openssl_verify_chain;
   base_class->complete_handshake                         = g_tls_connection_openssl_complete_handshake;
   base_class->handshake_thread_safe_renegotiation_status = g_tls_connection_openssl_handshake_thread_safe_renegotiation_status;

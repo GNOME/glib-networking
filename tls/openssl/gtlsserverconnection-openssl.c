@@ -154,63 +154,6 @@ g_tls_server_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection)
   return G_TLS_SERVER_CONNECTION_OPENSSL (connection)->ssl;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10002000L
-static gboolean
-ssl_ctx_set_certificate (SSL_CTX          *ssl_ctx,
-                         GTlsCertificate  *cert,
-                         GError          **error)
-{
-  EVP_PKEY *key;
-  X509 *x;
-  GTlsCertificate *issuer;
-
-  key = g_tls_certificate_openssl_get_key (G_TLS_CERTIFICATE_OPENSSL (cert));
-
-  if (!key)
-    {
-      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                           _("Certificate has no private key"));
-      return FALSE;
-    }
-
-  if (SSL_CTX_use_PrivateKey (ssl_ctx, key) <= 0)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                   _("There is a problem with the certificate private key: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-     return FALSE;
-    }
-
-  x = g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert));
-  if (SSL_CTX_use_certificate (ssl_ctx, x) <= 0)
-    {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                   _("There is a problem with the certificate: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
-      return FALSE;
-    }
-
-  /* Add all the issuers to create the full certificate chain */
-  for (issuer = g_tls_certificate_get_issuer (G_TLS_CERTIFICATE (cert));
-       issuer;
-       issuer = g_tls_certificate_get_issuer (issuer))
-    {
-      X509 *issuer_x;
-
-      /* Be careful here and duplicate the certificate since the context
-      * will take the ownership
-       */
-      issuer_x = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (issuer)));
-      if (!SSL_CTX_add_extra_chain_cert (ssl_ctx, issuer_x))
-        g_warning ("There was a problem adding the extra chain certificate: %s",
-                   ERR_error_string (ERR_get_error (), NULL));
-    }
-
-  return TRUE;
-}
-#endif
-
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
 static gboolean
 ssl_set_certificate (SSL              *ssl,
                      GTlsCertificate  *cert,
@@ -287,7 +230,6 @@ on_certificate_changed (GObject    *object,
   if (ssl && cert)
     ssl_set_certificate (ssl, cert, NULL);
 }
-#endif
 
 static void
 g_tls_server_connection_openssl_class_init (GTlsServerConnectionOpensslClass *klass)
@@ -420,7 +362,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   server->session = SSL_SESSION_new ();
 
   server->ssl_ctx = SSL_CTX_new (g_tls_connection_base_is_dtls (G_TLS_CONNECTION_BASE (server))
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
                                  ? DTLS_server_method ()
                                  : TLS_server_method ());
 #else
@@ -491,11 +433,6 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
 
-#if OPENSSL_VERSION_NUMBER < 0x10002000L
-  if (cert && !ssl_ctx_set_certificate (server->ssl_ctx, cert, error))
-    return FALSE;
-#endif
-
   server->ssl = SSL_new (server->ssl_ctx);
   if (!server->ssl)
     {
@@ -505,10 +442,8 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
       return FALSE;
     }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   if (cert && !ssl_set_certificate (server->ssl, cert, error))
     return FALSE;
-#endif
 
   SSL_set_accept_state (server->ssl);
 
@@ -516,9 +451,7 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
       init (initable, cancellable, error))
     return FALSE;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
   g_signal_connect (server, "notify::certificate", G_CALLBACK (on_certificate_changed), NULL);
-#endif
 
   return TRUE;
 }

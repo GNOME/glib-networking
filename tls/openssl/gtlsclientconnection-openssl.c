@@ -391,7 +391,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   client->session = SSL_SESSION_new ();
 
   client->ssl_ctx = SSL_CTX_new (g_tls_connection_base_is_dtls (G_TLS_CONNECTION_BASE (client))
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
                                  ? DTLS_client_method ()
                                  : TLS_client_method ());
 #else
@@ -427,7 +427,6 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   hostname = get_server_identity (client);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L && !defined (LIBRESSL_VERSION_NUMBER)
   if (hostname)
     {
       X509_VERIFY_PARAM *param;
@@ -437,7 +436,6 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
       SSL_CTX_set1_param (client->ssl_ctx, param);
       X509_VERIFY_PARAM_free (param);
     }
-#endif
 
   SSL_CTX_add_session (client->ssl_ctx, client->session);
 
