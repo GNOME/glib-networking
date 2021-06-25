@@ -510,6 +510,7 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
   guint num_certs, i;
   gnutls_x509_crt_t *chain;
   GTlsCertificateFlags gtls_flags;
+  GError *error = NULL;
 
   cert_gnutls = G_TLS_CERTIFICATE_GNUTLS (cert);
   num_certs = 0;
@@ -554,7 +555,14 @@ g_tls_certificate_gnutls_verify (GTlsCertificate     *cert,
   g_free (chain);
 
   if (identity)
-    gtls_flags |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (cert), identity);
+    {
+      gtls_flags |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (cert), identity, &error);
+      if (error)
+        {
+          g_warning ("Error verifying TLS certificate: %s", error->message);
+          g_error_free (error);
+        }
+    }
 
   return gtls_flags;
 }
@@ -772,88 +780,40 @@ g_tls_certificate_gnutls_convert_flags (guint gnutls_flags)
   return gtls_flags;
 }
 
-static gboolean
-verify_identity_hostname (GTlsCertificateGnutls *gnutls,
-                          GSocketConnectable    *identity)
+GTlsCertificateFlags
+g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls  *gnutls,
+                                          GSocketConnectable     *identity,
+                                          GError                **error)
 {
+  GTlsCertificateFlags result = 0;
   const char *hostname;
+  char *free_hostname = NULL;
 
   if (G_IS_NETWORK_ADDRESS (identity))
     hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (identity));
   else if (G_IS_NETWORK_SERVICE (identity))
     hostname = g_network_service_get_domain (G_NETWORK_SERVICE (identity));
-  else
-    return FALSE;
-
-  return gnutls_x509_crt_check_hostname (gnutls->cert, hostname);
-}
-
-static gboolean
-verify_identity_ip (GTlsCertificateGnutls *gnutls,
-                    GSocketConnectable    *identity)
-{
-  GInetAddress *addr;
-  int i, ret = 0;
-  gsize addr_size;
-  const guint8 *addr_bytes;
-
-  if (G_IS_INET_SOCKET_ADDRESS (identity))
-    addr = g_object_ref (g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity)));
-  else {
-    const char *hostname;
-
-    if (G_IS_NETWORK_ADDRESS (identity))
-      hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (identity));
-    else if (G_IS_NETWORK_SERVICE (identity))
-      hostname = g_network_service_get_domain (G_NETWORK_SERVICE (identity));
-    else
-      return FALSE;
-
-    addr = g_inet_address_new_from_string (hostname);
-    if (!addr)
-      return FALSE;
-  }
-
-  addr_bytes = g_inet_address_to_bytes (addr);
-  addr_size = g_inet_address_get_native_size (addr);
-
-  for (i = 0; ret >= 0; i++)
+  else if (G_IS_INET_SOCKET_ADDRESS (identity))
     {
-      char san[500];
-      size_t san_size;
+      GInetAddress *addr;
 
-      san_size = sizeof (san);
-      ret = gnutls_x509_crt_get_subject_alt_name (gnutls->cert, i,
-                                                  san, &san_size, NULL);
-
-      if ((ret == GNUTLS_SAN_IPADDRESS) && (addr_size == san_size))
-        {
-          if (memcmp (addr_bytes, san, addr_size) == 0)
-            {
-              g_object_unref (addr);
-              return TRUE;
-            }
-        }
+      addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity));
+      hostname = free_hostname = g_inet_address_to_string (addr);
+    }
+  else
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("Cannot verify peer identity of unexpected type %s"), G_OBJECT_TYPE_NAME (identity));
+      return G_TLS_CERTIFICATE_BAD_IDENTITY;
     }
 
-  g_object_unref (addr);
-  return FALSE;
-}
+  g_assert (hostname);
+  if (!gnutls_x509_crt_check_hostname (gnutls->cert, hostname))
+    result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
 
-GTlsCertificateFlags
-g_tls_certificate_gnutls_verify_identity (GTlsCertificateGnutls *gnutls,
-                                          GSocketConnectable    *identity)
-{
-  if (verify_identity_hostname (gnutls, identity))
-    return 0;
-  else if (verify_identity_ip (gnutls, identity))
-    return 0;
+  g_free (free_hostname);
 
-  /* FIXME: check sRVName and uniformResourceIdentifier
-   * subjectAltNames, if appropriate for @identity.
-   */
-
-  return G_TLS_CERTIFICATE_BAD_IDENTITY;
+  return result;
 }
 
 void

@@ -492,8 +492,6 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
   GTlsCertificateFlags result;
   guint gnutls_result;
   CertificateChain *gnutls_chain;
-  const char *hostname = NULL;
-  char *free_hostname = NULL;
   int gerr;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (chain),
@@ -521,35 +519,10 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
 
   result = g_tls_certificate_gnutls_convert_flags (gnutls_result);
 
-  if (G_IS_NETWORK_ADDRESS (identity))
-    hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (identity));
-  else if (G_IS_NETWORK_SERVICE (identity))
-    hostname = g_network_service_get_domain (G_NETWORK_SERVICE (identity));
-  else if (G_IS_INET_SOCKET_ADDRESS (identity))
-    {
-      GInetAddress *addr;
-
-      addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (identity));
-      hostname = free_hostname = g_inet_address_to_string (addr);
-    }
-
-  if (hostname)
-    {
-      if (!gnutls_x509_crt_check_hostname (gnutls_chain->chain[0], hostname))
-        result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
-      g_free (free_hostname);
-    }
-  else if (identity)
-    {
-      /* If identity is NULL, then the application has requested that we not
-       * verify identity. But if the application passes an identity of a
-       * type we don't expect, then the application surely expects it to be
-       * used, so we'd better not fail silently.
-       */
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                   _("Cannot verify peer identity of unexpected type %s"), G_OBJECT_TYPE_NAME (identity));
-      result |= G_TLS_CERTIFICATE_BAD_IDENTITY;
-    }
+  if (identity)
+    result |= g_tls_certificate_gnutls_verify_identity (G_TLS_CERTIFICATE_GNUTLS (chain),
+                                                        identity,
+                                                        error);
 
   certificate_chain_free (gnutls_chain);
   return result;
