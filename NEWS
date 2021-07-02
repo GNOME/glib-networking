@@ -1,3 +1,31 @@
+2.70.alpha - July 2, 2021
+=========================
+
+- Fix TLS channel bindings tests (#164)
+- Require OpenSSL 1.0.2 (#166)
+- Fix threadsafety issue in certificate verification (!148)
+- dlopen libsoup for performing HTTP requests (!149, Patrick Griffis)
+- Implement new get_negotiated_protocol vfunc (!150)
+- Implement new protocol version and ciphersuite name accessors (!151)
+- OpenSSL: use system keychain on macOS (!154)
+- OpenSSL: add DTLS support, plus many related improvements (!155, Ole André Vadla Ravnås)
+- Implement new GTlsCertificate details APIs (!156, !165, Ross Wollman)
+- GnuTLS: improve error handling for PIN failures (!158, Patrick Griffis)
+- GnuTLS: expose PIN type on PIN requests (!159, Patrick Griffis)
+- GnuTLS: check cancellable in pull timeout callback (!160)
+- Add support for Android (!162, Ole André Vadla Ravnås)
+- Improve automation of test certificate creation (!167, !168, !169, Patrick Griffis)
+- GnuTLS: use GnuTLS to implement all channel bindings (!172)
+- GnuTLS: rework certificate verification to use TLS session (!173)
+- GnuTLS: improve peer identity verification (!176)
+- Bring back automatic downloading of missing intermediate certificates (not fixed, may go away again)
+
+2.68.1 - April 22, 2021
+=======================
+
+ - Fix threadsafety issue in certificate verification (!148)
+ - Temporarily remove support for downloading missing intermediate certificates with GnuTLS 3.7 (#160)
+
 2.68.0 - March 19, 2021
 =======================
 
