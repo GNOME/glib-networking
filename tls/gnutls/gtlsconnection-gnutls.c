@@ -335,10 +335,13 @@ on_pin_request (void         *userdata,
       {
         gsize password_size;
         const guchar *password_data = g_tls_password_get_value (password, &password_size);
-        if (password_size > pin_max)
+        if (password_size > pin_max - 1)
           g_info ("PIN is larger than max PIN size");
 
-        memcpy (pin, password_data, MIN (password_size, pin_max));
+        /* Ensure NUL-termination */
+        memset (pin, 0, pin_max);
+        memcpy (pin, password_data, MIN (password_size, pin_max - 1));
+
         ret = GNUTLS_E_SUCCESS;
     }
 
