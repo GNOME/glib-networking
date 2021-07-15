@@ -37,6 +37,8 @@
  *   ignored and won't work.
  */
 
+/* LCOV_EXCL_START */
+
 #undef G_LOG_DOMAIN
 #define G_LOG_DOMAIN "MockPKCS11"
 
@@ -3021,3 +3023,5 @@ CK_DEFINE_FUNCTION(CK_RV, C_InteractiveLogin)(CK_SESSION_HANDLE hSession)
 
         return rv;
 }
+
+/* LCOV_EXCL_STOP */
