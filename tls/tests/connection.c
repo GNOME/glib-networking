@@ -2638,7 +2638,7 @@ test_connection_binding_match_tls_unique (TestConnection *test,
  * please make sure the string below matches the output of
  * openssl x509 -outform der -in files/server.pem | openssl sha256 -binary | base64
  **/
-#define SERVER_CERT_DIGEST_B64 "AX+tOuSPoSSzxau7zBGSOxAfrO/E6eLYvCv3O8MYTfE="
+#define SERVER_CERT_DIGEST_B64 "p1CRKoEsGE5s6Q7z7x7eXg9SJClAvNtY7e138xWGkg8="
 static void
 test_connection_binding_match_tls_server_end_point (TestConnection *test,
                                                     gconstpointer   data)
