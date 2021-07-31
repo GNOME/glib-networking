@@ -1259,7 +1259,6 @@ verify_peer_certificate (GTlsConnectionBase *tls,
 {
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GSocketConnectable *peer_identity = NULL;
-  GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   GTlsDatabase *database;
   GTlsCertificateFlags errors = 0;
   gboolean is_client;

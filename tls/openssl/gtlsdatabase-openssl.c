@@ -313,6 +313,37 @@ g_tls_database_openssl_new (GError **error)
   return g_initable_new (G_TYPE_TLS_DATABASE_OPENSSL, NULL, error, NULL);
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
+  !defined(OPENSSL_NO_OCSP)
+static gboolean
+check_chain_for_ocsp_must_staple (const STACK_OF(X509) *chain)
+{
+  for (guint i_cert = 0; i_cert < sk_X509_num (chain); i_cert++)
+    {
+      X509 *cert = sk_X509_value (chain, i_cert);
+      int idx = -1; /* We ignore the return of this as we only expect 1 extension */
+      STACK_OF(ASN1_INTEGER) *features = X509_get_ext_d2i (cert, NID_tlsfeature, NULL, &idx);
+
+      if (!features)
+        continue;
+
+      for (guint i_feature = 0; i_feature < sk_ASN1_INTEGER_num (features); i_feature++)
+        {
+          const long feature_id = ASN1_INTEGER_get (sk_ASN1_INTEGER_value (features, i_feature));
+          if (feature_id == 5 || feature_id == 17) /* status_request, status_request_v2 */
+            {
+              sk_ASN1_INTEGER_pop_free (features, ASN1_INTEGER_free);
+              return TRUE;
+            }
+        }
+
+      sk_ASN1_INTEGER_pop_free (features, ASN1_INTEGER_free);
+    }
+
+  return FALSE;
+}
+#endif
+
 GTlsCertificateFlags
 g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
                                              GTlsCertificate     *chain,
@@ -322,10 +353,53 @@ g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
 #if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
   !defined(OPENSSL_NO_OCSP)
   GTlsDatabaseOpensslPrivate *priv;
-  STACK_OF(X509) *chain_openssl = NULL;
+  STACK_OF(X509) *peer_chain = NULL;
   OCSP_BASICRESP *basic_resp = NULL;
   int ocsp_status = 0;
   int i;
+
+  peer_chain = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
+
+  priv = g_tls_database_openssl_get_instance_private (self);
+  if ((peer_chain == NULL) ||
+      (priv->store == NULL))
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  /* If we are missing a response we check if the chain requires a response ("Must-Staple") */
+  if (resp == NULL)
+    {
+      GTlsCertificate *issuer;
+
+      if (check_chain_for_ocsp_must_staple (peer_chain))
+        {
+          errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+          goto end;
+        }
+
+      issuer = g_tls_database_lookup_certificate_issuer (G_TLS_DATABASE (self),
+                                                         chain,
+                                                         NULL,
+                                                         G_TLS_DATABASE_LOOKUP_NONE,
+                                                         NULL,
+                                                         NULL);
+
+      if (issuer)
+        {
+          STACK_OF(X509) *issuer_chain = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (issuer));
+
+          if (check_chain_for_ocsp_must_staple (issuer_chain))
+            errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+
+          sk_X509_free (issuer_chain);
+          g_object_unref (issuer);
+        }
+
+      /* Either we errored because of MustStaple or continue on ignoring OCSP */
+      goto end;
+    }
 
   ocsp_status = OCSP_response_status (resp);
   if (ocsp_status != OCSP_RESPONSE_STATUS_SUCCESSFUL)
@@ -341,16 +415,7 @@ g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
       goto end;
     }
 
-  chain_openssl = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
-  priv = g_tls_database_openssl_get_instance_private (self);
-  if ((chain_openssl == NULL) ||
-      (priv->store == NULL))
-    {
-      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-      goto end;
-    }
-
-  if (OCSP_basic_verify (basic_resp, chain_openssl, priv->store, 0) <= 0)
+  if (OCSP_basic_verify (basic_resp, peer_chain, priv->store, 0) <= 0)
     {
       errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
       goto end;
@@ -396,6 +461,9 @@ g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
     }
 
 end:
+  if (peer_chain)
+    sk_X509_free (peer_chain);
+
   if (basic_resp)
     OCSP_BASICRESP_free (basic_resp);
 

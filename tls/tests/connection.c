@@ -2979,11 +2979,6 @@ test_connection_oscp_must_staple (TestConnection *test,
   GIOStream *connection;
   GError *error = NULL;
 
-#ifdef BACKEND_IS_OPENSSL
-  g_test_skip ("OCSP Must-Staple is not supported with the openssl backend");
-  return;
-#endif
-
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-ocsp.pem"), &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->database);

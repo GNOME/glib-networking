@@ -405,7 +405,7 @@ test_create_list (void)
 
   list = g_tls_certificate_list_new_from_file (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
-  g_assert_cmpint (g_list_length (list), ==, 8);
+  g_assert_cmpint (g_list_length (list), ==, 10);
 
   g_list_free_full (list, g_object_unref);
 }

@@ -222,14 +222,12 @@ verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
 
   ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
   len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
-  /* Soft fail in case of no response is the best we can do
-   * FIXME: this makes it security theater, why bother with OCSP at all? */
-  if (!p)
-    return 0;
-
-  resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
-  if (!resp)
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
+  if (p)
+    {
+      resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
+      if (!resp)
+        return G_TLS_CERTIFICATE_GENERIC_ERROR;
+    }
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (openssl));
 
@@ -433,12 +431,6 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 #endif
 
 static gboolean
-use_ocsp (void)
-{
-  return g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED") != NULL;
-}
-
-static gboolean
 g_tls_client_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
                                                GError         **error)
@@ -531,7 +523,6 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
 #if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
     !defined(OPENSSL_NO_OCSP)
-  if (use_ocsp())
     SSL_set_tlsext_status_type (client->ssl, TLSEXT_STATUSTYPE_ocsp);
 #endif
 
