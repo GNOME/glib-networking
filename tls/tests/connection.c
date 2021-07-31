@@ -2971,6 +2971,58 @@ test_tls_info (TestConnection *test,
   g_free (ciphersuite_name);
 }
 
+static void
+test_connection_oscp_must_staple (TestConnection *test,
+                                  gconstpointer   data)
+{
+  GSocketClient *client;
+  GIOStream *connection;
+  GError *error = NULL;
+
+#ifdef BACKEND_IS_OPENSSL
+  g_test_skip ("OCSP Must-Staple is not supported with the openssl backend");
+  return;
+#endif
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-ocsp.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  test->server_certificate = g_tls_certificate_new_from_file (tls_test_file_path ("server-ocsp-missing-and-key.pem"), &error);
+  g_assert_no_error (error);
+  start_async_server_service (test, G_TLS_AUTHENTICATION_NONE, WRITE_THEN_WAIT);
+
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+
+  close_server_connection (test);
+  wait_until_server_finished (test);
+
+  /* The CA certificate states it supports status_request but our server does not
+   * actually set or support that.
+   * To be secure this must error as a bad certificate. */
+  g_assert_error (test->read_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+
+  g_clear_error (&test->read_error);
+  g_clear_error (&test->server_error);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -3103,6 +3155,8 @@ main (int   argc,
               setup_connection, test_connection_binding_match_tls_exporter, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/tls-info", TestConnection, NULL,
               setup_connection, test_tls_info, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/oscp/must-staple", TestConnection, NULL,
+              setup_connection, test_connection_oscp_must_staple, teardown_connection);
 
   ret = g_test_run ();
 

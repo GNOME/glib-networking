@@ -40,6 +40,13 @@ msg "Creating CA certificate"
 openssl req -x509 -new -config ssl/ca.conf -days 10950 -key ca-key.pem -out ca.pem
 
 #######################################################################
+### New Root CA with OCSP MustStaple
+#######################################################################
+
+msg "Creating CA (OCSP) certificate"
+openssl req -x509 -new -config ssl/ca.conf -addext tlsfeature=status_request -days 10950 -key ca-key.pem -out ca-ocsp.pem
+
+#######################################################################
 ### New Root CA, issued by Obsolete/Untrusted Root CA
 #######################################################################
 
@@ -79,6 +86,20 @@ openssl rsa -in server-key.pem -outform DER -out server-key.der
 msg "Converting server private key to PKCS #8"
 openssl pkcs8 -topk8 -in server-key.pem -outform PEM -nocrypt -out server-key-pkcs8.pem
 openssl pkcs8 -topk8 -in server-key.pem -outform DER -nocrypt -out server-key-pkcs8.der
+
+#######################################################################
+### Server (OCSP Missing)
+#######################################################################
+
+msg "Creating server (OCSP Missing) certificate request"
+openssl req -config ssl/server.conf -key server-key.pem -new -out server-ocsp-missing-csr.pem
+
+msg "Creating server (OCSP Missing) certificate"
+openssl x509 -req -in server-ocsp-missing-csr.pem -days 9125 -CA ca-ocsp.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/server.conf -extensions v3_req_ext -out server-ocsp-missing.pem
+
+msg "Concatenating server (OCSP Missing) certificate and private key into a single file"
+cat server-ocsp-missing.pem > server-ocsp-missing-and-key.pem
+cat server-key.pem >> server-ocsp-missing-and-key.pem
 
 #######################################################################
 ### Server (self-signed)
