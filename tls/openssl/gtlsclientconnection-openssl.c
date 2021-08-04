@@ -222,10 +222,18 @@ verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
 
   ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
   len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
-  /* Soft fail in case of no response is the best we can do
-   * FIXME: this makes it security theater, why bother with OCSP at all? */
   if (!p)
-    return 0;
+    {
+      /* OpenSSL doesn't provide an API to determine if the chain requires
+       * an OCSP response (known as MustStaple) using the status_request 
+       * X509v3 extension. We also have no way of correctly knowing the full
+       * chain OpenSSL will internally use to do this ourselves.
+       * So for now we silently continue ignoring the missing response.
+       * This does mean that this does not provide real security as an attacker
+       * can easily bypass this.
+       */
+      return 0;
+    }
 
   resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
   if (!resp)
@@ -291,7 +299,6 @@ static void
 g_tls_client_connection_openssl_init (GTlsClientConnectionOpenssl *openssl)
 {
 }
-
 
 static void
 g_tls_client_connection_openssl_copy_session_state (GTlsClientConnection *conn,
@@ -433,12 +440,6 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 #endif
 
 static gboolean
-use_ocsp (void)
-{
-  return g_getenv ("G_TLS_OPENSSL_OCSP_ENABLED") != NULL;
-}
-
-static gboolean
 g_tls_client_connection_openssl_initable_init (GInitable       *initable,
                                                GCancellable    *cancellable,
                                                GError         **error)
@@ -531,8 +532,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
 #if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
     !defined(OPENSSL_NO_OCSP)
-  if (use_ocsp())
-    SSL_set_tlsext_status_type (client->ssl, TLSEXT_STATUSTYPE_ocsp);
+  SSL_set_tlsext_status_type (client->ssl, TLSEXT_STATUSTYPE_ocsp);
 #endif
 
   if (!g_tls_client_connection_openssl_parent_initable_iface->

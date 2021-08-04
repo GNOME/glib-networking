@@ -396,6 +396,9 @@ g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
     }
 
 end:
+  if (chain_openssl)
+    sk_X509_free (chain_openssl);
+
   if (basic_resp)
     OCSP_BASICRESP_free (basic_resp);
 
