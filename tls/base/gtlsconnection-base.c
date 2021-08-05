@@ -1941,7 +1941,7 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
   GTlsConnectionBaseClass *tls_class = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
   gint64 *thread_timeout = NULL;
 
-  g_tls_log_debug (tls, "Implcit TLS handshaking starts");
+  g_tls_log_debug (tls, "Implicit TLS handshaking starts");
 
   /* We have op_mutex */
 
