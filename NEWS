@@ -1,3 +1,10 @@
+2.68.2 - August 5, 2021
+=======================
+
+ - GnuTLS: Improve error handling for PKCS #11 PIN failures (!158)
+ - GnuTLS: Ensure that PKCS #11 pins are NUL-terminated (!178)
+ - Allow tls-unique channel binding test to fail (#164)
+
 2.68.1 - April 22, 2021
 =======================
 
