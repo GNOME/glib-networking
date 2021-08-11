@@ -29,7 +29,6 @@
 #include "openssl-include.h"
 
 #include "gtlscertificate-openssl.h"
-#include "openssl-util.h"
 #include <glib/gi18n-lib.h>
 
 struct _GTlsCertificateOpenssl
@@ -663,7 +662,7 @@ verify_identity_hostname (GTlsCertificateOpenssl *openssl,
   else
     return FALSE;
 
-  return g_tls_X509_check_host (openssl->cert, hostname, strlen (hostname), 0, NULL) == 1;
+  return X509_check_host (openssl->cert, hostname, strlen (hostname), 0, NULL) == 1;
 }
 
 static gboolean
@@ -695,7 +694,7 @@ verify_identity_ip (GTlsCertificateOpenssl *openssl,
   addr_bytes = g_inet_address_to_bytes (addr);
   addr_size = g_inet_address_get_native_size (addr);
 
-  ret = g_tls_X509_check_ip (openssl->cert, addr_bytes, addr_size, 0) == 1;
+  ret = X509_check_ip (openssl->cert, addr_bytes, addr_size, 0) == 1;
 
   g_object_unref (addr);
   return ret;

@@ -8,7 +8,6 @@ sources = files(
   'gtlsdatabase-openssl.c',
   'gtlsfiledatabase-openssl.c',
   'gtlsbio.c',
-  'openssl-util.c',
 )
 
 incs = [top_inc]
