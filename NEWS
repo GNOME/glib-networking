@@ -1,3 +1,9 @@
+2.70.beta - August 12, 2021
+===========================
+
+ - gnutls: Ensure that PKCS #11 pins are NUL terminated (!178, Patrick Griffis)
+ - openssl: Restore OCSP support (!179, !180, Patrick Griffis)
+
 2.70.alpha - July 2, 2021
 =========================
 
