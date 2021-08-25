@@ -127,7 +127,7 @@ update_credentials_cb (GObject    *gobject,
   int ret;
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
-  if (database)
+  if (database && G_IS_TLS_DATABASE_GNUTLS (database))
     {
       credentials = g_tls_database_gnutls_get_credentials (G_TLS_DATABASE_GNUTLS (database), &error);
       if (!credentials)
@@ -190,7 +190,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
     flags |= GNUTLS_DATAGRAM;
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
-  if (database)
+  if (database && G_IS_TLS_DATABASE_GNUTLS (database))
     {
       priv->creds = g_tls_database_gnutls_get_credentials (G_TLS_DATABASE_GNUTLS (database), &my_error);
       if (!priv->creds)
@@ -993,6 +993,7 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
   GTlsCertificateFlags errors = 0;
   const char *hostname = NULL;
   char *free_hostname = NULL;
+  GTlsDatabase *database;
   guint gnutls_result;
   int ret;
 
@@ -1005,12 +1006,27 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
    * (a) is done by g_tls_database_verify_chain() and implemented using one of
    * several different functions of gnutls_x509_trust_list_t, e.g.
    * gnutls_x509_trust_list_verify_crt2() or one of the related functions.
-   *
-   * (b) is what we're doing here. The recommended way is to use
-   * gnutls_session_set_verify_cert(), but we can't do that because that would
-   * leave no way to implement the accept-certificate signal. The other way is
-   * to use gnutls_certificate_verify_peers3() or one of the related functions.
-   * This adds additional smarts that are not possible when using GTlsDatabase
+   * This is the best we can do if we have to use a GTlsDatabase that is not a
+   * GTlsDatabaseGnutls.
+   */
+  database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
+  if (!G_IS_TLS_DATABASE_GNUTLS (database))
+    {
+      return g_tls_database_verify_chain (database,
+                                          chain,
+                                          G_IS_TLS_CLIENT_CONNECTION (tls) ? G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER : G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
+                                          identity,
+                                          g_tls_connection_get_interaction (G_TLS_CONNECTION (tls)),
+                                          G_TLS_DATABASE_VERIFY_NONE,
+                                          NULL,
+                                          error);
+    }
+
+  /* Now for (b). The recommended way is gnutls_session_set_verify_cert(), but
+   * we can't use that because that would leave no way to implement the
+   * GTlsConnection::accept-certificate signal. The other way is to use
+   * gnutls_certificate_verify_peers3() or one of the related functions. This
+   * adds additional smarts that are not possible when using GTlsDatabase
    * directly. For example, it checks name constraints, key usage, and basic
    * constraints. It also checks for stapled OCSP responses. Verification will
    * fail if the OCSP response indicates the certificate has been revoked.
