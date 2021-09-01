@@ -25,6 +25,7 @@
 #include "config.h"
 
 #include <gnutls/gnutls.h>
+#include <gnutls/pkcs12.h>
 #include <gnutls/x509.h>
 #include <string.h>
 
@@ -48,6 +49,8 @@ enum
   PROP_ISSUER_NAME,
   PROP_DNS_NAMES,
   PROP_IP_ADDRESSES,
+  PROP_PKCS12_DATA,
+  PROP_PASSWORD,
 };
 
 struct _GTlsCertificateGnutls
@@ -62,6 +65,9 @@ struct _GTlsCertificateGnutls
 
   GTlsCertificateGnutls *issuer;
 
+  GByteArray *pkcs12_data;
+  char *password;
+
   GError *construct_error;
 
   guint have_cert : 1;
@@ -69,6 +75,7 @@ struct _GTlsCertificateGnutls
 };
 
 static void     g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface);
+static GTlsCertificateGnutls *g_tls_certificate_gnutls_new_take_x509 (gnutls_x509_crt_t cert);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G_TYPE_TLS_CERTIFICATE,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
@@ -84,6 +91,9 @@ g_tls_certificate_gnutls_finalize (GObject *object)
 
   g_clear_pointer (&gnutls->pkcs11_uri, g_free);
   g_clear_pointer (&gnutls->private_key_pkcs11_uri, g_free);
+
+  g_clear_pointer (&gnutls->pkcs12_data, g_byte_array_unref);
+  g_clear_pointer (&gnutls->password, g_free);
 
   g_clear_object (&gnutls->issuer);
 
@@ -192,6 +202,106 @@ err:
 }
 
 static void
+maybe_import_pkcs12 (GTlsCertificateGnutls *gnutls)
+{
+  gnutls_pkcs12_t p12 = NULL;
+  gnutls_x509_privkey_t x509_key = NULL;
+  gnutls_x509_crt_t *chain = NULL;
+  guint chain_len;
+  int status;
+  gnutls_datum_t p12_data;
+  GTlsError error_code = G_TLS_ERROR_BAD_CERTIFICATE;
+  GTlsCertificateGnutls *previous_cert;
+
+  /* If password is set first. */
+  if (!gnutls->pkcs12_data)
+    return;
+
+  p12_data.data = gnutls->pkcs12_data->data;
+  p12_data.size = gnutls->pkcs12_data->len;
+
+  status = gnutls_pkcs12_init (&p12);
+  if (status != GNUTLS_E_SUCCESS)
+    goto import_failed;
+
+  /* Only support DER, it's the common encoding and what everything including OpenSSL uses. */
+  status = gnutls_pkcs12_import (p12, &p12_data, GNUTLS_X509_FMT_DER, 0);
+  if (status != GNUTLS_E_SUCCESS)
+      goto import_failed;
+
+  if (gnutls->password)
+    {
+      status = gnutls_pkcs12_verify_mac (p12, gnutls->password);
+      if (status != GNUTLS_E_SUCCESS)
+        {
+          error_code = G_TLS_ERROR_BAD_CERTIFICATE_PASSWORD;
+          goto import_failed;
+        }
+    }
+
+  /* Note that this *requires* a cert and key, if we want to make keys optional
+   * we would have to re-implement this parsing ourselves. */
+  status = gnutls_pkcs12_simple_parse (p12,
+                                       gnutls->password ? gnutls->password : "",
+                                       &x509_key,
+                                       &chain, &chain_len,
+                                       NULL, NULL,
+                                       NULL,
+                                       GNUTLS_PKCS12_SP_INCLUDE_SELF_SIGNED);
+  if (status == GNUTLS_E_DECRYPTION_FAILED)
+    error_code = G_TLS_ERROR_BAD_CERTIFICATE_PASSWORD;
+  if (status != GNUTLS_E_SUCCESS)
+    goto import_failed;
+
+  /* Clear a previous error to load without a password. */
+  if (g_error_matches (gnutls->construct_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE_PASSWORD))
+    g_clear_error (&gnutls->construct_error);
+
+  /* Clear existing initialized empty cert. */
+  gnutls_x509_crt_deinit (gnutls->cert);
+
+  /* First cert is the main one. */
+  gnutls->cert = chain[0];
+  gnutls->have_cert = TRUE;
+  previous_cert = gnutls;
+
+  for (guint i = 1; i < chain_len; i++)
+    {
+      /* GnuTLS already built us a valid chain in order by issuer. See pkcs12.c#make_chain(). */
+      GTlsCertificateGnutls *new_cert = g_tls_certificate_gnutls_new_take_x509 (chain[i]);
+      g_tls_certificate_gnutls_set_issuer (previous_cert, new_cert);
+      previous_cert = new_cert;
+      g_object_unref (new_cert);
+    }
+
+  g_clear_pointer (&chain, gnutls_free);
+
+  /* Convert X509 privkey to abstract privkey. */
+  status = gnutls_privkey_init (&gnutls->key);
+  if (status != GNUTLS_E_SUCCESS)
+    goto import_failed;
+
+  status = gnutls_privkey_import_x509 (gnutls->key, x509_key, GNUTLS_PRIVKEY_IMPORT_COPY);
+  if (status != GNUTLS_E_SUCCESS)
+    goto import_failed;
+
+  g_clear_pointer (&x509_key, gnutls_x509_privkey_deinit);
+  gnutls->have_key = TRUE;
+
+  g_clear_pointer (&p12, gnutls_pkcs12_deinit);
+  return;
+
+import_failed:
+  g_clear_error (&gnutls->construct_error);
+  g_set_error (&gnutls->construct_error, G_TLS_ERROR, error_code,
+              _("Failed to import PKCS #12: %s"), gnutls_strerror (status));
+
+  g_clear_pointer (&p12, gnutls_pkcs12_deinit);
+  g_clear_pointer (&x509_key, gnutls_x509_privkey_deinit);
+  g_clear_pointer (&chain, gnutls_free);
+}
+
+static void
 g_tls_certificate_gnutls_get_property (GObject    *object,
                                        guint       prop_id,
                                        GValue     *value,
@@ -209,6 +319,10 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
 
   switch (prop_id)
     {
+    case PROP_PKCS12_DATA:
+      g_value_set_boxed (value, gnutls->pkcs12_data);
+      break;
+
     case PROP_CERTIFICATE:
       size = 0;
       status = gnutls_x509_crt_export (gnutls->cert,
@@ -343,6 +457,26 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_PASSWORD:
+      gnutls->password = g_value_dup_string (value);
+      if (gnutls->password)
+        {
+          g_return_if_fail (gnutls->have_cert == FALSE);
+          g_return_if_fail (gnutls->have_key == FALSE);
+          maybe_import_pkcs12 (gnutls);
+        }
+      break;
+
+    case PROP_PKCS12_DATA:
+      gnutls->pkcs12_data = g_value_dup_boxed (value);
+      if (gnutls->pkcs12_data)
+        {
+          g_return_if_fail (gnutls->have_cert == FALSE);
+          g_return_if_fail (gnutls->have_key == FALSE);
+          maybe_import_pkcs12 (gnutls);
+        }
+      break;
+
     case PROP_CERTIFICATE:
       bytes = g_value_get_boxed (value);
       if (!bytes)
@@ -485,6 +619,9 @@ g_tls_certificate_gnutls_initable_init (GInitable       *initable,
 {
   GTlsCertificateGnutls *gnutls = G_TLS_CERTIFICATE_GNUTLS (initable);
 
+  /* After init we don't need to keep the password around. */
+  g_clear_pointer (&gnutls->password, g_free);
+
   if (gnutls->construct_error)
     {
       g_propagate_error (error, gnutls->construct_error);
@@ -592,6 +729,8 @@ g_tls_certificate_gnutls_class_init (GTlsCertificateGnutlsClass *klass)
   g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
   g_object_class_override_property (gobject_class, PROP_DNS_NAMES, "dns-names");
   g_object_class_override_property (gobject_class, PROP_IP_ADDRESSES, "ip-addresses");
+  g_object_class_override_property (gobject_class, PROP_PKCS12_DATA, "pkcs12-data");
+  g_object_class_override_property (gobject_class, PROP_PASSWORD, "password");
 }
 
 static void
@@ -612,6 +751,18 @@ g_tls_certificate_gnutls_new (const gnutls_datum_t *datum,
   g_tls_certificate_gnutls_set_data (gnutls, datum);
 
   return G_TLS_CERTIFICATE (gnutls);
+}
+
+static GTlsCertificateGnutls *
+g_tls_certificate_gnutls_new_take_x509 (gnutls_x509_crt_t cert)
+{
+  GTlsCertificateGnutls *gnutls;
+
+  gnutls = g_object_new (G_TYPE_TLS_CERTIFICATE_GNUTLS, NULL);
+  gnutls->cert = cert;
+  gnutls->have_cert = TRUE;
+
+  return gnutls;
 }
 
 void

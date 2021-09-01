@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include "openssl-include.h"
+#include <openssl/pkcs12.h>
 
 #include "gtlscertificate-openssl.h"
 #include <glib/gi18n-lib.h>
@@ -37,6 +38,9 @@ struct _GTlsCertificateOpenssl
 
   X509 *cert;
   EVP_PKEY *key;
+
+  GByteArray *pkcs12_data;
+  char *password;
 
   GTlsCertificateOpenssl *issuer;
 
@@ -61,9 +65,12 @@ enum
   PROP_ISSUER_NAME,
   PROP_DNS_NAMES,
   PROP_IP_ADDRESSES,
+  PROP_PKCS12_DATA,
+  PROP_PASSWORD,
 };
 
 static void     g_tls_certificate_openssl_initable_iface_init (GInitableIface  *iface);
+static gboolean is_issuer (GTlsCertificateOpenssl *cert, GTlsCertificateOpenssl *issuer);
 
 G_DEFINE_TYPE_WITH_CODE (GTlsCertificateOpenssl, g_tls_certificate_openssl, G_TYPE_TLS_CERTIFICATE,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
@@ -78,6 +85,9 @@ g_tls_certificate_openssl_finalize (GObject *object)
     X509_free (openssl->cert);
   if (openssl->key)
     EVP_PKEY_free (openssl->key);
+
+  g_clear_pointer (&openssl->pkcs12_data, g_byte_array_unref);
+  g_clear_pointer (&openssl->password, g_free);
 
   g_clear_object (&openssl->issuer);
 
@@ -206,6 +216,103 @@ out:
 }
 
 static void
+maybe_import_pkcs12 (GTlsCertificateOpenssl *openssl)
+{
+  PKCS12 *p12 = NULL;
+  X509 *cert = NULL;
+  STACK_OF(X509) *ca = NULL;
+  EVP_PKEY *key = NULL;
+  BIO *bio = NULL;
+  int status;
+  char error_buffer[256] = { 0 };
+  GTlsError error_code = G_TLS_ERROR_BAD_CERTIFICATE;
+
+  /* If password is set first. */
+  if (!openssl->pkcs12_data)
+    return;
+
+  bio = BIO_new (BIO_s_mem ());
+  status = BIO_write (bio, openssl->pkcs12_data->data, openssl->pkcs12_data->len);
+  if (status <= 0)
+    goto import_failed;
+  g_assert (status == openssl->pkcs12_data->len);
+
+  p12 = d2i_PKCS12_bio (bio, NULL);
+  if (p12 == NULL)
+    goto import_failed;
+
+  status = PKCS12_parse (p12, openssl->password, &key, &cert, &ca);
+  g_clear_pointer (&bio, BIO_free_all);
+
+  if (status != 1)
+    {
+      if (ERR_GET_REASON (ERR_peek_last_error ()) == PKCS12_R_MAC_VERIFY_FAILURE)
+        error_code = G_TLS_ERROR_BAD_CERTIFICATE_PASSWORD;
+      goto import_failed;
+    }
+
+  /* Clear a previous error to load without a password. */
+  if (g_error_matches (openssl->construct_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE_PASSWORD))
+    g_clear_error (&openssl->construct_error);
+
+  if (cert)
+    {
+      openssl->cert = g_steal_pointer (&cert);
+      openssl->have_cert = TRUE;
+    }
+
+  if (ca)
+    {
+      GTlsCertificateOpenssl *last_cert = openssl;
+
+      for (guint i = 0; i < sk_X509_num (ca); )
+        {
+          GTlsCertificateOpenssl *new_cert;
+          new_cert = G_TLS_CERTIFICATE_OPENSSL (g_tls_certificate_openssl_new_from_x509 (sk_X509_value (ca, i),
+                                                                                         NULL));
+
+          if (is_issuer (last_cert, new_cert))
+            {
+              g_tls_certificate_openssl_set_issuer (last_cert, new_cert);
+              last_cert = new_cert;
+
+              /* Start the list over to find an issuer of the new cert. */
+              sk_X509_delete (ca, i);
+              i = 0;
+            }
+          else
+            i++;
+
+          g_object_unref (new_cert);
+        }
+
+      sk_X509_pop_free (ca, X509_free);
+      ca = NULL;
+    }
+
+  if (key)
+    {
+      openssl->key = g_steal_pointer (&key);
+      openssl->have_key = TRUE;
+    }
+
+  g_clear_pointer (&p12, PKCS12_free);
+  return;
+
+import_failed:
+  g_clear_error (&openssl->construct_error);
+
+  if (!error_buffer[0])
+    ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
+
+  g_set_error (&openssl->construct_error, G_TLS_ERROR, error_code,
+              _("Failed to import PKCS #12: %s"), error_buffer);
+
+  g_clear_pointer (&p12, PKCS12_free);
+  g_clear_pointer (&bio, BIO_free_all);
+}
+
+static void
 g_tls_certificate_openssl_get_property (GObject    *object,
                                         guint       prop_id,
                                         GValue     *value,
@@ -228,6 +335,10 @@ g_tls_certificate_openssl_get_property (GObject    *object,
 
   switch (prop_id)
     {
+    case PROP_PKCS12_DATA:
+      g_value_set_boxed (value, openssl->pkcs12_data);
+      break;
+
     case PROP_CERTIFICATE:
       /* NOTE: we do the two calls to avoid openssl allocating the buffer for us */
       size = i2d_X509 (openssl->cert, NULL);
@@ -345,6 +456,26 @@ g_tls_certificate_openssl_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_PASSWORD:
+      openssl->password = g_value_dup_string (value);
+      if (openssl->password)
+        {
+          g_return_if_fail (openssl->have_cert == FALSE);
+          g_return_if_fail (openssl->have_key == FALSE);
+          maybe_import_pkcs12 (openssl);
+        }
+      break;
+
+    case PROP_PKCS12_DATA:
+      openssl->pkcs12_data = g_value_dup_boxed (value);
+      if (openssl->pkcs12_data)
+        {
+          g_return_if_fail (openssl->have_cert == FALSE);
+          g_return_if_fail (openssl->have_key == FALSE);
+          maybe_import_pkcs12 (openssl);
+        }
+      break;
+
     case PROP_CERTIFICATE:
       bytes = g_value_get_boxed (value);
       if (!bytes)
@@ -447,6 +578,9 @@ g_tls_certificate_openssl_initable_init (GInitable       *initable,
 {
   GTlsCertificateOpenssl *openssl = G_TLS_CERTIFICATE_OPENSSL (initable);
 
+  /* After init we don't need to keep the password around. */
+  g_clear_pointer (&openssl->password, g_free);
+
   if (openssl->construct_error)
     {
       g_propagate_error (error, openssl->construct_error);
@@ -544,6 +678,8 @@ g_tls_certificate_openssl_class_init (GTlsCertificateOpensslClass *klass)
   g_object_class_override_property (gobject_class, PROP_ISSUER_NAME, "issuer-name");
   g_object_class_override_property (gobject_class, PROP_DNS_NAMES, "dns-names");
   g_object_class_override_property (gobject_class, PROP_IP_ADDRESSES, "ip-addresses");
+  g_object_class_override_property (gobject_class, PROP_PKCS12_DATA, "pkcs12-data");
+  g_object_class_override_property (gobject_class, PROP_PASSWORD, "password");
 }
 
 static void
