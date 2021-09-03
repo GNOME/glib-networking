@@ -1,3 +1,12 @@
+2.70.rc - September 3, 2021
+===========================
+
+ - gnutls: revert AuthorityInformationAccess implementation for now (#160)
+ - gnutls: fix use of non-default GTlsDatabases, Geary crash on startup (#169)
+ - openssl: remove openssl-util (!181)
+ - gnutls: fix leak in g_tls_certificate_gnutls_copy (!182, Patrick Griffis)
+ - gnutls: Unbreak GTLS_GNUTLS_CHECK_VERSION (!185)
+
 2.70.beta - August 12, 2021
 ===========================
 
