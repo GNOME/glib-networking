@@ -30,4 +30,4 @@
     (GNUTLS_VERSION_MAJOR > (major) || \
      (GNUTLS_VERSION_MAJOR == (major) && GNUTLS_VERSION_MINOR > (minor)) || \
      (GNUTLS_VERSION_MAJOR == (major) && GNUTLS_VERSION_MINOR == (minor) && \
-      GNUTLS_VERSION_MICRO >= (micro)))
+      GNUTLS_VERSION_PATCH >= (micro)))
