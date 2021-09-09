@@ -441,6 +441,33 @@ g_tls_certificate_openssl_get_property (GObject    *object,
     }
 }
 
+#define CRITICAL_IF_KEY_INITIALIZED(property_name) G_STMT_START \
+  { \
+    if (openssl->have_key) \
+      { \
+        g_critical ("GTlsCertificate: Failed to set construct property \"%s\" because a private key was already set earlier during construction.", property_name); \
+        return; \
+      } \
+  } \
+G_STMT_END
+
+#define CRITICAL_IF_CERTIFICATE_INITIALIZED(property_name) G_STMT_START \
+  { \
+    if (openssl->have_cert) \
+      { \
+        g_critical ("GTlsCertificate: Failed to set construct property \"%s\" because a certificate was already set earlier during construction.", property_name); \
+        return; \
+      } \
+  } \
+G_STMT_END
+
+#define CRITICAL_IF_INITIALIZED(property_name) G_STMT_START \
+  { \
+    CRITICAL_IF_CERTIFICATE_INITIALIZED (property_name); \
+    CRITICAL_IF_KEY_INITIALIZED (property_name); \
+  } \
+G_STMT_END
+
 static void
 g_tls_certificate_openssl_set_property (GObject      *object,
                                        guint         prop_id,
@@ -460,8 +487,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       openssl->password = g_value_dup_string (value);
       if (openssl->password)
         {
-          g_return_if_fail (openssl->have_cert == FALSE);
-          g_return_if_fail (openssl->have_key == FALSE);
+          CRITICAL_IF_INITIALIZED ("password");
           maybe_import_pkcs12 (openssl);
         }
       break;
@@ -470,8 +496,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       openssl->pkcs12_data = g_value_dup_boxed (value);
       if (openssl->pkcs12_data)
         {
-          g_return_if_fail (openssl->have_cert == FALSE);
-          g_return_if_fail (openssl->have_key == FALSE);
+          CRITICAL_IF_INITIALIZED ("pkcs12-data");
           maybe_import_pkcs12 (openssl);
         }
       break;
@@ -480,7 +505,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       bytes = g_value_get_boxed (value);
       if (!bytes)
         break;
-      g_return_if_fail (openssl->have_cert == FALSE);
+      CRITICAL_IF_CERTIFICATE_INITIALIZED ("certificate");
       /* see that we cannot use bytes->data directly since it will move the pointer */
       data = bytes->data;
       openssl->cert = d2i_X509 (NULL, (const unsigned char **)&data, bytes->len);
@@ -501,7 +526,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (openssl->have_cert == FALSE);
+      CRITICAL_IF_CERTIFICATE_INITIALIZED ("certificate-pem");
       bio = BIO_new_mem_buf ((gpointer)string, -1);
       openssl->cert = PEM_read_bio_X509 (bio, NULL, NULL, NULL);
       BIO_free (bio);
@@ -521,7 +546,8 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       bytes = g_value_get_boxed (value);
       if (!bytes)
         break;
-      g_return_if_fail (openssl->have_key == FALSE);
+      CRITICAL_IF_KEY_INITIALIZED ("private-key");
+
       bio = BIO_new_mem_buf (bytes->data, bytes->len);
       openssl->key = d2i_PrivateKey_bio (bio, NULL);
       BIO_free (bio);
@@ -541,7 +567,8 @@ g_tls_certificate_openssl_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (openssl->have_key == FALSE);
+      CRITICAL_IF_KEY_INITIALIZED ("private-key-pem");
+
       bio = BIO_new_mem_buf ((gpointer)string, -1);
       openssl->key = PEM_read_bio_PrivateKey (bio, NULL, NULL, NULL);
       BIO_free (bio);

@@ -443,6 +443,33 @@ g_tls_certificate_gnutls_get_property (GObject    *object,
     }
 }
 
+#define CRITICAL_IF_KEY_INITIALIZED(property_name) G_STMT_START \
+  { \
+    if (gnutls->have_key) \
+      { \
+        g_critical ("GTlsCertificate: Failed to set construct property \"%s\" because a private key was already set earlier during construction.", property_name); \
+        return; \
+      } \
+  } \
+G_STMT_END
+
+#define CRITICAL_IF_CERTIFICATE_INITIALIZED(property_name) G_STMT_START \
+  { \
+    if (gnutls->have_cert) \
+      { \
+        g_critical ("GTlsCertificate: Failed to set construct property \"%s\" because a certificate was already set earlier during construction.", property_name); \
+        return; \
+      } \
+  } \
+G_STMT_END
+
+#define CRITICAL_IF_INITIALIZED(property_name) G_STMT_START \
+  { \
+    CRITICAL_IF_CERTIFICATE_INITIALIZED (property_name); \
+    CRITICAL_IF_KEY_INITIALIZED (property_name); \
+  } \
+G_STMT_END
+
 static void
 g_tls_certificate_gnutls_set_property (GObject      *object,
                                        guint         prop_id,
@@ -461,8 +488,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       gnutls->password = g_value_dup_string (value);
       if (gnutls->password)
         {
-          g_return_if_fail (gnutls->have_cert == FALSE);
-          g_return_if_fail (gnutls->have_key == FALSE);
+          CRITICAL_IF_INITIALIZED ("password");
           maybe_import_pkcs12 (gnutls);
         }
       break;
@@ -471,8 +497,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       gnutls->pkcs12_data = g_value_dup_boxed (value);
       if (gnutls->pkcs12_data)
         {
-          g_return_if_fail (gnutls->have_cert == FALSE);
-          g_return_if_fail (gnutls->have_key == FALSE);
+          CRITICAL_IF_INITIALIZED ("pkcs12-data");
           maybe_import_pkcs12 (gnutls);
         }
       break;
@@ -481,7 +506,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       bytes = g_value_get_boxed (value);
       if (!bytes)
         break;
-      g_return_if_fail (gnutls->have_cert == FALSE);
+      CRITICAL_IF_CERTIFICATE_INITIALIZED ("certificate");
       data.data = bytes->data;
       data.size = bytes->len;
       status = gnutls_x509_crt_import (gnutls->cert, &data,
@@ -502,7 +527,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (gnutls->have_cert == FALSE);
+      CRITICAL_IF_CERTIFICATE_INITIALIZED ("certificate-pem");
       data.data = (void *)string;
       data.size = strlen (string);
       status = gnutls_x509_crt_import (gnutls->cert, &data,
@@ -522,7 +547,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       bytes = g_value_get_boxed (value);
       if (!bytes)
         break;
-      g_return_if_fail (gnutls->have_key == FALSE);
+      CRITICAL_IF_KEY_INITIALIZED ("private-key");
       data.data = bytes->data;
       data.size = bytes->len;
       if (!gnutls->key)
@@ -545,7 +570,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (gnutls->have_key == FALSE);
+      CRITICAL_IF_KEY_INITIALIZED ("private-key-pem");
       data.data = (void *)string;
       data.size = strlen (string);
       if (!gnutls->key)
@@ -572,8 +597,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (gnutls->have_cert == FALSE);
-      g_return_if_fail (!gnutls->pkcs11_uri);
+      CRITICAL_IF_CERTIFICATE_INITIALIZED ("pkcs11-uri");
 
       gnutls->pkcs11_uri = g_strdup (string);
 
@@ -595,8 +619,7 @@ g_tls_certificate_gnutls_set_property (GObject      *object,
       string = g_value_get_string (value);
       if (!string)
         break;
-      g_return_if_fail (gnutls->have_key == FALSE);
-      g_return_if_fail (!gnutls->private_key_pkcs11_uri);
+      CRITICAL_IF_KEY_INITIALIZED ("private-key-pkcs11-uri");
 
       gnutls->private_key_pkcs11_uri = g_strdup (string);
       break;
