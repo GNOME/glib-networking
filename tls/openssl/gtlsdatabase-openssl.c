@@ -225,9 +225,11 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
 
   if (!X509_STORE_set_default_paths (store))
     {
+      char error_buffer[256];
+      ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Failed to load system trust store: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
+                   error_buffer);
       return FALSE;
     }
 

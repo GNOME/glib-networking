@@ -341,6 +341,7 @@ g_tls_certificate_openssl_set_property (GObject      *object,
   guint8 *data;
   BIO *bio;
   const char *string;
+  char error_buffer[256];
 
   switch (prop_id)
     {
@@ -356,10 +357,11 @@ g_tls_certificate_openssl_set_property (GObject      *object,
         openssl->have_cert = TRUE;
       else if (!openssl->construct_error)
         {
+          ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
           openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse DER certificate: %s"),
-                         ERR_error_string (ERR_get_error (), NULL));
+                         error_buffer);
         }
 
       break;
@@ -376,10 +378,11 @@ g_tls_certificate_openssl_set_property (GObject      *object,
         openssl->have_cert = TRUE;
       else if (!openssl->construct_error)
         {
+          ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
           openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse PEM certificate: %s"),
-                         ERR_error_string (ERR_get_error (), NULL));
+                         error_buffer);
         }
       break;
 
@@ -395,10 +398,11 @@ g_tls_certificate_openssl_set_property (GObject      *object,
         openssl->have_key = TRUE;
       else if (!openssl->construct_error)
         {
+          ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
           openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse DER private key: %s"),
-                         ERR_error_string (ERR_get_error (), NULL));
+                         error_buffer);
         }
       break;
 
@@ -414,10 +418,11 @@ g_tls_certificate_openssl_set_property (GObject      *object,
         openssl->have_key = TRUE;
       else if (!openssl->construct_error)
         {
+          ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
           openssl->construct_error =
             g_error_new (G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
                          _("Could not parse PEM private key: %s"),
-                         ERR_error_string (ERR_get_error (), NULL));
+                         error_buffer);
         }
       break;
 

@@ -373,9 +373,11 @@ set_cipher_list (GTlsClientConnectionOpenssl  *client,
     {
       if (!SSL_CTX_set_cipher_list (client->ssl_ctx, cipher_list))
         {
+          char error_buffer[256];
+          ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
           g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                        _("Could not set TLS cipher list: %s"),
-                       ERR_error_string (ERR_get_error (), NULL));
+                       error_buffer);
           return FALSE;
         }
     }
@@ -399,9 +401,11 @@ set_max_protocol (GTlsClientConnectionOpenssl  *client,
         {
           if (!SSL_CTX_set_max_proto_version (client->ssl_ctx, (int)version))
             {
+              char error_buffer[256];
+              ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
               g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                            _("Could not set MAX protocol to %d: %s"),
-                           (int)version, ERR_error_string (ERR_get_error (), NULL));
+                           (int)version, error_buffer);
               return FALSE;
             }
         }
@@ -447,6 +451,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (initable);
   long options;
   const char *hostname;
+  char error_buffer[256];
 
   client->session = SSL_SESSION_new ();
 
@@ -460,9 +465,10 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 #endif
   if (!client->ssl_ctx)
     {
+      ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS context: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
+                   error_buffer);
       return FALSE;
     }
 
@@ -512,9 +518,10 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   client->ssl = SSL_new (client->ssl_ctx);
   if (!client->ssl)
     {
+      ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                    _("Could not create TLS connection: %s"),
-                   ERR_error_string (ERR_get_error (), NULL));
+                   error_buffer);
       return FALSE;
     }
 
