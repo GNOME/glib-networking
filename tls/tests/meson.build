@@ -69,6 +69,7 @@ foreach backend: backends
     test_cflags = cflags + [
       '-DBACKEND="@0@"'.format(backend),
       '-DBACKEND_IS_' + backend.to_upper(),
+      '-DSIZEOF_TIME_T=@0@'.format(cc.sizeof('time_t', prefix: '#include <time.h>')),
     ]
 
     if backend == 'openssl'
