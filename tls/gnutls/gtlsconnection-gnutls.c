@@ -106,7 +106,13 @@ g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
   int ret;
 
-  g_assert (priority);
+  if (!priority)
+    {
+      /* initialize_gnutls_priority() previously failed and printed a warning,
+       * so no need for further warnings here.
+       */
+      return;
+    }
 
   ret = gnutls_priority_set (priv->session, priority);
   if (ret != GNUTLS_E_SUCCESS)
