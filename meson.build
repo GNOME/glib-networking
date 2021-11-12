@@ -3,7 +3,7 @@ project(
   version: '2.70.0',
   license: 'LGPL2.1+',
   meson_version: '>= 0.50.0',
-  default_options: ['c_std=c99']
+  default_options: ['c_std=gnu99']
 )
 
 prefix = get_option('prefix')
