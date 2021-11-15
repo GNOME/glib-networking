@@ -13,7 +13,7 @@ set BUILD_DIR=c:\gnet
 
 IF EXIST %BUILD_DIR% GOTO NOGVSBUILD
 
-git clone --depth 1 https://github.com/wingtk/gvsbuild.git -b wip/nacho/glib-2-67 || goto :error
+git clone --depth 1 https://github.com/wingtk/gvsbuild.git || goto :error
 
 pushd gvsbuild
 python.exe build.py --verbose --debug build -p x64 --vs-ver 15 --build-dir %BUILD_DIR% openssl glib || goto :error
@@ -29,7 +29,7 @@ set INCLUDE=%DEPS_DIR%\include;%DEPS_DIR%\include\glib-2.0;%INCLUDE%
 set PKG_CONFIG_PATH=%DEPS_DIR%\lib\pkgconfig
 
 :: FIXME: make warnings fatal
-pip3 install --upgrade --user meson==0.53.2  || goto :error
+pip3 install --upgrade --user meson==0.60.0  || goto :error
 meson build -Dgnutls=disabled -Dopenssl=enabled || goto :error
 ninja -C build || goto :error
 
