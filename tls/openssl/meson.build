@@ -27,6 +27,10 @@ if ['darwin', 'ios'].contains(host_system)
   deps += [
     security_dep,
   ]
+elif ['windows'].contains(host_system)
+  deps += [
+    crypt32_dep,
+  ]
 endif
 
 module = shared_module(
