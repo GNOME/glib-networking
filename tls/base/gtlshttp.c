@@ -71,8 +71,13 @@ init_libsoup (void)
   }
 #else
 #ifdef G_OS_WIN32
+#ifdef _MSC_VER
+  libsoup_sonames[0] = "soup-3.0-0.dll";
+  libsoup_sonames[1] = "soup-2.4-1.dll";
+#else
   libsoup_sonames[0] = "libsoup-3.0.dll";
   libsoup_sonames[1] = "libsoup-2.4.dll";
+#endif
 #else
   libsoup_sonames[0] = LIBSOUP_3_SONAME;
   libsoup_sonames[1] = LIBSOUP_2_SONAME;
