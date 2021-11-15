@@ -221,8 +221,7 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
     }
 
   CFRelease (anchors);
-#endif
-
+#else
   if (!X509_STORE_set_default_paths (store))
     {
       char error_buffer[256];
@@ -232,6 +231,7 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
                    error_buffer);
       return FALSE;
     }
+#endif
 
   return TRUE;
 }
