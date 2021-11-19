@@ -184,42 +184,11 @@ g_tls_database_openssl_verify_chain (GTlsDatabase             *database,
   return result;
 }
 
-#ifdef G_OS_WIN32
-static gboolean
-g_tls_database_openssl_add_cert_from_store (const gunichar2 *source_cert_store_name,
-                                            X509_STORE      *store)
-{
-  HANDLE store_handle;
-  PCCERT_CONTEXT cert_context = NULL;
-
-  store_handle = CertOpenSystemStoreW (0, source_cert_store_name);
-  if (store_handle == NULL)
-    return FALSE;
-
-  while (cert_context = CertEnumCertificatesInStore (store_handle, cert_context))
-    {
-      X509 *x;
-      const unsigned char *pdata;
-
-      pdata = (const unsigned char *)cert_context->pbCertEncoded;
-
-      x = d2i_X509 (NULL, &pdata, cert_context->cbCertEncoded);
-      if (x)
-        X509_STORE_add_cert (store, x);
-    }
-
-  CertCloseStore (store_handle, 0);
-
-  return TRUE;
-}
-#endif
-
-static gboolean
-g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
-                                            X509_STORE           *store,
-                                            GError              **error)
-{
 #ifdef __APPLE__
+static gboolean
+populate_store (X509_STORE  *store,
+                GError     **error)
+{
   CFArrayRef anchors;
   OSStatus ret;
   CFIndex i;
@@ -255,21 +224,62 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
     }
 
   CFRelease (anchors);
+  return TRUE;
+}
+
 #elif defined(G_OS_WIN32)
-  if (!g_tls_database_openssl_add_cert_from_store (L"ROOT", store))
+static gboolean
+add_certs_from_store (const gunichar2 *source_cert_store_name,
+                      X509_STORE      *store)
+{
+  HANDLE store_handle;
+  PCCERT_CONTEXT cert_context = NULL;
+
+  store_handle = CertOpenSystemStoreW (0, source_cert_store_name);
+  if (store_handle == NULL)
+    return FALSE;
+
+  while (cert_context = CertEnumCertificatesInStore (store_handle, cert_context))
+    {
+      X509 *x;
+      const unsigned char *pdata;
+
+      pdata = (const unsigned char *)cert_context->pbCertEncoded;
+
+      x = d2i_X509 (NULL, &pdata, cert_context->cbCertEncoded);
+      if (x)
+        X509_STORE_add_cert (store, x);
+    }
+
+  CertCloseStore (store_handle, 0);
+  return TRUE;
+}
+
+static gboolean
+populate_store (X509_STORE  *store,
+                GError     **error)
+{
+  if (!add_certs_from_store (L"ROOT", store))
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                            _("Could not get root certificate store"));
       return FALSE;
     }
 
-  if (!g_tls_database_openssl_add_cert_from_store (L"CA", store))
+  if (!add_certs_from_store (L"CA", store))
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
                            _("Could not get CA certificate store"));
       return FALSE;
     }
+
+  return TRUE;
+}
 #else
+static gboolean
+populate_store (X509_STORE  *store,
+                GError     **error)
+{
   if (!X509_STORE_set_default_paths (store))
     {
       char error_buffer[256];
@@ -279,9 +289,17 @@ g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
                    error_buffer);
       return FALSE;
     }
-#endif
 
   return TRUE;
+}
+#endif
+
+static gboolean
+g_tls_database_openssl_populate_trust_list (GTlsDatabaseOpenssl  *self,
+                                            X509_STORE           *store,
+                                            GError              **error)
+{
+  return populate_store (store, error);
 }
 
 static void
