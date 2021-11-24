@@ -1099,6 +1099,8 @@ static gchar *
 get_ciphersuite_name (gnutls_session_t session)
 {
   gnutls_protocol_t protocol_version = gnutls_protocol_get_version (session);
+  char *cipher_name;
+  char *result;
 
   if (protocol_version <= GNUTLS_TLS1_2 ||
       (protocol_version >= GNUTLS_DTLS0_9 && protocol_version <= GNUTLS_DTLS1_2))
@@ -1108,9 +1110,19 @@ get_ciphersuite_name (gnutls_session_t session)
                                                      gnutls_mac_get (session)));
     }
 
-  return g_strdup_printf ("TLS_%s_%s",
-                          gnutls_cipher_get_name (gnutls_cipher_get (session)),
-                          gnutls_digest_get_name (gnutls_prf_hash_get (session)));
+  cipher_name = g_strdup (gnutls_cipher_get_name (gnutls_cipher_get (session)));
+  for (char *c = cipher_name; *c != '\0'; c++)
+    {
+      if (*c == '-')
+        *c = '_';
+    }
+
+  result = g_strdup_printf ("TLS_%s_%s",
+                            cipher_name,
+                            gnutls_digest_get_name (gnutls_prf_hash_get (session)));
+  g_free (cipher_name);
+
+  return result;
 }
 
 static void
