@@ -80,34 +80,6 @@ g_tls_database_openssl_init (GTlsDatabaseOpenssl *self)
   g_mutex_init (&priv->mutex);
 }
 
-static GTlsCertificateFlags
-double_check_before_after_dates (GTlsCertificateOpenssl *chain)
-{
-  GTlsCertificateFlags gtls_flags = 0;
-  X509 *cert;
-
-  while (chain)
-    {
-      ASN1_TIME *not_before;
-      ASN1_TIME *not_after;
-
-      cert = g_tls_certificate_openssl_get_cert (chain);
-      not_before = X509_get_notBefore (cert);
-      not_after = X509_get_notAfter (cert);
-
-      if (X509_cmp_current_time (not_before) > 0)
-        gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
-
-      if (X509_cmp_current_time (not_after) < 0)
-        gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
-
-      chain = G_TLS_CERTIFICATE_OPENSSL (g_tls_certificate_get_issuer
-                                         (G_TLS_CERTIFICATE (chain)));
-    }
-
-  return gtls_flags;
-}
-
 static STACK_OF(X509) *
 convert_certificate_chain_to_openssl (GTlsCertificateOpenssl *chain)
 {
@@ -167,11 +139,6 @@ g_tls_database_openssl_verify_chain (GTlsDatabase             *database,
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
-
-  /* We have to check these ourselves since openssl
-   * does not give us flags and UNKNOWN_CA will take priority.
-   */
-  result |= double_check_before_after_dates (G_TLS_CERTIFICATE_OPENSSL (chain));
 
   if (identity)
     result |= g_tls_certificate_openssl_verify_identity (G_TLS_CERTIFICATE_OPENSSL (chain),
