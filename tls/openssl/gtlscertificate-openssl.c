@@ -472,7 +472,6 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
   GTlsCertificateFlags gtls_flags;
   X509 *x;
   STACK_OF(X509) *untrusted;
-  gint i;
 
   cert_openssl = G_TLS_CERTIFICATE_OPENSSL (cert);
   x = cert_openssl->cert;
@@ -512,22 +511,6 @@ g_tls_certificate_openssl_verify (GTlsCertificate     *cert,
       sk_X509_free (trusted);
       X509_STORE_CTX_free (csc);
       X509_STORE_free (store);
-    }
-
-  /* We have to check these ourselves since openssl
-   * does not give us flags and UNKNOWN_CA will take priority.
-   */
-  for (i = 0; i < sk_X509_num (untrusted); i++)
-    {
-      X509 *c = sk_X509_value (untrusted, i);
-      ASN1_TIME *not_before = X509_get_notBefore (c);
-      ASN1_TIME *not_after = X509_get_notAfter (c);
-
-      if (X509_cmp_current_time (not_before) > 0)
-        gtls_flags |= G_TLS_CERTIFICATE_NOT_ACTIVATED;
-
-      if (X509_cmp_current_time (not_after) < 0)
-        gtls_flags |= G_TLS_CERTIFICATE_EXPIRED;
     }
 
   sk_X509_free (untrusted);

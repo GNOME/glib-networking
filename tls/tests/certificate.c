@@ -610,13 +610,17 @@ test_verify_certificate_bad_combo (TestVerify      *test,
    * - Use unrelated cert as CA
    * - Use wrong identity.
    * - Use expired certificate.
+   *
+   * Once upon a time, we might have asserted to see that all of these errors
+   * are set. But this is impossible to do correctly, so nowadays we only
+   * guarantee that at least one error will be set. See glib-networking#179 and
+   * glib!2214 for rationale.
    */
 
   identity = g_network_address_new ("other.example.com", 80);
 
   errors = g_tls_certificate_verify (cert, identity, cacert);
-  g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_UNKNOWN_CA |
-                    G_TLS_CERTIFICATE_BAD_IDENTITY | G_TLS_CERTIFICATE_EXPIRED);
+  g_assert_cmpuint (errors, !=, 0);
 
   g_object_unref (cert);
   g_object_unref (cacert);
