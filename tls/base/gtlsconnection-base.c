@@ -1685,7 +1685,6 @@ g_tls_connection_base_handshake (GTlsConnection   *conn,
   task = g_task_new (conn, cancellable, sync_handshake_thread_completed, NULL);
   g_task_set_source_tag (task, g_tls_connection_base_handshake);
   g_task_set_name (task, "[glib-networking] g_tls_connection_base_handshake");
-  g_task_set_return_on_cancel (task, TRUE);
 
   timeout = g_new0 (gint64, 1);
   *timeout = -1; /* blocking */
@@ -1928,7 +1927,6 @@ do_implicit_handshake (GTlsConnectionBase  *tls,
 
       g_mutex_unlock (&priv->op_mutex);
 
-      g_task_set_return_on_cancel (priv->implicit_handshake, TRUE);
       g_task_run_in_thread (priv->implicit_handshake, handshake_thread);
 
       crank_sync_handshake_context (tls, cancellable);
