@@ -6,10 +6,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliar
 
 set BUILD_DIR=c:\gnet
 
-:: NOTE: uncomment this in a branch in order to update the depenencies. We do not
-:: build it each time to avoid spending so much of time building openssl and glib
-:: so we just keep it cached in c:\gnet
-::@RD /S /Q %BUILD_DIR%
+@RD /S /Q %BUILD_DIR%
 
 IF EXIST %BUILD_DIR% GOTO NOGVSBUILD
 
