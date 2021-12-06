@@ -1,3 +1,11 @@
+2.70.1 - December 6, 2021
+=========================
+
+ - Fix crashes when handshake is cancelled (#97, #176)
+ - OpenSSL: fix spurious certificate expired verification errors (#179)
+ - GnuTLS: Fix tests on 32-bit systems (!188, Simon McVittie)
+ - GnuTLS: Fix crash when invalid priority string is forced (!189)
+
 2.70.0 - September 16, 2021
 ===========================
 
