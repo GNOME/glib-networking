@@ -88,18 +88,26 @@ openssl pkcs8 -topk8 -in server-key.pem -outform PEM -nocrypt -out server-key-pk
 openssl pkcs8 -topk8 -in server-key.pem -outform DER -nocrypt -out server-key-pkcs8.der
 
 #######################################################################
-### Server (OCSP Missing)
+### Server (OCSP required by CA)
 #######################################################################
 
-msg "Creating server (OCSP Missing) certificate request"
-openssl req -config ssl/server.conf -key server-key.pem -new -out server-ocsp-missing-csr.pem
+msg "Creating server (OCSP required by CA) certificate"
+openssl x509 -req -in server-csr.pem -days 9125 -CA ca-ocsp.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/server.conf -extensions v3_req_ext -out server-ocsp-required-by-ca.pem
 
-msg "Creating server (OCSP Missing) certificate"
-openssl x509 -req -in server-ocsp-missing-csr.pem -days 9125 -CA ca-ocsp.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/server.conf -extensions v3_req_ext -out server-ocsp-missing.pem
+msg "Concatenating server (OCSP required by CA) certificate and private key into a single file"
+cat server-ocsp-required-by-ca.pem > server-ocsp-required-by-ca-and-key.pem
+cat server-key.pem >> server-ocsp-required-by-ca-and-key.pem
 
-msg "Concatenating server (OCSP Missing) certificate and private key into a single file"
-cat server-ocsp-missing.pem > server-ocsp-missing-and-key.pem
-cat server-key.pem >> server-ocsp-missing-and-key.pem
+#######################################################################
+### Server (OCSP required by server)
+#######################################################################
+
+msg "Creating server (OCSP required by server) certificate"
+openssl x509 -req -in server-csr.pem -days 9125 -CA ca.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/server-muststaple.conf -extensions v3_req_ext -out server-ocsp-required-by-server.pem
+
+msg "Concatenating server (OCSP required by server) certificate and private key into a single file"
+cat server-ocsp-required-by-server.pem > server-ocsp-required-by-server-and-key.pem
+cat server-key.pem >> server-ocsp-required-by-server-and-key.pem
 
 #######################################################################
 ### Server (self-signed)
