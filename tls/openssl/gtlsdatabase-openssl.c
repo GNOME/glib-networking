@@ -348,19 +348,69 @@ g_tls_database_openssl_new (GError **error)
   return g_initable_new (G_TYPE_TLS_DATABASE_OPENSSL, NULL, error, NULL);
 }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
+static gboolean
+check_for_ocsp_must_staple (X509 *cert)
+{
+  int idx = -1; /* We ignore the return of this as we only expect one extension. */
+  STACK_OF(ASN1_INTEGER) *features = X509_get_ext_d2i (cert, NID_tlsfeature, NULL, &idx);
+
+  if (!features)
+    return FALSE;
+
+  for (guint i = 0; i < sk_ASN1_INTEGER_num (features); i++)
+    {
+      const long feature_id = ASN1_INTEGER_get (sk_ASN1_INTEGER_value (features, i));
+      if (feature_id == 5 || feature_id == 17) /* status_request, status_request_v2 */
+        {
+          sk_ASN1_INTEGER_pop_free (features, ASN1_INTEGER_free);
+          return TRUE;
+        }
+    }
+
+  sk_ASN1_INTEGER_pop_free (features, ASN1_INTEGER_free);
+  return FALSE;
+}
+#endif
+
 GTlsCertificateFlags
 g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
                                              GTlsCertificate     *chain,
                                              OCSP_RESPONSE       *resp)
 {
   GTlsCertificateFlags errors = 0;
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && \
-  !defined(OPENSSL_NO_OCSP)
+#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
   GTlsDatabaseOpensslPrivate *priv;
   STACK_OF(X509) *chain_openssl = NULL;
   OCSP_BASICRESP *basic_resp = NULL;
   int ocsp_status = 0;
   int i;
+
+  chain_openssl = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
+  priv = g_tls_database_openssl_get_instance_private (self);
+  if ((chain_openssl == NULL) ||
+      (priv->store == NULL))
+    {
+      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
+
+  /* OpenSSL doesn't provide an API to determine if the chain requires
+   * an OCSP response (known as Must-Staple) using the status_request
+   * X509v3 extension. We also seem to have no way of correctly knowing the
+   * final certificate path that OpenSSL will internally use, so can't do it
+   * ourselves. So for now we will check only the server certificate to see if
+   * it sets Must-Staple. This is inconsistent with GnuTLS's behavior, but it
+   * seems to be the best we can do. Checking *every* certificate for Must-
+   * Staple would be wrong because we don't want to check certificates that
+   * OpenSSL does not actually use as part of its final certification path.
+   */
+  if (resp == NULL)
+    {
+      if (check_for_ocsp_must_staple (sk_X509_value (chain_openssl, 0)))
+        errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
+      goto end;
+    }
 
   ocsp_status = OCSP_response_status (resp);
   if (ocsp_status != OCSP_RESPONSE_STATUS_SUCCESSFUL)
@@ -371,15 +421,6 @@ g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
 
   basic_resp = OCSP_response_get1_basic (resp);
   if (basic_resp == NULL)
-    {
-      errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
-      goto end;
-    }
-
-  chain_openssl = convert_certificate_chain_to_openssl (G_TLS_CERTIFICATE_OPENSSL (chain));
-  priv = g_tls_database_openssl_get_instance_private (self);
-  if ((chain_openssl == NULL) ||
-      (priv->store == NULL))
     {
       errors = G_TLS_CERTIFICATE_GENERIC_ERROR;
       goto end;

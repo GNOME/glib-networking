@@ -222,22 +222,12 @@ verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
 
   ssl = g_tls_connection_openssl_get_ssl (G_TLS_CONNECTION_OPENSSL (openssl));
   len = SSL_get_tlsext_status_ocsp_resp (ssl, &p);
-  if (!p)
+  if (p)
     {
-      /* OpenSSL doesn't provide an API to determine if the chain requires
-       * an OCSP response (known as MustStaple) using the status_request 
-       * X509v3 extension. We also have no way of correctly knowing the full
-       * chain OpenSSL will internally use to do this ourselves.
-       * So for now we silently continue ignoring the missing response.
-       * This does mean that this does not provide real security as an attacker
-       * can easily bypass this.
-       */
-      return 0;
+      resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
+      if (!resp)
+        return G_TLS_CERTIFICATE_GENERIC_ERROR;
     }
-
-  resp = d2i_OCSP_RESPONSE (NULL, (const unsigned char **)&p, len);
-  if (!resp)
-    return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (openssl));
 
@@ -246,6 +236,9 @@ verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
    */
   g_assert (database);
 
+  /* Note we have to call this even if resp is NULL, because it will check
+   * whether Must-Staple is set.
+   */
   return g_tls_database_openssl_verify_ocsp_response (G_TLS_DATABASE_OPENSSL (database),
                                                       peer_certificate,
                                                       resp);
