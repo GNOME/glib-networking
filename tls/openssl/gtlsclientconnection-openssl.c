@@ -213,7 +213,6 @@ static GTlsCertificateFlags
 verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
                       GTlsCertificate             *peer_certificate)
 {
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
   SSL *ssl = NULL;
   OCSP_RESPONSE *resp = NULL;
   GTlsDatabase *database;
@@ -242,9 +241,6 @@ verify_ocsp_response (GTlsClientConnectionOpenssl *openssl,
   return g_tls_database_openssl_verify_ocsp_response (G_TLS_DATABASE_OPENSSL (database),
                                                       peer_certificate,
                                                       resp);
-#else
-  return 0;
-#endif
 }
 
 static GTlsCertificateFlags

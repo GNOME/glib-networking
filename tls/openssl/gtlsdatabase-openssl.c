@@ -348,7 +348,6 @@ g_tls_database_openssl_new (GError **error)
   return g_initable_new (G_TYPE_TLS_DATABASE_OPENSSL, NULL, error, NULL);
 }
 
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
 static gboolean
 check_for_ocsp_must_staple (X509 *cert)
 {
@@ -371,7 +370,6 @@ check_for_ocsp_must_staple (X509 *cert)
   sk_ASN1_INTEGER_pop_free (features, ASN1_INTEGER_free);
   return FALSE;
 }
-#endif
 
 GTlsCertificateFlags
 g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
@@ -379,7 +377,6 @@ g_tls_database_openssl_verify_ocsp_response (GTlsDatabaseOpenssl *self,
                                              OCSP_RESPONSE       *resp)
 {
   GTlsCertificateFlags errors = 0;
-#if (OPENSSL_VERSION_NUMBER >= 0x0090808fL) && !defined(OPENSSL_NO_TLSEXT) && !defined(OPENSSL_NO_OCSP)
   GTlsDatabaseOpensslPrivate *priv;
   STACK_OF(X509) *chain_openssl = NULL;
   OCSP_BASICRESP *basic_resp = NULL;
@@ -481,6 +478,5 @@ end:
   if (resp)
     OCSP_RESPONSE_free (resp);
 
-#endif
   return errors;
 }
