@@ -653,6 +653,15 @@ openssl_get_binding_tls_unique (GTlsConnectionOpenssl  *tls,
   gboolean resumed = SSL_session_reused (ssl);
   size_t len = 64;
 
+#if OPENSSL_VERSION_NUMBER >= 0x10101000L
+  if (SSL_version (ssl) >= TLS1_3_VERSION)
+    {
+      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                   _("The request is invalid."));
+      return FALSE;
+    }
+#endif
+
   /* This is a drill */
   if (!data)
     return TRUE;

@@ -2605,6 +2605,8 @@ test_connection_binding_match_tls_unique (TestConnection *test,
   /* Real test: retrieve bindings and compare */
   if (client_supports_tls_unique)
     {
+      g_assert_false (g_tls_connection_get_protocol_version (
+            G_TLS_CONNECTION (test->client_connection)) == G_TLS_PROTOCOL_VERSION_TLS_1_3);
       client_cb = g_byte_array_new ();
       server_cb = g_byte_array_new ();
       g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
@@ -2624,7 +2626,11 @@ test_connection_binding_match_tls_unique (TestConnection *test,
       g_byte_array_unref (server_cb);
     }
   else
-    g_test_skip ("tls-unique is not supported");
+    {
+      g_assert_true (g_tls_connection_get_protocol_version (
+            G_TLS_CONNECTION (test->client_connection)) == G_TLS_PROTOCOL_VERSION_TLS_1_3);
+      g_test_skip ("tls-unique is not supported");
+    }
 
   /* drop the mic */
   close_server_connection (test);

@@ -1172,6 +1172,16 @@ gnutls_get_binding (GTlsConnectionGnutls      *gnutls,
 
   if (ret == GNUTLS_E_SUCCESS)
     {
+      /* Older GnuTLS versions are known to return SUCCESS and empty data for TLSv1.3 tls-unique binding.
+       * While it may look prudent to catch here that specific corner case, the empty binding data is
+       * definitely not a SUCCESS, regardless of the version and type. */
+      if (cb.size == 0)
+        {
+          g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                       _("Empty channel binding data indicates a bug in the TLS library implementation"));
+          return FALSE;
+        }
+
       if (data != NULL)
         {
           g_tls_log_debug (gnutls, "binding size %d", cb.size);
