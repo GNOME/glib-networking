@@ -12,9 +12,9 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2021-12-02 07:39+0000\n"
-"PO-Revision-Date: 2021-12-05 11:50+0700\n"
-"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
+"POT-Creation-Date: 2021-12-20 15:37+0000\n"
+"PO-Revision-Date: 2021-12-22 16:11+0700\n"
+"Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome@i15n.org>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -64,7 +64,7 @@ msgstr "Peer tidak mendukung renegosiasi yang aman"
 
 #: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:830
+#: tls/openssl/gtlsconnection-openssl.c:839
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Sertifikat TLS tak dapat diterima"
@@ -125,7 +125,7 @@ msgstr "Tak bisa membuat sambungan TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:523
+#: tls/openssl/gtlsclientconnection-openssl.c:512
 #: tls/openssl/gtlsserverconnection-openssl.c:456
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -177,35 +177,42 @@ msgstr "Galat melakukan jabat tangan TLS: %s"
 msgid "Error performing TLS handshake"
 msgstr "Galat melakukan jabat tangan TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1189
+#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Data pengikatan kanal kosong menunjukkan kutu dalam implementasi pustaka TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1199
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Jenis pengikatan saluran tidak diterapkan di pustaka TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1193
+#: tls/gnutls/gtlsconnection-gnutls.c:1203
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Data pengikatan saluran belum tersedia"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1231
-#: tls/gnutls/gtlsconnection-gnutls.c:1243
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1253
 #, c-format
 msgid "X.509 certificate is not available on the connection"
 msgstr "Sertifikat X.509 tidak tersedia pada sambungan"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1256
+#: tls/gnutls/gtlsconnection-gnutls.c:1266
 #, c-format
 msgid "X.509 certificate is not available or is of unknown format: %s"
 msgstr "Sertifikat X.509 tidak tersedia atau format yang tidak diketahui: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1267
-#: tls/openssl/gtlsconnection-openssl.c:705
+#: tls/gnutls/gtlsconnection-gnutls.c:1277
+#: tls/openssl/gtlsconnection-openssl.c:714
 #, c-format
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Tak bisa memperoleh algoritma tanda tangan sertifikat"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1283
-#: tls/openssl/gtlsconnection-openssl.c:725
+#: tls/gnutls/gtlsconnection-gnutls.c:1293
+#: tls/openssl/gtlsconnection-openssl.c:734
 #, c-format
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
@@ -213,39 +220,39 @@ msgstr ""
 "Sertifikat X.509 saat ini menggunakan algoritma tanda tangan yang tidak "
 "diketahui atau tidak didukung"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1377
-#: tls/openssl/gtlsconnection-openssl.c:805
+#: tls/gnutls/gtlsconnection-gnutls.c:1387
+#: tls/openssl/gtlsconnection-openssl.c:814
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Tipe pengikatan saluran yang diminta tidak diimplementasikan"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1398
-#: tls/gnutls/gtlsconnection-gnutls.c:1458
-#: tls/openssl/gtlsconnection-openssl.c:823
-#: tls/openssl/gtlsconnection-openssl.c:919
+#: tls/gnutls/gtlsconnection-gnutls.c:1408
+#: tls/gnutls/gtlsconnection-gnutls.c:1468
+#: tls/openssl/gtlsconnection-openssl.c:832
+#: tls/openssl/gtlsconnection-openssl.c:928
 msgid "Error reading data from TLS socket"
 msgstr "Galat saat membaca data dari soket TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1480
-#: tls/gnutls/gtlsconnection-gnutls.c:1543
-#: tls/openssl/gtlsconnection-openssl.c:998
+#: tls/gnutls/gtlsconnection-gnutls.c:1490
+#: tls/gnutls/gtlsconnection-gnutls.c:1553
+#: tls/openssl/gtlsconnection-openssl.c:1007
 msgid "Error writing data to TLS socket"
 msgstr "Galat saat menulis data ke soket TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1513
+#: tls/gnutls/gtlsconnection-gnutls.c:1523
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Pesan ukuran %lu byte terlalu besar untuk sambungan DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1515
+#: tls/gnutls/gtlsconnection-gnutls.c:1525
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(maksimum adalah %u byte)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1562
+#: tls/gnutls/gtlsconnection-gnutls.c:1572
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Galat melaksanakan penutupan TLS: %s"
@@ -274,19 +281,19 @@ msgstr "Gagal untuk mengisi daftar terpercaya dari %s: %s"
 msgid "Certificate has no private key"
 msgstr "Sertifikatnya tidak memiliki kunci privat"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsclientconnection-openssl.c:368
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Tak bisa menyetel daftar sandi TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:407
+#: tls/openssl/gtlsclientconnection-openssl.c:396
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Tak bisa mengatur protokol MAKS untuk %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:470
+#: tls/openssl/gtlsclientconnection-openssl.c:459
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -310,32 +317,37 @@ msgstr "Renegosiasi aman dinonaktifkan"
 msgid "%s: The connection is broken"
 msgstr "%s: Sambungan rusak"
 
-#: tls/openssl/gtlsconnection-openssl.c:674
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Permintaan itu tidak valid."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
 #, c-format
 msgid "Channel binding data tls-unique is not available"
 msgstr "Data pengikatan saluran tls-unique tidak tersedia"
 
-#: tls/openssl/gtlsconnection-openssl.c:697
+#: tls/openssl/gtlsconnection-openssl.c:706
 #, c-format
 msgid "X.509 Certificate is not available on the connection"
 msgstr "Sertifikat X.509 tidak tersedia pada sambungan"
 
-#: tls/openssl/gtlsconnection-openssl.c:743
+#: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
 msgstr "Gagal menghasilkan intisari (digest) sertifikat X.509"
 
-#: tls/openssl/gtlsconnection-openssl.c:774
+#: tls/openssl/gtlsconnection-openssl.c:783
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "Sambungan TLS tidak mendukung fitur TLS-Exporter"
 
-#: tls/openssl/gtlsconnection-openssl.c:777
+#: tls/openssl/gtlsconnection-openssl.c:786
 #, c-format
 msgid "Unexpected error while exporting keying data"
 msgstr "Galat tak terduga saat mengekspor data kunci"
 
-#: tls/openssl/gtlsconnection-openssl.c:1059
+#: tls/openssl/gtlsconnection-openssl.c:1068
 msgid "Error performing TLS close"
 msgstr "Galat melaksanakan penutupan TLS"
 
