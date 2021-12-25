@@ -23,9 +23,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gtk+.master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2021-11-19 15:02+0000\n"
-"PO-Revision-Date: 2021-11-22 13:45+0200\n"
-"Last-Translator: Alexey Rubtsov <rushills@gmail.com>\n"
+"POT-Creation-Date: 2021-12-20 15:37+0000\n"
+"PO-Revision-Date: 2021-12-21 19:37+0300\n"
+"Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
 "Language-Team: Русский <gnome-cyr@gnome.org>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -77,17 +77,17 @@ msgstr "Пир не поддерживает безопасное песогла
 
 #: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:830
+#: tls/openssl/gtlsconnection-openssl.c:839
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Недопустимый сертификат TLS"
 
-#: tls/base/gtlsconnection-base.c:2155
+#: tls/base/gtlsconnection-base.c:2153
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Флаги приема не поддерживаются"
 
-#: tls/base/gtlsconnection-base.c:2302
+#: tls/base/gtlsconnection-base.c:2300
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Флаги отправки не поддерживаются"
@@ -138,7 +138,7 @@ msgstr "Не удалось создать TLS-соединение:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:523
+#: tls/openssl/gtlsclientconnection-openssl.c:512
 #: tls/openssl/gtlsserverconnection-openssl.c:456
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -192,35 +192,42 @@ msgstr "Ошибка при выполнении квитирования TLS: %
 msgid "Error performing TLS handshake"
 msgstr "Ошибка выполнения квитирования связи TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1177
+#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Пустые данные привязки канала указывают на ошибку в реализации библиотеки TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1199
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Тип привязки канала не реализован в библиотеке TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#: tls/gnutls/gtlsconnection-gnutls.c:1203
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Данные о привязке каналов пока отсутствуют"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1219
-#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1253
 #, c-format
 msgid "X.509 certificate is not available on the connection"
 msgstr "Сертификат X.509 недоступен на соединении"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1244
+#: tls/gnutls/gtlsconnection-gnutls.c:1266
 #, c-format
 msgid "X.509 certificate is not available or is of unknown format: %s"
 msgstr "Сертификат X.509 недоступен или имеет неизвестный формат: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1255
-#: tls/openssl/gtlsconnection-openssl.c:705
+#: tls/gnutls/gtlsconnection-gnutls.c:1277
+#: tls/openssl/gtlsconnection-openssl.c:714
 #, c-format
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Невозможно получить алгоритм подписи сертификата"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1271
-#: tls/openssl/gtlsconnection-openssl.c:725
+#: tls/gnutls/gtlsconnection-gnutls.c:1293
+#: tls/openssl/gtlsconnection-openssl.c:734
 #, c-format
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
@@ -228,27 +235,27 @@ msgstr ""
 "Текущий сертификат X.509 использует неизвестный или неподдерживаемый "
 "алгоритм подписи"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1365
-#: tls/openssl/gtlsconnection-openssl.c:805
+#: tls/gnutls/gtlsconnection-gnutls.c:1387
+#: tls/openssl/gtlsconnection-openssl.c:814
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Запрашиваемый тип привязки канала не реализован"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1386
-#: tls/gnutls/gtlsconnection-gnutls.c:1446
-#: tls/openssl/gtlsconnection-openssl.c:823
-#: tls/openssl/gtlsconnection-openssl.c:919
+#: tls/gnutls/gtlsconnection-gnutls.c:1408
+#: tls/gnutls/gtlsconnection-gnutls.c:1468
+#: tls/openssl/gtlsconnection-openssl.c:832
+#: tls/openssl/gtlsconnection-openssl.c:928
 msgid "Error reading data from TLS socket"
 msgstr "Ошибка чтения данных из сокета TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-#: tls/gnutls/gtlsconnection-gnutls.c:1531
-#: tls/openssl/gtlsconnection-openssl.c:998
+#: tls/gnutls/gtlsconnection-gnutls.c:1490
+#: tls/gnutls/gtlsconnection-gnutls.c:1553
+#: tls/openssl/gtlsconnection-openssl.c:1007
 msgid "Error writing data to TLS socket"
 msgstr "Ошибка записи данных в сокет TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1501
+#: tls/gnutls/gtlsconnection-gnutls.c:1523
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -256,7 +263,7 @@ msgstr[0] "Сообщение размером %lu байт слишком ве�
 msgstr[1] "Сообщение размером %lu байта слишком велико для соединения DTLS"
 msgstr[2] "Сообщение размером %lu байтов слишком велико для соединения DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1503
+#: tls/gnutls/gtlsconnection-gnutls.c:1525
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -264,7 +271,7 @@ msgstr[0] "(максимум %u байт)"
 msgstr[1] "(максимум %u байта)"
 msgstr[2] "(максимум %u байтов)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1550
+#: tls/gnutls/gtlsconnection-gnutls.c:1572
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Ошибка закрытия TLS: %s"
@@ -277,7 +284,7 @@ msgstr ""
 "Не удалось загрузить хранилище системного доверия: GnuTLS не было настроено "
 "с помощью системного доверия"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:288
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Не удалось загрузить хранилище системного доверия: %s"
@@ -293,19 +300,19 @@ msgstr "Не удалось заполнить список доверия из 
 msgid "Certificate has no private key"
 msgstr "У сертификата нет секретного ключа"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsclientconnection-openssl.c:368
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Не удалось установить список шифров TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:407
+#: tls/openssl/gtlsclientconnection-openssl.c:396
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Не удалось установить протокол MAX на %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:470
+#: tls/openssl/gtlsclientconnection-openssl.c:459
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -329,48 +336,53 @@ msgstr "Безопасное повторное согласование отк�
 msgid "%s: The connection is broken"
 msgstr "%s: Соединение разорвано"
 
-#: tls/openssl/gtlsconnection-openssl.c:674
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "Запрос недействителен."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
 #, c-format
 msgid "Channel binding data tls-unique is not available"
 msgstr "Данные привязки канала tls-unique недоступны"
 
-#: tls/openssl/gtlsconnection-openssl.c:697
+#: tls/openssl/gtlsconnection-openssl.c:706
 #, c-format
 msgid "X.509 Certificate is not available on the connection"
 msgstr "Сертификат X.509 недоступен на соединении"
 
-#: tls/openssl/gtlsconnection-openssl.c:743
+#: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
 msgstr "Не удалось сгенерировать дайджест сертификата X.509"
 
-#: tls/openssl/gtlsconnection-openssl.c:774
+#: tls/openssl/gtlsconnection-openssl.c:783
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "TLS-соединение не поддерживает функцию TLS-Exporter"
 
-#: tls/openssl/gtlsconnection-openssl.c:777
+#: tls/openssl/gtlsconnection-openssl.c:786
 #, c-format
 msgid "Unexpected error while exporting keying data"
 msgstr "Неожиданная ошибка при экспорте данных о ключах"
 
-#: tls/openssl/gtlsconnection-openssl.c:1059
+#: tls/openssl/gtlsconnection-openssl.c:1068
 msgid "Error performing TLS close"
 msgstr "Ошибка закрытия TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:200
+#: tls/openssl/gtlsdatabase-openssl.c:167
 msgid "Could not get trusted anchors from Keychain"
 msgstr "Не удалось получить доверенные якоря из связки ключей"
 
-#: tls/openssl/gtlsdatabase-openssl.c:265
+#: tls/openssl/gtlsdatabase-openssl.c:232
 msgid "Could not get root certificate store"
 msgstr "Не удалось получить хранилище корневого сертификата"
 
-#: tls/openssl/gtlsdatabase-openssl.c:272
+#: tls/openssl/gtlsdatabase-openssl.c:239
 msgid "Could not get CA certificate store"
 msgstr "Не удалось получить хранилище сертификата CA"
 
-#: tls/openssl/gtlsdatabase-openssl.c:337
+#: tls/openssl/gtlsdatabase-openssl.c:304
 msgid "Could not create CA store"
 msgstr "Не удалось создать хранилище CA"
 
@@ -384,833 +396,3 @@ msgstr "Возникла проблема с сертификатом: %s"
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Возникла проблема с приватным ключом сертификата: %s"
 
-#~ msgid "Image file “%s” contains no data"
-#~ msgstr "Файл изображения «%s» не содержит данных"
-
-#~ msgid ""
-#~ "Failed to load animation “%s”: reason not known, probably a corrupt "
-#~ "animation file"
-#~ msgstr ""
-#~ "Не удалось загрузить анимацию «%s»: причина неизвестна, возможно, файл "
-#~ "анимации повреждён"
-
-#~ msgid ""
-#~ "Failed to load image “%s”: reason not known, probably a corrupt image file"
-#~ msgstr ""
-#~ "Не удалось загрузить изображение «%s»: причина неизвестна, возможно, файл "
-#~ "изображения повреждён"
-
-#~ msgid "Number of Channels"
-#~ msgstr "Число каналов"
-
-#~ msgid "The number of samples per pixel"
-#~ msgstr "Число семплов на пиксель"
-
-#~ msgid "Colorspace"
-#~ msgstr "Цветовое пространство"
-
-#~ msgid "The colorspace in which the samples are interpreted"
-#~ msgstr "Цветовое пространство, в котором интерпретируются семплы"
-
-#~ msgid "Has Alpha"
-#~ msgstr "Альфа-канал"
-
-#~ msgid "Whether the pixbuf has an alpha channel"
-#~ msgstr "Имеет ли pixbuf альфа-канал"
-
-#~ msgid "Bits per Sample"
-#~ msgstr "Битов на семпл"
-
-#~ msgid "The number of bits per sample"
-#~ msgstr "Число битов на семпл"
-
-#~ msgid "Width"
-#~ msgstr "Ширина"
-
-#~ msgid "The number of columns of the pixbuf"
-#~ msgstr "Число столбцов в pixbuf"
-
-#~ msgid "Height"
-#~ msgstr "Высота"
-
-#~ msgid "The number of rows of the pixbuf"
-#~ msgstr "Число строк в pixbuf"
-
-#~ msgid "Rowstride"
-#~ msgstr "Промежуток между строк"
-
-#~ msgid ""
-#~ "The number of bytes between the start of a row and the start of the next "
-#~ "row"
-#~ msgstr "Количество байт между началом одной строки и началом другой"
-
-#~ msgid "Pixels"
-#~ msgstr "Пиксели"
-
-#~ msgid "A pointer to the pixel data of the pixbuf"
-#~ msgstr "Указатель на пиксельные данные pixbuf"
-
-#~ msgid "Pixel Bytes"
-#~ msgstr "Байты пикселей"
-
-#~ msgid "Readonly pixel data"
-#~ msgstr "Пиксельные данные только для чтения"
-
-#~ msgid "Unable to load image-loading module: %s: %s"
-#~ msgstr "Не удалось загрузить модуль загрузки изображений: %s: %s"
-
-#~ msgid ""
-#~ "Image-loading module %s does not export the proper interface; perhaps "
-#~ "it’s from a different gdk-pixbuf version?"
-#~ msgstr ""
-#~ "Модуль загрузки изображений %s не экспортирует надлежащий интерфейс; "
-#~ "возможно, он относится к другой версии gdk-pixbuf?"
-
-#~ msgid "Image type “%s” is not supported"
-#~ msgstr "Тип изображения «%s» не поддерживается"
-
-#~ msgid "Couldn’t recognize the image file format for file “%s”"
-#~ msgstr "Не удалось распознать формат изображения для файла «%s»"
-
-#~ msgid "Unrecognized image file format"
-#~ msgstr "Нераспознанный формат файла изображения"
-
-#~ msgid "Error writing to image file: %s"
-#~ msgstr "Не удалось записать изображение: %s"
-
-#~ msgid ""
-#~ "This build of gdk-pixbuf does not support saving the image format: %s"
-#~ msgstr ""
-#~ "Данная сборка подсистемы «gdk-pixbuf» не поддерживает сохранение "
-#~ "изображений в таком формате: %s"
-
-#~ msgid "Insufficient memory to save image to callback"
-#~ msgstr "Недостаточно памяти для сохранения файла изображения"
-
-#~ msgid "Failed to open temporary file"
-#~ msgstr "Не удалось открыть временный файл"
-
-#~ msgid "Failed to read from temporary file"
-#~ msgstr "Не удалось прочитать из временного файла"
-
-#~ msgid "Failed to open “%s” for writing: %s"
-#~ msgstr "Не удалось открыть файл «%s» для записи: %s"
-
-#~ msgid ""
-#~ "Failed to close “%s” while writing image, all data may not have been "
-#~ "saved: %s"
-#~ msgstr ""
-#~ "Не удалось закрыть файл «%s» во время записи изображения, возможно не все "
-#~ "данные сохранены: %s"
-
-#~ msgid "Insufficient memory to save image into a buffer"
-#~ msgstr "Недостаточно памяти для сохранения изображения в буфер"
-
-#~ msgid ""
-#~ "Internal error: Image loader module “%s” failed to complete an operation, "
-#~ "but didn’t give a reason for the failure"
-#~ msgstr ""
-#~ "Произошла внутренняя ошибка: модуль загрузки изображений «%s» не завершил "
-#~ "загрузку, но не сообщил причину сбоя"
-
-#~ msgid "Incremental loading of image type “%s” is not supported"
-#~ msgstr "Прогрессивная загрузка изображения формата «%s» не поддерживается"
-
-#~ msgid "Loop"
-#~ msgstr "Цикл"
-
-#~ msgid "Whether the animation should loop when it reaches the end"
-#~ msgstr "Должна ли анимация начинаться с начала после окончания"
-
-#~ msgid "Image header corrupt"
-#~ msgstr "Заголовок изображения повреждён"
-
-#~ msgid "Image format unknown"
-#~ msgstr "Неизвестный формат изображения"
-
-#~ msgid "Image pixel data corrupt"
-#~ msgstr "Пиксельные данные изображения повреждены"
-
-#~ msgid "failed to allocate image buffer of %u byte"
-#~ msgid_plural "failed to allocate image buffer of %u bytes"
-#~ msgstr[0] ""
-#~ "не удалось выделить память в размере %u байта для буфера изображения"
-#~ msgstr[1] ""
-#~ "не удалось выделить память в размере %u байт для буфера изображения"
-#~ msgstr[2] ""
-#~ "не удалось выделить память в размере %u байт для буфера изображения"
-
-#~ msgid "Unexpected icon chunk in animation"
-#~ msgstr "Неожиданная последовательность кадров анимации"
-
-#~ msgid "Invalid header in animation"
-#~ msgstr "Недопустимый заголовок анимации"
-
-#~ msgid "Not enough memory to load animation"
-#~ msgstr "Недостаточно памяти для загрузки анимации"
-
-#~ msgid "Malformed chunk in animation"
-#~ msgstr "Неверная последовательность кадров в анимации"
-
-#~ msgid "ANI image was truncated or incomplete."
-#~ msgstr "Изображение ANI было обрезано или является неполным."
-
-#~ msgctxt "image format"
-#~ msgid "Windows animated cursor"
-#~ msgstr "Анимированный курсор Windows"
-
-#~ msgid "BMP image has bogus header data"
-#~ msgstr "Изображение формата BMP имеет неправильные данные в заголовке"
-
-#~ msgid "Not enough memory to load bitmap image"
-#~ msgstr "Недостаточно памяти для загрузки изображения"
-
-#~ msgid "BMP image has unsupported header size"
-#~ msgstr "Изображение формата BMP имеет неподдерживаемый размер заголовка"
-
-#~ msgid "BMP image has unsupported depth"
-#~ msgstr "Изображение формата BMP имеет неподдерживаемую глубину"
-
-#~ msgid "BMP image has oversize palette"
-#~ msgstr "Изображение формата BMP имеет палитру больше обычного размера"
-
-#~ msgid "Topdown BMP images cannot be compressed"
-#~ msgstr "Нельзя сжимать перевёрнутые изображения в формате BMP"
-
-#~ msgid "BMP image width too large"
-#~ msgstr "Слишком большая ширина для изображения в формате BMP"
-
-#~ msgid "Premature end-of-file encountered"
-#~ msgstr "Обнаружен преждевременный конец файла"
-
-#~ msgid "Error while decoding colormap"
-#~ msgstr "Ошибка декодирования цветовой карты"
-
-#~ msgid "Image is too wide for BMP format."
-#~ msgstr "Слишком широкое изображение для формата BMP."
-
-#~ msgid "Couldn’t allocate memory for saving BMP file"
-#~ msgstr "Не удалось выделить память для сохранения файла BMP"
-
-#~ msgid "Couldn’t write to BMP file"
-#~ msgstr "Не удалось записать в файл BMP"
-
-#~ msgctxt "image format"
-#~ msgid "BMP"
-#~ msgstr "BMP"
-
-#~ msgctxt "image format"
-#~ msgid "EMF"
-#~ msgstr "EMF"
-
-#~ msgctxt "image format"
-#~ msgid "GIF"
-#~ msgstr "GIF"
-
-#~ msgctxt "image format"
-#~ msgid "Windows icon"
-#~ msgstr "Значок Windows"
-
-#~ msgid ""
-#~ "JPEG quality must be a value between 0 and 100; value “%s” could not be "
-#~ "parsed."
-#~ msgstr ""
-#~ "Качество формата JPEG должно иметь значение между 0 и 100; значение «%s» "
-#~ "не может быть обработано."
-
-#~ msgid ""
-#~ "JPEG quality must be a value between 0 and 100; value “%d” is not allowed."
-#~ msgstr ""
-#~ "Качество формата JPEG должно иметь значение между 0 и 100; значение «%d» "
-#~ "недопустимо."
-
-#~ msgctxt "image format"
-#~ msgid "JPEG"
-#~ msgstr "JPEG"
-
-#~ msgctxt "image format"
-#~ msgid "TIFF"
-#~ msgstr "TIFF"
-
-#~ msgid "Could not allocate memory: %s"
-#~ msgstr "Не удалось выделить память: %s"
-
-#~ msgid "Couldn’t load bitmap"
-#~ msgstr "Не удалось загрузить растровое изображение"
-
-#~ msgid "Couldn’t load metafile"
-#~ msgstr "Не удалось загрузить метафайл"
-
-#~ msgid "Unsupported image format for GDI+"
-#~ msgstr "Данный формат изображений не поддерживается для GDI+"
-
-#~ msgid "Couldn’t save"
-#~ msgstr "Не удалось сохранить"
-
-#~ msgctxt "image format"
-#~ msgid "WMF"
-#~ msgstr "WMF"
-
-#~ msgid "Failure reading GIF: %s"
-#~ msgstr "Не удалось прочитать файл формата GIF: %s"
-
-#~ msgid "Not enough memory to load GIF file"
-#~ msgstr "Недостаточно памяти для загрузки файла формата GIF"
-
-#~ msgid "GIF image is corrupt (incorrect LZW compression)"
-#~ msgstr ""
-#~ "Изображение формата GIF повреждено (неправильное сжатие алгоритмом LZW)"
-
-#~ msgid "File does not appear to be a GIF file"
-#~ msgstr "Вероятно, файл не является файлом формата GIF"
-
-#~ msgid "Version %s of the GIF file format is not supported"
-#~ msgstr "Файлы формата GIF версии %s не поддерживаются"
-
-#~ msgid "Resulting GIF image has zero size"
-#~ msgstr "Получаемое изображение в формате GIF имеет нулевой размер"
-
-#~ msgid ""
-#~ "GIF image has no global colormap, and a frame inside it has no local "
-#~ "colormap."
-#~ msgstr ""
-#~ "В изображении формата GIF отсутствует глобальная карта цветов, в кадре "
-#~ "внутри него отсутствует локальная карта цветов."
-
-#~ msgid "GIF file was missing some data (perhaps it was truncated somehow?)"
-#~ msgstr ""
-#~ "В файле формата GIF отсутствуют некоторые данные (возможно, файл был "
-#~ "обрезан?)"
-
-#~ msgid "GIF image was truncated or incomplete."
-#~ msgstr "Обрезанное или неполное изображение в формате GIF."
-
-#~ msgid "Not all frames of the GIF image were loaded."
-#~ msgstr "Были загружены не все кадры изображения GIF."
-
-#~ msgid "Could not decode ICNS file"
-#~ msgstr "Не удалось декодировать файл формата ICNS"
-
-#~ msgctxt "image format"
-#~ msgid "MacOS X icon"
-#~ msgstr "Значок MacOS X"
-
-#~ msgid "Invalid header in icon (%s)"
-#~ msgstr "Недопустимый заголовок в значке (%s)"
-
-#~ msgid "Not enough memory to load icon"
-#~ msgstr "Недостаточно памяти для загрузки значка"
-
-#~ msgid "Invalid header in icon"
-#~ msgstr "Недопустимый заголовок в значке"
-
-#~ msgid "Unsupported icon type"
-#~ msgstr "Неподдерживаемый тип значка"
-
-#~ msgid "Not enough memory to load ICO file"
-#~ msgstr "Недостаточно памяти для загрузки файла формата ICO"
-
-#~ msgid "ICO image was truncated or incomplete."
-#~ msgstr "Изображение ICO было усеченным или неполным."
-
-#~ msgid "Image too large to be saved as ICO"
-#~ msgstr "Слишком большое изображения для сохранения в формате ICO"
-
-#~ msgid "Cursor hotspot outside image"
-#~ msgstr "Активирующая область определена за границами изображения"
-
-#~ msgid "Unsupported depth for ICO file: %d"
-#~ msgstr "Неподдерживаемая глубина цвета для файла формата ICO: %d"
-
-#~ msgid "Error interpreting JPEG image file (%s)"
-#~ msgstr "Ошибка интерпретации файла изображения формата JPEG (%s)"
-
-#~ msgid ""
-#~ "Insufficient memory to load image, try exiting some applications to free "
-#~ "memory"
-#~ msgstr ""
-#~ "Недостаточно памяти для загрузки изображения, попробуйте выйти из "
-#~ "некоторых приложений, чтобы освободить память"
-
-#~ msgid "Unsupported JPEG color space (%s)"
-#~ msgstr "Цветовое пространство (%s) формата JPEG не поддерживается"
-
-#~ msgid "Couldn’t allocate memory for loading JPEG file"
-#~ msgstr "Не удалось выделить память для загрузки файла JPEG"
-
-#~ msgid "Transformed JPEG has zero width or height."
-#~ msgstr ""
-#~ "Преобразованное изображение формата JPEG имеет нулевую ширину или высоту."
-
-#~ msgid "Unsupported number of color components (%d)"
-#~ msgstr "Неподдерживаемое количество цветовых компонентов (%d)"
-
-#~ msgid ""
-#~ "JPEG x-dpi must be a value between 1 and 65535; value “%s” is not allowed."
-#~ msgstr ""
-#~ "X-dpi формата JPEG должно иметь значение между 1 и 65535; значение «%s» "
-#~ "недопустимо."
-
-#~ msgid ""
-#~ "JPEG y-dpi must be a value between 1 and 65535; value “%s” is not allowed."
-#~ msgstr ""
-#~ "Y-dpi формата JPEG должно иметь значение между 1 и 65535; значение «%s» "
-#~ "недопустимо."
-
-#~ msgid "Color profile has invalid length “%u”."
-#~ msgstr "Цветовой профиль имеет недопустимую длину «%u»."
-
-#~ msgid "Bits per channel of PNG image is invalid."
-#~ msgstr "Недопустимое количество бит на канал для изображения формата PNG."
-
-#~ msgid "Transformed PNG has zero width or height."
-#~ msgstr ""
-#~ "Преобразованное изображение формата PNG имеет нулевую ширину или высоту."
-
-#~ msgid "Bits per channel of transformed PNG is not 8."
-#~ msgstr ""
-#~ "Количество бит на канал преобразованного изображения формата PNG не равно "
-#~ "8."
-
-#~ msgid "Transformed PNG not RGB or RGBA."
-#~ msgstr ""
-#~ "Преобразованное изображение формата PNG не является ни RGB, ни RGBA."
-
-#~ msgid "Transformed PNG has unsupported number of channels, must be 3 or 4."
-#~ msgstr ""
-#~ "Преобразованное изображение формата PNG имеет неподдерживаемое количество "
-#~ "каналов; должно быть 3 или 4."
-
-#~ msgid "Fatal error in PNG image file: %s"
-#~ msgstr "Фатальная ошибка в файле изображения формата PNG: %s"
-
-#~ msgid "Insufficient memory to load PNG file"
-#~ msgstr "Недостаточно памяти для загрузки файла формата PNG"
-
-#~ msgid "Couldn’t allocate memory for loading PNG"
-#~ msgstr "Не удалось выделить память для загрузки PNG"
-
-#~ msgid ""
-#~ "Insufficient memory to store a %lu by %lu image; try exiting some "
-#~ "applications to reduce memory usage"
-#~ msgstr ""
-#~ "Недостаточно памяти для хранения изображения размером %lu на %lu; "
-#~ "попробуйте закрыть некоторые приложения, чтобы уменьшить количество "
-#~ "используемой памяти"
-
-#~ msgid "Fatal error reading PNG image file"
-#~ msgstr "Фатальная ошибка при чтении файла изображения формата PNG"
-
-#~ msgid "Fatal error reading PNG image file: %s"
-#~ msgstr "Фатальная ошибка при чтении файла изображения формата PNG: %s"
-
-#~ msgid ""
-#~ "Invalid key “%s”. Keys for PNG text chunks must have at least 1 and at "
-#~ "most 79 characters."
-#~ msgstr ""
-#~ "Недопустимый ключ «%s». Ключи для текстовых фрагментов PNG должны "
-#~ "содержать не менее 1 и не более 79 символов."
-
-#~ msgid "Invalid key “%s”. Keys for PNG text chunks must be ASCII characters."
-#~ msgstr ""
-#~ "Недопустимый ключ «%s». Ключи для текстовых блоков PNG должны быть "
-#~ "символами ASCII."
-
-#~ msgid ""
-#~ "Value for PNG text chunk '%s' cannot be converted to ISO-8859-1 encoding."
-#~ msgstr ""
-#~ "Значение для текстового блока PNG «%s» не может быть преобразовано в "
-#~ "кодировку ISO-8859-1."
-
-#~ msgid "Color profile has invalid length %d"
-#~ msgstr "Профиль цвета имеет недопустимую длину %d"
-
-#~ msgid ""
-#~ "PNG compression level must be a value between 0 and 9; value “%s” is "
-#~ "invalid"
-#~ msgstr ""
-#~ "Уровень сжатия PNG должен быть значением от 0 до 9; значение «%s» "
-#~ "недопустимо"
-
-#~ msgid "PNG %s must be greater than zero; value “%s” is not allowed"
-#~ msgstr "PNG %s должно быть больше нуля; значение «%s» не допускается"
-
-#~ msgctxt "image format"
-#~ msgid "PNG"
-#~ msgstr "PNG"
-
-#~ msgid "PNM loader expected to find an integer, but didn’t"
-#~ msgstr "Загрузчик PNM ожидал найти целое число, но не нашел"
-
-#~ msgid "PNM file has an incorrect initial byte"
-#~ msgstr "Файл формата PNM имеет неправильный начальный байт"
-
-#~ msgid "PNM file is not in a recognized PNM subformat"
-#~ msgstr "Файл формата PNM имеет нераспознаваемый субформат PNM"
-
-#~ msgid "PNM file has an invalid width"
-#~ msgstr "Недопустимая ширина изображения в формате PNM"
-
-#~ msgid "PNM file has an image width of 0"
-#~ msgstr "Ширина изображения в формате PNM равна 0"
-
-#~ msgid "PNM file has an invalid height"
-#~ msgstr "Недопустимая высота изображения в формате PNM"
-
-#~ msgid "PNM file has an image height of 0"
-#~ msgstr "Высота изображения в формате PNM равна 0"
-
-#~ msgid "Maximum color value in PNM file is 0"
-#~ msgstr "Максимальное значение цвета в файле формата PNM равно 0"
-
-#~ msgid "Maximum color value in PNM file is too large"
-#~ msgstr "Максимальное значение цвета в файле формата PNM слишком велико"
-
-#~ msgid "Raw PNM image type is invalid"
-#~ msgstr "Недопустимый тип изображения в формате raw PNM"
-
-#~ msgid "PNM image loader does not support this PNM subformat"
-#~ msgstr ""
-#~ "Модуль загрузки изображений формата PNM не поддерживает этот субформат PNM"
-
-#~ msgid "Raw PNM formats require exactly one whitespace before sample data"
-#~ msgstr "Форматы raw PNM требуют ровно одного пробела перед данными семпла"
-
-#~ msgid "Cannot allocate memory for loading PNM image"
-#~ msgstr "Не удалось выделить память для загрузки файла изображения PNM"
-
-#~ msgid "Insufficient memory to load PNM context struct"
-#~ msgstr "Недостаточно памяти для загрузки структуры формата PNM"
-
-#~ msgid "Insufficient memory to load PNM file"
-#~ msgstr "Недостаточно памяти для загрузки файла формата PNM"
-
-#~ msgctxt "image format"
-#~ msgid "PNM/PBM/PGM/PPM"
-#~ msgstr "PNM/PBM/PGM/PPM"
-
-#~ msgid "Input file descriptor is NULL."
-#~ msgstr "Файловый дескриптор ввода равен NULL."
-
-#~ msgid "Failed to read QTIF header"
-#~ msgstr "Не удалось прочитать заголовок QTIF"
-
-#~ msgid "QTIF atom size too large (%d byte)"
-#~ msgid_plural "QTIF atom size too large (%d bytes)"
-#~ msgstr[0] "Слишком большой размер атома QTIF (%d байт)"
-#~ msgstr[1] "Слишком большой размер атома QTIF (%d байта)"
-#~ msgstr[2] "Слишком большой размер атома QTIF (%d байт)"
-
-#~ msgid "Failed to allocate %d byte for file read buffer"
-#~ msgid_plural "Failed to allocate %d bytes for file read buffer"
-#~ msgstr[0] ""
-#~ "Не удалось выделить память в размере %d байта для буфера чтения файла"
-#~ msgstr[1] ""
-#~ "Не удалось выделить память в размере %d байт для буфера чтения файла"
-#~ msgstr[2] ""
-#~ "Не удалось выделить память в размере %d байт для буфера чтения файла"
-
-#~ msgid "File error when reading QTIF atom: %s"
-#~ msgstr "Файловая ошибка при чтении атома QTIF: %s"
-
-#~ msgid "Failed to skip the next %d byte with seek()."
-#~ msgid_plural "Failed to skip the next %d bytes with seek()."
-#~ msgstr[0] "Не удалось переместиться на следующий %d байт с помощью seek()."
-#~ msgstr[1] "Не удалось переместиться на следующие %d байта с помощью seek()."
-#~ msgstr[2] "Не удалось переместиться на следующие %d байт с помощью seek()."
-
-#~ msgid "Failed to allocate QTIF context structure."
-#~ msgstr "Не удалось выделить память для структуры контекста QTIF."
-
-#~ msgid "Failed to create GdkPixbufLoader object."
-#~ msgstr "Не удалось создать объект GdkPixbufLoader."
-
-#~ msgid "Failed to find an image data atom."
-#~ msgstr "Не удалось найти атом данных изображения."
-
-#~ msgctxt "image format"
-#~ msgid "QuickTime"
-#~ msgstr "QuickTime"
-
-#~ msgid "Cannot allocate colormap"
-#~ msgstr "Не удалось выделить память для карты цветов"
-
-#~ msgid "Cannot allocate new pixbuf"
-#~ msgstr "Не удалось выделить память для новой структуры pixbuf"
-
-#~ msgid "Unexpected bitdepth for colormap entries"
-#~ msgstr "Неожиданная глубина цвета для элемента карты цветов"
-
-#~ msgid "Pseudocolor image does not contain a colormap"
-#~ msgstr "Спектральное изображение не содержит цветовую палитру"
-
-#~ msgid "Cannot allocate TGA header memory"
-#~ msgstr "Не удалось выделить память для заголовка формата TGA"
-
-#~ msgid "TGA image has invalid dimensions"
-#~ msgstr "Изображение TGA имеет недопустимые размеры"
-
-#~ msgid "TGA image type not supported"
-#~ msgstr "Неподдерживаемый тип изображения TGA"
-
-#~ msgid "Cannot allocate memory for TGA context struct"
-#~ msgstr "Не удалось выделить память для структуры контекста формата TGA"
-
-#~ msgid "TGA image was truncated or incomplete."
-#~ msgstr "Изображение TGA неполное или было обрезано."
-
-#~ msgctxt "image format"
-#~ msgid "Targa"
-#~ msgstr "Targa"
-
-#~ msgid "Could not get image width (bad TIFF file)"
-#~ msgstr ""
-#~ "Не удалось определить ширину изображения (испорченный файл формата TIFF)"
-
-#~ msgid "Could not get image height (bad TIFF file)"
-#~ msgstr ""
-#~ "Не удалось определить высоту изображения (испорченный файл формата TIFF)"
-
-#~ msgid "Width or height of TIFF image is zero"
-#~ msgstr "Ширина или высота изображения формата TIFF равна нулю"
-
-#~ msgid "Dimensions of TIFF image too large"
-#~ msgstr "Размеры изображения формата TIFF слишком велики"
-
-#~ msgid "Insufficient memory to open TIFF file"
-#~ msgstr "Недостаточно памяти для открытия файла формата TIFF"
-
-#~ msgid "Failed to load RGB data from TIFF file"
-#~ msgstr "Не удалось прочитать данные RGB из файла формата TIFF"
-
-#~ msgid "Failed to open TIFF image"
-#~ msgstr "Не удалось открыть изображение формата TIFF"
-
-#~ msgid "Failed to load TIFF image"
-#~ msgstr "Сбой при загрузке изображения формата TIFF"
-
-#~ msgid "Failed to save TIFF image"
-#~ msgstr "Сбой сохранения изображения TIFF"
-
-#~ msgid "TIFF compression doesn’t refer to a valid codec."
-#~ msgstr "Сжатие TIFF не относится к действующему кодеку."
-
-#~ msgid "Color profile has invalid length %d."
-#~ msgstr "Цветовой профиль имеет неправильную длину %d."
-
-#~ msgid "TIFF bits-per-sample doesn’t contain a supported value."
-#~ msgstr "TIFF bits-per-sample не содержит поддерживаемого значения."
-
-#~ msgid "Failed to write TIFF data"
-#~ msgstr "Сбой записи данных TIFF"
-
-#~ msgid "TIFF x-dpi must be greater than zero; value “%s” is not allowed."
-#~ msgstr "TIFF x-dpi должно быть больше нуля; значение «%s» не допускается."
-
-#~ msgid "TIFF y-dpi must be greater than zero; value “%s” is not allowed."
-#~ msgstr "TIFF y-dpi должно быть больше нуля; значение «%s» не допускается."
-
-#~ msgid "Couldn’t write to TIFF file"
-#~ msgstr "Не удалось записать файл TIFF"
-
-#~ msgid "Invalid XBM file"
-#~ msgstr "Недопустимый файл формата XBM"
-
-#~ msgid "Insufficient memory to load XBM image file"
-#~ msgstr "Недостаточно памяти для загрузки файла изображения формата XBM"
-
-#~ msgid "Failed to write to temporary file when loading XBM image"
-#~ msgstr ""
-#~ "Не удалось записать во временный файл во время загрузки изображения "
-#~ "формата XBM"
-
-#~ msgctxt "image format"
-#~ msgid "XBM"
-#~ msgstr "XBM"
-
-#~ msgid "No XPM header found"
-#~ msgstr "Заголовок XPM не найден"
-
-#~ msgid "Invalid XPM header"
-#~ msgstr "Недопустимый заголовок XPM"
-
-#~ msgid "XPM file has image width <= 0"
-#~ msgstr "Ширина изображения в файле формата XPM меньше или равна 0"
-
-#~ msgid "XPM file has image height <= 0"
-#~ msgstr "Высота изображения в файле формата XPM меньше или равна 0"
-
-#~ msgid "XPM has invalid number of chars per pixel"
-#~ msgstr "XPM имеет недопустимое количество символов на пиксель"
-
-#~ msgid "XPM file has invalid number of colors"
-#~ msgstr "Файл формата XPM имеет недопустимое количество цветов"
-
-#~ msgid "Cannot allocate memory for loading XPM image"
-#~ msgstr "Не удалось выделить память для загрузки изображения XPM"
-
-#~ msgid "Cannot read XPM colormap"
-#~ msgstr "Не удалось прочитать цветовую карту XPM"
-
-#~ msgid "Dimensions do not match data"
-#~ msgstr "Размеры не соответствуют данным"
-
-#~ msgid "Failed to write to temporary file when loading XPM image"
-#~ msgstr "Сбой при записи временного файла во время загрузки изображения XPM"
-
-#~ msgctxt "image format"
-#~ msgid "XPM"
-#~ msgstr "XPM"
-
-#~ msgid "Internal error in the GIF loader (%s)"
-#~ msgstr ""
-#~ "Произошла внутренняя ошибка в модуле загрузки изображений формата GIF (%s)"
-
-#~ msgid "Stack overflow"
-#~ msgstr "Переполнение стека"
-
-#~ msgid "GIF image loader cannot understand this image."
-#~ msgstr ""
-#~ "Модуль загрузки изображений формата GIF не может понять это изображение."
-
-#~ msgid "Bad code encountered"
-#~ msgstr "Обнаружен неправильный код"
-
-#~ msgid "Circular table entry in GIF file"
-#~ msgstr "В файле формата GIF обнаружена круговая табличная запись"
-
-#~ msgid "Not enough memory to composite a frame in GIF file"
-#~ msgstr "Недостаточно памяти для создания кадра в файле GIF"
-
-#~ msgid "Couldn't allocate memory for stream"
-#~ msgstr "Не удалось выделить память для потока"
-
-#~ msgid "Couldn't decode image"
-#~ msgstr "Не удалось декодировать изображение"
-
-#~ msgid "Transformed JPEG2000 has zero width or height"
-#~ msgstr ""
-#~ "Преобразованное изображение формата JPEG2000 имеет нулевую ширину или "
-#~ "высоту"
-
-#~ msgid "Image type currently not supported"
-#~ msgstr "Тип изображения не поддерживается в данной версии"
-
-#~ msgid "Couldn't allocate memory for color profile"
-#~ msgstr "Не удалось выделить память для цветового профиля"
-
-#~ msgid "Insufficient memory to open JPEG 2000 file"
-#~ msgstr "Недостаточно памяти для открытия файла формата JPEG 2000"
-
-#~ msgid "Couldn't allocate memory to buffer image data"
-#~ msgstr "Не удалось выделить память для буферизации данных изображения"
-
-#~ msgctxt "image format"
-#~ msgid "JPEG 2000"
-#~ msgstr "JPEG 2000"
-
-#~ msgid ""
-#~ "PNG compression level must be a value between 0 and 9; value '%s' could "
-#~ "not be parsed."
-#~ msgstr ""
-#~ "Степень сжатия PNG может уметь значение от 0 до 9, значение «%s» не может "
-#~ "быть обработано."
-
-#~ msgid "PNG y-dpi must be greater than zero; value '%s' is not allowed."
-#~ msgstr ""
-#~ "Y-dpi формата JPEG должно быть больше нуля; значение «%s» недопустимо."
-
-#~ msgid "Transformed pixbuf has zero width or height."
-#~ msgstr "Преобразованная структура pixbuf имеет нулевую ширину или высоту."
-
-#~ msgctxt "image format"
-#~ msgid "GdkPixdata"
-#~ msgstr "GdkPixdata"
-
-#~ msgid "Couldn't allocate memory for header"
-#~ msgstr "Не удалось выделить память для заголовка"
-
-#~ msgid "Couldn't allocate memory for context buffer"
-#~ msgstr "Не удалось выделить память для буфера контекста"
-
-#~ msgid "Image has invalid width and/or height"
-#~ msgstr "Изображение имеет нулевую ширину и (или) высоту"
-
-#~ msgid "Image has unsupported bpp"
-#~ msgstr "Изображение имеет неподдерживаемое количество бит на пиксел"
-
-#~ msgid "Image has unsupported number of %d-bit planes"
-#~ msgstr ""
-#~ "Изображение имеет неподдерживаемое количество многобитовых (%d) плоскостей"
-
-#~ msgid "Couldn't create new pixbuf"
-#~ msgstr "Не удалось создать новую структуру pixbuf"
-
-#~ msgid "Couldn't allocate memory for line data"
-#~ msgstr "Не удалось выделить память для данных строки"
-
-#~ msgid "Couldn't allocate memory for PCX image"
-#~ msgstr "Не удалось выделить память для изображения формата PCX"
-
-#~ msgid "Didn't get all lines of PCX image"
-#~ msgstr "Получены не все строки изображения формата PCX"
-
-#~ msgid "No palette found at end of PCX data"
-#~ msgstr "В конце данных формата PCX палитра не найдена"
-
-#~ msgctxt "image format"
-#~ msgid "PCX"
-#~ msgstr "PCX"
-
-#~ msgid "RAS image has bogus header data"
-#~ msgstr "Заголовок изображения формата RAS содержит неправильные данные"
-
-#~ msgid "RAS image has unknown type"
-#~ msgstr "Изображение формата RAS имеет неизвестный тип"
-
-#~ msgid "unsupported RAS image variation"
-#~ msgstr "данная разновидность изображения формата RAS не поддерживается"
-
-#~ msgid "Not enough memory to load RAS image"
-#~ msgstr "Недостаточно памяти для загрузки изображения формата RAS"
-
-#~ msgctxt "image format"
-#~ msgid "Sun raster"
-#~ msgstr "Sun raster"
-
-#~ msgid "Cannot allocate memory for IOBuffer struct"
-#~ msgstr "Не удалось выделить память для структуры IOBuffer"
-
-#~ msgid "Cannot allocate memory for IOBuffer data"
-#~ msgstr "Не удалось выделить память для данных структуры IOBuffer"
-
-#~ msgid "Cannot realloc IOBuffer data"
-#~ msgstr "Не удалось перераспределить память для данных структуры IOBuffer"
-
-#~ msgid "Cannot allocate temporary IOBuffer data"
-#~ msgstr "Не удалось выделить временные данные структуры IOBuffer"
-
-#~ msgid "Excess data in file"
-#~ msgstr "Избыточные данные в файле"
-
-#~ msgid "Image has zero width"
-#~ msgstr "Ширина изображения равна нулю"
-
-#~ msgid "Image has zero height"
-#~ msgstr "Высота изображения равна нулю"
-
-#~ msgid "Not enough memory to load image"
-#~ msgstr "Недостаточно памяти для загрузки изображения"
-
-#~ msgid "Couldn't save the rest"
-#~ msgstr "Не удалось сохранить оставшуюся часть"
-
-#~ msgctxt "image format"
-#~ msgid "WBMP"
-#~ msgstr "WBMP"
-
-#~ msgid "Image is corrupted or truncated"
-#~ msgstr "Повреждённое или обрезанное изображение"
-
-#~ msgid "Cannot allocate colormap structure"
-#~ msgstr "Не удалось выделить память для структуры карты цветов"
