@@ -524,7 +524,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   SSL_set_ex_data (client->ssl, data_index, client);
 
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
-  if (hostname)
+  if (hostname && !g_hostname_is_ip_address (hostname))
     SSL_set_tlsext_host_name (client->ssl, hostname);
 #endif
 

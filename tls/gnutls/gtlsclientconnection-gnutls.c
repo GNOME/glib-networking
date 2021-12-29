@@ -347,7 +347,7 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
       gnutls->server_identity = g_value_dup_object (value);
 
       hostname = get_server_identity (gnutls);
-      if (hostname)
+      if (hostname && !g_hostname_is_ip_address (hostname))
         {
           gnutls_session_t session = g_tls_connection_gnutls_get_session (G_TLS_CONNECTION_GNUTLS (gnutls));
 
