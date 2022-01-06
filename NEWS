@@ -1,3 +1,22 @@
+2.72.alpha - January 6, 2022
+============================
+
+ - OpenSSL: fix unsafe error handling (!187, Patrick Griffis)
+ - Correctly load libsoup DLL on Windows (!190, Chun-wei Fan)
+ - OpenSSL: use system trust on Windows (!192, Francesco Conti)
+ - GnuTLS: fix TLS 1.3 ciphersuite names, should use underscores (!194)
+ - OpenSSL: fail when appropriate if Must-Staple extension is set (!197)
+ - Improve failure of tls-unique channel binding requests (!198, Ruslan Marchenko)
+ - Do not fill SNI extension with IP address (!200, Matteo Biggio)
+
+2.70.1 - December 6, 2021
+=========================
+
+ - Fix crashes when handshake is cancelled (#97, #176)
+ - OpenSSL: fix spurious certificate expired verification errors (#179)
+ - GnuTLS: Fix tests on 32-bit systems (!188, Simon McVittie)
+ - GnuTLS: Fix crash when invalid priority string is forced (!189)
+
 2.70.0 - September 16, 2021
 ===========================
 
