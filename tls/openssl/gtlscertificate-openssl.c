@@ -144,7 +144,7 @@ export_privkey_to_der (GTlsCertificateOpenssl  *openssl,
                        guint8                 **output_data,
                        long                    *output_size)
 {
-  PKCS8_PRIV_KEY_INFO *pkcs8;
+  PKCS8_PRIV_KEY_INFO *pkcs8 = NULL;
   BIO *bio = NULL;
   const guint8 *data;
 
