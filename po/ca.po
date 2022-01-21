@@ -120,7 +120,7 @@ msgstr "No es pot verificar la identitat del parell del tipus %s inesperat"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:198
 msgid "Could not create TLS connection:"
-msgstr "No s'ha pogut crear una connexió TLS: %s"
+msgstr "No s'ha pogut crear una connexió TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:208
 #: tls/gnutls/gtlsconnection-gnutls.c:228
