@@ -1,18 +1,18 @@
 # Japanese translation of glib-networking message catalog.
-# Copyright (C) 2011-2012, 2015, 2020 Free Software Foundation, Inc.
+# Copyright (C) 2011-2012, 2015, 2020, 2022 Free Software Foundation, Inc.
 # This file is distributed under the same license as glib-networking package.
 # Takayuki KUSANO <AE5T-KSN@asahi-net.or.jp>, 2011-2012.
 # Hideki Yamane <henrich@debian.org>, 2011-2012.
 # Yoji TOYODA <bsyamato@sea.plala.or.jp>, 2012.
 # Jiro Matsuzawa <jmatsuzawa@gnome.org>, 2015.
-# sicklylife <translation@sicklylife.jp>, 2020.
+# sicklylife <translation@sicklylife.jp>, 2020, 2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
 "POT-Creation-Date: 2021-12-18 17:10+0000\n"
-"PO-Revision-Date: 2020-08-20 19:00+0900\n"
+"PO-Revision-Date: 2022-01-30 21:00+0900\n"
 "Last-Translator: sicklylife <translation@sicklylife.jp>\n"
 "Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
 "Language: ja\n"
@@ -118,10 +118,8 @@ msgid "Cannot verify peer identity of unexpected type %s"
 msgstr ""
 
 #: tls/gnutls/gtlsconnection-gnutls.c:204
-#, fuzzy
-#| msgid "Could not create TLS connection: %s"
 msgid "Could not create TLS connection:"
-msgstr "TLS コネクションを確立できませんでした: %s"
+msgstr "TLS コネクションを確立できませんでした:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
@@ -200,10 +198,9 @@ msgstr ""
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1255
 #: tls/openssl/gtlsconnection-openssl.c:705
-#, fuzzy, c-format
-#| msgid "Unacceptable TLS certificate authority"
+#, c-format
 msgid "Unable to obtain certificate signature algorithm"
-msgstr "受け付けられない TLS 認証局です"
+msgstr ""
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1271
 #: tls/openssl/gtlsconnection-openssl.c:725
@@ -273,17 +270,15 @@ msgstr "証明書に秘密鍵がありません"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:377
 #: tls/openssl/gtlsserverconnection-openssl.c:288
-#, fuzzy, c-format
-#| msgid "Could not create TLS context: %s"
+#, c-format
 msgid "Could not set TLS cipher list: %s"
-msgstr "TLS コンテキストを作成できませんでした: %s"
+msgstr ""
 
 #: tls/openssl/gtlsclientconnection-openssl.c:403
 #: tls/openssl/gtlsserverconnection-openssl.c:314
-#, fuzzy, c-format
-#| msgid "Could not set MAX protocol to %ld: %s"
+#, c-format
 msgid "Could not set MAX protocol to %d: %s"
-msgstr "MAX プロトコルを %ld に設定できませんでした: %s"
+msgstr "MAX プロトコルを %d に設定できませんでした: %s"
 
 #: tls/openssl/gtlsclientconnection-openssl.c:464
 #: tls/openssl/gtlsserverconnection-openssl.c:375
