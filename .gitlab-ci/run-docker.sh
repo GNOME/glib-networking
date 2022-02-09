@@ -6,6 +6,7 @@ TAG="registry.gitlab.gnome.org/gnome/glib-networking/master:v19"
 
 cd "$(dirname "$0")"
 
+podman pull registry.fedoraproject.org/fedora:latest
 podman build --build-arg HOST_USER_ID="$UID" --tag "${TAG}" --file "Dockerfile" --format=docker .
 
 if [ "$1" = "--push" ]; then
