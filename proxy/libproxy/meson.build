@@ -70,4 +70,4 @@ executable(
   install_dir: libexecdir
 )
 
-proxy_test_programs += [['libproxy', deps]]
+proxy_test_programs += [['environment', 'libproxy', deps]]

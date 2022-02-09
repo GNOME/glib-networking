@@ -169,19 +169,18 @@ if ['darwin', 'ios'].contains(host_system)
   module_suffix = 'so'
 endif
 
-if libproxy_dep.found() or gsettings_desktop_schemas_dep.found()
-  proxy_test_programs = []
+proxy_test_programs = []
 
-  if libproxy_dep.found()
-    subdir('proxy/libproxy')
-  endif
-
-  if gsettings_desktop_schemas_dep.found()
-    subdir('proxy/gnome')
-  endif
-
-  subdir('proxy/tests')
+if libproxy_dep.found()
+subdir('proxy/libproxy')
 endif
+
+if gsettings_desktop_schemas_dep.found()
+subdir('proxy/gnome')
+endif
+
+subdir('proxy/environment')
+subdir('proxy/tests')
 
 subdir('tls/base')
 

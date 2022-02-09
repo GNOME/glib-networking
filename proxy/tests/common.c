@@ -169,14 +169,16 @@ static const struct {
 static const int n_ignore_tests = G_N_ELEMENTS (ignore_tests);
 
 static void
-test_proxy_ignore_common (gboolean is_libproxy)
+test_proxy_ignore_common (void)
 {
   GProxyResolver *resolver;
+  gboolean is_libproxy;
   GError *error = NULL;
   char **proxies;
   int i;
 
   resolver = g_proxy_resolver_get_default ();
+  is_libproxy = g_strcmp0 (getenv ("GIO_PROXY_TEST_NAME"), "libproxy") == 0;
 
   for (i = 0; i < n_ignore_tests; i++)
     {

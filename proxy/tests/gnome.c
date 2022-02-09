@@ -151,7 +151,7 @@ test_proxy_ignore (gpointer      fixture,
   g_object_unref (http);
   g_object_unref (settings);
 
-  test_proxy_ignore_common (FALSE);
+  test_proxy_ignore_common ();
 }
 
 int
