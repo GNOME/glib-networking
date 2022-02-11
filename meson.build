@@ -179,7 +179,12 @@ if gsettings_desktop_schemas_dep.found()
 subdir('proxy/gnome')
 endif
 
-subdir('proxy/environment')
+# FIXME: This ought to work on Windows.
+# https://gitlab.gnome.org/GNOME/glib-networking/-/issues/185
+if not ['windows'].contains(host_system)
+  subdir('proxy/environment')
+endif
+
 subdir('proxy/tests')
 
 subdir('tls/base')
