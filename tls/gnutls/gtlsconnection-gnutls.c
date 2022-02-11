@@ -1098,6 +1098,9 @@ glib_protocol_version_from_gnutls (gnutls_protocol_t protocol_version)
 static gchar *
 get_ciphersuite_name (gnutls_session_t session)
 {
+#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 4)
+  return g_strdup (gnutls_ciphersuite_get (session));
+#else
   gnutls_protocol_t protocol_version = gnutls_protocol_get_version (session);
   char *cipher_name;
   char *result;
@@ -1123,6 +1126,7 @@ get_ciphersuite_name (gnutls_session_t session)
   g_free (cipher_name);
 
   return result;
+#endif
 }
 
 static void
