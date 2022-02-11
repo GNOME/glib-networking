@@ -172,11 +172,11 @@ endif
 proxy_test_programs = []
 
 if libproxy_dep.found()
-subdir('proxy/libproxy')
+  subdir('proxy/libproxy')
 endif
 
 if gsettings_desktop_schemas_dep.found()
-subdir('proxy/gnome')
+  subdir('proxy/gnome')
 endif
 
 # FIXME: This ought to work on Windows.
