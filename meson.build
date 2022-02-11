@@ -157,8 +157,6 @@ po_dir = join_paths(meson.source_root(), 'po')
 top_inc = include_directories('.')
 tls_inc = include_directories('tls')
 
-subdir('po')
-
 enable_installed_tests = get_option('installed_tests')
 test_template = files('template.test.in')
 
@@ -171,39 +169,9 @@ endif
 
 proxy_test_programs = []
 
-if libproxy_dep.found()
-  subdir('proxy/libproxy')
-endif
-
-if gsettings_desktop_schemas_dep.found()
-  subdir('proxy/gnome')
-endif
-
-# FIXME: This ought to work on Windows.
-# https://gitlab.gnome.org/GNOME/glib-networking/-/issues/185
-if not ['windows'].contains(host_system)
-  subdir('proxy/environment')
-endif
-
-subdir('proxy/tests')
-
-subdir('tls/base')
-
-if gnutls_dep.found()
-  subdir('tls/gnutls')
-endif
-
-if backends.contains('openssl')
-  if ['darwin', 'ios'].contains(host_system)
-    security_dep = dependency('appleframeworks', modules : ['Security'])
-  elif ['windows'].contains(host_system)
-    crypt32_dep = cc.find_library('crypt32')
-  endif
-
-  subdir('tls/openssl')
-endif
-
-subdir('tls/tests')
+subdir('po')
+subdir('proxy')
+subdir('tls')
 
 # Will automatically pick it up from the cross file if defined
 gio_querymodules = find_program('gio-querymodules', required : false)
