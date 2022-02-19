@@ -21,6 +21,7 @@ host_system = host_machine.system()
 config_h = configuration_data()
 
 config_h.set_quoted('GETTEXT_PACKAGE', meson.project_name())
+config_h.set_quoted('LIBEXEC_DIR', libexecdir)
 config_h.set10('ENABLE_DEBUG_LOGS', get_option('debug_logs'))
 
 # compiler flags
@@ -49,7 +50,7 @@ if host_system.contains('linux') or host_system == 'android'
 endif
 
 # *** Check GLib GIO        ***
-glib_dep = dependency('glib-2.0', version: '>= 2.69.0',
+glib_dep = dependency('glib-2.0', version: '>= 2.70.0',
   fallback: ['glib', 'libglib_dep'])
 gio_dep = dependency('gio-2.0',
   fallback: ['glib', 'libgio_dep'])
@@ -73,6 +74,9 @@ libproxy_dep = dependency('libproxy-1.0', version: '>= 0.4.16', required: get_op
 
 # *** Checks for GNOME      ***
 gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required: get_option('gnome_proxy'))
+
+# *** Checks for WebKitGTK  ***
+javascriptcoregtk_dep = dependency('javascriptcoregtk-4.1', required: get_option('pacrunner'))
 
 backends = []
 
@@ -137,9 +141,10 @@ endif
 
 proxy_test_programs = []
 
-subdir('po')
+subdir('util')
 subdir('proxy')
 subdir('tls')
+subdir('po')
 
 # Will automatically pick it up from the cross file if defined
 gio_querymodules = find_program('gio-querymodules', required : false)

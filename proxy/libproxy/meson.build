@@ -1,26 +1,3 @@
-service_conf = configuration_data()
-service_conf.set('libexecdir', libexecdir)
-
-service = 'org.gtk.GLib.PACRunner.service'
-
-configure_file(
-  input: service + '.in',
-  output: service,
-  install: true,
-  install_dir: join_paths(datadir, 'dbus-1', 'services'),
-  configuration: service_conf
-)
-
-service = 'glib-pacrunner.service'
-
-configure_file(
-  input: service + '.in',
-  output: service,
-  install: true,
-  install_dir: join_paths('lib', 'systemd', 'user'),
-  configuration: service_conf
-)
-
 sources = files(
   'glibproxyresolver.c',
   'libproxy-module.c'
@@ -58,20 +35,6 @@ if get_option('static_modules')
   giolibproxy_dep = declare_dependency(link_with: giolibproxy_lib)
   meson.override_dependency('giolibproxy', giolibproxy_dep)
 endif
-
-sources = files(
-  'glibproxyresolver.c',
-  'glibpacrunner.c'
-)
-
-executable(
-  'glib-pacrunner',
-  sources,
-  include_directories: top_inc,
-  dependencies: deps,
-  install: true,
-  install_dir: libexecdir
-)
 
 proxy_test_programs += [['environment', 'libproxy', deps]]
 

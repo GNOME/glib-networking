@@ -1,6 +1,5 @@
 tlsbase_sources = files(
   'gtlsconnection-base.c',
-  'gtlshttp.c',
   'gtlsinputstream.c',
   'gtlslog.c',
   'gtlsoutputstream.c',
@@ -13,4 +12,4 @@ tlsbase = static_library('tlsbase',
 
 tlsbase_dep = declare_dependency(link_with: tlsbase,
                                  include_directories: include_directories('.'),
-                                 dependencies: gio_dep)
+                                 dependencies: [gio_dep, util_dep])

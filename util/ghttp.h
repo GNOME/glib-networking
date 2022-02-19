@@ -26,6 +26,6 @@
 
 #include <gio/gio.h>
 
-GInputStream *g_tls_request_uri (const char    *uri,
-                                 GCancellable  *cancellable,
-                                 GError       **error);
+GInputStream *g_request_uri (const char    *uri,
+                             GCancellable  *cancellable,
+                             GError       **error);

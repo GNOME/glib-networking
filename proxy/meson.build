@@ -12,4 +12,8 @@ if not ['windows'].contains(host_system)
   subdir('environment')
 endif
 
+if javascriptcoregtk_dep.found()
+  subdir('pacrunner')
+endif
+
 subdir('tests')

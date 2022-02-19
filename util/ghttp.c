@@ -28,7 +28,7 @@
 #include <dlfcn.h>
 #endif
 
-#include "gtlshttp.h"
+#include "ghttp.h"
 
 typedef gpointer SoupSession;
 typedef gpointer SoupMessage;
@@ -107,7 +107,7 @@ init_libsoup (void)
 }
 
 /**
- * g_tls_request_uri:
+ * g_request_uri:
  * @uri: An HTTP URI to request
  * @cancellable: (nullable): A #GCancellable
  * @error: A #GError
@@ -119,9 +119,9 @@ init_libsoup (void)
  * Returns: A #GInputStream of the response body or %NULL on failure
  */
 GInputStream *
-g_tls_request_uri (const char    *uri,
-                   GCancellable  *cancellable,
-                   GError       **error)
+g_request_uri (const char    *uri,
+               GCancellable  *cancellable,
+               GError       **error)
 {
   GInputStream *istream = NULL;
 
