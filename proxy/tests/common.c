@@ -178,7 +178,7 @@ test_proxy_ignore_common (void)
   int i;
 
   resolver = g_proxy_resolver_get_default ();
-  is_libproxy = g_strcmp0 (getenv ("GIO_PROXY_TEST_NAME"), "libproxy") == 0;
+  is_libproxy = g_strcmp0 (g_getenv ("GIO_PROXY_TEST_NAME"), "libproxy") == 0;
 
   for (i = 0; i < n_ignore_tests; i++)
     {
