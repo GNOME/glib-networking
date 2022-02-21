@@ -71,3 +71,9 @@ executable(
 )
 
 proxy_test_programs += [['environment', 'libproxy', deps]]
+
+if meson.version().version_compare('>=0.58')
+  env = environment()
+  env.prepend('GIO_EXTRA_MODULES', meson.current_build_dir())
+  meson.add_devenv(env)
+endif
