@@ -91,51 +91,18 @@ openssl_option = get_option('openssl')
 if openssl_option.disabled()
   openssl_dep = []
 else
-  # XXX: https://github.com/mesonbuild/meson/issues/2945
-  openssl_dep = dependency('openssl', version: '>= 1.0.2', required: false)
+  # We want to use CMake to help us find OpenSSL on Visual
+  # Studio-like builds, and we should check that the libssl.lib
+  # (or ssleay32.lib) is indeed there by using
+  # modules: [ 'OpenSSL::SSL' ]
+  openssl_modules = cc.get_argument_syntax() == 'msvc' ? \
+                    [ 'OpenSSL::SSL' ] : []
+  openssl_dep = dependency('openssl',
+                           version: '>= 1.0.2',
+                           modules: openssl_modules,
+                           required: openssl_option)
   if openssl_dep.found()
     backends += ['openssl']
-  else
-    # MSVC builds of OpenSSL does not generate pkg-config files,
-    # so we check for it manually here in this case, if we can't find those files
-    # Based on the CMake check for OpenSSL in CURL's CMakeLists.txt,
-    # on which headers we should check for
-
-    # OpenSSL's MSVC NMake Makefiles prepends the library filenames with 'lib',
-    # so we must prepend the libraries with 'lib' on MSVC, except for the pre-1.1.x
-    # ssleay32.lib
-    openssl_lib_prefix = ''
-    if cc.get_argument_syntax() == 'msvc'
-      openssl_lib_prefix = 'lib'
-    endif
-
-    openssl_headers = []
-    foreach h : ['crypto.h', 'engine.h', 'err.h', 'pem.h',
-                 'rsa.h', 'ssl.h', 'x509.h', 'rand.h', 'tls1.h']
-      openssl_headers += 'openssl/' + h
-    endforeach
-
-    # OpenSSL 1.1.x and 1.0.x (or earlier) have different .lib names,
-    # so we need to look for the correct pair
-
-    # Find either libcrypto.lib (1.1.x) or libeay32.lib (1.0.x or earlier) first
-    libcrypto_dep = cc.find_library('@0@crypto'.format(openssl_lib_prefix), required: false)
-    if libcrypto_dep.found()
-      libssl = '@0@ssl'.format(openssl_lib_prefix)
-    else
-      libcrypto_dep = cc.find_library('@0@eay32'.format(openssl_lib_prefix), required: openssl_option)
-      libssl = 'ssleay32'
-    endif
-
-    if libcrypto_dep.found()
-      # Find the corresponding SSL library depending on which crypto .lib we found
-      libssl_dep = cc.find_library(libssl, required: openssl_option, has_headers: openssl_headers)
-    endif
-
-    if libcrypto_dep.found() and libssl_dep.found()
-      openssl_dep = [libcrypto_dep, libssl_dep]
-      backends += ['openssl']
-    endif
   endif
 endif
 
