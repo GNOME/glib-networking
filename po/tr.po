@@ -6,13 +6,13 @@
 # Ozan Çağlayan <ozancag@gmail.com>, 2013.
 # Muhammet Kara <muhammetk@gmail.com>, 2011, 2012, 2013.
 # Furkan Tokaç <developmentft@gmail.com>, 2017.
-# Emin Tufan Çetin <etcetin@gmail.com>, 2017-2021.
+# Emin Tufan Çetin <etcetin@gmail.com>, 2017-2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2021-12-10 10:16+0000\n"
+"POT-Creation-Date: 2022-01-30 15:26+0000\n"
 "PO-Revision-Date: 2021-12-17 17:54+0300\n"
 "Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
 "Language-Team: Turkish <gnome-turk@gnome.org>\n"
@@ -64,7 +64,7 @@ msgstr "Eş, güvenli yeniden anlaşmayı desteklemiyor"
 
 #: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:830
+#: tls/openssl/gtlsconnection-openssl.c:839
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Kabul edilemez bir TLS sertifikası"
@@ -125,7 +125,7 @@ msgstr "TLS bağlantısı oluşturulamadı:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:523
+#: tls/openssl/gtlsclientconnection-openssl.c:512
 #: tls/openssl/gtlsserverconnection-openssl.c:456
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -177,35 +177,41 @@ msgstr "TLS el sıkışması sırasında hata: %s"
 msgid "Error performing TLS handshake"
 msgstr "TLS el sıkışması sırasında hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1189
+#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr "Boş kanal bağlama türü, TLS kütüphanesi gerçeklemesinde hata belirtisidir"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1199
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Kanal bağlama türü TLS kütüphanesinde gerçeklenmedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1193
+#: tls/gnutls/gtlsconnection-gnutls.c:1203
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Kanal bağlama verisi henüz kullanılabilir değil"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1231
-#: tls/gnutls/gtlsconnection-gnutls.c:1243
+#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1253
 #, c-format
 msgid "X.509 certificate is not available on the connection"
 msgstr "X.509 sertifikası, bağlantıda kullanılabilir değil"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1256
+#: tls/gnutls/gtlsconnection-gnutls.c:1266
 #, c-format
 msgid "X.509 certificate is not available or is of unknown format: %s"
 msgstr "X.509 sertifikası kullanılamıyor veya bilinmeyen biçimde: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1267
-#: tls/openssl/gtlsconnection-openssl.c:705
+#: tls/gnutls/gtlsconnection-gnutls.c:1277
+#: tls/openssl/gtlsconnection-openssl.c:714
 #, c-format
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Sertifika imza algoritması edinilemedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1283
-#: tls/openssl/gtlsconnection-openssl.c:725
+#: tls/gnutls/gtlsconnection-gnutls.c:1293
+#: tls/openssl/gtlsconnection-openssl.c:734
 #, c-format
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
@@ -213,39 +219,39 @@ msgstr ""
 "Şu anki X.509 sertifikası bilinmeyen veya desteklenmeyen imza algoritması "
 "kullanıyor"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1377
-#: tls/openssl/gtlsconnection-openssl.c:805
+#: tls/gnutls/gtlsconnection-gnutls.c:1387
+#: tls/openssl/gtlsconnection-openssl.c:814
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "İstenen kanal bağlama türü gerçeklenmedi"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1398
-#: tls/gnutls/gtlsconnection-gnutls.c:1458
-#: tls/openssl/gtlsconnection-openssl.c:823
-#: tls/openssl/gtlsconnection-openssl.c:919
+#: tls/gnutls/gtlsconnection-gnutls.c:1408
+#: tls/gnutls/gtlsconnection-gnutls.c:1468
+#: tls/openssl/gtlsconnection-openssl.c:832
+#: tls/openssl/gtlsconnection-openssl.c:928
 msgid "Error reading data from TLS socket"
 msgstr "TLS yuvasından veri okurken hata"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1480
-#: tls/gnutls/gtlsconnection-gnutls.c:1543
-#: tls/openssl/gtlsconnection-openssl.c:998
+#: tls/gnutls/gtlsconnection-gnutls.c:1490
+#: tls/gnutls/gtlsconnection-gnutls.c:1553
+#: tls/openssl/gtlsconnection-openssl.c:1007
 msgid "Error writing data to TLS socket"
 msgstr "TLS yuvasına veri yazarken hata"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1513
+#: tls/gnutls/gtlsconnection-gnutls.c:1523
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "%lu bayt ileti boyutu DTLS bağlantısı için çok büyük"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1515
+#: tls/gnutls/gtlsconnection-gnutls.c:1525
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(azami %u bayt)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1562
+#: tls/gnutls/gtlsconnection-gnutls.c:1572
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS kapatma işleminde hata: %s"
@@ -274,19 +280,19 @@ msgstr "%s konumundan güven listesi doldurulamadı: %s"
 msgid "Certificate has no private key"
 msgstr "Sertifikanın özel anahtarı yok"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:379
+#: tls/openssl/gtlsclientconnection-openssl.c:368
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "TLS şifreleyici listesi belirlenemedi: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:407
+#: tls/openssl/gtlsclientconnection-openssl.c:396
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "MAX iletişim kuralı %d olarak belirlenemedi: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:470
+#: tls/openssl/gtlsclientconnection-openssl.c:459
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -310,32 +316,37 @@ msgstr "Güvenli yeniden el sıkışma devre dışı"
 msgid "%s: The connection is broken"
 msgstr "%s: Bağlantı kırık"
 
-#: tls/openssl/gtlsconnection-openssl.c:674
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "İstek geçersiz."
+
+#: tls/openssl/gtlsconnection-openssl.c:683
 #, c-format
 msgid "Channel binding data tls-unique is not available"
 msgstr "tls-unique kanal bağlama türü kullanılabilir değil"
 
-#: tls/openssl/gtlsconnection-openssl.c:697
+#: tls/openssl/gtlsconnection-openssl.c:706
 #, c-format
 msgid "X.509 Certificate is not available on the connection"
 msgstr "X.509 Sertifikası, bağlantıda kullanılabilir değil"
 
-#: tls/openssl/gtlsconnection-openssl.c:743
+#: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
 msgstr "X.509 sertifika özeti oluşturulamadı"
 
-#: tls/openssl/gtlsconnection-openssl.c:774
+#: tls/openssl/gtlsconnection-openssl.c:783
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "TLS Bağlantısı, TLS-Exporter özelliğini desteklemiyor"
 
-#: tls/openssl/gtlsconnection-openssl.c:777
+#: tls/openssl/gtlsconnection-openssl.c:786
 #, c-format
 msgid "Unexpected error while exporting keying data"
 msgstr "Anahtarlama verisi dışa aktarılırken beklenmedik hata"
 
-#: tls/openssl/gtlsconnection-openssl.c:1059
+#: tls/openssl/gtlsconnection-openssl.c:1068
 msgid "Error performing TLS close"
 msgstr "TLS kapatma işleminde hata"
 
@@ -344,12 +355,10 @@ msgid "Could not get trusted anchors from Keychain"
 msgstr "Anahtarlıktan güven bağları alınamadı"
 
 #: tls/openssl/gtlsdatabase-openssl.c:232
-#| msgid "Could not parse DER certificate: %s"
 msgid "Could not get root certificate store"
 msgstr "Kök sertifika deposu alınamadı"
 
 #: tls/openssl/gtlsdatabase-openssl.c:239
-#| msgid "Could not parse DER certificate: %s"
 msgid "Could not get CA certificate store"
 msgstr "CA sertifika deposu alınamadı"
 
