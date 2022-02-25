@@ -95,6 +95,16 @@ main (int   argc,
    * it might possibly look at in the future. Just covering our bases. */
   g_unsetenv ("XDG_CURRENT_DESKTOP");
 
+  /* Unset static proxy settings */
+  g_unsetenv ("http_proxy");
+  g_unsetenv ("HTTP_PROXY");
+  g_unsetenv ("https_proxy");
+  g_unsetenv ("HTTPS_PROXY");
+  g_unsetenv ("ftp_proxy");
+  g_unsetenv ("FTP_PROXY");
+  g_unsetenv ("no_proxy");
+  g_unsetenv ("NO_PROXY");
+
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/proxy/environment/uri", test_proxy_uri);
