@@ -1,3 +1,12 @@
+2.72.0 - March 22, 2022
+=======================
+
+ - Fix proxy tests (#186)
+ - GnuTLS: use IANA-style ciphersuite names with GnuTLS 3.7.4 (!202)
+ - Windows build fixes (!206, !207, Chun-wei Fan)
+ - meson devenv (!208, Xavier Claessens)
+ - Updated translations
+
 2.72.beta - February 11, 2022
 =============================
 
