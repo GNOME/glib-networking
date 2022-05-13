@@ -250,10 +250,10 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
         return G_TLS_CONNECTION_BASE_OK;
 
       if (error && !*error)
-        *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_EOF, _("%s: The connection is broken"), err_prefix);
+        *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_EOF, _("%s: The connection is broken"), gettext (err_prefix));
     }
   else if (error && !*error)
-    *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", err_prefix, err_str);
+    *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", gettext (err_prefix), err_str);
 
   return G_TLS_CONNECTION_BASE_ERROR;
 }
@@ -611,7 +611,7 @@ g_tls_connection_openssl_handshake_thread_request_rehandshake (GTlsConnectionBas
 
   return perform_openssl_io (G_TLS_CONNECTION_OPENSSL (tls), G_IO_IN | G_IO_OUT,
                              perform_rehandshake, tls, timeout, cancellable,
-                             NULL, error, _("Error performing TLS handshake"));
+                             NULL, error, N_("Error performing TLS handshake"));
 }
 
 static GTlsCertificate *
@@ -829,7 +829,7 @@ g_tls_connection_openssl_handshake_thread_handshake (GTlsConnectionBase  *tls,
                                G_IO_IN | G_IO_OUT,
                                (GTlsOpensslIOFunc) SSL_do_handshake,
                                NULL, timeout, cancellable, &ret, error,
-                               _("Error reading data from TLS socket"));
+                               N_("Error reading data from TLS socket"));
 
   if (ret > 0)
     {
@@ -925,7 +925,7 @@ g_tls_connection_openssl_read (GTlsConnectionBase    *tls,
 
   status = perform_openssl_io (G_TLS_CONNECTION_OPENSSL (tls), G_IO_IN,
                                perform_read, &req, timeout, cancellable, &ret,
-                               error, _("Error reading data from TLS socket"));
+                               error, N_("Error reading data from TLS socket"));
 
   *nread = MAX (ret, 0);
   return status;
@@ -1004,7 +1004,7 @@ g_tls_connection_openssl_write (GTlsConnectionBase    *tls,
 
   status = perform_openssl_io (G_TLS_CONNECTION_OPENSSL (tls), G_IO_OUT,
                                perform_write, &req, timeout, cancellable, &ret,
-                               error, _("Error writing data to TLS socket"));
+                               error, N_("Error writing data to TLS socket"));
 
   *nwrote = MAX (ret, 0);
   return status;
@@ -1065,7 +1065,7 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
                              G_IO_IN | G_IO_OUT,
                              (GTlsOpensslIOFunc) SSL_shutdown,
                              NULL, timeout, cancellable, NULL, error,
-                             _("Error performing TLS close"));
+                             N_("Error performing TLS close"));
 }
 
 static void
