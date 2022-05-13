@@ -27,7 +27,7 @@ set PKG_CONFIG_PATH=%DEPS_DIR%\lib\pkgconfig
 
 :: FIXME: make warnings fatal
 pip3 install --upgrade --user meson==0.60.0  || goto :error
-meson build -Dgnutls=disabled -Dopenssl=enabled || goto :error
+meson build -Dgnutls=disabled -Dopenssl=enabled -Ddebug_logs=true || goto :error
 ninja -C build || goto :error
 
 meson test -C build --timeout-multiplier=10 || goto :error

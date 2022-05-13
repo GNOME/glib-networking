@@ -39,40 +39,43 @@ void g_tls_log (GLogLevelFlags  level,
                 const gchar    *format,
                 ...)
 {
-  gchar *header = NULL;
-  gchar *message = NULL;
-  gchar *thread = NULL;
-  va_list args;
-  int ret;
+  if (level < G_LOG_LEVEL_DEBUG || ENABLE_DEBUG_LOGS)
+    {
+      gchar *header = NULL;
+      gchar *message = NULL;
+      gchar *thread = NULL;
+      va_list args;
+      int ret;
 
-  va_start (args, format);
-  ret = g_vasprintf (&message, format, args);
-  va_end (args);
+      va_start (args, format);
+      ret = g_vasprintf (&message, format, args);
+      va_end (args);
 
-  if (ret <= 0)
-    goto out;
+      if (ret <= 0)
+        goto out;
 
-  if (conn && G_IS_TLS_CONNECTION (conn)) {
-    if (G_IS_TLS_CLIENT_CONNECTION (conn))
-      header = g_strdup_printf ("CLIENT[%p]: ", conn);
-    else if (G_IS_TLS_SERVER_CONNECTION (conn))
-      header = g_strdup_printf ("SERVER[%p]: ", conn);
-    else
-      g_assert_not_reached ();
-  } else {
-    header = g_strdup ("");
-  }
+      if (conn && G_IS_TLS_CONNECTION (conn)) {
+        if (G_IS_TLS_CLIENT_CONNECTION (conn))
+          header = g_strdup_printf ("CLIENT[%p]: ", conn);
+        else if (G_IS_TLS_SERVER_CONNECTION (conn))
+          header = g_strdup_printf ("SERVER[%p]: ", conn);
+        else
+          g_assert_not_reached ();
+      } else {
+        header = g_strdup ("");
+      }
 
-  thread = g_strdup_printf ("%p", g_thread_self ());
-  g_log_structured (G_LOG_DOMAIN, level,
-                    "GLIB_NET_THREAD", thread,
-                    "CODE_FILE", file,
-                    "CODE_LINE", line,
-                    "CODE_FUNC", func,
-                    "MESSAGE", "%s%s", header, message);
+      thread = g_strdup_printf ("%p", g_thread_self ());
+      g_log_structured (G_LOG_DOMAIN, level,
+                        "GLIB_NET_THREAD", thread,
+                        "CODE_FILE", file,
+                        "CODE_LINE", line,
+                        "CODE_FUNC", func,
+                        "MESSAGE", "%s%s", header, message);
 
-out:
-  g_free (header);
-  g_free (message);
-  g_free (thread);
+    out:
+      g_free (header);
+      g_free (message);
+      g_free (thread);
+    }
 }

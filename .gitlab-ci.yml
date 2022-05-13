@@ -13,6 +13,7 @@ fedora-x86_64:
             -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
+            -Ddebug_logs=true
             -Dwerror=true
             _build/
     - meson compile -C _build/
@@ -38,6 +39,7 @@ fedora-x86_64-asan:
             -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
+            -Ddebug_logs=true
             -Dwerror=true
             _build/
     - meson compile -C _build/
@@ -54,6 +56,7 @@ fedora-x86_64-scan-build:
             -Dopenssl=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
+            -Ddebug_logs=true
             -Dwerror=true
             _build/
     - scan-build meson compile -C _build/

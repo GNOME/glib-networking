@@ -21,6 +21,7 @@ host_system = host_machine.system()
 config_h = configuration_data()
 
 config_h.set_quoted('GETTEXT_PACKAGE', meson.project_name())
+config_h.set10('ENABLE_DEBUG_LOGS', get_option('debug_logs'))
 
 # compiler flags
 common_flags = [
