@@ -8,7 +8,8 @@ deps = [
   glib_dep,
   gmodule_dep,
   gobject_dep,
-  gnutls_dep
+  gnutls_dep,
+  openssl_dep
 ]
 
 cflags = [
