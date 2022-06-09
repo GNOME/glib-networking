@@ -118,11 +118,34 @@ g_environment_proxy_resolver_finalize (GObject *object)
   G_OBJECT_CLASS (g_environment_proxy_resolver_parent_class)->finalize (object);
 }
 
+static const char *
+validate_proxy_envvar (const char *var)
+{
+  const char *url;
+  GError *error = NULL;
+
+  if ((url = g_getenv (var)))
+    {
+      /* Empty strings mean no proxy. */
+      if (*url == '\0')
+        return NULL;
+
+      if (g_uri_is_valid (url, G_URI_FLAGS_NONE, &error))
+        return url;
+
+      g_warning ("Environment variable %s specifies invalid proxy URL %s: %s", var, url, error->message);
+      g_error_free (error);
+    }
+
+  return NULL;
+}
+
 static void
 g_environment_proxy_resolver_init (GEnvironmentProxyResolver *resolver)
 {
   char **ignore_hosts = NULL;
   const char *default_proxy = NULL;
+  const char *url;
 
   if (g_getenv ("no_proxy"))
     ignore_hosts = g_strsplit (g_getenv ("no_proxy"), ",", -1);
@@ -134,24 +157,23 @@ g_environment_proxy_resolver_init (GEnvironmentProxyResolver *resolver)
    * This matches the behavior of libproxy's environment variable module, or
    * GNOME's use-same-proxy setting.
    */
-  if (g_getenv ("http_proxy"))
-    default_proxy = g_getenv ("http_proxy");
-  else if (g_getenv ("HTTP_PROXY"))
-    default_proxy = g_getenv ("HTTP_PROXY");
+  if ((url = validate_proxy_envvar ("http_proxy")))
+    default_proxy = url;
+  else if ((url = validate_proxy_envvar ("HTTP_PROXY")))
+    default_proxy = url;
 
   resolver->base_resolver = g_simple_proxy_resolver_new (default_proxy, ignore_hosts);
-
-  if (g_getenv ("ftp_proxy"))
-    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "ftp", g_getenv ("ftp_proxy"));
-  else if (g_getenv ("FTP_PROXY"))
-    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "ftp", g_getenv ("FTP_PROXY"));
-
-  if (g_getenv ("https_proxy"))
-    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "https", g_getenv ("https_proxy"));
-  else if (g_getenv ("HTTPS_PROXY"))
-    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "https", g_getenv ("HTTPS_PROXY"));
-
   g_strfreev (ignore_hosts);
+
+  if ((url = validate_proxy_envvar ("ftp_proxy")))
+    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "ftp", url);
+  else if ((url = validate_proxy_envvar ("FTP_PROXY")))
+    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "ftp", url);
+
+  if ((url = validate_proxy_envvar ("https_proxy")))
+    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "https", url);
+  else if ((url = validate_proxy_envvar ("HTTPS_PROXY")))
+    g_simple_proxy_resolver_set_uri_proxy (G_SIMPLE_PROXY_RESOLVER (resolver->base_resolver), "https", url);
 }
 
 static void
