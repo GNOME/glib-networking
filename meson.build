@@ -2,7 +2,7 @@ project(
   'glib-networking', 'c',
   version: '2.72.0',
   license: 'LGPL2.1+',
-  meson_version: '>= 0.50.0',
+  meson_version: '>= 0.54.0',
   default_options: ['c_std=gnu99']
 )
 

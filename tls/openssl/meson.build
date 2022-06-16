@@ -48,13 +48,16 @@ module = shared_module(
 if get_option('static_modules')
   # link_whole is a workaround for a meson bug
   # https://github.com/mesonbuild/meson/pull/3939
-  static_library('gioopenssl',
+  gioopenssl_lib = static_library('gioopenssl',
     objects: module.extract_all_objects(),
     install: true,
     install_dir: gio_module_dir,
     link_whole: [tlsbase]
   )
   pkg.generate(module)
+
+  gioopenssl_dep = declare_dependency(link_with: gioopenssl_lib)
+  meson.override_dependency('gioopenssl', gioopenssl_dep)
 endif
 
 if meson.version().version_compare('>=0.58')

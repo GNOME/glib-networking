@@ -35,13 +35,16 @@ module = shared_module(
 if get_option('static_modules')
   # link_whole is a workaround for a meson bug
   # https://github.com/mesonbuild/meson/pull/3939
-  static_library('giognutls',
+  giognutls_lib = static_library('giognutls',
     objects: module.extract_all_objects(),
     install: true,
     install_dir: gio_module_dir,
     link_whole: [tlsbase]
   )
   pkg.generate(module)
+
+  giognutls_dep = declare_dependency(link_with: giognutls_lib)
+  meson.override_dependency('giognutls', giognutls_dep)
 endif
 
 if meson.version().version_compare('>=0.58')

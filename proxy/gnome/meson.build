@@ -24,12 +24,15 @@ module = shared_module(
 )
 
 if get_option('static_modules')
-  static_library('giognomeproxy',
+  giognomeproxy_lib = static_library('giognomeproxy',
     objects: module.extract_all_objects(),
     install: true,
     install_dir: gio_module_dir
   )
   pkg.generate(module)
+
+  giognomeproxy_dep = declare_dependency(link_with: giognomeproxy_lib)
+  meson.override_dependency('giognomeproxy', giognomeproxy_dep)
 endif
 
 proxy_test_programs += [['gnome', 'gnome', deps]]

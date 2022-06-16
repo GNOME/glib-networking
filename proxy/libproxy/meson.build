@@ -48,12 +48,15 @@ module = shared_module(
 )
 
 if get_option('static_modules')
-  static_library('giolibproxy',
+  giolibproxy_lib = static_library('giolibproxy',
     objects: module.extract_all_objects(),
     install: true,
     install_dir: gio_module_dir
   )
   pkg.generate(module)
+
+  giolibproxy_dep = declare_dependency(link_with: giolibproxy_lib)
+  meson.override_dependency('giolibproxy', giolibproxy_dep)
 endif
 
 sources = files(

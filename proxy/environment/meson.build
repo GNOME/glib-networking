@@ -27,12 +27,17 @@ module = shared_module(
 )
 
 if get_option('static_modules')
-  static_library('gioenvironmentproxy',
+  gioenvironmentproxy_lib = static_library('gioenvironmentproxy',
     objects: module.extract_all_objects(),
     install: true,
     install_dir: gio_module_dir
   )
   pkg.generate(module)
+
+  gioenvironmentproxy_dep = declare_dependency(
+    link_with: gioenvironmentproxy_lib
+  )
+  meson.override_dependency('gioenvironmentproxy', gioenvironmentproxy_dep)
 endif
 
 proxy_test_programs += [['environment', 'environment', deps]]
