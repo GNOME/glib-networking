@@ -32,7 +32,7 @@ module = shared_module(
   install_dir: gio_module_dir,
 )
 
-if get_option('static_modules')
+if get_option('static_modules') or get_option('default_library') != 'shared'
   # link_whole is a workaround for a meson bug
   # https://github.com/mesonbuild/meson/pull/3939
   giognutls_lib = static_library('giognutls',

@@ -23,7 +23,7 @@ module = shared_module(
   install_dir: gio_module_dir
 )
 
-if get_option('static_modules')
+if get_option('static_modules') or get_option('default_library') != 'shared'
   giognomeproxy_lib = static_library('giognomeproxy',
     objects: module.extract_all_objects(),
     install: true,

@@ -47,7 +47,7 @@ module = shared_module(
   install_dir: gio_module_dir
 )
 
-if get_option('static_modules')
+if get_option('static_modules') or get_option('default_library') != 'shared'
   giolibproxy_lib = static_library('giolibproxy',
     objects: module.extract_all_objects(),
     install: true,
