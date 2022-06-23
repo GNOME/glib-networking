@@ -11,6 +11,8 @@ deps = [
   gsettings_desktop_schemas_dep
 ]
 
+giomodules += 'giognomeproxy'
+
 module = shared_module(
   'giognomeproxy',
   sources: sources,

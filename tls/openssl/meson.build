@@ -33,6 +33,8 @@ elif ['windows'].contains(host_system)
   ]
 endif
 
+giomodules += 'gioopenssl'
+
 module = shared_module(
   'gioopenssl',
   sources: sources,

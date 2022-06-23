@@ -20,6 +20,8 @@ deps = [
   tlsbase_dep
 ]
 
+giomodules += 'giognutls'
+
 module = shared_module(
   'giognutls',
   sources: sources,

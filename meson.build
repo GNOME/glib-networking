@@ -141,6 +141,10 @@ endif
 
 proxy_test_programs = []
 
+# When glib-networking is a subproject this variable is used by parent project
+# to know which modules have been built.
+giomodules = []
+
 subdir('po')
 subdir('proxy')
 subdir('tls')
@@ -151,10 +155,10 @@ if gio_querymodules.found()
   meson.add_install_script('meson_post_install.py', gio_querymodules.path(), gio_module_dir)
 endif
 
-output = '\n\n'
-output += '  GnuTLS support:            ' + backends.contains('gnutls').to_string() + '\n'
-output += '  OpenSSL support:           ' + backends.contains('openssl').to_string() + '\n'
-output += '  environment proxy support: ' + environment_proxy_enabled.to_string() + '\n'
-output += '  libproxy support:          ' + libproxy_dep.found().to_string() + '\n'
-output += '  GNOME proxy support:       ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
-message(output)
+summary({
+  'GnuTLS support': giomodules.contains('giognutls'),
+  'OpenSSL support': giomodules.contains('gioopenssl'),
+  'Environment proxy support': giomodules.contains('gioenvironmentproxy'),
+  'libproxy support': giomodules.contains('giolibproxy'),
+  'GNOME proxy support': giomodules.contains('giognomeproxy'),
+}, bool_yn: true)

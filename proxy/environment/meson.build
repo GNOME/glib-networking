@@ -13,6 +13,8 @@ deps = [
   gobject_dep
 ]
 
+giomodules += 'gioenvironmentproxy'
+
 module = shared_module(
   'gioenvironmentproxy',
   sources: sources,

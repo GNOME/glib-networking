@@ -34,6 +34,8 @@ deps = [
   libproxy_dep
 ]
 
+giomodules += 'giolibproxy'
+
 module = shared_module(
   'giolibproxy',
   sources: sources,
