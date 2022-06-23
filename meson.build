@@ -2,7 +2,7 @@ project(
   'glib-networking', 'c',
   version: '2.74.beta',
   license: 'LGPL2.1+',
-  meson_version: '>= 0.54.0',
+  meson_version: '>= 0.60.0',
   default_options: ['c_std=gnu99']
 )
 
@@ -62,8 +62,8 @@ if glib_dep.type_name() == 'internal'
   glib_proj = subproject('glib')
   gio_module_dir = glib_proj.get_variable('glib_giomodulesdir')
 else
-  gio_module_dir = gio_dep.get_pkgconfig_variable('giomoduledir',
-                                                  define_variable: ['libdir', join_paths(prefix, libdir)])
+  gio_module_dir = gio_dep.get_variable('giomoduledir',
+                                         pkgconfig_define: ['libdir', join_paths(prefix, libdir)])
 endif
 
 assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
@@ -124,8 +124,6 @@ gnome = import('gnome')
 i18n = import('i18n')
 pkg = import('pkgconfig')
 
-po_dir = join_paths(meson.source_root(), 'po')
-
 top_inc = include_directories('.')
 tls_inc = include_directories('tls')
 
@@ -150,10 +148,7 @@ subdir('proxy')
 subdir('tls')
 
 # Will automatically pick it up from the cross file if defined
-gio_querymodules = find_program('gio-querymodules', required : false)
-if gio_querymodules.found()
-  meson.add_install_script('meson_post_install.py', gio_querymodules.path(), gio_module_dir)
-endif
+gnome.post_install(gio_querymodules: gio_module_dir)
 
 summary({
   'GnuTLS support': giomodules.contains('giognutls'),

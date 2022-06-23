@@ -12,11 +12,6 @@ deps = [
   openssl_dep
 ]
 
-cflags = [
-  '-DSRCDIR="@0@"'.format(meson.current_source_dir()),
-  '-DTOP_BUILDDIR="@0@"'.format(meson.build_root())
-]
-
 envs = [
   'G_TEST_SRCDIR=' + meson.current_source_dir(),
   'G_TEST_BUILDDIR=' + meson.current_build_dir(),
@@ -67,7 +62,7 @@ foreach backend: backends
       )
     endif
 
-    test_cflags = cflags + [
+    test_cflags = [
       '-DBACKEND="@0@"'.format(backend),
       '-DBACKEND_IS_' + backend.to_upper(),
       '-DSIZEOF_TIME_T=@0@'.format(cc.sizeof('time_t', prefix: '#include <time.h>')),
@@ -88,7 +83,7 @@ foreach backend: backends
     )
 
     test_envs = envs + [
-      'GIO_MODULE_DIR=' + join_paths(meson.build_root(), 'tls', backend),
+      'GIO_MODULE_DIR=' + join_paths(meson.project_build_root(), 'tls', backend),
       'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
       'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
     ]

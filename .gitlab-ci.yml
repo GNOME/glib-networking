@@ -54,6 +54,7 @@ fedora-x86_64:
   script:
     - cp .gitlab-ci/lcovrc ~/.lcovrc
     - meson setup --prefix=$HOME/glib-networking-installed
+        --fatal-meson-warnings
         -Db_coverage=true
         -Dgnutls=enabled
         -Dopenssl=enabled

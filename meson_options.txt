@@ -10,5 +10,8 @@ option('environment_proxy', type: 'feature', value: 'auto', description: 'suppor
 option('libproxy', type: 'feature', value: 'auto', description: 'support for libproxy proxy configration')
 option('gnome_proxy', type: 'feature', value: 'auto', description: 'support for GNOME desktop proxy configuration')
 option('installed_tests', type: 'boolean', value: false, description: 'enable installed tests')
-option('static_modules', type: 'boolean', value: false, description: 'build static modules')
 option('debug_logs', type: 'boolean', value: false, description: 'enable debug log messages (slow)')
+
+# Deprecated, use -Ddefault_library=static instead.
+option('static_modules', type: 'boolean', value: false, description: 'build static modules',
+  deprecated: true)
