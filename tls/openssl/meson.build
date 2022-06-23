@@ -48,6 +48,7 @@ module = shared_module(
 if get_option('static_modules') or get_option('default_library') != 'shared'
   gioopenssl_lib = static_library('gioopenssl',
     objects: module.extract_all_objects(recursive: true),
+    dependencies: deps,
     install: true,
     install_dir: gio_module_dir,
   )
