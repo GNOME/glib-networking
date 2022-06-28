@@ -92,6 +92,7 @@ copy_proxies (gchar **proxies)
   gchar **copy;
   int len = 0;
   int i, j;
+  GError *error = NULL;
 
   for (i = 0; proxies[i]; i++)
     {
@@ -104,6 +105,14 @@ copy_proxies (gchar **proxies)
   copy = g_new (gchar *, len + 1);
   for (i = j = 0; proxies[i]; i++, j++)
     {
+      if (!g_uri_is_valid (proxies[i], G_URI_FLAGS_NONE, &error))
+        {
+          g_warning ("Received invalid URI %s from libproxy: %s", proxies[i], error->message);
+          g_clear_error (&error);
+          j--;
+          continue;
+        }
+
       if (!strncmp ("socks://", proxies[i], 8))
         {
           copy[j++] = g_strdup_printf ("socks5://%s", proxies[i] + 8);
