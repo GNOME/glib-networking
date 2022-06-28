@@ -1,4 +1,4 @@
-image: registry.gitlab.gnome.org/gnome/glib-networking/master:v19
+image: registry.gitlab.gnome.org/gnome/glib-networking/master:v20
 
 fedora-x86_64:
   stage: build

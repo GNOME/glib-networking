@@ -10,7 +10,7 @@ RUN dnf update -y \
                       git \
                       opensc \
     && dnf clean all \
-    && git clone https://gitlab.gnome.org/GNOME/glib.git \
+    && git clone --depth=1 https://gitlab.gnome.org/GNOME/glib.git \
     && pushd glib \
     && meson _build --prefix=/usr \
     && meson install -C _build \
