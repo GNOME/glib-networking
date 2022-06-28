@@ -120,21 +120,6 @@ copy_proxies (gchar **proxies)
   return copy;
 }
 
-/* FIXME: this function should be removed and replaced by a call to
- * px_proxy_factory_free_proxies() once libproxy 0.4.16 is released.
- * Sadly libproxy does not have any version check macros so it will
- * have to be a hard dep.
- */
-static void
-free_libproxy_proxies (gchar **proxies)
-{
-  int i;
-
-  for (i = 0; proxies[i]; i++)
-    free (proxies[i]);
-  free (proxies);
-}
-
 static void
 get_libproxy_proxies (GTask        *task,
                       gpointer      source_object,
@@ -156,7 +141,7 @@ get_libproxy_proxies (GTask        *task,
        * three entries ("socks5", "socks4a", "socks4").
        */
       g_task_return_pointer (task, copy_proxies (proxies), (GDestroyNotify) g_strfreev);
-      free_libproxy_proxies (proxies);
+      px_proxy_factory_free_proxies (proxies);
     }
   else
     {

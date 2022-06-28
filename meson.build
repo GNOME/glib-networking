@@ -69,7 +69,7 @@ endif
 assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 
 # *** Checks for LibProxy   ***
-libproxy_dep = dependency('libproxy-1.0', version: '>= 0.3.1', required: get_option('libproxy'))
+libproxy_dep = dependency('libproxy-1.0', version: '>= 0.4.16', required: get_option('libproxy'))
 
 # *** Checks for GNOME      ***
 gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required: get_option('gnome_proxy'))
