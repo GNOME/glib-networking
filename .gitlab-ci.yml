@@ -17,7 +17,7 @@ fedora-x86_64:
             -Dwerror=true
             _build/
     - meson compile -C _build/
-    - meson test -v -C _build/ --repeat=1000
+    - meson test -v -C _build/ --repeat=10
     - meson install -C _build/
     - ninja -C _build coverage-html
   artifacts:
