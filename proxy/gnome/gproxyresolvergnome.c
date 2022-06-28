@@ -187,6 +187,7 @@ update_settings (GProxyResolverGnome *resolver)
   gchar **ignore_hosts;
   gchar *host, *http_proxy, *proxy;
   guint port;
+  GError *error = NULL;
 
   resolver->need_update = FALSE;
 
@@ -204,7 +205,6 @@ update_settings (GProxyResolverGnome *resolver)
 
   if (resolver->mode == G_DESKTOP_PROXY_MODE_AUTO && !resolver->pacrunner)
     {
-      GError *error = NULL;
       resolver->pacrunner =
         g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
@@ -220,6 +220,7 @@ update_settings (GProxyResolverGnome *resolver)
                      "\n    %s\nProxy autoconfiguration will not work",
                      error->message);
         }
+      g_clear_error (&error);
     }
   else if (resolver->mode != G_DESKTOP_PROXY_MODE_AUTO && resolver->pacrunner)
     {
@@ -269,9 +270,18 @@ update_settings (GProxyResolverGnome *resolver)
       else
         http_proxy = g_strdup_printf ("http://%s:%u", host, port);
 
-      g_simple_proxy_resolver_set_uri_proxy (simple, "http", http_proxy);
-      if (g_settings_get_boolean (resolver->proxy_settings, GNOME_PROXY_USE_SAME_PROXY_KEY))
-        g_simple_proxy_resolver_set_default_proxy (simple, http_proxy);
+      if (g_uri_is_valid (http_proxy, G_URI_FLAGS_NONE, &error))
+        {
+          g_simple_proxy_resolver_set_uri_proxy (simple, "http", http_proxy);
+          if (g_settings_get_boolean (resolver->proxy_settings, GNOME_PROXY_USE_SAME_PROXY_KEY))
+            g_simple_proxy_resolver_set_default_proxy (simple, http_proxy);
+        }
+      else
+        {
+          g_warning ("Invalid HTTP proxy URI %s from GNOME settings: %s", http_proxy, error->message); 
+          g_clear_pointer (&http_proxy, g_free);
+          g_clear_error (&error);
+        }
     }
   else
     http_proxy = NULL;
@@ -282,7 +292,15 @@ update_settings (GProxyResolverGnome *resolver)
   if (host && *host)
     {
       proxy = g_strdup_printf ("http://%s:%u", host, port);
-      g_simple_proxy_resolver_set_uri_proxy (simple, "https", proxy);
+      if (g_uri_is_valid (proxy, G_URI_FLAGS_NONE, &error))
+        {
+          g_simple_proxy_resolver_set_uri_proxy (simple, "https", proxy);
+        }
+      else
+        {
+          g_warning ("Invalid HTTPS proxy URI %s from GNOME settings: %s", proxy, error->message);
+          g_clear_error (&error);
+        }
       g_free (proxy);
     }
   else if (http_proxy)
@@ -294,7 +312,15 @@ update_settings (GProxyResolverGnome *resolver)
   if (host && *host)
     {
       proxy = g_strdup_printf ("socks://%s:%u", host, port);
-      g_simple_proxy_resolver_set_default_proxy (simple, proxy);
+      if (g_uri_is_valid (proxy, G_URI_FLAGS_NONE, &error))
+        {
+          g_simple_proxy_resolver_set_default_proxy (simple, proxy);
+        }
+      else
+        {
+          g_warning ("Invalid SOCKS proxy URI %s from GNOME settings: %s", proxy, error->message);
+          g_clear_error (&error);
+        }
       g_free (proxy);
     }
   g_free (host);
@@ -306,7 +332,15 @@ update_settings (GProxyResolverGnome *resolver)
   if (host && *host)
     {
       proxy = g_strdup_printf ("ftp://%s:%u", host, port);
-      g_simple_proxy_resolver_set_uri_proxy (simple, "ftp", proxy);
+      if (g_uri_is_valid (proxy, G_URI_FLAGS_NONE, &error))
+        {
+          g_simple_proxy_resolver_set_uri_proxy (simple, "ftp", proxy);
+        }
+      else
+        {
+          g_warning ("Invalid FTP proxy URI %s from GNOME settings: %s", proxy, error->message);
+          g_clear_error (&error);
+        }
       g_free (proxy);
     }
   g_free (host);
