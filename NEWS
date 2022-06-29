@@ -1,3 +1,8 @@
+2.72.1 - June 29, 2022
+======================
+
+ - Discard empty proxy environment variables (#189)
+
 2.72.0 - March 22, 2022
 =======================
 
