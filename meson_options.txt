@@ -7,4 +7,4 @@ option('libproxy', type: 'feature', value: 'auto', description: 'support for lib
 option('gnome_proxy', type: 'feature', value: 'auto', description: 'support for GNOME desktop proxy configuration')
 option('installed_tests', type: 'boolean', value: false, description: 'enable installed tests')
 option('static_modules', type: 'boolean', value: false, description: 'build static modules')
-option('debug_logs', type: 'boolean', value: false, description: 'enable debug log messages')
+option('debug_logs', type: 'boolean', value: false, description: 'enable debug log messages (slow)')
