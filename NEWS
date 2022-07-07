@@ -1,3 +1,14 @@
+2.74.alpha - July 7, 2022
+=========================
+
+ - Add build option for toggling debug logging (#188)
+ - Move gettext() usage out of hot paths (#188)
+ - Fix tests build when using openssl (!211, Nirbheek Chauhan)
+ - Properly free libproxy lookup results and require libproxy 0.4.16 (!212)
+ - Add additional validation for proxy lookup results (!212)
+ - Allow using static libraries via meson subprojects (!213, Olivier Crête)
+ - Updated translations
+
 2.72.1 - June 29, 2022
 ======================
 
