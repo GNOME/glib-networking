@@ -1,25 +1,66 @@
-image: registry.gitlab.gnome.org/gnome/glib-networking/master:v20
+include:
+ - remote: 'https://gitlab.freedesktop.org/freedesktop/ci-templates/-/raw/c5626190ec14b475271288dda7a7dae8dbe0cd76/templates/fedora.yml'
+
+variables:
+  FDO_UPSTREAM_REPO: GNOME/glib-networking
+
+stages:
+  - prepare
+  - build
+
+.fedora.container.common:
+  variables:
+    FDO_DISTRIBUTION_TAG: '2022-07-29.4'
+    FDO_DISTRIBUTION_VERSION: 'latest'
+
+build.container.fedora@x86_64:
+  extends:
+  - '.fdo.container-build@fedora'
+  - '.fedora.container.common'
+  stage: prepare
+  variables:
+    GIT_STRATEGY: none
+    FDO_EXPIRES_AFTER: 8w
+    FDO_DISTRIBUTION_PACKAGES: >-
+      ca-certificates
+      clang-analyzer
+      gcc
+      gettext
+      lcov
+      libasan
+      meson
+      pkgconfig(glib-2.0)
+      pkgconfig(gio-2.0)
+      pkgconfig(gnutls)
+      pkgconfig(gobject-2.0)
+      pkgconfig(gsettings-desktop-schemas)
+      pkgconfig(libproxy-1.0)
+      pkgconfig(openssl)
+      pkgconfig(p11-kit-1)
 
 fedora-x86_64:
+  extends:
+    - '.fdo.distribution-image@fedora'
+    - '.fedora.container.common'
   stage: build
   variables:
     # Remove for PKCS11 logs, otherwise generates a lot of noise hitting gitlab's limit
     PKCS11SPY_PATH: disabled
   script:
     - cp .gitlab-ci/lcovrc ~/.lcovrc
-    - meson --prefix=$HOME/glib-networking-installed
-            -Db_coverage=true
-            -Dgnutls=enabled
-            -Dopenssl=enabled
-            -Dlibproxy=enabled
-            -Dgnome_proxy=enabled
-            -Ddebug_logs=true
-            -Dwerror=true
-            _build/
+    - meson setup --prefix=$HOME/glib-networking-installed
+        -Db_coverage=true
+        -Dgnutls=enabled
+        -Dopenssl=enabled
+        -Dlibproxy=enabled
+        -Dgnome_proxy=enabled
+        -Ddebug_logs=true
+        -Dwerror=true
+        _build/
     - meson compile -C _build/
     - meson test -v -C _build/ --repeat=10
     - meson install -C _build/
-    - ninja -C _build coverage-html
+    - ninja -C _build/ coverage-html
   artifacts:
     paths:
       - _build/test-results
@@ -28,6 +69,9 @@ fedora-x86_64:
   coverage: '/^\s+lines\.+:\s+([\d.]+\%)\s+/'
 
 fedora-x86_64-asan:
+  extends:
+    - '.fdo.distribution-image@fedora'
+    - '.fedora.container.common'
   tags: [ asan ]
   stage: build
   variables:
@@ -50,6 +94,9 @@ fedora-x86_64-asan:
     when: on_failure
 
 fedora-x86_64-scan-build:
+  extends:
+    - '.fdo.distribution-image@fedora'
+    - '.fedora.container.common'
   stage: build
   script:
     - meson -Dgnutls=enabled
