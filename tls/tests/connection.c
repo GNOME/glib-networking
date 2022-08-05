@@ -2752,17 +2752,17 @@ test_connection_binding_match_tls_exporter (TestConnection *test,
 
   /* Smoke test: ensure both sides support tls-exporter */
   g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
-                                                    (GTlsChannelBindingType)100500, NULL, NULL));
+                                                    G_TLS_CHANNEL_BINDING_TLS_EXPORTER, NULL, NULL));
   g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
-                                                    (GTlsChannelBindingType)100500, NULL, NULL));
+                                                    G_TLS_CHANNEL_BINDING_TLS_EXPORTER, NULL, NULL));
 
   /* Real test: retrieve bindings and compare */
   client_cb = g_byte_array_new ();
   server_cb = g_byte_array_new ();
   g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->client_connection),
-                                                    (GTlsChannelBindingType)100500, client_cb, NULL));
+                                                    G_TLS_CHANNEL_BINDING_TLS_EXPORTER, client_cb, NULL));
   g_assert_true (g_tls_connection_get_channel_binding_data (G_TLS_CONNECTION (test->server_connection),
-                                                    (GTlsChannelBindingType)100500, server_cb, NULL));
+                                                    G_TLS_CHANNEL_BINDING_TLS_EXPORTER, server_cb, NULL));
 
   client_b64 = g_base64_encode (client_cb->data, client_cb->len);
   server_b64 = g_base64_encode (server_cb->data, server_cb->len);

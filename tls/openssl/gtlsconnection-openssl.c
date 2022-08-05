@@ -796,18 +796,14 @@ g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase      *tls,
 {
   GTlsConnectionOpenssl *openssl = G_TLS_CONNECTION_OPENSSL (tls);
 
-  /* XXX: remove the cast once public enum supports exporter */
-  switch ((int)type)
+  switch (type)
     {
     case G_TLS_CHANNEL_BINDING_TLS_UNIQUE:
       return openssl_get_binding_tls_unique (openssl, data, error);
-      /* fall through */
     case G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT:
       return openssl_get_binding_tls_server_end_point (openssl, data, error);
-      /* fall through */
-    case 100500:
+    case G_TLS_CHANNEL_BINDING_TLS_EXPORTER:
       return openssl_get_binding_tls_exporter (openssl, data, error);
-      /* fall through */
     default:
       /* Anyone to implement tls-unique-for-telnet? */
       g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,

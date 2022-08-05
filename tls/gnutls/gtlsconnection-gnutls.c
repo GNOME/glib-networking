@@ -1331,8 +1331,6 @@ gnutls_get_binding_tls_server_end_point (GTlsConnectionGnutls  *gnutls,
 #define RFC5705_LABEL_LEN 24
 #endif
 
-/* Experimental binding for TLS1.3, see
- * https://datatracker.ietf.org/doc/draft-ietf-kitten-tls-channel-bindings-for-tls13 */
 static gboolean
 gnutls_get_binding_tls_exporter (GTlsConnectionGnutls  *gnutls,
                                  GByteArray            *data,
@@ -1373,18 +1371,14 @@ g_tls_connection_gnutls_get_channel_binding_data (GTlsConnectionBase      *tls,
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (tls);
 
-  /* XXX: remove the cast once public enum supports exporter */
-  switch ((int)type)
+  switch (type)
     {
     case G_TLS_CHANNEL_BINDING_TLS_UNIQUE:
       return gnutls_get_binding_tls_unique (gnutls, data, error);
-      /* fall through */
     case G_TLS_CHANNEL_BINDING_TLS_SERVER_END_POINT:
       return gnutls_get_binding_tls_server_end_point (gnutls, data, error);
-      /* fall through */
-    case 100500:
+    case G_TLS_CHANNEL_BINDING_TLS_EXPORTER:
       return gnutls_get_binding_tls_exporter (gnutls, data, error);
-      /* fall through */
     default:
       /* Anyone to implement tls-unique-for-telnet? */
       g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
