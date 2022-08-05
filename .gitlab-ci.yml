@@ -10,7 +10,7 @@ stages:
 
 .fedora.container.common:
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-07-29.4'
+    FDO_DISTRIBUTION_TAG: '2022-08-05.3'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 build.container.fedora@x86_64:
@@ -26,17 +26,22 @@ build.container.fedora@x86_64:
       clang-analyzer
       gcc
       gettext
+      git
       lcov
       libasan
       meson
-      pkgconfig(glib-2.0)
-      pkgconfig(gio-2.0)
       pkgconfig(gnutls)
-      pkgconfig(gobject-2.0)
       pkgconfig(gsettings-desktop-schemas)
       pkgconfig(libproxy-1.0)
       pkgconfig(openssl)
       pkgconfig(p11-kit-1)
+    FDO_DISTRIBUTION_EXEC: >-
+      git clone --depth=1 https://gitlab.gnome.org/GNOME/glib.git &&
+      pushd glib &&
+      meson _build --prefix=/usr &&
+      meson install -C _build &&
+      popd &&
+      rm -rf glib
 
 fedora-x86_64:
   extends:
@@ -116,15 +121,16 @@ fedora-x86_64-scan-build:
       - _build/meson-logs/scanbuild
     when: on_failure
 
-vs2017-x64:
-  stage: build
-  except:
-    - tags
-  tags:
-    - win32-ps
-  script:
-    - .gitlab-ci/test-msvc.bat
-  artifacts:
-    paths:
-      - build/test-results
-    when: on_failure
+# FIXME: Windows CI needs GLib 2.73.3
+#vs2017-x64:
+#  stage: build
+#  except:
+#    - tags
+#  tags:
+#    - win32-ps
+#  script:
+#    - .gitlab-ci/test-msvc.bat
+#  artifacts:
+#    paths:
+#      - build/test-results
+#    when: on_failure
