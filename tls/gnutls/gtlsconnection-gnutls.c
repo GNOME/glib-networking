@@ -1098,35 +1098,7 @@ glib_protocol_version_from_gnutls (gnutls_protocol_t protocol_version)
 static gchar *
 get_ciphersuite_name (gnutls_session_t session)
 {
-#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 4)
   return g_strdup (gnutls_ciphersuite_get (session));
-#else
-  gnutls_protocol_t protocol_version = gnutls_protocol_get_version (session);
-  char *cipher_name;
-  char *result;
-
-  if (protocol_version <= GNUTLS_TLS1_2 ||
-      (protocol_version >= GNUTLS_DTLS0_9 && protocol_version <= GNUTLS_DTLS1_2))
-    {
-      return g_strdup (gnutls_cipher_suite_get_name (gnutls_kx_get (session),
-                                                     gnutls_cipher_get (session),
-                                                     gnutls_mac_get (session)));
-    }
-
-  cipher_name = g_strdup (gnutls_cipher_get_name (gnutls_cipher_get (session)));
-  for (char *c = cipher_name; *c != '\0'; c++)
-    {
-      if (*c == '-')
-        *c = '_';
-    }
-
-  result = g_strdup_printf ("TLS_%s_%s",
-                            cipher_name,
-                            gnutls_digest_get_name (gnutls_prf_hash_get (session)));
-  g_free (cipher_name);
-
-  return result;
-#endif
 }
 
 static void
@@ -1226,141 +1198,15 @@ gnutls_get_binding_tls_server_end_point (GTlsConnectionGnutls  *gnutls,
                                          GByteArray            *data,
                                          GError               **error)
 {
-#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 2)
   return gnutls_get_binding (gnutls, data, GNUTLS_CB_TLS_SERVER_END_POINT, error);
-#else
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  const gnutls_datum_t *ders;
-  unsigned int num_certs = 1;
-  int ret;
-  size_t rlen;
-  gnutls_x509_crt_t cert;
-  gnutls_digest_algorithm_t algo;
-  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (gnutls);
-
-  ret = gnutls_certificate_type_get (priv->session);
-  if (ret != GNUTLS_CRT_X509)
-    {
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
-                   _("X.509 certificate is not available on the connection"));
-      return FALSE;
-    }
-
-  if (is_client)
-    ders = gnutls_certificate_get_peers (priv->session, &num_certs);
-  else
-    ders = gnutls_certificate_get_ours (priv->session);
-
-  if (!ders || num_certs == 0)
-    {
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
-                   _("X.509 certificate is not available on the connection"));
-      return FALSE;
-    }
-
-  /* This is a drill */
-  if (!data)
-    return TRUE;
-
-  /* for DER only first cert is imported, but cert will be pre-initialized */
-  ret = gnutls_x509_crt_list_import (&cert, &num_certs, ders, GNUTLS_X509_FMT_DER, 0);
-  if (ret < 0 || num_certs == 0)
-    {
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
-                   _("X.509 certificate is not available or is of unknown format: %s"),
-                   gnutls_strerror (ret));
-      return FALSE;
-    }
-
-  /* obtain signature algorithm for the certificate - we need hashing algo from it */
-  ret = gnutls_x509_crt_get_signature_algorithm (cert);
-  if (ret < 0 || ret == GNUTLS_SIGN_UNKNOWN)
-    {
-      gnutls_x509_crt_deinit (cert);
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
-                   _("Unable to obtain certificate signature algorithm"));
-      return FALSE;
-    }
-  /* At this point we either use SHA256 as a fallback, or native algorithm */
-  algo = gnutls_sign_get_hash_algorithm (ret);
-  /* Cannot identify signing algorithm or weak security - let try fallback */
-  switch (algo)
-    {
-    case GNUTLS_DIG_MD5:
-    case GNUTLS_DIG_SHA1:
-      algo = GNUTLS_DIG_SHA256;
-      break;
-    case GNUTLS_DIG_UNKNOWN:
-    case GNUTLS_DIG_NULL:
-    case GNUTLS_DIG_MD5_SHA1:
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
-                   _("Current X.509 certificate uses unknown or unsupported signature algorithm"));
-      gnutls_x509_crt_deinit (cert);
-      return FALSE;
-    default:
-      /* no-op */
-      algo = algo;
-    }
-  /* preallocate 512 bits buffer as maximum supported digest size */
-  rlen = 64;
-  g_byte_array_set_size (data, rlen);
-  ret = gnutls_x509_crt_get_fingerprint (cert, algo, data->data, &rlen);
-
-  /* in case the future is coming on */
-  if (ret == GNUTLS_E_SHORT_MEMORY_BUFFER)
-    {
-      g_byte_array_set_size (data, rlen);
-      ret = gnutls_x509_crt_get_fingerprint (cert, algo, data->data, &rlen);
-    }
-
-  gnutls_x509_crt_deinit (cert);
-  g_byte_array_set_size (data, rlen);
-
-  if (ret == 0)
-    return TRUE;
-
-  /* Still getting error? We cannot do much here to recover */
-  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
-               "%s", gnutls_strerror(ret));
-  return FALSE;
-#endif
 }
-
-#if !GTLS_GNUTLS_CHECK_VERSION(3, 7, 2)
-#define RFC5705_LABEL_DATA "EXPORTER-Channel-Binding"
-#define RFC5705_LABEL_LEN 24
-#endif
 
 static gboolean
 gnutls_get_binding_tls_exporter (GTlsConnectionGnutls  *gnutls,
                                  GByteArray            *data,
                                  GError               **error)
 {
-#if GTLS_GNUTLS_CHECK_VERSION(3, 7, 2)
   return gnutls_get_binding (gnutls, data, GNUTLS_CB_TLS_EXPORTER, error);
-#else
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  int ret;
-  gsize ctx_len = 0;
-  char *context = "";
-
-  /* This is a drill */
-  if (!data)
-    return TRUE;
-
-  g_byte_array_set_size (data, 32);
-  ret = gnutls_prf_rfc5705 (priv->session,
-                            RFC5705_LABEL_LEN, RFC5705_LABEL_DATA,
-                            ctx_len, context,
-                            data->len, (char *)data->data);
-
-  if (ret == GNUTLS_E_SUCCESS)
-    return TRUE;
-
-  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
-               "%s", gnutls_strerror (ret));
-  return FALSE;
-#endif
 }
 
 static gboolean

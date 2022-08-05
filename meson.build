@@ -85,7 +85,7 @@ have_rtld_noload = cc.has_header_symbol('dlfcn.h', 'RTLD_NOLOAD')
 config_h.set('HAVE_RTLD_NOLOAD', have_rtld_noload)
 
 # *** Checks for GnuTLS     ***
-gnutls_dep = dependency('gnutls', version: '>= 3.6.5', required: get_option('gnutls'))
+gnutls_dep = dependency('gnutls', version: '>= 3.7.4', required: get_option('gnutls'))
 
 if gnutls_dep.found()
   backends += ['gnutls']
