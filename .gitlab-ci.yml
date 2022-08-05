@@ -52,6 +52,7 @@ fedora-x86_64:
         -Db_coverage=true
         -Dgnutls=enabled
         -Dopenssl=enabled
+        -Denvironment_proxy=enabled
         -Dlibproxy=enabled
         -Dgnome_proxy=enabled
         -Ddebug_logs=true
@@ -82,6 +83,7 @@ fedora-x86_64-asan:
             -Dgnutls=enabled
             -Dopenssl=enabled
             -Dlibproxy=enabled
+            -Denvironment_proxy=enabled
             -Dgnome_proxy=enabled
             -Ddebug_logs=true
             -Dwerror=true
@@ -101,6 +103,7 @@ fedora-x86_64-scan-build:
   script:
     - meson -Dgnutls=enabled
             -Dopenssl=enabled
+            -Denvironment_proxy=enabled
             -Dlibproxy=enabled
             -Dgnome_proxy=enabled
             -Ddebug_logs=true

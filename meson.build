@@ -71,6 +71,10 @@ assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 # *** Checks for LibProxy   ***
 libproxy_dep = dependency('libproxy-1.0', version: '>= 0.4.16', required: get_option('libproxy'))
 
+# *** Checks for environment proxy ***
+environment_proxy_option = get_option('environment_proxy')
+environment_proxy_enabled = environment_proxy_option.enabled() or (environment_proxy_option.auto() and not libproxy_dep.found())
+
 # *** Checks for GNOME      ***
 gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required: get_option('gnome_proxy'))
 
@@ -148,8 +152,9 @@ if gio_querymodules.found()
 endif
 
 output = '\n\n'
-output += '  gnutls support:      ' + backends.contains('gnutls').to_string() + '\n'
-output += '  openssl support:     ' + backends.contains('openssl').to_string() + '\n'
-output += '  libproxy support:    ' + libproxy_dep.found().to_string() + '\n'
-output += '  GNOME proxy support: ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
+output += '  GnuTLS support:            ' + backends.contains('gnutls').to_string() + '\n'
+output += '  OpenSSL support:           ' + backends.contains('openssl').to_string() + '\n'
+output += '  environment proxy support: ' + environment_proxy_enabled.to_string() + '\n'
+output += '  libproxy support:          ' + libproxy_dep.found().to_string() + '\n'
+output += '  GNOME proxy support:       ' + gsettings_desktop_schemas_dep.found().to_string() + '\n'
 message(output)
