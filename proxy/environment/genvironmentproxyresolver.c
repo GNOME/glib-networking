@@ -204,6 +204,6 @@ g_environment_proxy_resolver_register (GIOModule *module)
   g_io_extension_point_implement (G_PROXY_RESOLVER_EXTENSION_POINT_NAME,
                                   g_environment_proxy_resolver_get_type(),
                                   "environment",
-                                  100);
+                                  0);
 }
 #endif
