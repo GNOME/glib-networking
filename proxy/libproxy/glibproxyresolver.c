@@ -245,6 +245,6 @@ g_libproxy_resolver_register (GIOModule *module)
   g_io_extension_point_implement (G_PROXY_RESOLVER_EXTENSION_POINT_NAME,
                                   g_libproxy_resolver_get_type(),
                                   "libproxy",
-                                  0);
+                                  10);
 }
 #endif
