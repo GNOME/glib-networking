@@ -1,3 +1,10 @@
+2.74.beta - August 5, 2022
+==========================
+
+ - Drop environment proxy resolver to lowest priority (#190)
+ - Expose implementation of G_TLS_CHANNEL_BINDING_EXPORTER (#191)
+ - Add build option for environment proxy resolver (!217)
+
 2.74.alpha - July 7, 2022
 =========================
 
