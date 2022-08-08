@@ -121,16 +121,15 @@ fedora-x86_64-scan-build:
       - _build/meson-logs/scanbuild
     when: on_failure
 
-# FIXME: Windows CI needs GLib 2.73.3
-#vs2017-x64:
-#  stage: build
-#  except:
-#    - tags
-#  tags:
-#    - win32-ps
-#  script:
-#    - .gitlab-ci/test-msvc.bat
-#  artifacts:
-#    paths:
-#      - build/test-results
-#    when: on_failure
+vs2017-x64:
+  stage: build
+  except:
+    - tags
+  tags:
+    - win32-ps
+  script:
+    - .gitlab-ci/test-msvc.bat
+  artifacts:
+    paths:
+      - build/test-results
+    when: on_failure
