@@ -42,7 +42,8 @@ enum
   PROP_VALIDATION_FLAGS,
   PROP_SERVER_IDENTITY,
   PROP_USE_SSL3,
-  PROP_ACCEPTED_CAS
+  PROP_ACCEPTED_CAS,
+  PROP_SESSION_REUSED
 };
 
 struct _GTlsClientConnectionGnutls
@@ -52,6 +53,7 @@ struct _GTlsClientConnectionGnutls
   GTlsCertificateFlags validation_flags;
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
+  gboolean session_reused;
 
   /* session_data is either the session ticket that was used to resume this
    * connection, or the most recent session ticket received from the server.
@@ -321,6 +323,10 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
       g_value_set_pointer (value, accepted_cas);
       break;
 
+    case PROP_SESSION_REUSED:
+      g_value_set_boolean (value, gnutls->session_reused);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -485,6 +491,7 @@ g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
                                    g_bytes_get_size (session_data));
           g_clear_pointer (&gnutls->session_data, g_bytes_unref);
           gnutls->session_data = g_steal_pointer (&session_data);
+          gnutls->session_reused = TRUE;
         }
     }
 
@@ -571,6 +578,7 @@ g_tls_client_connection_gnutls_copy_session_state (GTlsClientConnection *conn,
     }
 
   gnutls->session_data_override = !!gnutls->session_data;
+  gnutls->session_reused = gnutls->session_data_override;
 }
 
 static void
@@ -600,6 +608,7 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
   g_object_class_override_property (gobject_class, PROP_USE_SSL3, "use-ssl3");
   g_object_class_override_property (gobject_class, PROP_ACCEPTED_CAS, "accepted-cas");
+  g_object_class_override_property (gobject_class, PROP_SESSION_REUSED, "session-reused");
 }
 
 static void

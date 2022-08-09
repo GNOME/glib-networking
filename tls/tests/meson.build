@@ -48,6 +48,7 @@ test_programs = [
 foreach backend: backends
   foreach program: test_programs
     program_name = program[0] + '-' + backend
+    program_deps = program[2]
 
     test_conf = configuration_data()
     test_conf.set('installed_tests_dir', installed_tests_execdir)
@@ -67,7 +68,12 @@ foreach backend: backends
       '-DBACKEND="@0@"'.format(backend),
       '-DBACKEND_IS_' + backend.to_upper(),
       '-DSIZEOF_TIME_T=@0@'.format(cc.sizeof('time_t', prefix: '#include <time.h>')),
+      '-D_GNU_SOURCE',
     ]
+
+    if not ['windows'].contains(host_system)
+      program_deps += cc.find_library('dl')
+    endif
 
     if backend == 'openssl'
       incs += openssl_inc
@@ -77,7 +83,7 @@ foreach backend: backends
       program_name,
       [program[0] + '.c'] + program[1],
       include_directories: incs,
-      dependencies: program[2],
+      dependencies: program_deps,
       c_args: test_cflags,
       install: enable_installed_tests,
       install_dir: installed_tests_execdir

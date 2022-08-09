@@ -40,6 +40,11 @@
 #include "openssl-include.h"
 #endif
 
+#if defined(G_OS_UNIX)
+#include <dlfcn.h>
+static struct timespec offset;
+#endif
+
 static const gchar *
 tls_test_file_path (const char *name)
 {
@@ -104,6 +109,10 @@ setup_connection (TestConnection *test, gconstpointer data)
   test->context = g_main_context_default ();
   test->loop = g_main_loop_new (test->context, FALSE);
   test->auth_mode = G_TLS_AUTHENTICATION_NONE;
+#if defined(G_OS_UNIX)
+  offset.tv_sec = 0;
+  offset.tv_nsec = 0;
+#endif
 }
 
 /* Waits about 10 seconds for @var to be NULL/FALSE */
@@ -145,6 +154,11 @@ wait_until_server_finished (TestConnection *test)
 static void
 teardown_connection (TestConnection *test, gconstpointer data)
 {
+#if defined(G_OS_UNIX)
+  offset.tv_sec = 0;
+  offset.tv_nsec = 0;
+#endif
+
   if (test->service)
     {
       g_socket_service_stop (test->service);
@@ -550,6 +564,241 @@ read_test_data_async (TestConnection *test)
   g_data_input_stream_read_line_async (stream, G_PRIORITY_DEFAULT, NULL,
                                        on_input_read_finish, test);
   g_object_unref (stream);
+}
+
+#if defined(G_OS_UNIX)
+typedef int (*clock_gettime_fnptr)(clockid_t clk_id, struct timespec *tp);
+static __thread clock_gettime_fnptr original_clock_gettime = NULL;
+
+int
+clock_gettime (clockid_t        clk_id,
+               struct timespec *tp)
+{
+  int ret = -1;
+  if (!original_clock_gettime)
+    {
+      original_clock_gettime = dlsym (RTLD_NEXT, "clock_gettime");
+      if (!original_clock_gettime)
+        {
+          errno = EINVAL;
+          return -1;
+        }
+    }
+
+  ret = original_clock_gettime (clk_id, tp);
+  if (ret == 0 && tp)
+    {
+      tp->tv_sec += offset.tv_sec;
+      tp->tv_nsec += offset.tv_nsec;
+    }
+
+  return ret;
+}
+#endif
+
+static void
+test_connection_session_resume_ten_minute_expiry (TestConnection *test,
+                                                 gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+  GTlsCertificate *cert;
+  GSocketClient *client;
+  gboolean reused = FALSE;
+
+#if !defined(G_OS_UNIX)
+  g_test_skip ("test_connection_session_resume_ten_minute_expiry requires interposing clock_gettime which is only available in UNIX platforms");
+  return;
+#endif
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  g_object_get (G_OBJECT (test->client_connection),
+		"session-reused", &reused,
+		NULL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_object_unref (cert);
+  g_object_unref (test->client_connection);
+  g_clear_object (&test->server_connection);
+
+  /* First connection was not reused */
+  g_assert_false (reused);
+
+#if defined(G_OS_UNIX)
+  /* Expiry should be 10 min */
+  offset.tv_sec = 11 * 60;
+#endif
+
+  /* Now start a new connection to the same server */
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  g_object_get (G_OBJECT (test->client_connection),
+		"session-reused", &reused,
+		NULL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_object_unref (cert);
+
+  /* Second connection *DID NOT* reuse the first connection */
+#if !defined(BACKEND_IS_GNUTLS)
+  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/194
+  g_assert_false (reused);
+#endif
+}
+
+static void
+test_connection_session_resume_multiple_times (TestConnection *test,
+                                              gconstpointer   data)
+{
+  GIOStream *connection;
+  GError *error = NULL;
+  GTlsCertificate *cert;
+  GSocketClient *client;
+  gboolean reused = FALSE;
+
+  test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->database);
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_REQUIRED);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  g_object_get (G_OBJECT (test->client_connection),
+		"session-reused", &reused,
+		NULL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_object_unref (cert);
+  g_object_unref (test->client_connection);
+  g_clear_object (&test->server_connection);
+
+  /* First connection was not reused */
+  g_assert_false (reused);
+
+  /* Now start a new connection to the same server */
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  g_object_get (G_OBJECT (test->client_connection),
+		"session-reused", &reused,
+		NULL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_object_unref (cert);
+  g_object_unref (test->client_connection);
+  g_clear_object (&test->server_connection);
+
+  /* Second connection reused the first connection */
+#if !defined(BACKEND_IS_GNUTLS)
+  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/194
+  g_assert_true (reused);
+#endif
+
+  /* Now start a third connection to the same server */
+  client = g_socket_client_new ();
+  connection = G_IO_STREAM (g_socket_client_connect (client, G_SOCKET_CONNECTABLE (test->address),
+                                                     NULL, &error));
+  g_assert_no_error (error);
+  g_object_unref (client);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test->client_connection);
+  g_object_unref (connection);
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
+  g_assert_no_error (error);
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (test->client_connection), cert);
+  g_tls_connection_set_database (G_TLS_CONNECTION (test->client_connection), test->database);
+
+  g_object_get (G_OBJECT (test->client_connection),
+		"session-reused", &reused,
+		NULL);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+
+  g_object_unref (cert);
+
+  /* Third connection reused the first connection */
+#if !defined(BACKEND_IS_GNUTLS)
+  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/194
+  g_assert_true (reused);
+#endif
 }
 
 static void
@@ -3122,6 +3371,10 @@ main (int   argc,
   g_free (module_path);
 #endif
 
+  g_test_add ("/tls/" BACKEND "/connection/session/resume_multiple_times", TestConnection, NULL,
+              setup_connection, test_connection_session_resume_multiple_times, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/session/reuse_ten_minute_expiry", TestConnection, NULL,
+              setup_connection, test_connection_session_resume_ten_minute_expiry, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/basic", TestConnection, NULL,
               setup_connection, test_basic_connection, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/verified", TestConnection, NULL,

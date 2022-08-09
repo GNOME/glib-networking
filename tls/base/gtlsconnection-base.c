@@ -216,7 +216,8 @@ enum
   PROP_ADVERTISED_PROTOCOLS,
   PROP_NEGOTIATED_PROTOCOL,
   PROP_PROTOCOL_VERSION,
-  PROP_CIPHERSUITE_NAME
+  PROP_CIPHERSUITE_NAME,
+  PROP_SESSION_REUSED
 };
 
 gboolean
@@ -366,6 +367,10 @@ g_tls_connection_base_get_property (GObject    *object,
       g_value_set_string (value, priv->ciphersuite_name);
       break;
 
+    case PROP_SESSION_REUSED:
+      g_value_set_boolean (value, FALSE);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -467,6 +472,10 @@ g_tls_connection_base_set_property (GObject      *object,
     case PROP_ADVERTISED_PROTOCOLS:
       g_clear_pointer (&priv->advertised_protocols, g_strfreev);
       priv->advertised_protocols = g_value_dup_boxed (value);
+      break;
+
+    case PROP_SESSION_REUSED:
+      g_assert_not_reached ();
       break;
 
     default:
@@ -2794,6 +2803,14 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
 
   klass->push_io = g_tls_connection_base_real_push_io;
   klass->pop_io = g_tls_connection_base_real_pop_io;
+
+  g_object_class_install_property (gobject_class, PROP_SESSION_REUSED,
+    g_param_spec_boolean ("session-reused",
+                  _("Session Reused"),
+                  _("Indicates whether a session has been reused"),
+                  FALSE,
+                  G_PARAM_READABLE |
+                  G_PARAM_STATIC_STRINGS));
 
   /* For GTlsConnection and GDtlsConnection: */
   g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");
