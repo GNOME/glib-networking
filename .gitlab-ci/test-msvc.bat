@@ -28,7 +28,7 @@ set PKG_CONFIG_PATH=%DEPS_DIR%\lib\pkgconfig
 :: FIXME: make warnings fatal
 :: FIXME: Environment proxy ought to work on Windows: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/185
 pip3 install --upgrade --user meson==0.60.0  || goto :error
-meson build -Dgnutls=disabled -Dopenssl=enabled -Denvironment_proxy=disabled -Ddebug_logs=true || goto :error
+meson build -Dgnutls=disabled -Dopenssl=enabled -Dlibproxy=disabled -Denvironment_proxy=disabled -Dgnome_proxy=disabled -Ddebug_logs=true || goto :error
 ninja -C build || goto :error
 
 meson test -C build --timeout-multiplier=10 || goto :error
