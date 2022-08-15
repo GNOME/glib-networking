@@ -80,10 +80,6 @@ assert(gio_module_dir != '', 'GIO_MODULE_DIR is missing from gio-2.0.pc')
 # *** Checks for LibProxy   ***
 libproxy_dep = dependency('libproxy-1.0', version: '>= 0.4.16', required: get_option('libproxy'))
 
-# *** Checks for environment proxy ***
-environment_proxy_option = get_option('environment_proxy')
-environment_proxy_enabled = environment_proxy_option.enabled() or (environment_proxy_option.auto() and not libproxy_dep.found())
-
 # *** Checks for GNOME      ***
 gsettings_desktop_schemas_dep = dependency('gsettings-desktop-schemas', required: get_option('gnome_proxy'))
 
