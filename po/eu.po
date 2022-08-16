@@ -2,14 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Iñaki Larrañaga Murgoitio <dooteo@euskalgnu.org>, 2011, 2012.
-# Iñaki Larrañaga Murgoitio <dooteo@zundan.com>, 2013, 2017.
-# Asier Sarasua Garmendia <asiersarasua@ni.eus>, 2019, 2020, 2021.
+# Iñaki Larrañaga Murgoitio <dooteo@euskalgnu.org>, 2011, 2012, 2013, 2017.
+# Asier Sarasua Garmendia <asiersarasua@ni.eus>, 2019, 2020, 2021, 2022.
+#
 msgid ""
 msgstr "Project-Id-Version: eu\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2021-12-18 16:29+0000\n"
-"PO-Revision-Date: 2021-12-25 10:00+0100\n"
+"POT-Creation-Date: 2022-08-15 19:23+0000\n"
+"PO-Revision-Date: 2022-08-16 10:00+0100\n"
 "Last-Translator: Asier Sarasua Garmendia <asiersarasua@ni.eus>\n"
 "Language-Team: Basque <librezale@librezale.eus>\n"
 "Language: eu\n"
@@ -19,7 +19,7 @@ msgstr "Project-Id-Version: eu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "\n"
 
-#: proxy/libproxy/glibproxyresolver.c:164
+#: proxy/libproxy/glibproxyresolver.c:158
 msgid "Proxy resolver internal error."
 msgstr "Proxyen ebaztailearen barneko errorea."
 
@@ -60,7 +60,7 @@ msgstr "Parekoak ez du onartzen birnegoziazio segurua"
 
 #: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:839
+#: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Onartu gabeko TLS ziurtagiria"
@@ -75,41 +75,47 @@ msgstr "Banderak jasotzea ez dago onartuta"
 msgid "Send flags are not supported"
 msgstr "Banderak bidaltzea ez dago onartuta"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:361
-#: tls/openssl/gtlscertificate-openssl.c:363
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Huts egin du PKCS #12 kargatzeak: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Ezin izan da DER ziurtagiria analizatu: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:382
-#: tls/openssl/gtlscertificate-openssl.c:384
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Ezin izan da PEM ziurtagiria analizatu: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:405
-#: tls/openssl/gtlscertificate-openssl.c:404
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Ezin izan da DER gako pribatua analizatu: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:428
-#: tls/openssl/gtlscertificate-openssl.c:424
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Ezin izan da PEM gako pribatua analizatu: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:455
+#: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
 msgstr "Ezin izan da PKCS #11 ziurtagiriaren URIa inportatu: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:497
-#: tls/openssl/gtlscertificate-openssl.c:459
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
 msgid "No certificate data provided"
 msgstr "Ez da ziurtagiriaren daturik eman"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:807
+#: tls/gnutls/gtlscertificate-gnutls.c:981
 #: tls/gnutls/gtlsconnection-gnutls.c:1058
 #, c-format
 msgid "Cannot verify peer identity of unexpected type %s"
@@ -174,81 +180,57 @@ msgstr "Errorea TLS diosala lantzean: %s"
 msgid "Error performing TLS handshake"
 msgstr "Errorea TLS diosala lantzean"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
 #, c-format
 msgid ""
 "Empty channel binding data indicates a bug in the TLS library implementation"
 msgstr "Kanal-loturen daturik ezak adierazten du akatsa bat dagoela TLS liburutegiaren inplementazioan"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1199
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Kanal-loturaren mota ez dago inplementatuta TLS liburutegian"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1203
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Kanal-loturaren datuak ez daude oraindik eskuragarri"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1253
-#, c-format
-msgid "X.509 certificate is not available on the connection"
-msgstr "X.509 ziurtagiria ez dago eskuragarri konexioan"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1266
-#, c-format
-msgid "X.509 certificate is not available or is of unknown format: %s"
-msgstr "X.509 ziurtagiria ez dago eskuragarri edo formatu ezezagunekoa da: %s"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1277
-#: tls/openssl/gtlsconnection-openssl.c:714
-#, c-format
-msgid "Unable to obtain certificate signature algorithm"
-msgstr "Ezin izan da eskuratu ziurtagiriaren sinadura-algoritmoa"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1293
-#: tls/openssl/gtlsconnection-openssl.c:734
-#, c-format
-msgid ""
-"Current X.509 certificate uses unknown or unsupported signature algorithm"
-msgstr "Uneko X.509 ziurtagiriak sinadura-algoritmo ezezaguna edo onartzen ez dena erabiltzen du"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1387
-#: tls/openssl/gtlsconnection-openssl.c:814
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Eskatutako kanal-loturaren mota ez dago inplementatuta"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1408
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-#: tls/openssl/gtlsconnection-openssl.c:832
-#: tls/openssl/gtlsconnection-openssl.c:928
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
 msgid "Error reading data from TLS socket"
 msgstr "Errorea datuak TLS socketetik irakurtzean"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1490
-#: tls/gnutls/gtlsconnection-gnutls.c:1553
-#: tls/openssl/gtlsconnection-openssl.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
 msgid "Error writing data to TLS socket"
 msgstr "Errorea datuak TLS socketera idaztean"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1523
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "%lu byte-ko mezua luzeegia da DTLS konexiorako"
 msgstr[1] "%lu byte-ko mezua luzeegia da DTLS konexiorako"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1525
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(gehienekoa %u byte da)"
 msgstr[1] "(gehienekoa %u byte dira)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1572
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Errorea TLSren itxiera lantzean: %s"
@@ -326,6 +308,17 @@ msgstr "Kanal-loturaren tls-unique datuak ez daude eskuragarri"
 msgid "X.509 Certificate is not available on the connection"
 msgstr "X.509 ziurtagiria ez dago eskuragarri konexioan"
 
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Ezin izan da eskuratu ziurtagiriaren sinadura-algoritmoa"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr "Uneko X.509 ziurtagiriak sinadura-algoritmo ezezaguna edo onartzen ez dena erabiltzen du"
+
 #: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
@@ -341,7 +334,7 @@ msgstr "TLS konexioak ez du onartzen TLS-Exporter eginbidea"
 msgid "Unexpected error while exporting keying data"
 msgstr "Ustekabeko errorea gako-datuak esportatzean"
 
-#: tls/openssl/gtlsconnection-openssl.c:1068
+#: tls/openssl/gtlsconnection-openssl.c:1064
 msgid "Error performing TLS close"
 msgstr "Errorea TLSren itxiera lantzean"
 
@@ -370,6 +363,15 @@ msgstr "Arazoa dago ziurtagiriarekin: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Arazoa dago ziurtagiriaren gako pribatuarekin: %s"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "X.509 ziurtagiria ez dago eskuragarri konexioan"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr ""
+#~ "X.509 ziurtagiria ez dago eskuragarri edo formatu ezezagunekoa da: %s"
 
 #~ msgid "Peer requested illegal TLS rehandshake"
 #~ msgstr "Parekoak legez kanpoko TLS diosala eskatu du"
