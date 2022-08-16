@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
 "POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-08-17 00:53+0200\n"
+"PO-Revision-Date: 2022-08-17 00:54+0200\n"
 "Last-Translator: gogo <trebelnik2@gmail.com>\n"
 "Language-Team: Croatian <hr@li.org>\n"
 "Language: hr\n"
@@ -110,7 +110,7 @@ msgstr "Nemoguća analiza PEM privatnog ključa: %s"
 #: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
-msgstr "Nemoguća uvoz PKCS #11 URI-ja vjerodajnica: %s"
+msgstr "Nemoguć uvoz PKCS #11 URI-ja vjerodajnica: %s"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:657
 #: tls/openssl/gtlscertificate-openssl.c:620
