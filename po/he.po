@@ -2,25 +2,26 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Yosef Or Boczko <yoseforb@gmail.com>, 2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2021-12-18 16:29+0000\n"
-"PO-Revision-Date: 2022-01-12 14:23+0200\n"
-"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
-"Language-Team: Hebrew <sh.yaron@gmail.com>\n"
+"POT-Creation-Date: 2022-08-15 19:23+0000\n"
+"PO-Revision-Date: 2022-08-18 13:51+0300\n"
+"Last-Translator: Yosef Or Boczko <yoseforb@gmail.com>\n"
+"Language-Team: Hebrew <>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n==2 ? 1 : n>10 && n%10==0 ? "
-"2 : 3);\n"
+"2 : 3)\n"
 "X-Poedit-SourceCharset: UTF-8\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Gtranslator 40.0\n"
 
-#: proxy/libproxy/glibproxyresolver.c:164
+#: proxy/libproxy/glibproxyresolver.c:158
 msgid "Proxy resolver internal error."
 msgstr "שגיאה פנימית בפתרון המתווך."
 
@@ -61,7 +62,7 @@ msgstr "העמית לא תומך במשא ומתן מחודש בטוח"
 
 #: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:839
+#: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "אישור ה־TLS אינו מקובל"
@@ -76,41 +77,48 @@ msgstr "קבלת דגלים לא נתמכת"
 msgid "Send flags are not supported"
 msgstr "שליחת דגלים אינה נתמכת"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:361
-#: tls/openssl/gtlscertificate-openssl.c:363
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+#| msgid "Could not import PKCS #11 certificate URI: %s"
+msgid "Failed to import PKCS #12: %s"
+msgstr "לא ניתן לייבא את PKCS #12‏: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "לא ניתן לפענח את אישור ה־DER:‏ %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:382
-#: tls/openssl/gtlscertificate-openssl.c:384
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "לא ניתן לפענח את אישור ה־PEM:‏ %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:405
-#: tls/openssl/gtlscertificate-openssl.c:404
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "לא ניתן לפענח את מפתח ה־DER הפרטי: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:428
-#: tls/openssl/gtlscertificate-openssl.c:424
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "לא ניתן לפענח את מפתח ה־PEM הפרטי: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:455
+#: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
 msgstr "לא ניתן לייבא כתובת אישור PKCS #11‏: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:497
-#: tls/openssl/gtlscertificate-openssl.c:459
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
 msgid "No certificate data provided"
 msgstr "לא סופקו נתוני אישור"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:807
+#: tls/gnutls/gtlscertificate-gnutls.c:981
 #: tls/gnutls/gtlsconnection-gnutls.c:1058
 #, c-format
 msgid "Cannot verify peer identity of unexpected type %s"
@@ -177,67 +185,43 @@ msgstr "שגיאה בביצוע לחיצת יד מסוג TLS‏: %s"
 msgid "Error performing TLS handshake"
 msgstr "שגיאה בביצוע לחיצת יד מסוג TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
 #, c-format
 msgid ""
 "Empty channel binding data indicates a bug in the TLS library implementation"
 msgstr "נתוני איגוד ערוץ ריקים מעידים על תקלה במימוש של ספריית ה־TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1199
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "סוג איגוד הערוצים עדיין לא מוטמע בספריית ה־TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1203
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "נתוני איגוד הערוצים עדיין לא זמינים"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1253
-#, c-format
-msgid "X.509 certificate is not available on the connection"
-msgstr "אישור X.509 אינו זמין בחיבור"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1266
-#, c-format
-msgid "X.509 certificate is not available or is of unknown format: %s"
-msgstr "אישור X.509 אינו זמין או שהוא בתצורה לא מוכרת: %s"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1277
-#: tls/openssl/gtlsconnection-openssl.c:714
-#, c-format
-msgid "Unable to obtain certificate signature algorithm"
-msgstr "לא ניתן לקבל את אלגוריתם חתימת האישור"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1293
-#: tls/openssl/gtlsconnection-openssl.c:734
-#, c-format
-msgid ""
-"Current X.509 certificate uses unknown or unsupported signature algorithm"
-msgstr "אישור ה־X.509 הנוכחי משתמש באלגוריתם חתימה בלתי ידוע או בלתי נתמך"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1387
-#: tls/openssl/gtlsconnection-openssl.c:814
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "סוג איגוד הערוצים שמבוקש לא הוטמע"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1408
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-#: tls/openssl/gtlsconnection-openssl.c:832
-#: tls/openssl/gtlsconnection-openssl.c:928
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
 msgid "Error reading data from TLS socket"
 msgstr "שגיאה בקריאת הנתונים משקע ה־TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1490
-#: tls/gnutls/gtlsconnection-gnutls.c:1553
-#: tls/openssl/gtlsconnection-openssl.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
 msgid "Error writing data to TLS socket"
 msgstr "שגיאה בכתיבת נתונים אל שקע ה־TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1523
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -246,7 +230,7 @@ msgstr[1] "הודעה בגודל שני בתים היא גדולה מדי לחי
 msgstr[2] "הודעה בגודל %lu בתים היא גדולה מדי לחיבור DTLS"
 msgstr[3] "הודעה בגודל %lu בתים היא גדולה מדי לחיבור DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1525
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -255,7 +239,7 @@ msgstr[1] "(שני בתים לכל היותר)"
 msgstr[2] "‫(%u בתים לכל היותר)"
 msgstr[3] "‫(%u בתים לכל היותר)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1572
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "שגיאה בביצוע סגירת TLS‏: %s"
@@ -333,6 +317,17 @@ msgstr "נתוני איגוד הערוץ tls-unique אינם זמינים"
 msgid "X.509 Certificate is not available on the connection"
 msgstr "אישור X.509 אינו זמין בחיבור"
 
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "לא ניתן לקבל את אלגוריתם חתימת האישור"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr "אישור ה־X.509 הנוכחי משתמש באלגוריתם חתימה בלתי ידוע או בלתי נתמך"
+
 #: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
@@ -348,7 +343,7 @@ msgstr "חיבור ה־TLS לא תומך ביכולת מייצא TLS"
 msgid "Unexpected error while exporting keying data"
 msgstr "שגיאה בלתי צפויה בעת ייצוא נתוני סידורי המפתחות"
 
-#: tls/openssl/gtlsconnection-openssl.c:1068
+#: tls/openssl/gtlsconnection-openssl.c:1064
 msgid "Error performing TLS close"
 msgstr "שגיאה בביצוע סגירת TLS"
 
@@ -377,6 +372,14 @@ msgstr "יש בעיה עם האישור: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "יש בעיה עם המפתח הפרטי של האישור: %s"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "אישור X.509 אינו זמין בחיבור"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "אישור X.509 אינו זמין או שהוא בתצורה לא מוכרת: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "הפעולה תיחסם"
