@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-01-30 15:26+0000\n"
-"PO-Revision-Date: 2022-02-27 15:27+0100\n"
+"POT-Creation-Date: 2022-08-15 19:23+0000\n"
+"PO-Revision-Date: 2022-08-20 15:15+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: proxy/libproxy/glibproxyresolver.c:164
+#: proxy/libproxy/glibproxyresolver.c:158
 msgid "Proxy resolver internal error."
 msgstr "Wewnętrzny błąd rozwiązywania pośrednika."
 
@@ -61,7 +61,7 @@ msgstr "Partner nie obsługuje zabezpieczonej ponownej negocjacji"
 
 #: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:839
+#: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nieakceptowalny certyfikat TLS"
@@ -76,41 +76,47 @@ msgstr "Flagi odbioru są nieobsługiwane"
 msgid "Send flags are not supported"
 msgstr "Flagi wysyłki są nieobsługiwane"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:361
-#: tls/openssl/gtlscertificate-openssl.c:363
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Zaimportowanie PKCS #12 się nie powiodło: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Nie można przetworzyć certyfikatu DER: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:382
-#: tls/openssl/gtlscertificate-openssl.c:384
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Nie można przetworzyć certyfikatu PEM: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:405
-#: tls/openssl/gtlscertificate-openssl.c:404
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Nie można przetworzyć klucza prywatnego DER: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:428
-#: tls/openssl/gtlscertificate-openssl.c:424
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Nie można przetworzyć klucza prywatnego PEM: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:455
+#: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
 msgstr "Nie można zaimportować adresu URI certyfikatu PKCS #11: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:497
-#: tls/openssl/gtlscertificate-openssl.c:459
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
 msgid "No certificate data provided"
 msgstr "Nie podano danych certyfikatu"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:807
+#: tls/gnutls/gtlscertificate-gnutls.c:981
 #: tls/gnutls/gtlsconnection-gnutls.c:1058
 #, c-format
 msgid "Cannot verify peer identity of unexpected type %s"
@@ -176,70 +182,44 @@ msgstr "Błąd podczas wykonywania powitania TLS: %s"
 msgid "Error performing TLS handshake"
 msgstr "Błąd podczas wykonywania powitania TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
 #, c-format
 msgid ""
 "Empty channel binding data indicates a bug in the TLS library implementation"
 msgstr ""
 "Puste dane wiązania kanału wskazują na błąd w implementacji biblioteki TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1199
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Typ wiązania kanału nie jest zaimplementowany w bibliotece TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1203
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Dane wiązania kanału nie są jeszcze dostępne"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1253
-#, c-format
-msgid "X.509 certificate is not available on the connection"
-msgstr "Certyfikat X.509 nie jest dostępny na połączeniu"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1266
-#, c-format
-msgid "X.509 certificate is not available or is of unknown format: %s"
-msgstr "Certyfikat X.509 jest niedostępny lub jest w nieznanym formacie: %s"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1277
-#: tls/openssl/gtlsconnection-openssl.c:714
-#, c-format
-msgid "Unable to obtain certificate signature algorithm"
-msgstr "Nie można uzyskać algorytmu podpisu certyfikatu"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1293
-#: tls/openssl/gtlsconnection-openssl.c:734
-#, c-format
-msgid ""
-"Current X.509 certificate uses unknown or unsupported signature algorithm"
-msgstr ""
-"Bieżący certyfikat X.509 używa nieznanego lub nieobsługiwane algorytmu "
-"podpisu"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1387
-#: tls/openssl/gtlsconnection-openssl.c:814
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Żądany typ wiązania kanału nie jest zaimplementowany"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1408
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-#: tls/openssl/gtlsconnection-openssl.c:832
-#: tls/openssl/gtlsconnection-openssl.c:928
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
 msgid "Error reading data from TLS socket"
 msgstr "Błąd podczas odczytywania danych z gniazda TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1490
-#: tls/gnutls/gtlsconnection-gnutls.c:1553
-#: tls/openssl/gtlsconnection-openssl.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
 msgid "Error writing data to TLS socket"
 msgstr "Błąd podczas zapisywania danych do gniazda TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1523
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -247,7 +227,7 @@ msgstr[0] "Komunikat o %lu bajcie jest za duży dla połączenia DTLS"
 msgstr[1] "Komunikat o %lu bajtach jest za duży dla połączenia DTLS"
 msgstr[2] "Komunikat o %lu bajtach jest za duży dla połączenia DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1525
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -255,7 +235,7 @@ msgstr[0] "(maksimum to %u bajt)"
 msgstr[1] "(maksimum to %u bajty)"
 msgstr[2] "(maksimum to %u bajtów)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1572
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Błąd podczas wykonywania zamknięcia TLS: %s"
@@ -335,6 +315,19 @@ msgstr "Dane wiązania kanału „tls-unique” są niedostępne"
 msgid "X.509 Certificate is not available on the connection"
 msgstr "Certyfikat X.509 nie jest dostępny na połączeniu"
 
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Nie można uzyskać algorytmu podpisu certyfikatu"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Bieżący certyfikat X.509 używa nieznanego lub nieobsługiwane algorytmu "
+"podpisu"
+
 #: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
@@ -350,7 +343,7 @@ msgstr "Połączenie TLS nie obsługuje funkcji „TLS-Exporter”"
 msgid "Unexpected error while exporting keying data"
 msgstr "Nieoczekiwany błąd podczas eksportowania danych kluczowania"
 
-#: tls/openssl/gtlsconnection-openssl.c:1068
+#: tls/openssl/gtlsconnection-openssl.c:1064
 msgid "Error performing TLS close"
 msgstr "Błąd podczas wykonywania zamknięcia TLS"
 
