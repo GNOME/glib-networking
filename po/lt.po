@@ -8,19 +8,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-01-06 21:58+0000\n"
-"PO-Revision-Date: 2022-01-16 21:31+0200\n"
+"POT-Creation-Date: 2022-08-15 19:23+0000\n"
+"PO-Revision-Date: 2022-08-22 23:18+0300\n"
 "Last-Translator: Aurimas Černius <aurisc4@gmail.com>\n"
 "Language-Team: Lietuvių <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
-"%100<10 || n%100>=20) ? 1 : 2)\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"(n%100<10 || n%100>=20) ? 1 : 2)\n"
 "X-Generator: Gtranslator 40.0\n"
 
-#: proxy/libproxy/glibproxyresolver.c:164
+#: proxy/libproxy/glibproxyresolver.c:158
 msgid "Proxy resolver internal error."
 msgstr "Tarpininkų nustatytojo vidinė klaida."
 
@@ -61,7 +61,7 @@ msgstr "Porininkas nepalaiko saugaus pakartotinio ryšio užmezgimo"
 
 #: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:839
+#: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nepriimtinas TLS liudijimas"
@@ -76,41 +76,48 @@ msgstr "Požymių gavimas nėra palaikomas"
 msgid "Send flags are not supported"
 msgstr "Požymių siuntimas nėra palaikomas"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:361
-#: tls/openssl/gtlscertificate-openssl.c:363
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+#| msgid "Could not import PKCS #11 certificate URI: %s"
+msgid "Failed to import PKCS #12: %s"
+msgstr "Nepavyko importuoti PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Nepavyko perskaityti DER liudijimo: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:382
-#: tls/openssl/gtlscertificate-openssl.c:384
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Nepavyko perskaityti PEM liudijimo: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:405
-#: tls/openssl/gtlscertificate-openssl.c:404
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Nepavyko perskaityti DER privataus rakto: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:428
-#: tls/openssl/gtlscertificate-openssl.c:424
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Nepavyko perskaityti PEM privataus rakto: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:455
+#: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
 msgstr "Nepavyko importuoti PKCS #11 liudijimo URI: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:497
-#: tls/openssl/gtlscertificate-openssl.c:459
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
 msgid "No certificate data provided"
 msgstr "Nėra pateiktų liudijimo duomenų"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:807
+#: tls/gnutls/gtlscertificate-gnutls.c:981
 #: tls/gnutls/gtlsconnection-gnutls.c:1058
 #, c-format
 msgid "Cannot verify peer identity of unexpected type %s"
@@ -176,71 +183,44 @@ msgstr "Klaida užmezgant TLS ryšį: %s"
 msgid "Error performing TLS handshake"
 msgstr "Klaida atliekant TLS išankstinį suderinimą"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1181
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
 #, c-format
-#| msgid "Channel binding type is not implemented in the TLS library"
 msgid ""
 "Empty channel binding data indicates a bug in the TLS library implementation"
 msgstr ""
 "Tušti kanalo susiejimo duomenys reiškia klaidą TLS bibliotekos realizacijoje"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1199
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Kanalo susiejimo tipas nerealizuotas TLS bibliotekoje"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1203
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Kanalo susiejimo duomenų dar nėra"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
-#: tls/gnutls/gtlsconnection-gnutls.c:1253
-#, c-format
-msgid "X.509 certificate is not available on the connection"
-msgstr "Nėra X.509 liudijimo ryšiui"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1266
-#, c-format
-msgid "X.509 certificate is not available or is of unknown format: %s"
-msgstr "X.509 liudijimo nėra arba jis yra nežinomo formato: %s"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1277
-#: tls/openssl/gtlsconnection-openssl.c:714
-#, c-format
-msgid "Unable to obtain certificate signature algorithm"
-msgstr "Nepavyko gauti liudijimo parašo algoritmo"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1293
-#: tls/openssl/gtlsconnection-openssl.c:734
-#, c-format
-msgid ""
-"Current X.509 certificate uses unknown or unsupported signature algorithm"
-msgstr ""
-"Dabartinis X.509 liudijimas naudoja nežinomą ar a nepalaikomą parašo "
-"algoritmą"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1387
-#: tls/openssl/gtlsconnection-openssl.c:814
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Prašomas kanalo susiejimo tipas nerealizuotas"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1408
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-#: tls/openssl/gtlsconnection-openssl.c:832
-#: tls/openssl/gtlsconnection-openssl.c:928
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
 msgid "Error reading data from TLS socket"
 msgstr "Klaida skaitant duomenis iš TLS lizdo"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1490
-#: tls/gnutls/gtlsconnection-gnutls.c:1553
-#: tls/openssl/gtlsconnection-openssl.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
 msgid "Error writing data to TLS socket"
 msgstr "Klaida rašant duomenis į TLS lizdą"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1523
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -248,7 +228,7 @@ msgstr[0] "Žinutė, kurios dydis %lu baitas, yra per didelė DTLS ryšiui"
 msgstr[1] "Žinutė, kurios dydis %lu baitai, yra per didelė DTLS ryšiui"
 msgstr[2] "Žinutė, kurios dydis %lu baitų, yra per didelė DTLS ryšiui"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1525
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -256,7 +236,7 @@ msgstr[0] "(didžiausia yra %u baitas)"
 msgstr[1] "(didžiausia yra %u baitai)"
 msgstr[2] "(didžiausia yra %u baitų)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1572
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Klaida atliekant TLS užvėrimą: %s"
@@ -336,6 +316,19 @@ msgstr "Nėra kanalo susiejimo duomenų tls-unique"
 msgid "X.509 Certificate is not available on the connection"
 msgstr "Ryšyje nėra X.509 liudijimo"
 
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Nepavyko gauti liudijimo parašo algoritmo"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Dabartinis X.509 liudijimas naudoja nežinomą ar a nepalaikomą parašo "
+"algoritmą"
+
 #: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
@@ -351,7 +344,7 @@ msgstr "TSL ryšys nepalaiko TLS-Exporter savybės"
 msgid "Unexpected error while exporting keying data"
 msgstr "Netikėta klaida eksportuojant raktinės duomenis"
 
-#: tls/openssl/gtlsconnection-openssl.c:1068
+#: tls/openssl/gtlsconnection-openssl.c:1064
 msgid "Error performing TLS close"
 msgstr "Klaida atliekant TLS užvėrimą"
 
@@ -380,6 +373,14 @@ msgstr "Yra problema su liudijimu: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Yra problema su liudijimo privačiu raktu: %s"
+
+#, c-format
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "Nėra X.509 liudijimo ryšiui"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "X.509 liudijimo nėra arba jis yra nežinomo formato: %s"
 
 #~ msgid "Peer requested illegal TLS rehandshake"
 #~ msgstr ""
