@@ -73,10 +73,17 @@ g_libproxy_resolver_finalize (GObject *object)
   G_OBJECT_CLASS (g_libproxy_resolver_parent_class)->finalize (object);
 }
 
+static gboolean
+is_running_environment_proxy_test (void)
+{
+  return g_strcmp0 (g_getenv ("GIO_PROXY_TEST_NAME"), "environment") == 0;
+}
+
 static void
 g_libproxy_resolver_init (GLibproxyResolver *resolver)
 {
-  resolver->factory = px_proxy_factory_new ();
+  if (!is_running_environment_proxy_test ())
+    resolver->factory = px_proxy_factory_new ();
 }
 
 static gboolean
