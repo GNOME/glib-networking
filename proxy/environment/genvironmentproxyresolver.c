@@ -54,21 +54,8 @@ G_DEFINE_TYPE_EXTENDED (GEnvironmentProxyResolver,
 #endif
 
 static gboolean
-is_running_libproxy_test (void)
-{
-  const char *gio_proxy_test_name;
-  gio_proxy_test_name = g_getenv ("GIO_PROXY_TEST_NAME");
-  if (g_strcmp0 (gio_proxy_test_name, "libproxy") == 0)
-    return TRUE;
-  return FALSE;
-}
-
-static gboolean
 g_environment_proxy_resolver_is_supported (GProxyResolver *object)
 {
-  if (is_running_libproxy_test ())
-    return FALSE;
-
   return (g_getenv ("ftp_proxy") || g_getenv ("FTP_PROXY") ||
           g_getenv ("https_proxy") || g_getenv ("HTTPS_PROXY") ||
           g_getenv ("http_proxy") || g_getenv ("HTTP_PROXY") ||
