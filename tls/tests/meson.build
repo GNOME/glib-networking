@@ -57,6 +57,7 @@ foreach backend: backends
     test_conf = configuration_data()
     test_conf.set('installed_tests_dir', installed_tests_execdir)
     test_conf.set('program', program_name)
+    test_conf.set('environment', '')
 
     if enable_installed_tests
       configure_file(
