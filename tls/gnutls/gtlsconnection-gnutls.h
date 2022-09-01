@@ -53,4 +53,6 @@ void     g_tls_connection_gnutls_handshake_thread_get_certificate     (GTlsConne
                                                                        unsigned int          *pcert_length,
                                                                        gnutls_privkey_t      *pkey);
 
+GTlsProtocolVersion glib_protocol_version_from_gnutls (gnutls_protocol_t protocol_version);
+
 G_END_DECLS

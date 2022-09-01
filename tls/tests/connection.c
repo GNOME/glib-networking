@@ -611,6 +611,11 @@ test_connection_session_resume_ten_minute_expiry (TestConnection *test,
   return;
 #endif
 
+#if defined(G_OS_UNIX)
+  /* Expiry should be 10 min */
+  offset.tv_sec += 11 * 60;
+#endif
+
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
@@ -619,6 +624,7 @@ test_connection_session_resume_ten_minute_expiry (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
+  g_object_set (test->client_connection, "session-resumption-enabled", TRUE, NULL);
   g_object_unref (connection);
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
@@ -646,7 +652,7 @@ test_connection_session_resume_ten_minute_expiry (TestConnection *test,
 
 #if defined(G_OS_UNIX)
   /* Expiry should be 10 min */
-  offset.tv_sec = 11 * 60;
+  offset.tv_sec += 11 * 60;
 #endif
 
   /* Now start a new connection to the same server */
@@ -658,6 +664,7 @@ test_connection_session_resume_ten_minute_expiry (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
+  g_object_set (test->client_connection, "session-resumption-enabled", TRUE, NULL);
   g_object_unref (connection);
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
@@ -680,7 +687,7 @@ test_connection_session_resume_ten_minute_expiry (TestConnection *test,
 
   /* Second connection *DID NOT* reuse the first connection */
 #if !defined(BACKEND_IS_GNUTLS)
-  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/194
+  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/196
   g_assert_false (reused);
 #endif
 }
@@ -703,6 +710,7 @@ test_connection_session_resume_multiple_times (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
+  g_object_set (test->client_connection, "session-resumption-enabled", TRUE, NULL);
   g_object_unref (connection);
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
@@ -737,6 +745,7 @@ test_connection_session_resume_multiple_times (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
+  g_object_set (test->client_connection, "session-resumption-enabled", TRUE, NULL);
   g_object_unref (connection);
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
@@ -761,7 +770,7 @@ test_connection_session_resume_multiple_times (TestConnection *test,
 
   /* Second connection reused the first connection */
 #if !defined(BACKEND_IS_GNUTLS)
-  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/194
+  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/196
   g_assert_true (reused);
 #endif
 
@@ -774,6 +783,7 @@ test_connection_session_resume_multiple_times (TestConnection *test,
   test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->client_connection);
+  g_object_set (test->client_connection, "session-resumption-enabled", TRUE, NULL);
   g_object_unref (connection);
 
   cert = g_tls_certificate_new_from_file (tls_test_file_path ("client-and-key.pem"), &error);
@@ -796,7 +806,7 @@ test_connection_session_resume_multiple_times (TestConnection *test,
 
   /* Third connection reused the first connection */
 #if !defined(BACKEND_IS_GNUTLS)
-  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/194
+  // FIXME: https://gitlab.gnome.org/GNOME/glib-networking/issues/196
   g_assert_true (reused);
 #endif
 }

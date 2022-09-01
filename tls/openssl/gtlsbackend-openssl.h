@@ -26,7 +26,6 @@
 #pragma once
 
 #include <gio/gio.h>
-#include "openssl-include.h"
 
 G_BEGIN_DECLS
 
@@ -35,9 +34,5 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (GTlsBackendOpenssl, g_tls_backend_openssl, G, TLS_BACKEND_OPENSSL, GObject)
 
 void    g_tls_backend_openssl_register       (GIOModule *module);
-
-void    g_tls_backend_openssl_store_session_data (GString *session_id,
-                                                  SSL_SESSION *session_data);
-SSL_SESSION *g_tls_backend_openssl_lookup_session_data (GString *session_id);
 
 G_END_DECLS

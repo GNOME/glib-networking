@@ -47,4 +47,6 @@ SSL *g_tls_connection_openssl_get_ssl (GTlsConnectionOpenssl *connection);
 
 GTlsConnectionOpenssl *g_tls_connection_openssl_get_connection_from_ssl (SSL *ssl);
 
+GTlsProtocolVersion glib_protocol_version_from_openssl (int protocol_version);
+
 G_END_DECLS

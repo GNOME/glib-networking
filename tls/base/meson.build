@@ -4,6 +4,7 @@ tlsbase_sources = files(
   'gtlsinputstream.c',
   'gtlslog.c',
   'gtlsoutputstream.c',
+  'gtlssessioncache.c',
 )
 
 tlsbase = static_library('tlsbase',

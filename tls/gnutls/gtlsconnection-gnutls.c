@@ -1069,7 +1069,7 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
   return errors;
 }
 
-static GTlsProtocolVersion
+GTlsProtocolVersion
 glib_protocol_version_from_gnutls (gnutls_protocol_t protocol_version)
 {
   switch (protocol_version)

@@ -517,7 +517,7 @@ g_tls_connection_openssl_verify_chain (GTlsConnectionBase       *tls,
   return errors;
 }
 
-static GTlsProtocolVersion
+GTlsProtocolVersion
 glib_protocol_version_from_openssl (int protocol_version)
 {
   switch (protocol_version)

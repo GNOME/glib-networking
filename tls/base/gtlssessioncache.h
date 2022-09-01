@@ -2,7 +2,7 @@
 /*
  * GIO - GLib Input, Output and Streaming Library
  *
- * Copyright 2010 Red Hat, Inc.
+ * Copyright (C) 2022 YouView TV Ltd.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,14 +25,21 @@
 #pragma once
 
 #include <gio/gio.h>
-#include <gnutls/gnutls.h>
 
 G_BEGIN_DECLS
 
-#define G_TYPE_TLS_BACKEND_GNUTLS            (g_tls_backend_gnutls_get_type ())
+typedef gpointer (*SessionDup)      (gpointer);
+typedef gint     (*SessionAcquire)  (gpointer);
+typedef void     (*SessionRelease)  (gpointer);
 
-G_DECLARE_FINAL_TYPE (GTlsBackendGnutls, g_tls_backend_gnutls, G, TLS_BACKEND_GNUTLS, GObject)
+void    g_tls_store_session_data (gchar                    *session_id,
+                                  gpointer                  session_data,
+                                  SessionDup                session_dup,
+                                  SessionAcquire            inc_ref,
+                                  SessionRelease            dec_ref,
+                                  GTlsProtocolVersion       protocol_version
+                                  );
 
-void  g_tls_backend_gnutls_register (GIOModule *module);
+gpointer g_tls_lookup_session_data (gchar *session_id);
 
 G_END_DECLS

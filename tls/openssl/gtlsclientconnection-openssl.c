@@ -30,9 +30,10 @@
 #include <string.h>
 
 #include "gtlsconnection-base.h"
+#include "gtlsconnection-openssl.h"
 #include "gtlsbackend-openssl.h"
 #include "gtlsclientconnection-openssl.h"
-#include "gtlsbackend-openssl.h"
+#include "gtlssessioncache.h"
 #include "gtlscertificate-openssl.h"
 #include "gtlsdatabase-openssl.h"
 #include <glib/gi18n-lib.h>
@@ -45,7 +46,7 @@ struct _GTlsClientConnectionOpenssl
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
   gboolean session_reused;
-  GString *session_id;
+  gboolean session_resumption_enabled;
 
   STACK_OF (X509_NAME) *ca_list;
 
@@ -61,6 +62,7 @@ enum
   PROP_SERVER_IDENTITY,
   PROP_USE_SSL3,
   PROP_ACCEPTED_CAS,
+  PROP_SESSION_RESUMPTION_ENABLED,
   PROP_SESSION_REUSED
 };
 
@@ -89,8 +91,6 @@ g_tls_client_connection_openssl_finalize (GObject *object)
   SSL_CTX_free (openssl->ssl_ctx);
   SSL_SESSION_free (openssl->session);
 
-  g_string_free (openssl->session_id, TRUE);
-
   G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->finalize (object);
 }
 
@@ -103,75 +103,6 @@ get_server_identity (GTlsClientConnectionOpenssl *openssl)
     return g_network_service_get_domain (G_NETWORK_SERVICE (openssl->server_identity));
   else
     return NULL;
-}
-
-static void
-g_tls_client_connection_openssl_constructed (GObject *object)
-{
-  GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
-  GSocketConnection *base_conn;
-
-  /* Create a TLS "session ID." We base it on the IP address since
-   * different hosts serving the same hostname/service will probably
-   * not share the same session cache. We base it on the
-   * server-identity because at least some servers will fail (rather
-   * than just failing to resume the session) if we don't.
-   * (https://bugs.launchpad.net/bugs/823325)
-   *
-   * Note that our session IDs have no relation to TLS protocol
-   * session IDs.
-   */
-  g_object_get (G_OBJECT (openssl), "base-io-stream", &base_conn, NULL);
-  if (G_IS_SOCKET_CONNECTION (base_conn))
-    {
-      GSocketAddress *remote_addr;
-      remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
-      if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
-        {
-          guint port;
-          GInetAddress *iaddr;
-          GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
-          const gchar *server_hostname;
-          gchar *addrstr = NULL, *cert_hash = NULL;
-          GTlsCertificate *cert = NULL;
-
-          iaddr = g_inet_socket_address_get_address (isaddr);
-          port = g_inet_socket_address_get_port (isaddr);
-
-          addrstr = g_inet_address_to_string (iaddr);
-          server_hostname = get_server_identity (openssl);
-
-          /* If we have a certificate, make its hash part of the session ID, so
-           * that different connections to the same server can use different
-           * certificates.
-           */
-          g_object_get (G_OBJECT (openssl), "certificate", &cert, NULL);
-          if (cert)
-            {
-              GByteArray *der = NULL;
-              g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
-              if (der)
-                {
-                  cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
-                  g_byte_array_unref (der);
-                }
-              g_object_unref (cert);
-            }
-
-          openssl->session_id = g_string_new (NULL);
-          g_string_printf (openssl->session_id, "%s/%s/%d/%s", addrstr,
-                           server_hostname ? server_hostname : "",
-                           port,
-                           cert_hash ? cert_hash : "");
-          g_free (addrstr);
-          g_free (cert_hash);
-        }
-      g_object_unref (remote_addr);
-    }
-  g_object_unref (base_conn);
-
-  if (G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->constructed)
-    G_OBJECT_CLASS (g_tls_client_connection_openssl_parent_class)->constructed (object);
 }
 
 static void
@@ -229,6 +160,10 @@ g_tls_client_connection_openssl_get_property (GObject    *object,
       g_value_set_boolean (value, openssl->session_reused);
       break;
 
+    case PROP_SESSION_RESUMPTION_ENABLED:
+      g_value_set_boolean (value, openssl->session_resumption_enabled);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -256,6 +191,10 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
 
     case PROP_USE_SSL3:
       openssl->use_ssl3 = g_value_get_boolean (value);
+      break;
+
+    case PROP_SESSION_RESUMPTION_ENABLED:
+      openssl->session_resumption_enabled = g_value_get_boolean (value);
       break;
 
     default:
@@ -350,7 +289,6 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
   gobject_class->finalize             = g_tls_client_connection_openssl_finalize;
   gobject_class->get_property         = g_tls_client_connection_openssl_get_property;
   gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
-  gobject_class->constructed          = g_tls_client_connection_openssl_constructed;
 
   base_class->complete_handshake      = g_tls_client_connection_openssl_complete_handshake;
   base_class->verify_peer_certificate = g_tls_client_connection_openssl_verify_peer_certificate;
@@ -362,11 +300,14 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
   g_object_class_override_property (gobject_class, PROP_USE_SSL3, "use-ssl3");
   g_object_class_override_property (gobject_class, PROP_ACCEPTED_CAS, "accepted-cas");
   g_object_class_override_property (gobject_class, PROP_SESSION_REUSED, "session-reused");
+  g_object_class_override_property (gobject_class, PROP_SESSION_RESUMPTION_ENABLED, "session-resumption-enabled");
 }
 
 static void
 g_tls_client_connection_openssl_init (GTlsClientConnectionOpenssl *openssl)
 {
+  openssl->session_reused = FALSE;
+  openssl->session_resumption_enabled = !g_test_initialized ();
 }
 
 static void
@@ -515,7 +456,14 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 static int g_tls_client_connection_openssl_new_session (SSL *s, SSL_SESSION *sess)
 {
   GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (g_tls_connection_openssl_get_connection_from_ssl (s));
-  g_tls_backend_openssl_store_session_data (client->session_id, sess);
+  if (client->session_resumption_enabled)
+    g_tls_store_session_data (g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (client)),
+                              (gpointer)sess,
+                              (SessionDup)SSL_SESSION_dup,
+                              (SessionAcquire)SSL_SESSION_up_ref,
+                              (SessionRelease)SSL_SESSION_free,
+                              glib_protocol_version_from_openssl (SSL_SESSION_get_protocol_version (sess)));
+
   return 0;
 }
 
@@ -529,11 +477,15 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
   const char *hostname;
   char error_buffer[256];
 
-  client->session = g_tls_backend_openssl_lookup_session_data (client->session_id);
+  client->session = (SSL_SESSION *)g_tls_lookup_session_data (g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (client)));
   if (!client->session)
-    client->session = SSL_SESSION_new ();
+    {
+      client->session = SSL_SESSION_new ();
+    }
   else
-    client->session_reused = TRUE;
+    {
+      client->session_reused = TRUE;
+    }
 
   client->ssl_ctx = SSL_CTX_new (g_tls_connection_base_is_dtls (G_TLS_CONNECTION_BASE (client))
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
