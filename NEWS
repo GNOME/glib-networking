@@ -1,3 +1,10 @@
+2.74.rc - September 1, 2022
+===========================
+
+ - Support PKCS #12 encrypted certificates (!184, Patrick Griffis)
+ - Various improvements to Meson build system (!214, Xavier Claessens)
+ - Multiple fixes for proxy tests (!222)
+
 2.74.beta - August 5, 2022
 ==========================
 
