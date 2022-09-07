@@ -232,6 +232,20 @@ g_tls_connection_base_is_dtls (GTlsConnectionBase *tls)
   return priv->base_socket != NULL;
 }
 
+gboolean
+g_tls_connection_base_get_session_resumption (GTlsConnectionBase *tls)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  return priv->session_resumption_enabled;
+}
+
+void
+g_tls_connection_base_set_session_resumption (GTlsConnectionBase *tls, gboolean session_resumption_enabled)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  priv->session_resumption_enabled = session_resumption_enabled;
+}
+
 static void
 g_tls_connection_base_init (GTlsConnectionBase *tls)
 {
@@ -240,6 +254,22 @@ g_tls_connection_base_init (GTlsConnectionBase *tls)
   priv->need_handshake = TRUE;
   priv->database_is_unset = TRUE;
   priv->is_system_certdb = TRUE;
+
+  /* The testsuite expects handshakes to actually happen. E.g. a test might
+   * check to see that a handshake succeeds and then later check that a new
+   * handshake fails. If we get really unlucky and the same port number is
+   * reused for the server socket between connections, then we'll accidentally
+   * resume the old session and skip certificate verification. Such failures
+   * are difficult to debug because they require running the tests hundreds of
+   * times simultaneously to reproduce (the port number does not get reused
+   * quickly enough if the tests are run sequentially).
+   *
+   * On top of that if using a hostname the session id would be used for all
+   * the connections in the tests.
+   *
+   * This variable allows tests to enable session resumption only when needed
+   * whilst keeping the feature enabled for other uses of the library.
+   */
   priv->session_resumption_enabled = !g_test_initialized ();
 
   g_mutex_init (&priv->verify_certificate_mutex);
@@ -2834,48 +2864,53 @@ g_tls_connection_base_constructed (GObject *object)
           remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
           if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
             {
+              gchar *cert_hash = NULL;
+              GTlsCertificate *cert = NULL;
+              GTlsConnectionBasePrivate *priv = NULL;
               const gchar *server_hostname = get_server_identity (!g_tls_connection_base_is_dtls (tls) ?
                                                                   g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls)) :
                                                                   g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls)));
+              priv = g_tls_connection_base_get_instance_private (tls);
+
+              /* If we have a certificate, make its hash part of the session ID, so
+               * that different connections to the same server can use different
+               * certificates.
+               */
+              g_object_get (G_OBJECT (tls), "certificate", &cert, NULL);
+              if (cert)
+                {
+                  GByteArray *der = NULL;
+                  g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
+                  if (der)
+                    {
+                      cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
+                      g_byte_array_unref (der);
+                    }
+                  g_object_unref (cert);
+                }
 
               if (server_hostname)
                 {
+                  priv->session_id = g_strdup_printf ("%s/%s", server_hostname,
+                                                      cert_hash ? cert_hash : "");
+                }
+              else
+                {
                   guint port;
                   GInetAddress *iaddr;
-                  GTlsCertificate *cert = NULL;
-                  GTlsConnectionBasePrivate *priv = NULL;
-                  gchar *addrstr = NULL, *cert_hash = NULL;
+                  gchar *addrstr = NULL;
                   GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
 
-                  priv = g_tls_connection_base_get_instance_private (tls);
                   port = g_inet_socket_address_get_port (isaddr);
                   iaddr = g_inet_socket_address_get_address (isaddr);
                   addrstr = g_inet_address_to_string (iaddr);
 
-                  /* If we have a certificate, make its hash part of the session ID, so
-                   * that different connections to the same server can use different
-                   * certificates.
-                   */
-                  g_object_get (G_OBJECT (tls), "certificate", &cert, NULL);
-                  if (cert)
-                    {
-                      GByteArray *der = NULL;
-                      g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
-                      if (der)
-                        {
-                          cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
-                          g_byte_array_unref (der);
-                        }
-                      g_object_unref (cert);
-                    }
-
-                  priv->session_id = g_strdup_printf ("%s/%s/%d/%s", addrstr,
-                                                      server_hostname ? server_hostname : "",
+                  priv->session_id = g_strdup_printf ("%s/%d/%s", addrstr,
                                                       port,
                                                       cert_hash ? cert_hash : "");
                   g_free (addrstr);
-                  g_free (cert_hash);
                 }
+              g_free (cert_hash);
             }
           g_object_unref (remote_addr);
         }

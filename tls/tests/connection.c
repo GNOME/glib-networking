@@ -43,6 +43,7 @@
 #if defined(G_OS_UNIX)
 #include <dlfcn.h>
 static struct timespec offset;
+static struct timespec session_time_offset;
 #endif
 
 static const gchar *
@@ -112,6 +113,16 @@ setup_connection (TestConnection *test, gconstpointer data)
 #if defined(G_OS_UNIX)
   offset.tv_sec = 0;
   offset.tv_nsec = 0;
+#endif
+}
+
+static void
+setup_session_connection (TestConnection *test, gconstpointer data)
+{
+  setup_connection (test, data);
+#if defined(G_OS_UNIX)
+  offset.tv_sec += 11 * 60 + session_time_offset.tv_sec;
+  session_time_offset.tv_sec += 11 * 60;
 #endif
 }
 
@@ -611,11 +622,6 @@ test_connection_session_resume_ten_minute_expiry (TestConnection *test,
   return;
 #endif
 
-#if defined(G_OS_UNIX)
-  /* Expiry should be 10 min */
-  offset.tv_sec += 11 * 60;
-#endif
-
   test->database = g_tls_file_database_new (tls_test_file_path ("ca-roots.pem"), &error);
   g_assert_no_error (error);
   g_assert_nonnull (test->database);
@@ -647,11 +653,11 @@ test_connection_session_resume_ten_minute_expiry (TestConnection *test,
   g_object_unref (test->client_connection);
   g_clear_object (&test->server_connection);
 
-  /* First connection was not reused */
   g_assert_false (reused);
 
 #if defined(G_OS_UNIX)
   /* Expiry should be 10 min */
+  session_time_offset.tv_sec += 11 * 60;
   offset.tv_sec += 11 * 60;
 #endif
 
@@ -3382,9 +3388,9 @@ main (int   argc,
 #endif
 
   g_test_add ("/tls/" BACKEND "/connection/session/resume_multiple_times", TestConnection, NULL,
-              setup_connection, test_connection_session_resume_multiple_times, teardown_connection);
+              setup_session_connection, test_connection_session_resume_multiple_times, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/session/reuse_ten_minute_expiry", TestConnection, NULL,
-              setup_connection, test_connection_session_resume_ten_minute_expiry, teardown_connection);
+              setup_session_connection, test_connection_session_resume_ten_minute_expiry, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/basic", TestConnection, NULL,
               setup_connection, test_basic_connection, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/verified", TestConnection, NULL,

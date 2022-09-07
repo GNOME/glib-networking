@@ -46,7 +46,6 @@ struct _GTlsClientConnectionOpenssl
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
   gboolean session_reused;
-  gboolean session_resumption_enabled;
 
   STACK_OF (X509_NAME) *ca_list;
 
@@ -111,6 +110,7 @@ g_tls_client_connection_openssl_get_property (GObject    *object,
                                              GValue     *value,
                                              GParamSpec *pspec)
 {
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
   GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
   GList *accepted_cas;
   gint i;
@@ -161,7 +161,7 @@ g_tls_client_connection_openssl_get_property (GObject    *object,
       break;
 
     case PROP_SESSION_RESUMPTION_ENABLED:
-      g_value_set_boolean (value, openssl->session_resumption_enabled);
+      g_value_set_boolean (value, g_tls_connection_base_get_session_resumption (tls));
       break;
 
     default:
@@ -175,6 +175,7 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
                                              const GValue *value,
                                              GParamSpec   *pspec)
 {
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
   GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
 
   switch (prop_id)
@@ -194,7 +195,7 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
       break;
 
     case PROP_SESSION_RESUMPTION_ENABLED:
-      openssl->session_resumption_enabled = g_value_get_boolean (value);
+      g_tls_connection_base_set_session_resumption (tls, g_value_get_boolean (value));
       break;
 
     default:
@@ -306,8 +307,6 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
 static void
 g_tls_client_connection_openssl_init (GTlsClientConnectionOpenssl *openssl)
 {
-  openssl->session_reused = FALSE;
-  openssl->session_resumption_enabled = !g_test_initialized ();
 }
 
 static void
@@ -455,8 +454,12 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 
 static int g_tls_client_connection_openssl_new_session (SSL *s, SSL_SESSION *sess)
 {
+  GTlsConnectionBase *tls;
   GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (g_tls_connection_openssl_get_connection_from_ssl (s));
-  if (client->session_resumption_enabled)
+
+  tls = G_TLS_CONNECTION_BASE (client);
+
+  if (g_tls_connection_base_get_session_resumption (tls))
     g_tls_store_session_data (g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (client)),
                               (gpointer)sess,
                               (SessionDup)SSL_SESSION_dup,

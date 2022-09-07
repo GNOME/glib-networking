@@ -57,7 +57,6 @@ struct _GTlsClientConnectionGnutls
   GSocketConnectable *server_identity;
   gboolean use_ssl3;
   gboolean session_reused;
-  gboolean session_resumption_enabled;
 
   /* session_data is either the session ticket that was used to resume this
    * connection, or the most recent session ticket received from the server.
@@ -115,8 +114,6 @@ clear_gnutls_certificate_copy (gnutls_pcert_st  **pcert,
 static void
 g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
 {
-    gnutls->session_reused = FALSE;
-    gnutls->session_resumption_enabled = !g_test_initialized ();
 }
 
 static const gchar *
@@ -143,7 +140,9 @@ handshake_thread_session_ticket_received_cb (gnutls_session_t      session,
                                              guint                 incoming,
                                              const gnutls_datum_t *msg)
 {
-  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls_session_get_ptr (session));
+  GTlsConnectionBase *tls = gnutls_transport_get_ptr (session);
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
+
   gnutls_datum_t session_datum;
 
   if (gnutls_session_get_data2 (session, &session_datum) == GNUTLS_E_SUCCESS)
@@ -154,7 +153,7 @@ handshake_thread_session_ticket_received_cb (gnutls_session_t      session,
                                                          (GDestroyNotify)gnutls_free,
                                                          session_datum.data);
 
-      if (gnutls->session_resumption_enabled && gnutls->session_id)
+      if (g_tls_connection_base_get_session_resumption (tls) && gnutls->session_id)
         {
           g_tls_store_session_data (gnutls->session_id,
                                     (gpointer)gnutls->session_data,
@@ -225,6 +224,7 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
                                              GValue     *value,
                                              GParamSpec *pspec)
 {
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
   GList *accepted_cas;
   gint i;
@@ -262,7 +262,7 @@ g_tls_client_connection_gnutls_get_property (GObject    *object,
       break;
 
     case PROP_SESSION_RESUMPTION_ENABLED:
-      g_value_set_boolean (value, gnutls->session_resumption_enabled);
+      g_value_set_boolean (value, g_tls_connection_base_get_session_resumption (tls));
       break;
 
     default:
@@ -276,6 +276,7 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
                                              const GValue *value,
                                              GParamSpec   *pspec)
 {
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (object);
   const char *hostname;
 
@@ -317,7 +318,7 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
       break;
 
     case PROP_SESSION_RESUMPTION_ENABLED:
-      gnutls->session_resumption_enabled = g_value_get_boolean (value);
+      g_tls_connection_base_set_session_resumption (tls, g_value_get_boolean (value));
       break;
 
     default:
