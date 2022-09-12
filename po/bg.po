@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-03-11 07:46+0000\n"
-"PO-Revision-Date: 2022-03-14 13:22+0100\n"
+"POT-Creation-Date: 2022-09-12 15:58+0000\n"
+"PO-Revision-Date: 2022-09-12 18:09+0200\n"
 "Last-Translator:  Alexander Shopov <ash@kambanaria.org>\n"
 "Language-Team: Bulgarian <dict@fsa-bg.org>\n"
 "Language: bg\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: proxy/libproxy/glibproxyresolver.c:164
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "Вътрешна грешка при откриването на сървъра-посредник."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -35,84 +35,110 @@ msgstr "Връзката е прекъсната"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr ""
 "По време на ръкостискане по TLS не може да се извърши операция с блокиране"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "Мина времето за работа за вх./изх. гнездо"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "Сървърът изисква сертификат за TLS"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr ""
 "Ръкостискането не е завършило, все още няма информация за установяване на "
 "канал"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "Отсрещната страна не поддържа безопасно предоговяряне"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:839
+#: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Неприемлив сертификат за TLS"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Неподдържани флагове при получаване"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Неподдържани флагове при изпращане"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:361
-#: tls/openssl/gtlscertificate-openssl.c:363
+#: tls/base/gtlsconnection-base.c:2955
+msgid "Session Reused"
+msgstr "Преизползвана сесия"
+
+#: tls/base/gtlsconnection-base.c:2956
+msgid "Indicates whether a session has been reused"
+msgstr "Дали сесия е била преизползвана"
+
+#: tls/base/gtlsconnection-base.c:2963
+msgid "Session Reuse Enabled"
+msgstr "Включване на преизполването на сесии"
+
+#: tls/base/gtlsconnection-base.c:2964
+msgid ""
+"Controls whether session should reuse a previous session or if it should be "
+"stored. In tests, this variable is false by default."
+msgstr ""
+"Определя дали сесията да преизползва предишна или не. При тестовете тази "
+"настройка стандартно е изключена."
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Сертификатът във формат PKCS #11 не може да бъде внесен: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "Сертификатът във формат DER не може да бъде анализиран: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:382
-#: tls/openssl/gtlscertificate-openssl.c:384
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "Сертификатът във формат PEM не може да бъде анализиран: %s<"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:405
-#: tls/openssl/gtlscertificate-openssl.c:404
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "Частният ключ във формат DER не може да бъде анализиран: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:428
-#: tls/openssl/gtlscertificate-openssl.c:424
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "Частният ключ във формат PEM не може да бъде анализиран: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:455
+#: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
 msgstr ""
 "Сертификатът във формат PKCS #11 на този адрес не може да бъде внесен: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:497
-#: tls/openssl/gtlscertificate-openssl.c:459
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
 msgid "No certificate data provided"
 msgstr "Липсват данни за сертификат"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:807
+#: tls/gnutls/gtlscertificate-gnutls.c:981
 #: tls/gnutls/gtlsconnection-gnutls.c:1058
 #, c-format
 msgid "Cannot verify peer identity of unexpected type %s"
@@ -126,8 +152,8 @@ msgstr "Не може да се създаде връзка по TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:562
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Не може да се създаде връзка по TLS: %s"
@@ -179,7 +205,7 @@ msgstr "Грешка при ръкостискане по TLS: %s"
 msgid "Error performing TLS handshake"
 msgstr "Грешка при ръкостискане по TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1185
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
 #, c-format
 msgid ""
 "Empty channel binding data indicates a bug in the TLS library implementation"
@@ -187,76 +213,51 @@ msgstr ""
 "Празни данни за установяването на канал означават грешка в библиотеката за "
 "TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1203
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "В библиотеката за TLS липсва типът данни за установяването на канал"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1207
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Данните за установяването на канал все още не са налични"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1245
-#: tls/gnutls/gtlsconnection-gnutls.c:1257
-#, c-format
-msgid "X.509 certificate is not available on the connection"
-msgstr "Липсва сертификат X.509 за връзката"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1270
-#, c-format
-msgid "X.509 certificate is not available or is of unknown format: %s"
-msgstr "Липсва сертификат X.509 или е форматът му не се поддържа: %s"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1281
-#: tls/openssl/gtlsconnection-openssl.c:714
-#, c-format
-msgid "Unable to obtain certificate signature algorithm"
-msgstr "Алгоритъмът за подпис на сертификата не може да бъде получен"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1297
-#: tls/openssl/gtlsconnection-openssl.c:734
-#, c-format
-msgid ""
-"Current X.509 certificate uses unknown or unsupported signature algorithm"
-msgstr ""
-"Текущият сертификат за X.509 използва непознат или неподдържан алгоритъм"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1391
-#: tls/openssl/gtlsconnection-openssl.c:814
+#: tls/gnutls/gtlsconnection-gnutls.c:1231
+#: tls/openssl/gtlsconnection-openssl.c:810
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Заявеният вид свързване на канал не се поддържа"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1412
-#: tls/gnutls/gtlsconnection-gnutls.c:1472
-#: tls/openssl/gtlsconnection-openssl.c:832
-#: tls/openssl/gtlsconnection-openssl.c:928
+#: tls/gnutls/gtlsconnection-gnutls.c:1252
+#: tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828
+#: tls/openssl/gtlsconnection-openssl.c:924
 msgid "Error reading data from TLS socket"
 msgstr "Грешка при четене на данни по TLS от гнездо"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1494
-#: tls/gnutls/gtlsconnection-gnutls.c:1557
-#: tls/openssl/gtlsconnection-openssl.c:1007
+#: tls/gnutls/gtlsconnection-gnutls.c:1334
+#: tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
 msgid "Error writing data to TLS socket"
 msgstr "Грешка при запис на данни по TLS към гнездо"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1527
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "Прекалено дълго съобщение (размер: %lu байт) за връзка по DTLS"
 msgstr[1] "Прекалено дълго съобщение (размер: %lu байта) за връзка по DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1529
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(максимумът е %u байт)"
 msgstr[1] "(максимумът е %u байта)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1576
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Грешка при прекъсване на TLS: %s"
@@ -285,19 +286,19 @@ msgstr "Неуспешно попълване на доверения списъ
 msgid "Certificate has no private key"
 msgstr "Сертификатът е без частен ключ"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Не може да се създаде списък с шифри по TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Максималната версия на протокола не може се зададе да е %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -336,6 +337,18 @@ msgstr "Данните за свързване на канала „tls-unique�
 msgid "X.509 Certificate is not available on the connection"
 msgstr "За връзката липсва сертификат X.509"
 
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "Алгоритъмът за подпис на сертификата не може да бъде получен"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Текущият сертификат за X.509 използва непознат или неподдържан алгоритъм"
+
 #: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
@@ -353,7 +366,7 @@ msgstr ""
 msgid "Unexpected error while exporting keying data"
 msgstr "Неочаквана грешка при изнасяне на данните за ключовете"
 
-#: tls/openssl/gtlsconnection-openssl.c:1068
+#: tls/openssl/gtlsconnection-openssl.c:1064
 msgid "Error performing TLS close"
 msgstr "Грешка при затваряне на TLS"
 
