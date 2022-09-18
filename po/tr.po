@@ -1,5 +1,6 @@
 # Turkish translation for glib-networking.
 # Copyright (C) 2011 the Free Software Foundation, Inc.
+# Copyright (C) 2012-2022 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
 # Muhammed Eken <gnome@m-eken.com>, 2011.
@@ -12,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
+"POT-Creation-Date: 2022-09-12 16:40+0000\n"
 "PO-Revision-Date: 2022-09-01 01:40+0300\n"
 "Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
 "Language-Team: Turkish <gnome-turk@gnome.org>\n"
@@ -23,7 +24,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0\n"
 "X-Generator: Gtranslator 41.0\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "Vekil çözücü iç hatası."
 
@@ -369,59 +370,3 @@ msgstr "Sertifikada sorun var: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Sertifika özel anahtarında sorun var: %s"
-
-#, c-format
-#~ msgid "X.509 certificate is not available on the connection"
-#~ msgstr "X.509 sertifikası, bağlantıda kullanılabilir değil"
-
-#, c-format
-#~ msgid "X.509 certificate is not available or is of unknown format: %s"
-#~ msgstr "X.509 sertifikası kullanılamıyor veya bilinmeyen biçimde: %s"
-
-#~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr "Eş, kural dışı bir TLS yeniden el sıkışması istedi"
-
-#~ msgid "Failed to load file path: %s"
-#~ msgstr "Dosya yolu yüklenemedi: %s"
-
-#~ msgid "Operation would block"
-#~ msgstr "Bloke eden işlem"
-
-#~ msgid "Server did not return a valid TLS certificate"
-#~ msgstr "Sunucu geçerli bir TLS sertifikası döndürmedi"
-
-#~ msgid "Error reading data from TLS socket: %s"
-#~ msgstr "TLS yuvasından veri okurken hata: %s"
-
-#~ msgid "Error writing data to TLS socket: %s"
-#~ msgstr "TLS yuvasına veri yazarken hata: %s"
-
-#~ msgid ""
-#~ "This is the last chance to enter the PIN correctly before the token is "
-#~ "locked."
-#~ msgstr ""
-#~ "Bu, jeton (token) kilitlenmeden önce PIN kodunu doğru girmeniz için son "
-#~ "şanstır."
-
-#~ msgid ""
-#~ "Several PIN attempts have been incorrect, and the token will be locked "
-#~ "after further failures."
-#~ msgstr "PIN daha çok yanlış girilirse jeton (token) kilitlenecektir."
-
-#~ msgid "The PIN entered is incorrect."
-#~ msgstr "Girilen PIN hatalı."
-
-#~ msgid "Module"
-#~ msgstr "Modül"
-
-#~ msgid "PKCS#11 Module Pointer"
-#~ msgstr "PKCS#11 Modül İşaretçisi"
-
-#~ msgid "Slot ID"
-#~ msgstr "Yuva Kimliği"
-
-#~ msgid "PKCS#11 Slot Identifier"
-#~ msgstr "PKCS#11 Yuva Tanımlayıcısı"
-
-#~ msgid "Connection is already closed"
-#~ msgstr "Bağlantı zaten kapalı"
