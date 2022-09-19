@@ -7,22 +7,22 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gnome Nepali Translation Project\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2021-06-04 13:22+0000\n"
-"PO-Revision-Date: 2021-06-16 19:21+0545\n"
+"POT-Creation-Date: 2022-09-12 16:40+0000\n"
+"PO-Revision-Date: 2022-09-19 12:05+0545\n"
 "Last-Translator: Pawan Chitrakar <chautari@gmail.com>\n"
 "Language-Team: Nepali Translation Team <chautari@gmail.com>\n"
 "Language: ne\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0.1\n"
 
-#: proxy/libproxy/glibproxyresolver.c:164
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "प्रोक्सी हलकर्ता आन्तरिक त्रुटि।."
 
-#: tls/base/gtlsconnection-base.c:544 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -35,226 +35,222 @@ msgstr "जडान बन्द भयो"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:618
+#: tls/base/gtlsconnection-base.c:636
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "TLS ह्यान्डसेक गर्दा अवरोध सञ्चालन कार्यसम्पादन गर्न सकिँदैन"
 
-#: tls/base/gtlsconnection-base.c:683 tls/base/gtlsconnection-base.c:1231
+#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "सकेट I/O समय समाप्ति भयो"
 
-#: tls/base/gtlsconnection-base.c:857
+#: tls/base/gtlsconnection-base.c:875
 msgid "Server required TLS certificate"
 msgstr "सर्भर TLS प्रमाणपत्र आवश्यक"
 
-#: tls/base/gtlsconnection-base.c:1431
+#: tls/base/gtlsconnection-base.c:1454
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr "ह्यान्डसेक समाप्त भएको छैन, अहिलेसम्म च्यानल बाइन्डिङ सूचना छैन"
 
-#: tls/base/gtlsconnection-base.c:1490
+#: tls/base/gtlsconnection-base.c:1533
 msgid "Peer does not support safe renegotiation"
 msgstr "साथीले सुरक्षित पुन: वार्ता समर्थन गर्दैन"
 
-#: tls/base/gtlsconnection-base.c:1634 tls/gnutls/gtlsconnection-gnutls.c:407
-#: tls/openssl/gtlsconnection-openssl.c:209 tls/openssl/gtlsconnection-openssl.c:766
+#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/openssl/gtlsconnection-openssl.c:209 tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "अमान्य TLS प्रमाणपत्र"
 
-#: tls/base/gtlsconnection-base.c:2099
+#: tls/base/gtlsconnection-base.c:2153
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "प्राप्त झण्डा हरू समर्थित छैनन्"
 
-#: tls/base/gtlsconnection-base.c:2246
+#: tls/base/gtlsconnection-base.c:2300
 #, c-format
 msgid "Send flags are not supported"
 msgstr "प्राप्त झण्डा हरू समर्थित छैनन्"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:194 tls/openssl/gtlscertificate-openssl.c:170
+#: tls/gnutls/gtlscertificate-gnutls.c:297 tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "पीकेसीएस # १२ आयात गर्न असफल: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520 tls/openssl/gtlscertificate-openssl.c:519
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "DER प्रमाणपत्र पार्स गर्न सकेन:% s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:215 tls/openssl/gtlscertificate-openssl.c:190
+#: tls/gnutls/gtlscertificate-gnutls.c:541 tls/openssl/gtlscertificate-openssl.c:540
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "PEM प्रमाणपत्र पार्स गर्न सकेन:% s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:238 tls/openssl/gtlscertificate-openssl.c:209
+#: tls/gnutls/gtlscertificate-gnutls.c:564 tls/openssl/gtlscertificate-openssl.c:561
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "DER निजी कुञ्जी पार्स गर्न सकेन:%s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:261 tls/openssl/gtlscertificate-openssl.c:228
+#: tls/gnutls/gtlscertificate-gnutls.c:587 tls/openssl/gtlscertificate-openssl.c:582
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "PEM व्यक्तिगत कुञ्जी पद वर्णन गर्न सकेन: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:288
+#: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
 msgstr "PKCS #11 प्रमाणपत्र URI आयात गर्न सकेन: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:330 tls/openssl/gtlscertificate-openssl.c:263
+#: tls/gnutls/gtlscertificate-gnutls.c:657 tls/openssl/gtlscertificate-openssl.c:620
 msgid "No certificate data provided"
 msgstr "प्रमाणपत्र डाटा उपलब्ध छैन"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:143 tls/gnutls/gtlsconnection-gnutls.c:161
-#: tls/openssl/gtlsclientconnection-openssl.c:451
-#: tls/openssl/gtlsserverconnection-openssl.c:503
+#: tls/gnutls/gtlscertificate-gnutls.c:981 tls/gnutls/gtlsconnection-gnutls.c:1058
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "अनपेक्षित प्रकार %s को सहकर्मी पहिचान रुजु गर्न सकिँदैन"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:204
+msgid "Could not create TLS connection:"
+msgstr "टीएलएस जडान सिर्जना गर्न सकेन:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:214 tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:512
+#: tls/openssl/gtlsserverconnection-openssl.c:456
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS जडान सिर्जना गर्न सकेन: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:351 tls/gnutls/gtlsconnection-gnutls.c:362
-#: tls/gnutls/gtlsconnection-gnutls.c:376 tls/openssl/gtlsconnection-openssl.c:176
+#: tls/gnutls/gtlsconnection-gnutls.c:435 tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:460 tls/openssl/gtlsconnection-openssl.c:176
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "साथीले TLS ह्यान्डसेक सम्पादन गर्न असफल भयो: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:384
+#: tls/gnutls/gtlsconnection-gnutls.c:468
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS जडान अकस्मात बन्द भयो"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:399 tls/openssl/gtlsconnection-openssl.c:201
+#: tls/gnutls/gtlsconnection-gnutls.c:483 tls/openssl/gtlsconnection-openssl.c:201
 msgid "TLS connection peer did not send a certificate"
 msgstr "समान TLS जडानले प्रमाणपत्र पठाएनन्"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:415
+#: tls/gnutls/gtlsconnection-gnutls.c:499
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "साथीले घातक TLS चेतावनी पठायो: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:425
+#: tls/gnutls/gtlsconnection-gnutls.c:509
 msgid "Protocol version downgrade attack detected"
 msgstr "प्रोटोकल संस्करण अवनति आक्रमण पत्ता लाग्यो"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:518
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] "डीटीएलएस जडानका लागि सन्देश अति ठूलो छ; अधिकतम %u बाइट हो"
 msgstr[1] "डीटीएलएस जडानका लागि सन्देश अति ठूलो छ; अधिकतम %u बाइट हो"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:443
+#: tls/gnutls/gtlsconnection-gnutls.c:527
 msgid "The operation timed out"
 msgstr "सञ्चालन समय समाप्त भयो"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:775
+#: tls/gnutls/gtlsconnection-gnutls.c:879
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS ह्यान्डशेक गर्दा त्रुटि: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:878 tls/openssl/gtlsconnection-openssl.c:550
+#: tls/gnutls/gtlsconnection-gnutls.c:982 tls/openssl/gtlsconnection-openssl.c:614
 msgid "Error performing TLS handshake"
 msgstr "TLS ह्यान्डसेक सम्पादन गर्दा त्रुटि"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:936
+#: tls/gnutls/gtlsconnection-gnutls.c:1157
 #, c-format
-msgid "Channel binding type tls-unique is not implemented in the TLS library"
-msgstr ""
-"च्यानल बाइन्डिङ प्रकार TLS-अद्धितिय च्यानल बाइन्डिङ डेटा होइन tls-unique TLS लाइब्रेरीमा "
-"कार्यान्वयन भएको छैन"
+msgid "Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr "खाली च्यानल बाइन्डिङ डेटाले टीएलएस लाइब्रेरी कार्यान्वयनमा बग सङ्केत गर्दछ"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:940
+#: tls/gnutls/gtlsconnection-gnutls.c:1175
 #, c-format
-msgid "Channel binding data for tls-unique is not yet available"
-msgstr "च्यानल बाइन्डिङ डेटा tls-unique का लागि अहिले सम्म उपलब्ध छैन"
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "टीएलएस लाइब्रेरीमा च्यानल बाइन्डिङ प्रकार कार्यान्वयन गरिएको छैन ।"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:967 tls/gnutls/gtlsconnection-gnutls.c:979
+#: tls/gnutls/gtlsconnection-gnutls.c:1179
 #, c-format
-msgid "X.509 certificate is not available on the connection"
-msgstr "जडानमा X.५०९ प्रमाणपत्र उपलब्ध छैन"
+msgid "Channel binding data is not yet available"
+msgstr "च्यानल बाइन्डिङ डेटा अझै उपलब्ध छैन"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:992
-#, c-format
-msgid "X.509 certificate is not available or is of unknown format: %s"
-msgstr "X.509 प्रमाणपत्र उपलब्ध छैन वा अज्ञात ढाँचाको छ: %s"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1003 tls/openssl/gtlsconnection-openssl.c:641
-#, c-format
-msgid "Unable to obtain certificate signature algorithm"
-msgstr "प्रमाणपत्र हस्ताक्षर अल्गोरिदम फेला पार्न असक्षम"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1019 tls/openssl/gtlsconnection-openssl.c:661
-#, c-format
-msgid "Current X.509 certificate uses unknown or unsupported signature algorithm"
-msgstr "हालको X. 509 प्रमाणपत्रले अज्ञात वा असमर्थित हस्ताक्षर अल्गोरिदम प्रयोग गर्दछ"
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1105 tls/openssl/gtlsconnection-openssl.c:741
+#: tls/gnutls/gtlsconnection-gnutls.c:1231 tls/openssl/gtlsconnection-openssl.c:810
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "अनुरोध गरिएको च्यानल बाइन्डिङ प्रकार कार्यान्वयन गरिएको छैन"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1126 tls/gnutls/gtlsconnection-gnutls.c:1186
-#: tls/openssl/gtlsconnection-openssl.c:759 tls/openssl/gtlsconnection-openssl.c:855
+#: tls/gnutls/gtlsconnection-gnutls.c:1252 tls/gnutls/gtlsconnection-gnutls.c:1312
+#: tls/openssl/gtlsconnection-openssl.c:828 tls/openssl/gtlsconnection-openssl.c:924
 msgid "Error reading data from TLS socket"
 msgstr "TLS सकेटबाट डाटा पढ्दा त्रुटि"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1208 tls/gnutls/gtlsconnection-gnutls.c:1271
-#: tls/openssl/gtlsconnection-openssl.c:934
+#: tls/gnutls/gtlsconnection-gnutls.c:1334 tls/gnutls/gtlsconnection-gnutls.c:1397
+#: tls/openssl/gtlsconnection-openssl.c:1003
 msgid "Error writing data to TLS socket"
 msgstr "TLS सकेटमा डाटा लेख्दा त्रुटि"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1241
+#: tls/gnutls/gtlsconnection-gnutls.c:1367
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
 msgstr[0] "DTLS जडानका लागि %lu बाइट साइजको सन्देश अति ठूलो छ"
 msgstr[1] "DTLS जडानका लागि %lu बाइट साइजको सन्देश अति ठूलो छ"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1243
+#: tls/gnutls/gtlsconnection-gnutls.c:1369
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(अधिकतम %u बाइट हो)"
 msgstr[1] "(अधिकतम %u बाइट हो)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1290
+#: tls/gnutls/gtlsconnection-gnutls.c:1416
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS बन्द गर्दा त्रुटि: %s"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:578
+#: tls/gnutls/gtlsdatabase-gnutls.c:556
 msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system trust"
 msgstr ""
 "प्रणाली विश्वास भण्डार लोड गर्न असफल भयो: GnuTLS प्रणाली विश्वाससँग कन्फिगर गरिएको थिएन ।"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:583 tls/openssl/gtlsdatabase-openssl.c:229
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "प्रणाली विश्वास भण्डार लोड गर्न असफल भयो: %s"
 
-#: tls/gnutls/gtlsfiledatabase-gnutls.c:153 tls/openssl/gtlsfiledatabase-openssl.c:454
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153 tls/openssl/gtlsfiledatabase-openssl.c:456
 #, c-format
 msgid "Failed to populate trust list from %s: %s"
 msgstr "%s: %s विश्वास सूचीमा राख्न असफल"
 
 #: tls/gnutls/gtlsserverconnection-gnutls.c:124
 #: tls/openssl/gtlsserverconnection-openssl.c:172
-#: tls/openssl/gtlsserverconnection-openssl.c:228
 msgid "Certificate has no private key"
 msgstr "प्रमाणपत्रमा निजी कुञ्जी छैन"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:310
-#: tls/openssl/gtlsserverconnection-openssl.c:346
+#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "TLS सिफर सूची सेट गर्न सकेन: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:336
-#: tls/openssl/gtlsserverconnection-openssl.c:372
+#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "%d मा MAX प्रोटोकल सेट गर्न सकेन: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:397
-#: tls/openssl/gtlsserverconnection-openssl.c:433
+#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "TLS विषयवस्तु सिर्जना गर्न सकेन: %s"
@@ -277,54 +273,83 @@ msgstr "सुरक्षित पुन: वार्ता अक्षम �
 msgid "%s: The connection is broken"
 msgstr "%s: जडान विच्छेद भयो"
 
-#: tls/openssl/gtlsconnection-openssl.c:610
+#: tls/openssl/gtlsconnection-openssl.c:660
+#, c-format
+msgid "The request is invalid."
+msgstr "अनुरोध अवैध छ ।"
+
+#: tls/openssl/gtlsconnection-openssl.c:683
 #, c-format
 msgid "Channel binding data tls-unique is not available"
 msgstr "च्यानल बाइन्डिङ डेटा tls-unique उपलब्ध छैन"
 
-#: tls/openssl/gtlsconnection-openssl.c:633
+#: tls/openssl/gtlsconnection-openssl.c:706
 #, c-format
 msgid "X.509 Certificate is not available on the connection"
 msgstr "जडानमा X.५०९ प्रमाणपत्र उपलब्ध छैन"
 
-#: tls/openssl/gtlsconnection-openssl.c:679
+#: tls/openssl/gtlsconnection-openssl.c:714
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "प्रमाणपत्र हस्ताक्षर अल्गोरिदम फेला पार्न असक्षम"
+
+#: tls/openssl/gtlsconnection-openssl.c:734
+#, c-format
+msgid "Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr "हालको X. 509 प्रमाणपत्रले अज्ञात वा असमर्थित हस्ताक्षर अल्गोरिदम प्रयोग गर्दछ"
+
+#: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
 msgstr "X. 509 प्रमाणपत्र उत्पन्न गर्न असफल भयो"
 
-#: tls/openssl/gtlsconnection-openssl.c:710
+#: tls/openssl/gtlsconnection-openssl.c:783
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "TLS जडानले TLS-निर्यातकर्ता विशेषता समर्थन गर्दैन"
 
-#: tls/openssl/gtlsconnection-openssl.c:713
+#: tls/openssl/gtlsconnection-openssl.c:786
 #, c-format
 msgid "Unexpected error while exporting keying data"
 msgstr "कुञ्जी डेटा निर्यात गर्दा अनपेक्षित त्रुटि"
 
-#: tls/openssl/gtlsconnection-openssl.c:995
+#: tls/openssl/gtlsconnection-openssl.c:1064
 msgid "Error performing TLS close"
 msgstr "TLS बन्द सम्पादन गर्दा त्रुटि"
 
-#: tls/openssl/gtlsdatabase-openssl.c:197
+#: tls/openssl/gtlsdatabase-openssl.c:167
 msgid "Could not get trusted anchors from Keychain"
 msgstr "कि-चेनबाट विश्वासिलो एङ्करहरू प्राप्त गर्न सकेन"
 
-#: tls/openssl/gtlsdatabase-openssl.c:269
+#: tls/openssl/gtlsdatabase-openssl.c:232
+msgid "Could not get root certificate store"
+msgstr "मुल प्रमाणपत्र भण्डारण प्राप्त गर्न सकेन"
+
+#: tls/openssl/gtlsdatabase-openssl.c:239
+msgid "Could not get CA certificate store"
+msgstr "सीए प्रमाणपत्र भण्डारण प्राप्त गर्न सकेन"
+
+#: tls/openssl/gtlsdatabase-openssl.c:304
 msgid "Could not create CA store"
 msgstr "CA भण्डारण सिर्जना गर्न सकेन"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:179
-#: tls/openssl/gtlsserverconnection-openssl.c:247
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "प्रमाणपत्रमा समस्या छ: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "प्रमाणपत्रको व्यक्तिगत कुञ्जीमा समस्या छ: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:188
-#: tls/openssl/gtlsserverconnection-openssl.c:239
 #, c-format
-msgid "There is a problem with the certificate: %s"
-msgstr "प्रमाणपत्रमा समस्या छ: %s"
+#~ msgid "X.509 certificate is not available on the connection"
+#~ msgstr "जडानमा X.५०९ प्रमाणपत्र उपलब्ध छैन"
+
+#, c-format
+#~ msgid "X.509 certificate is not available or is of unknown format: %s"
+#~ msgstr "X.509 प्रमाणपत्र उपलब्ध छैन वा अज्ञात ढाँचाको छ: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "सञ्चालन ब्लक थियो"
