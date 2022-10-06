@@ -21,11 +21,11 @@ module = shared_module(
   link_args: module_ldflags,
   link_depends: symbol_map,
   name_suffix: module_suffix,
-  install: true,
+  install: build_shared,
   install_dir: gio_module_dir
 )
 
-if get_option('static_modules') or get_option('default_library') != 'shared'
+if build_static
   giognomeproxy_lib = static_library('giognomeproxy',
     objects: module.extract_all_objects(recursive: true),
     dependencies: deps,

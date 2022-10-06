@@ -33,6 +33,9 @@ common_flags = [
   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_70'
 ]
 
+build_static = get_option('static_modules') or get_option('default_library') != 'shared'
+build_shared = get_option('default_library') != 'static'
+
 add_project_arguments(common_flags, language: 'c')
 
 cflags = cc.get_supported_arguments(['-Werror=declaration-after-statement',
