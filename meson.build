@@ -35,6 +35,12 @@ common_flags = [
 
 build_static = get_option('static_modules') or get_option('default_library') != 'shared'
 build_shared = get_option('default_library') != 'static'
+if build_static and build_shared and (host_system == 'windows' or host_system == 'cygwin')
+  error('On Windows default_library must be "shared" or "static" but not "both"')
+endif
+if build_static and not build_shared
+  common_flags += '-DGLIB_NETWORKING_STATIC_COMPILATION'
+endif
 
 add_project_arguments(common_flags, language: 'c')
 

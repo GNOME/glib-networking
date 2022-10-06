@@ -28,9 +28,10 @@
 #include <glib/gi18n-lib.h>
 
 #include "gtlsbackend-gnutls.h"
+#include "visibility.h"
 
 
-G_MODULE_EXPORT void
+GLIB_NETWORKING_EXPORT void
 g_io_gnutls_load (GIOModule *module)
 {
   gchar *locale_dir;
@@ -53,12 +54,12 @@ g_io_gnutls_load (GIOModule *module)
   g_free (locale_dir);
 }
 
-G_MODULE_EXPORT void
+GLIB_NETWORKING_EXPORT void
 g_io_gnutls_unload (GIOModule *module)
 {
 }
 
-G_MODULE_EXPORT gchar **
+GLIB_NETWORKING_EXPORT gchar **
 g_io_gnutls_query (void)
 {
   gchar *eps[] = {
