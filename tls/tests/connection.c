@@ -597,7 +597,7 @@ clock_gettime (clockid_t        clk_id,
     }
 
   ret = original_clock_gettime (clk_id, tp);
-  if (ret == 0 && tp)
+  if (ret == 0)
     {
       tp->tv_sec += offset.tv_sec;
       tp->tv_nsec += offset.tv_nsec;
