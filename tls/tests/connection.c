@@ -3120,6 +3120,70 @@ test_connection_missing_server_identity (TestConnection *test,
   g_assert_no_error (test->server_error);
 }
 
+static void
+test_connection_missing_server_private_key (TestConnection *test,
+                                            gconstpointer   data)
+{
+  GTlsBackend *backend;
+  GInputStream *istream;
+  GOutputStream *ostream;
+  GIOStream *base_connection;
+  GIOStream *connection;
+  GTlsCertificate *server_cert;
+  char *cert_data = NULL;
+  GError *error = NULL;
+
+  backend = g_tls_backend_get_default ();
+
+  /* Prepare the server cert. */
+  g_file_get_contents (tls_test_file_path ("server-intermediate.pem"),
+                       &cert_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (cert_data);
+
+  server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
+                                NULL, &error,
+                                "certificate-pem", cert_data,
+                                NULL);
+  g_assert_no_error (error);
+  g_assert_nonnull (server_cert);
+  g_free (cert_data);
+
+  /* Prepare a fake iostream. */
+  istream = g_memory_input_stream_new ();
+  ostream = g_memory_output_stream_new_resizable ();
+  base_connection = g_simple_io_stream_new (istream, ostream);
+  g_object_unref (istream);
+  g_object_unref (ostream);
+
+  /* Creating a GTlsServerConnection using a certificate with no private key
+   * should fail.
+   */
+  connection = g_tls_server_connection_new (base_connection, server_cert, &error);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+  g_assert_null (connection);
+  g_clear_error (&error);
+
+  /* Creating a GTlsServerConnection with no certificate at all should be OK.
+   * A certificate must be set before the connection can be used, though.
+   */
+  connection = g_tls_server_connection_new (base_connection, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (connection);
+  g_object_unref (base_connection);
+
+  /* Ideally setting a certificate with no private key later on would fail, but
+   * that's not possible because there is no error parameter. Trying to
+   * handshake should instantly fail, though.
+   */
+  g_tls_connection_set_certificate (G_TLS_CONNECTION (connection), server_cert);
+  g_tls_connection_handshake (G_TLS_CONNECTION (connection), NULL, &error);
+  g_assert_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE);
+
+  g_object_unref (connection);
+  g_object_unref (server_cert);
+}
+
 typedef struct {
   TestConnection *test;
   gboolean peer_certificate_notified;
@@ -3467,6 +3531,8 @@ main (int   argc,
               setup_connection, test_socket_timeout, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/missing-server-identity", TestConnection, NULL,
               setup_connection, test_connection_missing_server_identity, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/missing-server-private-key", TestConnection, NULL,
+              setup_connection, test_connection_missing_server_private_key, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/peer-certificate-notify", TestConnection, NULL,
               setup_connection, test_peer_certificate_notify, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/binding/match-tls-unique", TestConnection, NULL,
