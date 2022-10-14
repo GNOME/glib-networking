@@ -24,9 +24,10 @@
 #include <glib/gi18n-lib.h>
 
 #include "genvironmentproxyresolver.h"
+#include "visibility.h"
 
 
-void
+GLIB_NETWORKING_EXPORT void
 g_io_environmentproxy_load (GIOModule *module)
 {
   gchar *locale_dir;
@@ -49,12 +50,12 @@ g_io_environmentproxy_load (GIOModule *module)
   g_free (locale_dir);
 }
 
-void
+GLIB_NETWORKING_EXPORT void
 g_io_environmentproxy_unload (GIOModule *module)
 {
 }
 
-gchar **
+GLIB_NETWORKING_EXPORT gchar **
 g_io_environmentproxy_query (void)
 {
   gchar *eps[] = {

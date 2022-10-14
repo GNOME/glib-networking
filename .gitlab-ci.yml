@@ -131,7 +131,7 @@ vs2017-x64:
   script:
     - pip3 install --upgrade --user meson~=0.64.0
     - mv .gitlab-ci\openssl.wrap subprojects
-    - meson setup --vsenv builddir -Dgnutls=disabled -Dopenssl=enabled -Dlibproxy=disabled -Denvironment_proxy=disabled -Dgnome_proxy=disabled -Ddebug_logs=true -Dopenssl:default_library=static
+    - meson setup --vsenv builddir -Dgnutls=disabled -Dopenssl=enabled -Dlibproxy=disabled -Denvironment_proxy=enabled -Dgnome_proxy=disabled -Ddebug_logs=true -Dopenssl:default_library=static
     - meson compile -C builddir
     - meson test -C builddir 'glib-networking:' --timeout-multiplier=10
   artifacts:
