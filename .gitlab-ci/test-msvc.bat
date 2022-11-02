@@ -10,7 +10,7 @@ set BUILD_DIR=c:\gnet
 
 IF EXIST %BUILD_DIR% GOTO NOGVSBUILD
 
-git clone --depth 1 https://github.com/wingtk/gvsbuild.git -b glib-2.73.3 || goto :error
+git clone --depth 1 https://github.com/wingtk/gvsbuild.git -b glib-2.74.0 || goto :error
 
 pushd gvsbuild
 python.exe build.py --verbose --debug build -p x64 --vs-ver 15 --build-dir %BUILD_DIR% openssl glib || goto :error
