@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-08-16 21:16+0300\n"
+"POT-Creation-Date: 2022-10-01 13:12+0000\n"
+"PO-Revision-Date: 2022-12-24 10:49+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -20,11 +20,11 @@ msgstr ""
 "X-Generator: Lokalize 20.12.0\n"
 "X-Project-Style: gnome\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "Внутрішня помилка розв'язника проксі."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -37,54 +37,74 @@ msgstr "З'єднання розірвано"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr ""
 "Не можна виконувати дію з блокування під час узгодження зв'язку за допомогою "
 "TLS"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "Перевищено час очікування на введення-виведення з гнізда"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "Сервер потребує сертифікат TLS"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr ""
 "Узгодження зв'язку не завершено, ми ще не маємо даних щодо прив'язки каналів"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr ""
 "У налаштуваннях стороннього вузла не передбачено підтримки безпечного "
 "повторного узгодження"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Неприпустимий сертифікат TLS"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Підтримки прапорців отримання не передбачено"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Підтримки прапорців надсилання не передбачено"
 
+#: tls/base/gtlsconnection-base.c:2955
+msgid "Session Reused"
+msgstr "Повторно використаний сеанс"
+
+#: tls/base/gtlsconnection-base.c:2956
+msgid "Indicates whether a session has been reused"
+msgstr "Вказує, чи є сеанс повторно використаним"
+
+#: tls/base/gtlsconnection-base.c:2963
+msgid "Session Reuse Enabled"
+msgstr "Увімкнено повторне використання сеансів"
+
+#: tls/base/gtlsconnection-base.c:2964
+msgid ""
+"Controls whether session should reuse a previous session or if it should be "
+"stored. In tests, this variable is false by default."
+msgstr ""
+"Керує тим, чи у сеансі слід повторно використовувати попередній сеанс або"
+" тим, чи слід зберігати сеанс. У тестах цю змінна типово має значення"
+" «хибність»."
+
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
-#| msgid "Could not import PKCS #11 certificate URI: %s"
 msgid "Failed to import PKCS #12: %s"
 msgstr "Не вдалося імпортувати PKCS #12: %s"
 
@@ -134,8 +154,8 @@ msgstr "Неможливо створити з'єднання TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:562
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Неможливо створити з'єднання TLS: %s"
@@ -278,19 +298,19 @@ msgstr "Не вдалося заповнити список довіри на о
 msgid "Certificate has no private key"
 msgstr "Сертифікат не має закритого ключа"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Не вдалося встановити список шифрувань TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Не вдалося встановити для MAX протоколу значення %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
