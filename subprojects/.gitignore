@@ -1,0 +1,12 @@
+/glib*/
+/libffi*/
+/openssl*/
+/packagecache/
+/pcre2*/
+/zlib*/
+
+/gvdb.wrap
+/libffi.wrap
+/openssl.wrap
+/pcre2.wrap
+/zlib.wrap
