@@ -31,8 +31,14 @@
 #include <glib/gi18n-lib.h>
 #include "openssl-include.h"
 
+/*
+ * SecTrustCopyAnchorCertificates is only available on macOS, so we check for
+ * SEC_OS_OSX: https://github.com/Apple-FOSS-Mirror/Security/blob/master/base/SecBase.h
+ */
 #ifdef __APPLE__
 #include <Security/Security.h>
+#else
+#define SEC_OS_OSX 0
 #endif
 
 #ifdef G_OS_WIN32
@@ -151,7 +157,7 @@ g_tls_database_openssl_verify_chain (GTlsDatabase             *database,
   return result;
 }
 
-#ifdef __APPLE__
+#if SEC_OS_OSX
 static gboolean
 populate_store (X509_STORE  *store,
                 GError     **error)
