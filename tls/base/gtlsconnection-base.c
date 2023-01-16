@@ -2952,20 +2952,15 @@ g_tls_connection_base_class_init (GTlsConnectionBaseClass *klass)
 
   g_object_class_install_property (gobject_class, PROP_SESSION_REUSED,
     g_param_spec_boolean ("session-reused",
-                  _("Session Reused"),
-                  _("Indicates whether a session has been reused"),
+                  NULL, NULL,
                   FALSE,
-                  G_PARAM_READABLE |
-                  G_PARAM_STATIC_STRINGS));
+                  G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_property (gobject_class, PROP_SESSION_RESUMPTION_ENABLED,
     g_param_spec_boolean ("session-resumption-enabled",
-                  _("Session Reuse Enabled"),
-                  _("Controls whether session should reuse a previous session or if it should be stored. In tests, this variable is false by default."),
+                  NULL, NULL,
                   !g_test_initialized (),
-                  G_PARAM_READABLE |
-                  G_PARAM_WRITABLE |
-                  G_PARAM_STATIC_STRINGS));
+                  G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS));
 
   /* For GTlsConnection and GDtlsConnection: */
   g_object_class_override_property (gobject_class, PROP_BASE_IO_STREAM, "base-io-stream");
