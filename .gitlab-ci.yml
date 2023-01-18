@@ -69,6 +69,8 @@ fedora-x86_64:
     - meson install -C _build/
     - ninja -C _build/ coverage-html
   artifacts:
+    reports:
+      junit: _build/meson-logs/testlog.junit.xml
     paths:
       - _build/test-results
       - _build/meson-logs/coveragereport
@@ -97,6 +99,8 @@ fedora-x86_64-asan:
     - meson compile -C _build/
     - meson test --verbose --timeout-multiplier=10 -C _build/
   artifacts:
+    reports:
+      junit: _build/meson-logs/testlog.junit.xml
     paths:
       - _build/test-results
     when: on_failure
@@ -135,6 +139,8 @@ vs2017-x64:
     - meson compile -C builddir
     - meson test -C builddir 'glib-networking:' --timeout-multiplier=10
   artifacts:
+    reports:
+      junit: builddir\meson-logs\testlog.junit.xml
     paths:
-      - build/test-results
+      - builddir\test-results
     when: on_failure
