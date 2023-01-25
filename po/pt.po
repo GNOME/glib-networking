@@ -5,15 +5,15 @@
 # Duarte Loreto <happyguy_pt@hotmail.com>, 2011, 2012, 2013.
 # Pedro Albuquerque <palbuquerque73@openmailbox.com>, 2015.
 # Juliano de Souza Camargo <julianosc@protonmail.com>, 2020.
-# Hugo Carvalho <hugokarvalho@hotmail.com>, 2020, 2021, 2022.
+# Hugo Carvalho <hugokarvalho@hotmail.com>, 2020, 2021, 2022, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: 3.8\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-08-16 14:31+0100\n"
+"POT-Creation-Date: 2023-01-24 20:40+0000\n"
+"PO-Revision-Date: 2023-01-25 14:20+0000\n"
 "Last-Translator: Hugo Carvalho <hugokarvalho@hotmail.com>\n"
 "Language-Team: Portuguese <gnome-pt-translation@googlegroups.com>\n"
 "Language: pt\n"
@@ -21,13 +21,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.2.2\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "Erro interno de resolução do proxy."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -40,47 +40,67 @@ msgstr "A ligação está fechada"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr ""
 "Impossível efetuar operação de bloqueio durante a comunicação inicial TLS"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "Expirou E/S do socket"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "O servidor requer um certificado TLS"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr ""
 "O aperto de mão não está terminado, ainda não há informação vinculativa do "
 "canal"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "Destino não suporta renegociação segura"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Certificado TLS inaceitável"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Opções de receção não são suportadas"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Opções de envio não são suportadas"
+
+#: tls/base/gtlsconnection-base.c:2955
+msgid "Session Reused"
+msgstr "Sessão reutilizada"
+
+#: tls/base/gtlsconnection-base.c:2956
+msgid "Indicates whether a session has been reused"
+msgstr "Indica se uma sessão foi reutilizada"
+
+#: tls/base/gtlsconnection-base.c:2963
+msgid "Session Reuse Enabled"
+msgstr "Reutilização de sessão ativada"
+
+#: tls/base/gtlsconnection-base.c:2964
+msgid ""
+"Controls whether session should reuse a previous session or if it should be "
+"stored. In tests, this variable is false by default."
+msgstr ""
+"Controla se a sessão deve reutilizar uma sessão anterior ou se deve ser "
+"armazenada. Em testes, esta variável é falsa por padrão."
 
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
@@ -134,8 +154,8 @@ msgstr "Impossível criar uma ligação TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:562
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Impossível criar uma ligação TLS: %s"
@@ -253,7 +273,7 @@ msgstr ""
 "Falhou em carregar um espaço seguro no sistema: o GnuTLS não foi definido "
 "com um sistema de segurança"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Falhou em carregar um espaço seguro no sistema: %s"
@@ -269,19 +289,19 @@ msgstr "Falhou ao povoar uma lista segura de %s: %s"
 msgid "Certificate has no private key"
 msgstr "Certificado não tem chave privada"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Não foi possível definir a lista de cifras TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Não foi possível definir o protocolo MAX para %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -352,19 +372,19 @@ msgstr "Erro inesperado ao exportar dados de codificação"
 msgid "Error performing TLS close"
 msgstr "Erro ao terminar a ligação TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
+#: tls/openssl/gtlsdatabase-openssl.c:173
 msgid "Could not get trusted anchors from Keychain"
 msgstr "Não foi possível obter âncoras de confiança da cadeia de chaves"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:238
 msgid "Could not get root certificate store"
 msgstr "Não foi possível obter espaço de certificado root"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:245
 msgid "Could not get CA certificate store"
 msgstr "Não foi possível obter espaço de certificado CA"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:310
 msgid "Could not create CA store"
 msgstr "Não foi possível criar espaço CA"
 
