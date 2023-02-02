@@ -33,7 +33,7 @@ common_flags = [
   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_70'
 ]
 
-build_static = get_option('static_modules') or get_option('default_library') != 'shared'
+build_static = get_option('default_library') != 'shared'
 build_shared = get_option('default_library') != 'static'
 if build_static and build_shared and (host_system == 'windows' or host_system == 'cygwin')
   error('On Windows default_library must be "shared" or "static" but not "both"')
