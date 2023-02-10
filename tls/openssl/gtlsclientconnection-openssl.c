@@ -492,8 +492,6 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
       X509_VERIFY_PARAM_free (param);
     }
 
-  SSL_CTX_add_session (client->ssl_ctx, client->session);
-
   SSL_CTX_set_client_cert_cb (client->ssl_ctx, handshake_thread_retrieve_certificate);
 
 #ifdef SSL_CTX_set1_sigalgs_list
