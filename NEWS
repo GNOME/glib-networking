@@ -1,3 +1,9 @@
+2.76.0 - March 17, 2023
+=======================
+
+- Fix OpenSSL sessions becoming unresumable (#207, Goncalo Gomes)
+- Fix installed libproxy test (#208, Simon McVittie)
+
 2.76.beta - February 9, 2023
 ============================
 
