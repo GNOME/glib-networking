@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-09-12 15:58+0000\n"
-"PO-Revision-Date: 2022-09-12 18:09+0200\n"
+"POT-Creation-Date: 2022-09-12 16:40+0000\n"
+"PO-Revision-Date: 2022-09-13 00:05+0200\n"
 "Last-Translator:  Alexander Shopov <ash@kambanaria.org>\n"
 "Language-Team: Bulgarian <dict@fsa-bg.org>\n"
 "Language: bg\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Вътрешна грешка при откриването на сървъра-посредник."
 
-#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -35,67 +35,47 @@ msgstr "Връзката е прекъсната"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:690
+#: tls/base/gtlsconnection-base.c:636
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr ""
 "По време на ръкостискане по TLS не може да се извърши операция с блокиране"
 
-#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
-msgstr "Мина времето за работа за вх./изх. гнездо"
+msgstr "Просрочено време за отговор при входни-изходна операция с гнездото"
 
-#: tls/base/gtlsconnection-base.c:929
+#: tls/base/gtlsconnection-base.c:875
 msgid "Server required TLS certificate"
 msgstr "Сървърът изисква сертификат за TLS"
 
-#: tls/base/gtlsconnection-base.c:1519
+#: tls/base/gtlsconnection-base.c:1454
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr ""
 "Ръкостискането не е завършило, все още няма информация за установяване на "
 "канал"
 
-#: tls/base/gtlsconnection-base.c:1598
+#: tls/base/gtlsconnection-base.c:1533
 msgid "Peer does not support safe renegotiation"
 msgstr "Отсрещната страна не поддържа безопасно предоговяряне"
 
-#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Неприемлив сертификат за TLS"
 
-#: tls/base/gtlsconnection-base.c:2218
+#: tls/base/gtlsconnection-base.c:2153
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Неподдържани флагове при получаване"
 
-#: tls/base/gtlsconnection-base.c:2365
+#: tls/base/gtlsconnection-base.c:2300
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Неподдържани флагове при изпращане"
-
-#: tls/base/gtlsconnection-base.c:2955
-msgid "Session Reused"
-msgstr "Преизползвана сесия"
-
-#: tls/base/gtlsconnection-base.c:2956
-msgid "Indicates whether a session has been reused"
-msgstr "Дали сесия е била преизползвана"
-
-#: tls/base/gtlsconnection-base.c:2963
-msgid "Session Reuse Enabled"
-msgstr "Включване на преизполването на сесии"
-
-#: tls/base/gtlsconnection-base.c:2964
-msgid ""
-"Controls whether session should reuse a previous session or if it should be "
-"stored. In tests, this variable is false by default."
-msgstr ""
-"Определя дали сесията да преизползва предишна или не. При тестовете тази "
-"настройка стандартно е изключена."
 
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
@@ -152,8 +132,8 @@ msgstr "Не може да се създаде връзка по TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:562
-#: tls/openssl/gtlsserverconnection-openssl.c:455
+#: tls/openssl/gtlsclientconnection-openssl.c:512
+#: tls/openssl/gtlsserverconnection-openssl.c:456
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Не може да се създаде връзка по TLS: %s"
@@ -286,19 +266,19 @@ msgstr "Неуспешно попълване на доверения списъ
 msgid "Certificate has no private key"
 msgstr "Сертификатът е без частен ключ"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsclientconnection-openssl.c:368
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Не може да се създаде списък с шифри по TLS: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsclientconnection-openssl.c:396
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Максималната версия на протокола не може се зададе да е %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsclientconnection-openssl.c:459
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
