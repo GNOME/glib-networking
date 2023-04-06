@@ -85,7 +85,7 @@ static void g_proxy_resolver_gnome_iface_init (GProxyResolverInterface *iface);
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GProxyResolverGnome,
                                 g_proxy_resolver_gnome,
-                                G_TYPE_OBJECT, 0,
+                                G_TYPE_OBJECT, G_TYPE_FLAG_FINAL,
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
                                                                g_proxy_resolver_gnome_iface_init))
 

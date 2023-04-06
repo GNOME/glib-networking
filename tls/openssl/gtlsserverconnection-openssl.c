@@ -53,13 +53,13 @@ static void g_tls_server_connection_openssl_server_connection_interface_init (GT
 
 static GInitableIface *g_tls_server_connection_openssl_parent_initable_iface;
 
-G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionOpenssl, g_tls_server_connection_openssl, G_TYPE_TLS_CONNECTION_OPENSSL,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_server_connection_openssl_initable_interface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
-                                                g_tls_server_connection_openssl_server_connection_interface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_SERVER_CONNECTION,
-                                                NULL));
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsServerConnectionOpenssl, g_tls_server_connection_openssl, G_TYPE_TLS_CONNECTION_OPENSSL,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      g_tls_server_connection_openssl_initable_interface_init)
+                               G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
+                                                      g_tls_server_connection_openssl_server_connection_interface_init)
+                               G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_SERVER_CONNECTION,
+                                                      NULL));
 
 static void
 g_tls_server_connection_openssl_finalize (GObject *object)

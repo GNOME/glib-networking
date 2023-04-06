@@ -36,9 +36,9 @@ struct _GTlsInputStream
 
 static void g_tls_input_stream_pollable_iface_init (GPollableInputStreamInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GTlsInputStream, g_tls_input_stream, G_TYPE_INPUT_STREAM,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_pollable_iface_init)
-                         )
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsInputStream, g_tls_input_stream, G_TYPE_INPUT_STREAM,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_tls_input_stream_pollable_iface_init)
+                              )
 
 static void
 g_tls_input_stream_dispose (GObject *object)

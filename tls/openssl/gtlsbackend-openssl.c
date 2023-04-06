@@ -47,7 +47,7 @@ struct _GTlsBackendOpenssl
 
 static void g_tls_backend_openssl_interface_init (GTlsBackendInterface *iface);
 
-G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendOpenssl, g_tls_backend_openssl, G_TYPE_OBJECT, 0,
+G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendOpenssl, g_tls_backend_openssl, G_TYPE_OBJECT, G_TYPE_FLAG_FINAL,
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
                                                                g_tls_backend_openssl_interface_init))
 

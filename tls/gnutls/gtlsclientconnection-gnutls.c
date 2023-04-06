@@ -91,13 +91,13 @@ static int g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gn
 
 static GInitableIface *g_tls_client_connection_gnutls_parent_initable_iface;
 
-G_DEFINE_TYPE_WITH_CODE (GTlsClientConnectionGnutls, g_tls_client_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_client_connection_gnutls_initable_interface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
-                                                g_tls_client_connection_gnutls_client_connection_interface_init);
-                         G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CLIENT_CONNECTION,
-                                                g_tls_client_connection_gnutls_dtls_client_connection_interface_init));
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsClientConnectionGnutls, g_tls_client_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      g_tls_client_connection_gnutls_initable_interface_init)
+                               G_IMPLEMENT_INTERFACE (G_TYPE_TLS_CLIENT_CONNECTION,
+                                                      g_tls_client_connection_gnutls_client_connection_interface_init);
+                               G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_CLIENT_CONNECTION,
+                                                      g_tls_client_connection_gnutls_dtls_client_connection_interface_init));
 
 static void
 clear_gnutls_certificate_copy (gnutls_pcert_st  **pcert,

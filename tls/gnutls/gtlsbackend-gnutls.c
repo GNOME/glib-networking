@@ -46,7 +46,7 @@ struct _GTlsBackendGnutls
 
 static void g_tls_backend_gnutls_interface_init (GTlsBackendInterface *iface);
 
-G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendGnutls, g_tls_backend_gnutls, G_TYPE_OBJECT, 0,
+G_DEFINE_DYNAMIC_TYPE_EXTENDED (GTlsBackendGnutls, g_tls_backend_gnutls, G_TYPE_OBJECT, G_TYPE_FLAG_FINAL,
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_TLS_BACKEND,
                                                                g_tls_backend_gnutls_interface_init);)
 

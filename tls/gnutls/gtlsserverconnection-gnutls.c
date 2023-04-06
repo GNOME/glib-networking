@@ -66,13 +66,13 @@ static int g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gn
 
 static GInitableIface *g_tls_server_connection_gnutls_parent_initable_iface;
 
-G_DEFINE_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_server_connection_gnutls_initable_interface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
-                                                g_tls_server_connection_gnutls_server_connection_interface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_SERVER_CONNECTION,
-                                                NULL)
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsServerConnectionGnutls, g_tls_server_connection_gnutls, G_TYPE_TLS_CONNECTION_GNUTLS,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      g_tls_server_connection_gnutls_initable_interface_init)
+                               G_IMPLEMENT_INTERFACE (G_TYPE_TLS_SERVER_CONNECTION,
+                                                      g_tls_server_connection_gnutls_server_connection_interface_init)
+                               G_IMPLEMENT_INTERFACE (G_TYPE_DTLS_SERVER_CONNECTION,
+                                                      NULL)
 )
 
 static void

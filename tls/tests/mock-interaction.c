@@ -38,7 +38,7 @@ struct _MockInteraction
   GError *static_error;
 };
 
-G_DEFINE_TYPE (MockInteraction, mock_interaction, G_TYPE_TLS_INTERACTION);
+G_DEFINE_FINAL_TYPE (MockInteraction, mock_interaction, G_TYPE_TLS_INTERACTION);
 
 static void
 mock_interaction_ask_password_async (GTlsInteraction    *interaction,

@@ -50,10 +50,10 @@ struct _GTlsFileDatabaseGnutls
 
 static void g_tls_file_database_gnutls_file_database_interface_init (GTlsFileDatabaseInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GTlsFileDatabaseGnutls, g_tls_file_database_gnutls, G_TYPE_TLS_DATABASE_GNUTLS,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_TLS_FILE_DATABASE,
-                                                g_tls_file_database_gnutls_file_database_interface_init);
-                         );
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsFileDatabaseGnutls, g_tls_file_database_gnutls, G_TYPE_TLS_DATABASE_GNUTLS,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_TLS_FILE_DATABASE,
+                                                      g_tls_file_database_gnutls_file_database_interface_init);
+                              );
 
 static void
 g_tls_file_database_gnutls_finalize (GObject *object)

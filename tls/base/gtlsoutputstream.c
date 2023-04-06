@@ -36,9 +36,9 @@ struct _GTlsOutputStream
 
 static void g_tls_output_stream_pollable_iface_init (GPollableOutputStreamInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GTlsOutputStream, g_tls_output_stream, G_TYPE_OUTPUT_STREAM,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_OUTPUT_STREAM, g_tls_output_stream_pollable_iface_init)
-                         )
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsOutputStream, g_tls_output_stream, G_TYPE_OUTPUT_STREAM,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_OUTPUT_STREAM, g_tls_output_stream_pollable_iface_init)
+                              )
 
 static void
 g_tls_output_stream_dispose (GObject *object)

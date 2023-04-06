@@ -77,9 +77,9 @@ struct _GTlsCertificateGnutls
 static void     g_tls_certificate_gnutls_initable_iface_init (GInitableIface  *iface);
 static GTlsCertificateGnutls *g_tls_certificate_gnutls_new_take_x509 (gnutls_x509_crt_t cert);
 
-G_DEFINE_TYPE_WITH_CODE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G_TYPE_TLS_CERTIFICATE,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_certificate_gnutls_initable_iface_init);)
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsCertificateGnutls, g_tls_certificate_gnutls, G_TYPE_TLS_CERTIFICATE,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      g_tls_certificate_gnutls_initable_iface_init);)
 
 static void
 g_tls_certificate_gnutls_finalize (GObject *object)

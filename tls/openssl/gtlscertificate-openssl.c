@@ -72,9 +72,9 @@ enum
 static void     g_tls_certificate_openssl_initable_iface_init (GInitableIface  *iface);
 static gboolean is_issuer (GTlsCertificateOpenssl *cert, GTlsCertificateOpenssl *issuer);
 
-G_DEFINE_TYPE_WITH_CODE (GTlsCertificateOpenssl, g_tls_certificate_openssl, G_TYPE_TLS_CERTIFICATE,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_tls_certificate_openssl_initable_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (GTlsCertificateOpenssl, g_tls_certificate_openssl, G_TYPE_TLS_CERTIFICATE,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      g_tls_certificate_openssl_initable_iface_init))
 
 static void
 g_tls_certificate_openssl_finalize (GObject *object)

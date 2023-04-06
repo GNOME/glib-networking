@@ -47,15 +47,15 @@ g_libproxy_resolver_class_finalize (GLibproxyResolverClass *klass)
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (GLibproxyResolver,
                                 g_libproxy_resolver,
-                                G_TYPE_OBJECT, 0,
+                                G_TYPE_OBJECT, G_TYPE_FLAG_FINAL,
                                 G_IMPLEMENT_INTERFACE_DYNAMIC (G_TYPE_PROXY_RESOLVER,
                                                                g_libproxy_resolver_iface_init))
 #else
-G_DEFINE_TYPE_EXTENDED (GLibproxyResolver,
-                        g_libproxy_resolver,
-                        G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_PROXY_RESOLVER,
-                                               g_libproxy_resolver_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (GLibproxyResolver,
+                               g_libproxy_resolver,
+                               G_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_PROXY_RESOLVER,
+                                                      g_libproxy_resolver_iface_init))
 #endif
 
 static void

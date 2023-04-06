@@ -39,11 +39,11 @@ struct _LossySocket
 
 static void lossy_socket_datagram_based_iface_init (GDatagramBasedInterface *iface);
 
-G_DEFINE_TYPE_EXTENDED (LossySocket,
-                        lossy_socket,
-                        G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_DATAGRAM_BASED,
-                                               lossy_socket_datagram_based_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (LossySocket,
+                               lossy_socket,
+                               G_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_DATAGRAM_BASED,
+                                                      lossy_socket_datagram_based_iface_init))
 
 static gint
 lossy_socket_receive_messages (GDatagramBased  *datagram_based,
