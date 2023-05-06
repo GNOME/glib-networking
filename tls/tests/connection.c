@@ -467,6 +467,10 @@ run_echo_server (GThreadedSocketService *service,
   while (TRUE)
     {
       nread = g_input_stream_read (istream, buf, sizeof (buf), NULL, &error);
+
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+        continue;
+
       g_assert_no_error (error);
       g_assert_cmpint (nread, >=, 0);
 
@@ -476,6 +480,10 @@ run_echo_server (GThreadedSocketService *service,
       for (total = 0; total < nread; total += nwrote)
         {
           nwrote = g_output_stream_write (ostream, buf + total, nread - total, NULL, &error);
+
+          if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+            continue;
+
           g_assert_no_error (error);
         }
 
@@ -2210,6 +2218,10 @@ simul_read_thread (gpointer user_data)
                                    test->buf + test->nread,
                                    MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nread),
                                    NULL, &error);
+
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+        continue;
+
       g_assert_no_error (error);
 
       test->nread += nread;
@@ -2232,6 +2244,10 @@ simul_write_thread (gpointer user_data)
                                       &TEST_DATA[test->nwrote],
                                       MIN (TEST_DATA_LENGTH / 2, TEST_DATA_LENGTH - test->nwrote),
                                       NULL, &error);
+
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+        continue;
+
       g_assert_no_error (error);
 
       test->nwrote += nwrote;
@@ -2403,7 +2419,7 @@ test_unclean_close_by_server (TestConnection *test,
   nread = g_input_stream_read (g_io_stream_get_input_stream (test->client_connection),
                                test->buf, TEST_DATA_LENGTH,
                                NULL, &test->read_error);
-  if (!g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE))
+  if (!g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE) && !g_error_matches (test->read_error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
     g_assert_no_error (test->read_error);
   g_assert_cmpint (nread, ==, 0);
 
