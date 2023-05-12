@@ -3376,7 +3376,7 @@ main (int   argc,
 
   g_assert_true (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
 
-#ifdef BACKEND_IS_GNUTLS
+#if defined(BACKEND_IS_GNUTLS) && HAVE_GNUTLS_PKCS11
   module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.so", NULL);
   g_assert_true (g_file_test (module_path, G_FILE_TEST_EXISTS));
 
@@ -3438,8 +3438,10 @@ main (int   argc,
               setup_connection, test_client_auth_request_fail, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-request-none", TestConnection, NULL,
               setup_connection, test_client_auth_request_none, teardown_connection);
+#if HAVE_GNUTLS_PKCS11
   g_test_add ("/tls/" BACKEND "/connection/client-auth-pkcs11", TestConnection, NULL,
               setup_connection, test_client_auth_pkcs11_connection, teardown_connection);
+#endif
   g_test_add ("/tls/" BACKEND "/connection/no-database", TestConnection, NULL,
               setup_connection, test_connection_no_database, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/failed", TestConnection, NULL,

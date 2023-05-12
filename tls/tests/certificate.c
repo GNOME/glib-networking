@@ -24,6 +24,7 @@
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
 
+#include "config.h"
 #include "certificate.h"
 
 #include <gio/gio.h>
@@ -911,7 +912,7 @@ int
 main (int   argc,
       char *argv[])
 {
-#ifdef BACKEND_IS_GNUTLS
+#if defined(BACKEND_IS_GNUTLS) && HAVE_GNUTLS_PKCS11
   char *module_path;
 #endif
 
@@ -921,7 +922,7 @@ main (int   argc,
   g_setenv ("GIO_USE_TLS", BACKEND, TRUE);
   g_assert_cmpint (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND), ==, 0);
 
-#ifdef BACKEND_IS_GNUTLS
+#if defined(BACKEND_IS_GNUTLS) && HAVE_GNUTLS_PKCS11
   module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.so", NULL);
   g_assert_true (g_file_test (module_path, G_FILE_TEST_EXISTS));
 
@@ -942,12 +943,14 @@ main (int   argc,
               setup_certificate, test_create_certificate_with_issuer, teardown_certificate);
   g_test_add ("/tls/" BACKEND "/certificate/create-with-garbage-input", TestCertificate, NULL,
               setup_certificate, test_create_certificate_with_garbage_input, teardown_certificate);
-  g_test_add ("/tls/" BACKEND "/certificate/pkcs11", TestCertificate, NULL,
-              setup_certificate, test_create_certificate_pkcs11, teardown_certificate);
   g_test_add ("/tls/" BACKEND "/certificate/private-key", TestCertificate, NULL,
               setup_certificate, test_private_key, teardown_certificate);
+#if HAVE_GNUTLS_PKCS11
+  g_test_add ("/tls/" BACKEND "/certificate/pkcs11", TestCertificate, NULL,
+              setup_certificate, test_create_certificate_pkcs11, teardown_certificate);
   g_test_add ("/tls/" BACKEND "/certificate/private-key-pkcs11", TestCertificate, NULL,
               setup_certificate, test_private_key_pkcs11, teardown_certificate);
+#endif
 
   g_test_add_func ("/tls/" BACKEND "/certificate/create-chain", test_create_certificate_chain);
   g_test_add_func ("/tls/" BACKEND "/certificate/create-no-chain", test_create_certificate_no_chain);

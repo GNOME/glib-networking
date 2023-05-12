@@ -84,6 +84,10 @@ gnutls_dep = dependency('gnutls', version: '>= 3.7.4', required: get_option('gnu
 
 if gnutls_dep.found()
   backends += ['gnutls']
+  # test-specific, maybe move to tls/tests
+  if cc.has_function('gnutls_pkcs11_init', prefix: '#include <gnutls/pkcs11.h>', dependencies: gnutls_dep)
+    config_h.set10('HAVE_GNUTLS_PKCS11', true)
+  endif
 endif
 
 # *** Checks for OpenSSL    ***
