@@ -18,9 +18,16 @@ foreach program: proxy_test_programs
     )
   endif
 
+  c_flags = []
+
+  if libproxy_dep.version() >= '0.5.0'
+    c_flags += '-DLIBPROXY_0_5'
+  endif
+
   exe = executable(
     test_name,
     program[0] + '.c',
+    c_args : c_flags,
     include_directories: top_inc,
     dependencies: program[2],
     install: enable_installed_tests,
