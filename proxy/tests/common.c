@@ -172,13 +172,15 @@ static void
 test_proxy_ignore_common (void)
 {
   GProxyResolver *resolver;
-  gboolean is_libproxy;
   GError *error = NULL;
   char **proxies;
   int i;
 
+#ifndef LIBPROXY_0_5
+  gboolean is_libproxy = g_strcmp0 (g_getenv ("GIO_PROXY_TEST_NAME"), "libproxy") == 0;
+#endif
+
   resolver = g_proxy_resolver_get_default ();
-  is_libproxy = g_strcmp0 (g_getenv ("GIO_PROXY_TEST_NAME"), "libproxy") == 0;
 
   for (i = 0; i < n_ignore_tests; i++)
     {
@@ -186,9 +188,11 @@ test_proxy_ignore_common (void)
                                          NULL, &error);
       g_assert_no_error (error);
 
+#ifndef LIBPROXY_0_5
       if (is_libproxy && ignore_tests[i].libproxy_fails)
         g_assert_cmpstr (proxies[0], ==, "http://localhost:8080");
       else
+#endif
         g_assert_cmpstr (proxies[0], ==, ignore_tests[i].proxy);
 
       g_strfreev (proxies);
