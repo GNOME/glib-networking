@@ -159,45 +159,165 @@ g_tls_database_openssl_verify_chain (GTlsDatabase             *database,
 
 #if SEC_OS_OSX
 static gboolean
-populate_store (X509_STORE  *store,
-                GError     **error)
+is_certificate_trusted (SecCertificateRef       *cert,
+                        SecTrustSettingsDomain   domain,
+                        GError                 **error)
 {
-  CFArrayRef anchors;
+  CFArrayRef cert_trust_settings;
   OSStatus ret;
   CFIndex i;
 
-  ret = SecTrustCopyAnchorCertificates (&anchors);
+  ret = SecTrustSettingsCopyTrustSettings (*cert, domain, &cert_trust_settings);
   if (ret != errSecSuccess)
     {
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                           _("Could not get trusted anchors from Keychain"));
+                           _("Could not get trust settings for certificate"));
       return FALSE;
     }
 
-  for (i = 0; i < CFArrayGetCount (anchors); i++)
+  for (i = 0; i < CFArrayGetCount (cert_trust_settings); i++)
     {
-      SecCertificateRef cert;
-      CFDataRef data;
+      CFDictionaryRef trust_settings;
+      CFNumberRef trust_setting_number;
+      CFStringRef policy_name;
 
-      cert = (SecCertificateRef)CFArrayGetValueAtIndex (anchors, i);
-      data = SecCertificateCopyData (cert);
-      if (data)
+      /* Ignore trust settings which are not SSL policies. */
+      trust_settings = (CFDictionaryRef)CFArrayGetValueAtIndex (cert_trust_settings, i);
+      if (CFDictionaryGetValueIfPresent (trust_settings, kSecTrustSettingsPolicyString, 
+                                         (const void **)&policy_name) &&
+          CFStringCompare (policy_name, CFSTR ("sslServer"), 0) != kCFCompareEqualTo)
         {
-          X509 *x;
+          continue;
+        }
+
+      if (CFDictionaryGetValueIfPresent (trust_settings, kSecTrustSettingsResult, 
+                                         (const void **)&trust_setting_number))
+        {
+          SecTrustSettingsResult trustSettingResult;
+
+          if (trust_setting_number == NULL)
+            {
+              CFRelease (cert_trust_settings);
+              return TRUE;
+            }
+
+          CFNumberGetValue (trust_setting_number, kCFNumberIntType, &trustSettingResult);
+          /* kSecTrustSettingsResultUnspecified means neither trusted nor distrusted.  
+           * kSecTrustSettingsResultInvalid should not be a possible value for trustSettingResult.
+           * 
+           * Only for kSecTrustSettingsResultDeny should the certificate not be trusted.
+           */
+          if (trustSettingResult != kSecTrustSettingsResultUnspecified && 
+              trustSettingResult != kSecTrustSettingsResultInvalid)
+            {
+              CFRelease (cert_trust_settings);
+              return trustSettingResult != kSecTrustSettingsResultDeny;
+            }
+        }
+     }
+
+  CFRelease (cert_trust_settings);
+
+  /* We only reach here if the trust settings array is empty or trust setting parameter for 
+   * a certificate is NULL. The documentation state that we should trust these certificates
+   * as kSecTrustSettingsResultTrustRoot as only root certificates can have have that value.
+   * 
+   * https://developer.apple.com/documentation/security/1400261-sectrustsettingscopytrustsetting?language=objc
+   * 
+   * If it is not a root certificate then we trust it as root because they are retrieved
+   * from the trust domains.
+   */
+  return TRUE;
+}
+
+static gboolean
+populate_store (X509_STORE  *store,
+                GError     **error)
+{
+  SecTrustSettingsDomain domains[] = { kSecTrustSettingsDomainUser, 
+                                       kSecTrustSettingsDomainAdmin, 
+                                       kSecTrustSettingsDomainSystem };
+  GHashTable *trusted_certs = g_hash_table_new_full (g_bytes_hash, g_bytes_equal, 
+                                                     (GDestroyNotify)g_bytes_unref, NULL);
+  gboolean result = FALSE;
+
+  for (int i = 0; i < G_N_ELEMENTS (domains); i++)
+   {
+      SecTrustSettingsDomain domain = domains[i];
+      CFArrayRef domain_certs;
+      OSStatus ret;
+      CFIndex j;
+
+      ret = SecTrustSettingsCopyCertificates (domain, &domain_certs);
+      if (ret == errSecNoTrustSettings)
+        {
+          g_debug ("Domain %d was skipped as no trust settings were found", domain);
+          continue;
+        }
+        
+      if (ret != errSecSuccess)
+        {
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                               _("Could not retrieve certificates"));
+          goto out;
+        }
+
+      for (j = 0; j < CFArrayGetCount (domain_certs); j++)
+        {
+          SecCertificateRef cert;
+          CFDataRef data;
+          X509 *cert_x509;
+          GBytes *cert_bytes;
           const unsigned char *pdata;
 
+          cert = (SecCertificateRef)CFArrayGetValueAtIndex (domain_certs, j);
+          if (!is_certificate_trusted (&cert, domain, error))
+            {
+              continue;
+            }
+
+          data = SecCertificateCopyData (cert);
+          if (data == NULL)
+            {
+              continue;
+            }
+
           pdata = (const unsigned char *)CFDataGetBytePtr (data);
+          cert_x509 = d2i_X509 (NULL, &pdata, CFDataGetLength (data));
+          if (cert_x509 == NULL)
+            {
+              CFRelease (data);
+              continue;
+            }
 
-          x = d2i_X509 (NULL, &pdata, CFDataGetLength (data));
-          if (x)
-            X509_STORE_add_cert (store, x);
+          cert_bytes = g_bytes_new (pdata, CFDataGetLength (data));
+          if (cert_bytes == NULL)
+            {
+              goto next;
+            }
 
+          if (!g_hash_table_contains (trusted_certs, cert_bytes))
+            {
+              g_hash_table_add (trusted_certs, g_bytes_ref (cert_bytes));
+              X509_STORE_add_cert (store, cert_x509);
+            }
+
+          g_bytes_unref (cert_bytes);
+
+        next:
+          X509_free (cert_x509);
           CFRelease (data);
         }
+
+      CFRelease (domain_certs);
     }
 
-  CFRelease (anchors);
-  return TRUE;
+  result = TRUE;
+
+out:  
+  g_hash_table_unref (trusted_certs);
+
+  return result;
 }
 
 #elif defined(G_OS_WIN32)
