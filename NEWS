@@ -1,3 +1,9 @@
+2.76.1 - June 29, 2023
+======================
+
+- Fix proxy tests when built against libproxy 0.5
+- Updated translations
+
 2.76.0 - March 17, 2023
 =======================
 
