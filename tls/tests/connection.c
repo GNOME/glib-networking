@@ -588,7 +588,11 @@ clock_gettime (clockid_t        clk_id,
   int ret = -1;
   if (!original_clock_gettime)
     {
+#if (_TIME_BITS == 64)
+      original_clock_gettime = dlsym (RTLD_NEXT, "__clock_gettime64");
+#else
       original_clock_gettime = dlsym (RTLD_NEXT, "clock_gettime");
+#endif
       if (!original_clock_gettime)
         {
           errno = EINVAL;
