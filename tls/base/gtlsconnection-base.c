@@ -1201,7 +1201,7 @@ g_tls_connection_base_create_source (GTlsConnectionBase  *tls,
       source = g_source_new (&tls_source_funcs,
                              sizeof (GTlsConnectionBaseSource));
     }
-  g_source_set_name (source, "GTlsConnectionBaseSource");
+  g_source_set_static_name (source, "GTlsConnectionBaseSource");
   tls_source = (GTlsConnectionBaseSource *)source;
   tls_source->tls = g_object_ref (tls);
   tls_source->condition = condition;

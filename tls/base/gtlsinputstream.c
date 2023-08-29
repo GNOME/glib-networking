@@ -115,7 +115,7 @@ g_tls_input_stream_pollable_create_source (GPollableInputStream *pollable,
   if (!conn)
     {
       ret = g_idle_source_new ();
-      g_source_set_name (ret, "[glib-networking] g_tls_input_stream_pollable_create_source dummy source");
+      g_source_set_static_name (ret, "[glib-networking] g_tls_input_stream_pollable_create_source dummy source");
       return ret;
     }
 
