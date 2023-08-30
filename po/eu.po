@@ -8,8 +8,8 @@
 msgid ""
 msgstr "Project-Id-Version: eu\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-08-16 10:00+0100\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2022-08-30 10:00+0100\n"
 "Last-Translator: Asier Sarasua Garmendia <asiersarasua@ni.eus>\n"
 "Language-Team: Basque <librezale@librezale.eus>\n"
 "Language: eu\n"
@@ -19,11 +19,11 @@ msgstr "Project-Id-Version: eu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "Proxyen ebaztailearen barneko errorea."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -36,41 +36,41 @@ msgstr "Konexioa itxi egin da"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Ezin izan da blokeo-eragiketa gauzatu TLS diosalean"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "S/Iko socketaren denbora-muga gaindituta"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "Zerbitzariak TLS ziurtagiria behar du"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr "Diosala ez da amaitu ez dago kanal-loturaren informaziorik oraindik"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "Parekoak ez du onartzen birnegoziazio segurua"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Onartu gabeko TLS ziurtagiria"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Banderak jasotzea ez dago onartuta"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Banderak bidaltzea ez dago onartuta"
@@ -127,8 +127,8 @@ msgstr "Ezin da TLS konexioa sortu:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Ezin izan da TLS konexioa sortu: %s"
@@ -241,7 +241,7 @@ msgid ""
 "trust"
 msgstr "Huts egin du sistema-konfiantzaren biltegia kargatzeak: GnuTLS ez dago konfiguratuta sistema-konfiantzarekin"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Huts egin du sistema-konfiantzaren biltegia kargatzeak: %s"
@@ -257,19 +257,19 @@ msgstr "Huts egin du fidagarritasun-zerrenda betetzeak%s erabilita: %s"
 msgid "Certificate has no private key"
 msgstr "Ziurtagiriak ez dauka gako pribaturik"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Ezin izan da ezarri TLS zifratze-zerrenda: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Ezin izan da MAX protokoloa ezarri %d honetan: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -338,19 +338,23 @@ msgstr "Ustekabeko errorea gako-datuak esportatzean"
 msgid "Error performing TLS close"
 msgstr "Errorea TLSren itxiera lantzean"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Ezin dira aingura fidagarriak eskuratu Keychain-etik"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Ezin da fidagarritasun-ezarpena eskuratu ziurtagiritik"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Ezin dira ziurtagiriak eskuratu"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Ezin izan da erro-ziurtagirien biltegirik eskuratu"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Ezin izan da CA ziurtagirien biltegirik eskuratu"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Ezin izan da CA biltegia sortu"
 
@@ -363,6 +367,9 @@ msgstr "Arazoa dago ziurtagiriarekin: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Arazoa dago ziurtagiriaren gako pribatuarekin: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Ezin dira aingura fidagarriak eskuratu Keychain-etik"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
