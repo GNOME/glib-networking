@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-08-22 23:18+0300\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-08-31 23:16+0300\n"
 "Last-Translator: Aurimas Černius <aurisc4@gmail.com>\n"
 "Language-Team: Lietuvių <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
@@ -17,14 +17,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"(n%100<10 || n%100>=20) ? 1 : 2)\n"
-"X-Generator: Gtranslator 40.0\n"
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 3.3.2\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "Tarpininkų nustatytojo vidinė klaida."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -37,41 +37,41 @@ msgstr "Ryšys užvertas"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "TLS išankstinio suderinimo metu negalima vykdyti bloko operacijos"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "Baigėsi lizdo I/O skirtas laikas"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "Serveris reikalauja TLS liudijimo"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr "Rankos paspaudimas neužbaigtas, dar nėra kanalo susiejimo informacijos"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "Porininkas nepalaiko saugaus pakartotinio ryšio užmezgimo"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nepriimtinas TLS liudijimas"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Požymių gavimas nėra palaikomas"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Požymių siuntimas nėra palaikomas"
@@ -79,7 +79,6 @@ msgstr "Požymių siuntimas nėra palaikomas"
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
-#| msgid "Could not import PKCS #11 certificate URI: %s"
 msgid "Failed to import PKCS #12: %s"
 msgstr "Nepavyko importuoti PKCS #12: %s"
 
@@ -127,16 +126,14 @@ msgstr "Negalima patikrinti netikėto tipo %s porininko identiteto"
 msgid "Could not create TLS connection:"
 msgstr "Nepavyko užmegzti TLS ryšio:"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:214
-#: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/gnutls/gtlsconnection-gnutls.c:214 tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nepavyko užmegsti TLS ryšio: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:435
-#: tls/gnutls/gtlsconnection-gnutls.c:446
+#: tls/gnutls/gtlsconnection-gnutls.c:435 tls/gnutls/gtlsconnection-gnutls.c:446
 #: tls/gnutls/gtlsconnection-gnutls.c:460
 #: tls/openssl/gtlsconnection-openssl.c:176
 #, c-format
@@ -246,10 +243,10 @@ msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
 msgstr ""
-"Nepavyko įkelti sistemos pasitikėjimo saugyklos: GnuTLS nebuvo "
-"sukonfigūruota su sistemos pasitikėjimu"
+"Nepavyko įkelti sistemos pasitikėjimo saugyklos: GnuTLS nebuvo sukonfigūruota "
+"su sistemos pasitikėjimu"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Nepavyko įkelti sistemos pasitikėjimo saugyklos: %s"
@@ -265,19 +262,19 @@ msgstr "Nepavyko įkelti sistemos pasitikėjimo sąrašo iš %s: %s"
 msgid "Certificate has no private key"
 msgstr "Liudijimas neturi privataus rakto"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Nepavyko nustatyti TLS šifrų sąrašo: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Nepavyko nustatyti MAX protokolo į %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -323,11 +320,9 @@ msgstr "Nepavyko gauti liudijimo parašo algoritmo"
 
 #: tls/openssl/gtlsconnection-openssl.c:734
 #, c-format
-msgid ""
-"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgid "Current X.509 certificate uses unknown or unsupported signature algorithm"
 msgstr ""
-"Dabartinis X.509 liudijimas naudoja nežinomą ar a nepalaikomą parašo "
-"algoritmą"
+"Dabartinis X.509 liudijimas naudoja nežinomą ar a nepalaikomą parašo algoritmą"
 
 #: tls/openssl/gtlsconnection-openssl.c:752
 #, c-format
@@ -348,19 +343,23 @@ msgstr "Netikėta klaida eksportuojant raktinės duomenis"
 msgid "Error performing TLS close"
 msgstr "Klaida atliekant TLS užvėrimą"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Nepavyko gauti patikimų šaknų iš raktinės"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Nepavyko gauti liudijimo pasitikėjimo nuostatų"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Nepavyko gauti liudijimų"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Nepavyko gauti šakninių liudijimų saugyklos"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Nepavyko gauti LĮ liudijimų saugyklos"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Nepavyko sukurti liudijimų įstaigų saugyklos"
 
@@ -374,6 +373,9 @@ msgstr "Yra problema su liudijimu: %s"
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Yra problema su liudijimo privačiu raktu: %s"
 
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Nepavyko gauti patikimų šaknų iš raktinės"
+
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
 #~ msgstr "Nėra X.509 liudijimo ryšiui"
@@ -383,8 +385,7 @@ msgstr "Yra problema su liudijimo privačiu raktu: %s"
 #~ msgstr "X.509 liudijimo nėra arba jis yra nežinomo formato: %s"
 
 #~ msgid "Peer requested illegal TLS rehandshake"
-#~ msgstr ""
-#~ "Kita pusė paprašė neteisingo pakartotinio TLS išankstinio suderinimo"
+#~ msgstr "Kita pusė paprašė neteisingo pakartotinio TLS išankstinio suderinimo"
 
 #~| msgid "Failed to load system trust store: %s"
 #~ msgid "Failed to load file path: %s"
@@ -412,8 +413,7 @@ msgstr "Yra problema su liudijimo privačiu raktu: %s"
 #~ msgid ""
 #~ "Several PIN attempts have been incorrect, and the token will be locked "
 #~ "after further failures."
-#~ msgstr ""
-#~ "Keli PIN bandymai buvo neteisingi, jei taip ir toliau, bus užrakinta."
+#~ msgstr "Keli PIN bandymai buvo neteisingi, jei taip ir toliau, bus užrakinta."
 
 #~ msgid "The PIN entered is incorrect."
 #~ msgstr "Įvestas PIN yra neteisingas."
