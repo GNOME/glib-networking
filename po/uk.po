@@ -2,13 +2,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 # Korostil Daniel <ted.korostiled@gmail.com>, 2011.
 # Alexandr Toorchyn <ilex@mail.ua>, 2011.
-# Yuri Chornoivan <yurchor@ukr.net>, 2020, 2021, 2022.
+# Yuri Chornoivan <yurchor@ukr.net>, 2020, 2021, 2022, 2023.
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-10-01 13:12+0000\n"
-"PO-Revision-Date: 2022-12-24 10:49+0200\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-08-31 22:20+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -81,27 +81,6 @@ msgstr "Підтримки прапорців отримання не перед
 msgid "Send flags are not supported"
 msgstr "Підтримки прапорців надсилання не передбачено"
 
-#: tls/base/gtlsconnection-base.c:2955
-msgid "Session Reused"
-msgstr "Повторно використаний сеанс"
-
-#: tls/base/gtlsconnection-base.c:2956
-msgid "Indicates whether a session has been reused"
-msgstr "Вказує, чи є сеанс повторно використаним"
-
-#: tls/base/gtlsconnection-base.c:2963
-msgid "Session Reuse Enabled"
-msgstr "Увімкнено повторне використання сеансів"
-
-#: tls/base/gtlsconnection-base.c:2964
-msgid ""
-"Controls whether session should reuse a previous session or if it should be "
-"stored. In tests, this variable is false by default."
-msgstr ""
-"Керує тим, чи у сеансі слід повторно використовувати попередній сеанс або"
-" тим, чи слід зберігати сеанс. У тестах цю змінна типово має значення"
-" «хибність»."
-
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
@@ -154,7 +133,7 @@ msgstr "Неможливо створити з'єднання TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:562
+#: tls/openssl/gtlsclientconnection-openssl.c:560
 #: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -281,7 +260,7 @@ msgstr ""
 "Не вдалося завантажити загальносистемне сховище довірених сертифікатів: "
 "GnuTLS не налаштовано із загально системною довірою"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr ""
@@ -381,19 +360,25 @@ msgstr "Неочікувана помилка під час експортува
 msgid "Error performing TLS close"
 msgstr "Помилка закриття TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Не вдалося отримати довірених прив'язок від Keychain"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+#| msgid "Could not get root certificate store"
+msgid "Could not get trust settings for certificate"
+msgstr "Не вдалося отримати параметри довіри до сертифіката"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+#| msgid "Could not get root certificate store"
+msgid "Could not retrieve certificates"
+msgstr "Не вдалося отримати сертифікати"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Не вдалося отримати дані зі сховища кореневих сертифікатів"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Не вдалося отримати дані зі сховища сертифікатів CA"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Не вдалося створити сховище CA"
 
@@ -406,6 +391,26 @@ msgstr "Маємо проблему із сертифікатом: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Маємо проблему із закритим ключем сертифіката: %s"
+
+#~ msgid "Session Reused"
+#~ msgstr "Повторно використаний сеанс"
+
+#~ msgid "Indicates whether a session has been reused"
+#~ msgstr "Вказує, чи є сеанс повторно використаним"
+
+#~ msgid "Session Reuse Enabled"
+#~ msgstr "Увімкнено повторне використання сеансів"
+
+#~ msgid ""
+#~ "Controls whether session should reuse a previous session or if it should "
+#~ "be stored. In tests, this variable is false by default."
+#~ msgstr ""
+#~ "Керує тим, чи у сеансі слід повторно використовувати попередній сеанс або "
+#~ "тим, чи слід зберігати сеанс. У тестах цю змінна типово має значення "
+#~ "«хибність»."
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Не вдалося отримати довірених прив'язок від Keychain"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
