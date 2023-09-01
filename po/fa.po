@@ -2,14 +2,14 @@
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # Arash Mousavi <mousavi.arash@gmail.com>, 2011, 2013.
-# Danial Behzadi <dani.behzi@ubuntu.com>, 2020-2022.
+# Danial Behzadi <dani.behzi@ubuntu.com>, 2020-2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-08-17 05:11+0430\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-09-01 17:37+0330\n"
 "Last-Translator: Danial Behzadi <dani.behzi@ubuntu.com>\n"
 "Language-Team: Persian\n"
 "Language: fa\n"
@@ -18,17 +18,17 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.3.2\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
-msgstr "خطای داخلی تحلیل‌گر پیشکار."
+msgstr "خطای داخلی تحلیلگر پیشکار."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
-msgstr "اتصال بسته شده است"
+msgstr "اتّصال بسته شده"
 
 #. Cannot perform a blocking operation during a handshake on the
 #. * same thread that triggered the handshake. The only way this can
@@ -37,41 +37,41 @@ msgstr "اتصال بسته شده است"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "نمی‌توان در طول دست‌دادن TLS عملیات انسداد انجام داد"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
-msgstr "مهلت سوکت و/خ به سر رسید"
+msgstr "مهلت سوکت ورودی و خروجی به سر رسید"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
-msgstr "کارگزار به گواهینامه TLS احتیاج دارد"
+msgstr "کاارساز نیاز به گواهینامهٔ TLS دارد"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr "دست دادن پایان نیافته. هنوز هیچ اطلاعاتی از شیرازهٔ کانال وجود ندارد"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "جفت از بازمذاکرهٔ امن پشتیبانی نمی‌کند"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "گواهینامه TLS غیر قابل پذیرش"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "پرچم‌های دریافت پشتیبانی نمی‌شوند"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "پرچم‌های ارسال پشتیبانی نمی‌شوند"
@@ -127,8 +127,8 @@ msgid "Could not create TLS connection:"
 msgstr "نتوانست اتّصال TLS ایجاد کند:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214 tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "نمی‌توان اتصال TLS ایجاد کرد: %s"
@@ -243,7 +243,7 @@ msgstr ""
 "شکست در بار کردن ذخیرهٔ اطمینان سامانه: GNUTLS با یک اطمینان سامانه پیکربندی "
 "نشده بود"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "شکست در بار کردن ذخیرهٔ اطمینان سامانه: %s"
@@ -259,19 +259,19 @@ msgstr "شکست در تکمیل سیاههٔ اطمینان از %s: %s"
 msgid "Certificate has no private key"
 msgstr "گواهینامه هیچ کلید خصوصی‌ای ندارد"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "نتوانست سیاههٔ رمزنگاری TLS را تنظیم کند: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "نتوانست شیوه‌نامهٔ MAX را به %Id تنظیم کند: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -341,19 +341,23 @@ msgstr "خطای غیرمنتظره هنگام برون‌ریزی داده‌ه
 msgid "Error performing TLS close"
 msgstr "خطای انجام بستن TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr "نتوانست لنگرهای مورد اعتماد را از دسته‌کلید بگیرد"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "نتوانست تنظیمات اعتماد را برای گواهینامه بگیرد"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "نتوانست گواهینامه‌ها را دریافت کند"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "نتوانست ذخیرهٔ گواهینامهٔ ریشه را بگیرد"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "نتوانست ذخیرهٔ گواهینامهٔ CA را بگیرد"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "ناتوان در ایجاد ذخیرهٔ CA"
 
@@ -366,6 +370,9 @@ msgstr "مشکلی با گواهینامه وجود دارد: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "مشکلی با کلید خصوصی گواهینامه وجود دارد: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "نتوانست لنگرهای مورد اعتماد را از دسته‌کلید بگیرد"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
