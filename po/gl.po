@@ -13,8 +13,8 @@ msgstr ""
 "Project-Id-Version: unnamed project\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2023-01-25 18:02+0000\n"
-"PO-Revision-Date: 2023-02-01 22:42+0100\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-09-01 12:22+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician <proxecto@trasno.gal>\n"
 "Language: gl\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.3.2\n"
 "X-Project-Style: gnome\n"
 "X-DL-Team: gl\n"
 "X-DL-Module: glib-networking\n"
@@ -88,26 +88,6 @@ msgstr "As bandeiras de recepción non se admiten"
 msgid "Send flags are not supported"
 msgstr "As bandeiras de envío non se admiten"
 
-#: tls/base/gtlsconnection-base.c:2955
-msgid "Session Reused"
-msgstr "Sesión reusada"
-
-#: tls/base/gtlsconnection-base.c:2956
-msgid "Indicates whether a session has been reused"
-msgstr "Indica se unha sesión foi reusada"
-
-#: tls/base/gtlsconnection-base.c:2963
-msgid "Session Reuse Enabled"
-msgstr "Reusar sesión activado"
-
-#: tls/base/gtlsconnection-base.c:2964
-msgid ""
-"Controls whether session should reuse a previous session or if it should be "
-"stored. In tests, this variable is false by default."
-msgstr ""
-"Controla se a sesión debería reusar unha sesión anterior ou se debería "
-"almacenarse. Nas probas, esta variábel está a falso por omisión."
-
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
@@ -161,7 +141,7 @@ msgstr "Non foi posíbel crear a conexión TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:562
+#: tls/openssl/gtlsclientconnection-openssl.c:560
 #: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -285,7 +265,7 @@ msgstr ""
 "Produciuse un fallo ao cargar o almacén seguro do sistema: GnuTLS non foi "
 "configurada como unha confianza do sistema"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Produciuse un fallo ao cargar o almacén de confianza do sistema: %s"
@@ -384,19 +364,23 @@ msgstr "Produciuse un erro ao exportar os datos de asinado"
 msgid "Error performing TLS close"
 msgstr "Produciuse un erro ao pechar o TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:173
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Non foi posíbel obter as áncoras de confianza desde o Anel de chaves"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Non foi posíbel obter a preferencia de confianza para o certificado"
 
-#: tls/openssl/gtlsdatabase-openssl.c:238
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Non foi posíbel obter os certificados"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Non foi posíbel obter o almacén do certificado raíz"
 
-#: tls/openssl/gtlsdatabase-openssl.c:245
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Non foi posíbel obter o CA do almacén de certificado"
 
-#: tls/openssl/gtlsdatabase-openssl.c:310
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Non foi posíbel crear o almacén de CA: %s"
 
@@ -409,6 +393,26 @@ msgstr "Hai un problema co certificado: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Hai un problema coa chave privada do certificado: %s"
+
+#~ msgid "Session Reused"
+#~ msgstr "Sesión reusada"
+
+#~ msgid "Indicates whether a session has been reused"
+#~ msgstr "Indica se unha sesión foi reusada"
+
+#~ msgid "Session Reuse Enabled"
+#~ msgstr "Reusar sesión activado"
+
+#~ msgid ""
+#~ "Controls whether session should reuse a previous session or if it should "
+#~ "be stored. In tests, this variable is false by default."
+#~ msgstr ""
+#~ "Controla se a sesión debería reusar unha sesión anterior ou se debería "
+#~ "almacenarse. Nas probas, esta variábel está a falso por omisión."
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr ""
+#~ "Non foi posíbel obter as áncoras de confianza desde o Anel de chaves"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
