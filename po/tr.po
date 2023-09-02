@@ -7,14 +7,14 @@
 # Ozan Çağlayan <ozancag@gmail.com>, 2013.
 # Muhammet Kara <muhammetk@gmail.com>, 2011, 2012, 2013.
 # Furkan Tokaç <developmentft@gmail.com>, 2017.
-# Emin Tufan Çetin <etcetin@gmail.com>, 2017-2022.
+# Emin Tufan Çetin <etcetin@gmail.com>, 2017-2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-05-05 12:32+0000\n"
-"PO-Revision-Date: 2022-09-18 11:14+0300\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-09-02 14:48+0300\n"
 "Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
 "Language-Team: Turkish <takim@gnome.org.tr>\n"
 "Language: tr\n"
@@ -246,7 +246,7 @@ msgstr ""
 "Sistem güven deposu yüklenemedi: GnuTLS, bir sistem güveniyle "
 "yapılandırılmamış"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Sistem güven deposu yüklenemedi: %s"
@@ -345,19 +345,23 @@ msgstr "Anahtarlama verisi dışa aktarılırken beklenmedik hata"
 msgid "Error performing TLS close"
 msgstr "TLS kapatma işleminde hata"
 
-#: tls/openssl/gtlsdatabase-openssl.c:173
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Anahtarlıktan güven bağları alınamadı"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Sertifika için güven ayarları alınamadı"
 
-#: tls/openssl/gtlsdatabase-openssl.c:238
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Sertifikalar getirilemedi"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Kök sertifika deposu alınamadı"
 
-#: tls/openssl/gtlsdatabase-openssl.c:245
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "CA sertifika deposu alınamadı"
 
-#: tls/openssl/gtlsdatabase-openssl.c:310
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "CA deposu oluşturulamadı"
 
@@ -370,3 +374,6 @@ msgstr "Sertifikada sorun var: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Sertifika özel anahtarında sorun var: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Anahtarlıktan güven bağları alınamadı"
