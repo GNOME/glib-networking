@@ -6,23 +6,23 @@
 # Wolfgang Stöggl <c72578@yahoo.de>, 2011-2012.
 # Mario Blättermann <mario.blaettermann@gmail.com>, 2011-2013, 2017-2018.
 # Tim Sabsch <tim@sabsch.com>, 2019-2020, 2022.
-# Philipp Kiemle <philipp.kiemle@gmail.com>, 2021-2022.
+# Philipp Kiemle <philipp.kiemle@gmail.com>, 2021-2023.
 # Jürgen Benvenuti <gastornis@posteo.org>, 2022, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-10-01 13:12+0000\n"
-"PO-Revision-Date: 2023-01-21 20:34+0100\n"
-"Last-Translator: Jürgen Benvenuti <gastornis@posteo.org>\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-09-02 00:52+0200\n"
+"Last-Translator: Philipp Kiemle <philipp.kiemle@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.3.2\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -82,27 +82,6 @@ msgstr "Empfangen von Flags wird nicht unterstützt"
 msgid "Send flags are not supported"
 msgstr "Senden von Flags wird nicht unterstützt"
 
-#: tls/base/gtlsconnection-base.c:2955
-msgid "Session Reused"
-msgstr "Sitzung wiederverwendet"
-
-#: tls/base/gtlsconnection-base.c:2956
-msgid "Indicates whether a session has been reused"
-msgstr "Zeigt an, ob eine Sitzung wiederverwendet wurde"
-
-#: tls/base/gtlsconnection-base.c:2963
-msgid "Session Reuse Enabled"
-msgstr "»Sitzung wiederverwenden« ist aktiviert"
-
-#: tls/base/gtlsconnection-base.c:2964
-msgid ""
-"Controls whether session should reuse a previous session or if it should be "
-"stored. In tests, this variable is false by default."
-msgstr ""
-"Steuert, ob die Sitzung eine frühere Sitzung wiederverwenden oder ob sie "
-"gespeichert werden soll. In Tests ist diese Variable standardmäßig auf "
-"»false« gesetzt."
-
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
@@ -157,7 +136,7 @@ msgstr "TLS-Verbindung konnte nicht erstellt werden:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:562
+#: tls/openssl/gtlsclientconnection-openssl.c:560
 #: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -277,7 +256,7 @@ msgstr ""
 "Vertrauenswürdigkeitsspeicher des Systems konnte nicht geladen werden: "
 "GnuTLS wurde nicht mit einer Systemvertrauenswürdigkeit eingerichtet"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr ""
@@ -377,21 +356,23 @@ msgstr "Unerwarteter Fehler beim Export der Schlüsselring-Daten"
 msgid "Error performing TLS close"
 msgstr "Fehler beim Schließen der TLS-Verbindung"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr ""
-"Die vertrauenswürdigen Elemente konnten nicht aus der Zertifikatkette "
-"ermittelt werden"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Vertrauenseinstellungen für das Zertifikat konnten nicht geholt werden"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Zertifikate konnten nicht geholt werden"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Der Root-Zertifikatspeicher konnte nicht ermittelt werden"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Der CA-Zertifikatspeicher konnte nicht ermittelt werden"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Zertifizierungsstellen-Speicher konnte nicht erstellt werden: %s"
 
@@ -405,11 +386,31 @@ msgstr "Es besteht ein Problem mit dem Zertifikat: %s"
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Es besteht ein Problem mit dem geheimen Schlüssel des Zertifikats: %s"
 
-#, c-format
+#~ msgid "Session Reused"
+#~ msgstr "Sitzung wiederverwendet"
+
+#~ msgid "Indicates whether a session has been reused"
+#~ msgstr "Zeigt an, ob eine Sitzung wiederverwendet wurde"
+
+#~ msgid "Session Reuse Enabled"
+#~ msgstr "»Sitzung wiederverwenden« ist aktiviert"
+
+#~ msgid ""
+#~ "Controls whether session should reuse a previous session or if it should "
+#~ "be stored. In tests, this variable is false by default."
+#~ msgstr ""
+#~ "Steuert, ob die Sitzung eine frühere Sitzung wiederverwenden oder ob sie "
+#~ "gespeichert werden soll. In Tests ist diese Variable standardmäßig auf "
+#~ "»false« gesetzt."
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr ""
+#~ "Die vertrauenswürdigen Elemente konnten nicht aus der Zertifikatkette "
+#~ "ermittelt werden"
+
 #~ msgid "X.509 certificate is not available on the connection"
 #~ msgstr "X.509-Zertifikat ist nicht für die Verbindung verfügbar"
 
-#, c-format
 #~ msgid "X.509 certificate is not available or is of unknown format: %s"
 #~ msgstr "Kein X.509-Zertifikat verfügbar, oder unbekanntes Format: %s"
 
