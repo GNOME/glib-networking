@@ -1,15 +1,15 @@
 # Korean translation for glib-networking.
 # This file is distributed under the same license as the glib-networking package.
 #
-# Changwoo Ryu <cwryu@debian.org>, 2011-2013, 2017-2022.
+# Changwoo Ryu <cwryu@debian.org>, 2011-2013, 2017-2023.
 #
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-09-04 01:03+0900\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-09-03 19:31+0530\n"
 "Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
 "Language-Team: Korean <gnome-kr@googlegroups.com>\n"
 "Language: ko\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "프록시 리졸버 내부 오류."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -35,41 +35,41 @@ msgstr "연결이 닫혔습니다"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "TLS 핸드셰이킹 중에 블로킹 동작을 수행할 수 없습니다."
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "소켓 입출력 제한 시간이 넘었습니다"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "서버에 TLS 인증서가 필요합니다"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr "핸드셰이크를 마치지 못해, 채널 바인딩 정보가 아직 없습니다"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "상대가 안전한 재협상을 지원하지 않습니다"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "TLS 핸드셰이킹을 받아들일 수 없습니다"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "받기 플래그를 지원하지 않습니다"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "보내기 플래그를 지원하지 않습니다"
@@ -126,8 +126,8 @@ msgstr "TLS 연결을 만들 수 없습니다:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS 연결을 만들 수 없습니다: %s"
@@ -240,7 +240,7 @@ msgstr ""
 "시스템 신뢰 정보를 읽어들이는데 실패했습니다: GnuTLS 설정에 시스템 신뢰 정보"
 "가 없습니다"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "시스템 신뢰 정보를 읽어들이는데 실패했습니다: %s"
@@ -256,20 +256,20 @@ msgstr "%s에서 신뢰 목록을 덧붙이는데 실패했습니다: %s"
 msgid "Certificate has no private key"
 msgstr "인증서에 개인 키가 없습니다"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "TLS 암호 알고리즘 목록을 설정할 수 없습니다: %s"
 
 # 참고: OpenSSL SSL_CTX_set_max_proto_version()
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "최대 프로토콜 버전을 %d(으)로 설정할 수 없습니다: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -339,20 +339,23 @@ msgstr "키모음 데이터를 내보내는데 예상치 못한 오류"
 msgid "Error performing TLS close"
 msgstr "TLS 닫기에 오류가 발생했습니다"
 
-# "an authoritative entity for which trust is assumed and not derived"
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr "키체인에서 신뢰 앵커를 가져올 수 없습니다"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "인증서의 신뢰 수준 설정을 가져올 수 없습니다"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "인증서를 가져올 수 없습니다"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "루트 인증서 저장소를 가져올 수 없습니다"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "CA 인증서 저장소를 가져올 수 없습니다"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "인증서 저장소를 만들 수 없습니다"
 
@@ -365,6 +368,10 @@ msgstr "인증서에 문제가 있습니다: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "인증서 비밀 키에 문제가 있습니다: %s"
+
+# "an authoritative entity for which trust is assumed and not derived"
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "키체인에서 신뢰 앵커를 가져올 수 없습니다"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
