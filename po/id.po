@@ -2,9 +2,9 @@
 # Copyright (C) 2011 THE glib-networking'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 #
-# Andika Triwidada <andika@gmail.com>, 2011, 2012, 2013.
+# Andika Triwidada <andika@gmail.com>, 2011-2013, 2023
 # Dirgita <dirgitadevina@yahoo.co.id>, 2012.
-# Kukuh Syafaat <kukuhsyafaat@gnome.org>, 2017, 2018, 2019, 2021, 2023.
+# Kukuh Syafaat <kukuhsyafaat@gnome.org>, 2017-2019, 2021, 2023.
 # Sucipto <sucipto@pm.me>, 2020.
 #
 msgid ""
@@ -12,16 +12,16 @@ msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
 "issues\n"
-"POT-Creation-Date: 2023-01-25 18:02+0000\n"
-"PO-Revision-Date: 2023-01-31 12:57+0700\n"
-"Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-09-06 13:25+0700\n"
+"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <gnome@i15n.org>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.3.2\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -79,26 +79,6 @@ msgstr "Menerima tanda tidak didukung"
 msgid "Send flags are not supported"
 msgstr "Mengirim tanda tidak didukung"
 
-#: tls/base/gtlsconnection-base.c:2955
-msgid "Session Reused"
-msgstr "Sesi Digunakan Kembali"
-
-#: tls/base/gtlsconnection-base.c:2956
-msgid "Indicates whether a session has been reused"
-msgstr "Menunjukkan apakah sesi telah digunakan kembali"
-
-#: tls/base/gtlsconnection-base.c:2963
-msgid "Session Reuse Enabled"
-msgstr "Penggunaan Kembali Sesi Diaktifkan"
-
-#: tls/base/gtlsconnection-base.c:2964
-msgid ""
-"Controls whether session should reuse a previous session or if it should be "
-"stored. In tests, this variable is false by default."
-msgstr ""
-"Mengontrol apakah sesi harus menggunakan kembali sesi sebelumnya atau "
-"apakah harus disimpan. Dalam pengujian, variabel ini salah secara bawaan."
-
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
@@ -151,7 +131,7 @@ msgstr "Tak bisa membuat sambungan TLS:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:562
+#: tls/openssl/gtlsclientconnection-openssl.c:560
 #: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
@@ -265,7 +245,7 @@ msgstr ""
 "Gagal memuat penyimpanan terpercaya sistem: GnuTLS tidak dikonfigurasi "
 "dengan kepercayaan sistem"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Gagal memuat penyimpanan terpercaya sistem: %s"
@@ -364,19 +344,23 @@ msgstr "Galat tak terduga saat mengekspor data kunci"
 msgid "Error performing TLS close"
 msgstr "Galat melaksanakan penutupan TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:173
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Tak bisa mendapatkan jangkar tepercaya dari Rantai Kunci"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Tak bisa mendapat pengaturan kepercayaan untuk sertifikat"
 
-#: tls/openssl/gtlsdatabase-openssl.c:238
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Tidak bisa mengambil sertifikat"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Tak bisa mendapat penyimpanan sertifikat root"
 
-#: tls/openssl/gtlsdatabase-openssl.c:245
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Tak bisa mendapat penyimpanan sertifikat CA"
 
-#: tls/openssl/gtlsdatabase-openssl.c:310
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Tak bisa membuat penyimpanan CA"
 
@@ -389,10 +373,3 @@ msgstr "Ada masalah dengan sertifikat: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Ada masalah dengan kunci privat sertifikat: %s"
-
-#~ msgid "X.509 certificate is not available on the connection"
-#~ msgstr "Sertifikat X.509 tidak tersedia pada sambungan"
-
-#~ msgid "X.509 certificate is not available or is of unknown format: %s"
-#~ msgstr ""
-#~ "Sertifikat X.509 tidak tersedia atau format yang tidak diketahui: %s"
