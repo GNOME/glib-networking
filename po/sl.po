@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the glib-networking package.
 #
 # Klemen Košir <klemen.kosir@gmx.com>, 2011.
-# Matej Urbančič <mateju@src.gnome.org>, + 2017–2022.
+# Matej Urbančič <mateju@src.gnome.org>, + 2017–2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-29 21:17+0000\n"
-"PO-Revision-Date: 2022-08-31 20:53+0200\n"
+"POT-Creation-Date: 2023-09-06 22:56+0000\n"
+"PO-Revision-Date: 2023-09-10 22:57+0200\n"
 "Last-Translator: Matej Urbančič <mateju@src.gnome.org>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl_SI\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Proxy resolver internal error."
 msgstr "Notranja napaka razreševalnika posredniškega strežnika."
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -39,43 +39,43 @@ msgstr "Povezava je zaprta"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "Ni mogoče izvesti opravila med izvajanjem izmenjave signalov TLS"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "Vtič V/I naprave je časovno potekel"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "Strežnik zahteva potrdilo TLS"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr ""
 "Izmenjava podatkov še ni končana, zato ni še nobene informacije o vezavah "
 "kanalov."
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "Soležnik ne omogoča varnega usklajevanja"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Nesprejemljivo potrdilo TLS"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "Prejemanje zastavic ni podprto"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "Pošiljanje zastavic ni podprto"
@@ -132,8 +132,8 @@ msgstr "Povezave TLS ni mogoče ustvariti:"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Povezave TLS ni mogoče ustvariti: %s"
@@ -259,7 +259,7 @@ msgstr ""
 "Nalaganje varne sistemske shrambe je spodletelo: protokol GnuTLS ni ustrezno "
 "nastavljen"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Nalaganje varne sistemske shrambe je spodletelo: %s"
@@ -275,19 +275,19 @@ msgstr "Nalaganje varnega seznama iz %s je spodletelo: %s"
 msgid "Certificate has no private key"
 msgstr "Potrdilo nima določenega zasebnega ključa"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "Seznama šifrirnih kod TLS ni mogoče nastaviti: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "Protokola MAX ni mogoče nastaviti na %d: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -357,19 +357,23 @@ msgstr "Nepričakovana napaka pri izvozu podatkov o ključu"
 msgid "Error performing TLS close"
 msgstr "Napaka med izvajanjem zapiranja TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Ni mogoče pridobiti zaupanja vrednih sidrišč programa Keychain"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Ni mogoče pridobiti nastavitev zaupanja za potrdilo"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Ni mogoče pridobiti potrdil"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Ni mogoče pridobiti shrambe korenskega potrdila"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Ni mogoče pridobiti shrambe potrdila CA"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Ni mogoče ustvariti shrambe CA"
 
@@ -382,6 +386,9 @@ msgstr "Prišlo je do napake med uporabo potrdila: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Prišlo je do napake v zasebnem ključu potrdila: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Ni mogoče pridobiti zaupanja vrednih sidrišč programa Keychain"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
