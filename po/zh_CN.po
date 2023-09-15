@@ -13,23 +13,24 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2022-08-15 19:23+0000\n"
-"PO-Revision-Date: 2022-09-11 07:56+0800\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2023-08-30 13:34+0000\n"
+"PO-Revision-Date: 2023-09-15 10:38+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese - China <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0\n"
-"X-Generator: Gtranslator 42.0\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.3.2\n"
 
-#: proxy/libproxy/glibproxyresolver.c:158
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "代理服务器解析器内部错误。"
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -42,41 +43,41 @@ msgstr "连接被关闭"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "无法在 TLS 握手期间执行阻塞操作"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
 msgstr "套接字 I/O 超时"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "服务器需要 TLS 证书"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr "通讯握手未完成，尚无信道绑定信息"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
 msgstr "对等端不支持安全再协商"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
 #: tls/openssl/gtlsconnection-openssl.c:835
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "无法接受的 TLS 证书"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
 msgstr "不支持接收标志"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
 msgstr "不支持发送标志"
@@ -133,8 +134,8 @@ msgstr "无法创建 TLS 连接："
 
 #: tls/gnutls/gtlsconnection-gnutls.c:214
 #: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:512
-#: tls/openssl/gtlsserverconnection-openssl.c:456
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "无法创建 TLS 连接：%s"
@@ -244,7 +245,7 @@ msgid ""
 "trust"
 msgstr "无法载入系统信任存储：GnuTLS 未配置系统信任库"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:255
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "无法载入系统信任存储：%s"
@@ -260,19 +261,19 @@ msgstr "无法从 %s 产生信任列表：%s"
 msgid "Certificate has no private key"
 msgstr "证书没有私钥"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:368
+#: tls/openssl/gtlsclientconnection-openssl.c:388
 #: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
 msgstr "无法设置 TLS 密码列表：%s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:396
+#: tls/openssl/gtlsclientconnection-openssl.c:416
 #: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "无法将 MAX 协议设置为 %d：%s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:459
+#: tls/openssl/gtlsclientconnection-openssl.c:505
 #: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
@@ -341,19 +342,23 @@ msgstr "导出密钥数据时发生意外错误"
 msgid "Error performing TLS close"
 msgstr "执行 TLS 关闭时出错"
 
-#: tls/openssl/gtlsdatabase-openssl.c:167
-msgid "Could not get trusted anchors from Keychain"
-msgstr "不能从密钥环中得到可信的锚"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "无法获取证书的信任设置"
 
-#: tls/openssl/gtlsdatabase-openssl.c:232
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "无法获取证书"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "无法获取根证书存储"
 
-#: tls/openssl/gtlsdatabase-openssl.c:239
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "无法获取 CA 证书存储"
 
-#: tls/openssl/gtlsdatabase-openssl.c:304
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "无法创建 CA 存储"
 
@@ -366,6 +371,9 @@ msgstr "证书存在问题：%s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "证书私钥存在问题：%s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "不能从密钥环中得到可信的锚"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
