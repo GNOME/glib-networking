@@ -1,3 +1,11 @@
+2.78.0 - September 14, 2023
+===========================
+
+- Respect root certificates added to macOS system keychain by users (#213, Leo Zi-You Assini)
+- Disable PKCS #11 tests when GnuTLS is built without PKCS #11 support (!240, Ross Burton)
+- Fix connection tests on 32-bit systems with 64-bit time_t (!241, Alexander Kanavin)
+- Updated translations
+
 2.76.1 - June 29, 2023
 ======================
 
