@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-08-30 13:34+0000\n"
-"PO-Revision-Date: 2023-09-15 00:05+0200\n"
+"POT-Creation-Date: 2023-09-14 22:06+0000\n"
+"PO-Revision-Date: 2023-09-20 22:49+0200\n"
 "Last-Translator: Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>\n"
 "Language-Team: Esperanto <gnome-eo-list@gnome.org>\n"
 "Language: eo\n"
@@ -43,7 +43,7 @@ msgstr "Ne povas fari blokadon dum TLS-manpremo"
 #: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
 #: tls/openssl/gtlsconnection-openssl.c:358
 msgid "Socket I/O timed out"
-msgstr ""
+msgstr "Konekto I/O elĉerpita"
 
 #: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
@@ -55,9 +55,8 @@ msgid "Handshake is not finished, no channel binding information yet"
 msgstr "Manpremo ne estas finita, ankoraŭ neniu kanala liga informo"
 
 #: tls/base/gtlsconnection-base.c:1598
-#, fuzzy
 msgid "Peer does not support safe renegotiation"
-msgstr "Peer ne subtenas sekuran retraktadon"
+msgstr "Kunulo ne subtenas sekuran retraktadon"
 
 #: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
 #: tls/openssl/gtlsconnection-openssl.c:209
@@ -138,10 +137,9 @@ msgstr "Ne eblis krei TLS-konekton: %s"
 #: tls/gnutls/gtlsconnection-gnutls.c:446
 #: tls/gnutls/gtlsconnection-gnutls.c:460
 #: tls/openssl/gtlsconnection-openssl.c:176
-#, fuzzy, c-format
-#| msgid "Peer failed to perform TLS handshake"
+#, c-format
 msgid "Peer failed to perform TLS handshake: %s"
-msgstr "Samtavolano malsukcesis efektivigi TLS-kvitancon"
+msgstr "Kunulo malsukcesis plenumi TLS-manpremon: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:468
 msgid "TLS connection closed unexpectedly"
@@ -149,12 +147,11 @@ msgstr "TLS-konekto fermiĝis senatendite"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:483
 #: tls/openssl/gtlsconnection-openssl.c:201
-#, fuzzy
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS-konekto-kunulo ne sendis atestilon"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:499
-#, fuzzy, c-format
+#, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Kunulo sendis fatalan TLS-atentigon: %s"
 
@@ -329,9 +326,9 @@ msgid ""
 msgstr "Nuna X.509-atestilo uzas nekonatan aŭ nesubtenitan subskribalgoritmon"
 
 #: tls/openssl/gtlsconnection-openssl.c:752
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to generate X.509 certificate digest"
-msgstr "Malsukcesis generi X.509-atestildigeston"
+msgstr "Kalkulado de la kontrolsumo de la X.509-atestilo malsukcesis"
 
 #: tls/openssl/gtlsconnection-openssl.c:783
 #, c-format
@@ -339,9 +336,9 @@ msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "TLS-konekto ne subtenas funkcion TLS-Exporter"
 
 #: tls/openssl/gtlsconnection-openssl.c:786
-#, fuzzy, c-format
+#, c-format
 msgid "Unexpected error while exporting keying data"
-msgstr "Neatendita eraro dum eksportado de klavdatumoj"
+msgstr "Neatendita eraro dum elportado de klavdatumoj"
 
 #: tls/openssl/gtlsconnection-openssl.c:1064
 msgid "Error performing TLS close"
@@ -360,12 +357,10 @@ msgid "Could not get root certificate store"
 msgstr "Ne eblis akiri radikan atestilon"
 
 #: tls/openssl/gtlsdatabase-openssl.c:365
-#, fuzzy
 msgid "Could not get CA certificate store"
 msgstr "Ne eblis akiri CA-atestilbutikon"
 
 #: tls/openssl/gtlsdatabase-openssl.c:430
-#, fuzzy
 msgid "Could not create CA store"
 msgstr "Ne eblis krei CA-butikon"
 
