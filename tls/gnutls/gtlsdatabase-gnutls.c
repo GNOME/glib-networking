@@ -561,7 +561,12 @@ g_tls_database_gnutls_populate_trust_list (GTlsDatabaseGnutls        *self,
                    _("Failed to load system trust store: %s"),
                    gnutls_strerror (gerr));
     }
-  return gerr >= 0;
+  else if (gerr == 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
+                   _("System trust contains zero trusted certificates; please investigate your GnuTLS configuration"));
+    }
+  return gerr > 0;
 }
 
 static gnutls_x509_trust_list_t
