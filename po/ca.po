@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-08-30 13:34+0000\n"
-"PO-Revision-Date: 2023-09-11 12:03+0100\n"
+"POT-Creation-Date: 2023-10-05 01:31+0000\n"
+"PO-Revision-Date: 2023-10-05 16:27+0200\n"
 "Last-Translator: Jordi Mas i Hernàndez <jmas@softcatala.org>\n"
 "Language-Team: Catalan <gnome-dl@llistes.softcatala.org>\n"
 "Language: ca\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 2.4.2\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -37,6 +37,7 @@ msgstr "La connexió està tancada"
 #. * accept-certificate callback. Allowing a blocking op would stall
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
+#.
 #: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
 msgstr "No es pot dur a terme una operació de bloqueig durant l'encaixada TLS"
@@ -248,15 +249,24 @@ msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
 msgstr ""
-"S'ha produït un error en carregar l'emmagatzematge del sistema de confiança:"
-" GnuTLS no està configurat amb un sistema de confiança"
+"S'ha produït un error en carregar l'emmagatzematge del sistema de confiança: "
+"GnuTLS no està configurat amb un sistema de confiança"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr ""
-"S'ha produït un error en carregar l'emmagatzematge del sistema de confiança:"
-" %s"
+"S'ha produït un error en carregar l'emmagatzematge del sistema de confiança: "
+"%s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"El sistema de confiança no conté cap certificat; investiga la configuració "
+"del GnuTLS"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
@@ -384,4 +394,3 @@ msgstr "Hi ha un problema amb el certificat: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Hi ha un problema amb el certificat de la clau privada: %s"
-
