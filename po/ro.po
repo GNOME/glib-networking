@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-05-05 12:32+0000\n"
-"PO-Revision-Date: 2023-07-29 13:52+0300\n"
+"POT-Creation-Date: 2023-10-07 15:00+0000\n"
+"PO-Revision-Date: 2023-10-09 17:43+0300\n"
 "Last-Translator: Florentina Mușat <florentina [dot] musat [dot] 28 [at] "
 "gmail [dot] com>\n"
 "Language-Team: Romanian Gnome Team <gnomero-list@lists.sourceforge.net>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2);\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
@@ -258,7 +258,7 @@ msgstr ""
 "Nu s-a putut încărca stocarea de încredere a sistemului: GnuTLS nu a fost "
 "configurat cu o încredere de sistem"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Nu s-a putut încărca stocarea de încredere a sistemului: %s"
@@ -357,19 +357,23 @@ msgstr "Eroare neașteptată în timpul exportării datelor de tastare"
 msgid "Error performing TLS close"
 msgstr "Eroare la executarea închiderii TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:173
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Nu s-au putut obține ancore de încredere de la lanțul de chei"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Nu s-au putut obține configurările de încredere pentru certificat"
 
-#: tls/openssl/gtlsdatabase-openssl.c:238
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Nu s-au putut prelua certificatele"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Nu s-a putut obține depozitul rădăcină de certificate"
 
-#: tls/openssl/gtlsdatabase-openssl.c:245
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Nu s-a putut obține depozitul de certificate CA"
 
-#: tls/openssl/gtlsdatabase-openssl.c:310
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Nu s-a putut crea spațiul de stocare CA"
 
@@ -382,6 +386,9 @@ msgstr "Este o problemă la certificatul: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Este o problemă la cheia privată a certificatului: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Nu s-au putut obține ancore de încredere de la lanțul de chei"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
