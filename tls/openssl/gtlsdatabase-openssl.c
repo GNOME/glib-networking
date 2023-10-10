@@ -290,7 +290,7 @@ populate_store (X509_STORE  *store,
               continue;
             }
 
-          cert_bytes = g_bytes_new (pdata, CFDataGetLength (data));
+          cert_bytes = g_bytes_new (CFDataGetBytePtr (data), CFDataGetLength (data));
           if (cert_bytes == NULL)
             {
               goto next;
