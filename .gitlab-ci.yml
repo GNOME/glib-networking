@@ -1,5 +1,5 @@
 include:
- - remote: 'https://gitlab.freedesktop.org/freedesktop/ci-templates/-/raw/c5626190ec14b475271288dda7a7dae8dbe0cd76/templates/fedora.yml'
+ - remote: 'https://gitlab.freedesktop.org/freedesktop/ci-templates/-/raw/145b1bc7ef1702d2bd71584010d7113c6786a506/templates/fedora.yml'
 
 variables:
   FDO_UPSTREAM_REPO: GNOME/glib-networking
@@ -10,7 +10,7 @@ stages:
 
 .fedora.container.common:
   variables:
-    FDO_DISTRIBUTION_TAG: '2022-08-05.3'
+    FDO_DISTRIBUTION_TAG: '2024-01-04.8'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 build.container.fedora@x86_64:
@@ -27,14 +27,15 @@ build.container.fedora@x86_64:
       gcc
       gettext
       git
+      gnutls-devel
+      gsettings-desktop-schemas-devel
       lcov
       libasan
+      libproxy-devel
       meson
-      pkgconfig(gnutls)
-      pkgconfig(gsettings-desktop-schemas)
-      pkgconfig(libproxy-1.0)
-      pkgconfig(openssl)
-      pkgconfig(p11-kit-1)
+      openssl-devel
+      p11-kit-devel
+      python3-packaging
     FDO_DISTRIBUTION_EXEC: >-
       git clone --depth=1 https://gitlab.gnome.org/GNOME/glib.git &&
       pushd glib &&
