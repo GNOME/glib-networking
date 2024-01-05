@@ -1,3 +1,11 @@
+2.80.alpha - January 5, 2024
+============================
+
+- GnuTLS: Add warning when system has no trusted certificates (!243)
+- OpenSSL: Fix bug when populating trust store (!244, Alessandro Bono)
+- Fix license on dtls-connection.c test (!245, David King)
+- Updated translations
+
 2.78.0 - September 14, 2023
 ===========================
 
