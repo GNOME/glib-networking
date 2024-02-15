@@ -199,7 +199,7 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
 
   session = g_tls_connection_gnutls_get_session (gnutls);
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
-  if (hostname)
+  if (hostname && !g_hostname_is_ip_address (hostname))
     {
       gchar *normalized_hostname = g_strdup (hostname);
 
