@@ -2,14 +2,14 @@
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # Arash Mousavi <mousavi.arash@gmail.com>, 2011, 2013.
-# Danial Behzadi <dani.behzi@ubuntu.com>, 2020-2023.
+# Danial Behzadi <dani.behzi@ubuntu.com>, 2020-2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-08-30 13:34+0000\n"
-"PO-Revision-Date: 2023-09-01 17:37+0330\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-16 01:20+0330\n"
 "Last-Translator: Danial Behzadi <dani.behzi@ubuntu.com>\n"
 "Language-Team: Persian\n"
 "Language: fa\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -247,6 +247,23 @@ msgstr ""
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "شکست در بار کردن ذخیرهٔ اطمینان سامانه: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr "سامانه هیچ گواهی مطمئنی ندارد. لطفاً پیکربندی GnuTLSتان را بررسی کنید"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "شکست در مقدار دهی نخستین سیاههٔ اطمینان: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "شکست در تخصیص اعتبارنامه: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
