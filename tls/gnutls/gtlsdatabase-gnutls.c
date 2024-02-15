@@ -580,7 +580,7 @@ create_trust_list (GTlsDatabaseGnutls  *self,
   ret = gnutls_x509_trust_list_init (&trust_list, 0);
   if (ret != 0)
     {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, "Failed to initialize trust list: %s", gnutls_strerror (ret));
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, _("Failed to initialize trust list: %s"), gnutls_strerror (ret));
       return NULL;
     }
 
@@ -605,7 +605,7 @@ g_tls_database_gnutls_get_credentials (GTlsDatabaseGnutls  *self,
   ret = gnutls_certificate_allocate_credentials (&credentials);
   if (ret != 0)
     {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, "Failed to allocate credentials: %s", gnutls_strerror (ret));
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, _("Failed to allocate credentials: %s"), gnutls_strerror (ret));
       return NULL;
     }
 
