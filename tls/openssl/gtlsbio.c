@@ -34,6 +34,7 @@ typedef struct {
   GCancellable *write_cancellable;
   GError **read_error;
   GError **write_error;
+  gboolean reached_eof;
 } GTlsBio;
 
 typedef struct {
@@ -108,7 +109,14 @@ gtls_bio_ctrl (BIO  *b,
                long  num,
                void *ptr)
 {
+  GTlsBio *gbio;
   long ret = 1;
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
+  gbio = (GTlsBio *)b->ptr;
+#else
+  gbio = BIO_get_data (b);
+#endif
 
   switch (cmd)
     {
@@ -137,6 +145,11 @@ gtls_bio_ctrl (BIO  *b,
     case BIO_CTRL_DGRAM_QUERY_MTU:
       ret = 1400; /* Same as the GnuTLS backend */
       break;
+#ifdef BIO_CTRL_EOF
+    case BIO_CTRL_EOF:
+      ret = gbio->reached_eof ? 1 : 0;
+      break;
+#endif
     default:
       g_debug ("Got unsupported command: %d", cmd);
       ret = 0;
@@ -262,6 +275,8 @@ gtls_bio_read (BIO  *bio,
       g_clear_error (gbio->read_error);
       g_propagate_error (gbio->read_error, error);
     }
+  else if (read == 0)
+    gbio->reached_eof = TRUE;
 
   return read;
 }

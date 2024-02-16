@@ -236,6 +236,21 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
     }
 #endif
 
+#ifdef SSL_R_UNEXPECTED_EOF_WHILE_READING
+  if (reason == SSL_R_UNEXPECTED_EOF_WHILE_READING)
+    {
+      if (g_tls_connection_get_require_close_notify (G_TLS_CONNECTION (openssl)))
+        {
+          g_clear_error (&my_error);
+          g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_EOF,
+                               _("TLS connection closed unexpectedly"));
+          return G_TLS_CONNECTION_BASE_ERROR;
+        }
+      else
+        return G_TLS_CONNECTION_BASE_OK;
+    }
+#endif
+
   if (my_error)
     g_propagate_error (error, my_error);
 
