@@ -2,13 +2,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 # Korostil Daniel <ted.korostiled@gmail.com>, 2011.
 # Alexandr Toorchyn <ilex@mail.ua>, 2011.
-# Yuri Chornoivan <yurchor@ukr.net>, 2020, 2021, 2022, 2023.
+# Yuri Chornoivan <yurchor@ukr.net>, 2020, 2021, 2022, 2023, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-10-05 01:31+0000\n"
-"PO-Revision-Date: 2023-10-05 20:06+0300\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-16 20:34+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 20.12.0\n"
+"X-Generator: Lokalize 23.04.1\n"
 "X-Project-Style: gnome\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
@@ -272,8 +272,20 @@ msgid ""
 "System trust contains zero trusted certificates; please investigate your "
 "GnuTLS configuration"
 msgstr ""
-"У системній довірі міститься нуль довірених сертифікатів; будь ласка,"
-" вивчіть ваші налаштування GnuTLS"
+"У системній довірі міститься нуль довірених сертифікатів; будь ласка, "
+"вивчіть ваші налаштування GnuTLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+#| msgid "Failed to populate trust list from %s: %s"
+msgid "Failed to initialize trust list: %s"
+msgstr "Не вдалося ініціалізувати список довіри: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to allocate credentials: %s"
+msgstr "Не вдалося розмістити у пам'яті реєстраційні дані: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
