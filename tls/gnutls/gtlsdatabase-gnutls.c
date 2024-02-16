@@ -42,11 +42,13 @@ typedef struct
   /*
    * This class is protected by mutex because the default GTlsDatabase
    * is a global singleton, accessible via the default GTlsBackend.
+   * Everything is read-only after initialization, but still has to
+   * be protected by the mutex.
    */
   GMutex mutex;
 
-  /* Read-only after construct, but still has to be protected by the mutex. */
   gnutls_x509_trust_list_t trust_list;
+  GGnutlsCertificateCredentials *credentials;
 
   /*
    * These are hash tables of GBytes -> GPtrArray<GBytes>. The values of
@@ -77,6 +79,41 @@ G_DEFINE_TYPE_WITH_CODE (GTlsDatabaseGnutls, g_tls_database_gnutls, G_TYPE_TLS_D
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_tls_database_gnutls_initable_interface_init);
                          );
+
+GGnutlsCertificateCredentials *
+g_gnutls_certificate_credentials_new (GError **error)
+{
+  GGnutlsCertificateCredentials *credentials = g_new (GGnutlsCertificateCredentials, 1);
+  int ret;
+
+  ret = gnutls_certificate_allocate_credentials (&credentials->credentials);
+  if (ret != 0)
+    {
+      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, _("Failed to allocate credentials: %s"), gnutls_strerror (ret));
+      g_free (credentials);
+      return NULL;
+    }
+
+  g_atomic_ref_count_init (&credentials->ref_count);
+  return credentials;
+}
+
+GGnutlsCertificateCredentials *
+g_gnutls_certificate_credentials_ref (GGnutlsCertificateCredentials *credentials)
+{
+  g_atomic_ref_count_inc (&credentials->ref_count);
+  return credentials;
+}
+
+void
+g_gnutls_certificate_credentials_unref (GGnutlsCertificateCredentials *credentials)
+{
+  if (g_atomic_ref_count_dec (&credentials->ref_count))
+    {
+      g_clear_pointer (&credentials->credentials, gnutls_certificate_free_credentials);
+      g_free (credentials);
+    }
+}
 
 static GHashTable *
 bytes_multi_table_new (void)
@@ -228,6 +265,7 @@ g_tls_database_gnutls_finalize (GObject *object)
   g_clear_pointer (&priv->handles, g_hash_table_destroy);
 
   gnutls_x509_trust_list_deinit (priv->trust_list, 1);
+  g_clear_pointer (&priv->credentials, g_gnutls_certificate_credentials_unref);
 
   g_mutex_clear (&priv->mutex);
 
@@ -594,30 +632,47 @@ create_trust_list (GTlsDatabaseGnutls  *self,
   return trust_list;
 }
 
-gnutls_certificate_credentials_t
+GGnutlsCertificateCredentials *
 g_tls_database_gnutls_get_credentials (GTlsDatabaseGnutls  *self,
                                        GError             **error)
 {
-  gnutls_certificate_credentials_t credentials;
+  GTlsDatabaseGnutlsPrivate *priv = g_tls_database_gnutls_get_instance_private (self);
+  GGnutlsCertificateCredentials *credentials;
   gnutls_x509_trust_list_t trust_list = NULL;
-  int ret;
+  GError *my_error = NULL;
 
-  ret = gnutls_certificate_allocate_credentials (&credentials);
-  if (ret != 0)
+  g_mutex_lock (&priv->mutex);
+  if (priv->credentials)
+    goto out;
+
+  credentials = g_gnutls_certificate_credentials_new (&my_error);
+  if (!credentials)
     {
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC, _("Failed to allocate credentials: %s"), gnutls_strerror (ret));
-      return NULL;
+      g_propagate_error (error, my_error);
+      goto out;
     }
 
+  /* The gnutls_certificate_credentials_t takes ownership of the
+   * gnutls_x509_trust_list_t, so we have to wastefully create a new one here
+   * rather than reuse priv->trust_list.
+   *
+   * Alternatively, we could steal priv->trust_list, unsetting it in the priv
+   * struct, to avoid duplicating this work. But this would violate the rule
+   * that our private data is read-only after initialization. Let's not.
+   */
   trust_list = create_trust_list (self, error);
   if (!trust_list)
     {
-      gnutls_certificate_free_credentials (credentials);
-      return NULL;
+      g_gnutls_certificate_credentials_unref (credentials);
+      goto out;
     }
 
-  gnutls_certificate_set_trust_list (credentials, trust_list, 0);
-  return credentials;
+  gnutls_certificate_set_trust_list (credentials->credentials, trust_list, 0);
+
+  priv->credentials = g_steal_pointer (&credentials);
+out:
+  g_mutex_unlock (&priv->mutex);
+  return priv->credentials;
 }
 
 static void

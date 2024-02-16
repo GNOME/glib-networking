@@ -48,9 +48,19 @@ struct _GTlsDatabaseGnutlsClass
                                                GError                           **error);
 };
 
+typedef struct
+{
+  gnutls_certificate_credentials_t credentials;
+  gatomicrefcount ref_count;
+} GGnutlsCertificateCredentials;
+
 GTlsDatabaseGnutls *g_tls_database_gnutls_new (GError **error);
 
-gnutls_certificate_credentials_t g_tls_database_gnutls_get_credentials (GTlsDatabaseGnutls  *self,
-                                                                        GError             **error);
+GGnutlsCertificateCredentials *g_tls_database_gnutls_get_credentials (GTlsDatabaseGnutls  *self,
+                                                                      GError             **error);
+
+GGnutlsCertificateCredentials *g_gnutls_certificate_credentials_new   (GError **error);
+GGnutlsCertificateCredentials *g_gnutls_certificate_credentials_ref   (GGnutlsCertificateCredentials *credentials);
+void                           g_gnutls_certificate_credentials_unref (GGnutlsCertificateCredentials *credentials);
 
 G_END_DECLS

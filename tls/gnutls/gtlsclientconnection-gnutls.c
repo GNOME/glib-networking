@@ -80,7 +80,8 @@ static void g_tls_client_connection_gnutls_initable_interface_init (GInitableIfa
 static void g_tls_client_connection_gnutls_client_connection_interface_init (GTlsClientConnectionInterface *iface);
 static void g_tls_client_connection_gnutls_dtls_client_connection_interface_init (GDtlsClientConnectionInterface *iface);
 
-static int g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+static int g_tls_client_connection_gnutls_handshake_thread_retrieve_function (GTlsConnectionGnutls         *conn,
+                                                                              gnutls_session_t              session,
                                                                               const gnutls_datum_t         *req_ca_rdn,
                                                                               int                           nreqs,
                                                                               const gnutls_pk_algorithm_t  *pk_algos,
@@ -189,13 +190,9 @@ g_tls_client_connection_gnutls_initable_init (GInitable       *initable,
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   gnutls_session_t session;
   const gchar *hostname;
-  gnutls_certificate_credentials_t creds;
 
   if (!g_tls_client_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
-
-  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
 
   session = g_tls_connection_gnutls_get_session (gnutls);
   hostname = get_server_identity (G_TLS_CLIENT_CONNECTION_GNUTLS (gnutls));
@@ -327,7 +324,8 @@ g_tls_client_connection_gnutls_set_property (GObject      *object,
 }
 
 static int
-g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+g_tls_client_connection_gnutls_handshake_thread_retrieve_function (GTlsConnectionGnutls         *conn,
+                                                                   gnutls_session_t              session,
                                                                    const gnutls_datum_t         *req_ca_rdn,
                                                                    int                           nreqs,
                                                                    const gnutls_pk_algorithm_t  *pk_algos,
@@ -336,9 +334,8 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
                                                                    unsigned int                 *pcert_length,
                                                                    gnutls_privkey_t             *pkey)
 {
-  GTlsConnectionBase *tls = gnutls_transport_get_ptr (session);
-  GTlsClientConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
-  GTlsConnectionGnutls *conn = G_TLS_CONNECTION_GNUTLS (gnutls);
+  GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
+  GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
   GPtrArray *accepted_cas;
   gboolean had_accepted_cas;
   GByteArray *dn;
@@ -525,13 +522,6 @@ g_tls_client_connection_gnutls_copy_session_state (GTlsClientConnection *conn,
 }
 
 static void
-g_tls_client_connection_gnutls_update_credentials (GTlsConnectionGnutls             *gnutls,
-                                                   gnutls_certificate_credentials_t  credentials)
-{
-  gnutls_certificate_set_retrieve_function2 (credentials, g_tls_client_connection_gnutls_handshake_thread_retrieve_function);
-}
-
-static void
 g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -545,7 +535,7 @@ g_tls_client_connection_gnutls_class_init (GTlsClientConnectionGnutlsClass *klas
   base_class->prepare_handshake  = g_tls_client_connection_gnutls_prepare_handshake;
   base_class->complete_handshake = g_tls_client_connection_gnutls_complete_handshake;
 
-  gnutls_class->update_credentials = g_tls_client_connection_gnutls_update_credentials;
+  gnutls_class->handshake_thread_retrieve_function = g_tls_client_connection_gnutls_handshake_thread_retrieve_function;
 
   g_object_class_override_property (gobject_class, PROP_VALIDATION_FLAGS, "validation-flags");
   g_object_class_override_property (gobject_class, PROP_SERVER_IDENTITY, "server-identity");
