@@ -55,7 +55,8 @@ static void     g_tls_server_connection_gnutls_initable_interface_init (GInitabl
 
 static void g_tls_server_connection_gnutls_server_connection_interface_init (GTlsServerConnectionInterface *iface);
 
-static int g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+static int g_tls_server_connection_gnutls_handshake_thread_retrieve_function (GTlsConnectionGnutls         *self,
+                                                                              gnutls_session_t              session,
                                                                               const gnutls_datum_t         *req_ca_rdn,
                                                                               int                           nreqs,
                                                                               const gnutls_pk_algorithm_t  *pk_algos,
@@ -105,15 +106,10 @@ g_tls_server_connection_gnutls_initable_init (GInitable       *initable,
                                               GCancellable    *cancellable,
                                               GError         **error)
 {
-  GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (initable);
   GTlsCertificate *cert;
-  gnutls_certificate_credentials_t creds;
 
   if (!g_tls_server_connection_gnutls_parent_initable_iface->init (initable, cancellable, error))
     return FALSE;
-
-  creds = g_tls_connection_gnutls_get_credentials (G_TLS_CONNECTION_GNUTLS (gnutls));
-  gnutls_certificate_set_retrieve_function2 (creds, g_tls_server_connection_gnutls_handshake_thread_retrieve_function);
 
   /* Currently we don't know ahead of time if a PKCS #11 backed certificate has a private key. */
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
@@ -167,7 +163,8 @@ g_tls_server_connection_gnutls_set_property (GObject      *object,
 }
 
 static int
-g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_session_t              session,
+g_tls_server_connection_gnutls_handshake_thread_retrieve_function (GTlsConnectionGnutls         *self,
+                                                                   gnutls_session_t              session,
                                                                    const gnutls_datum_t         *req_ca_rdn,
                                                                    int                           nreqs,
                                                                    const gnutls_pk_algorithm_t  *pk_algos,
@@ -176,7 +173,7 @@ g_tls_server_connection_gnutls_handshake_thread_retrieve_function (gnutls_sessio
                                                                    unsigned int                 *pcert_length,
                                                                    gnutls_privkey_t             *pkey)
 {
-  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (gnutls_transport_get_ptr (session));
+  GTlsServerConnectionGnutls *gnutls = G_TLS_SERVER_CONNECTION_GNUTLS (self);
 
   clear_gnutls_certificate_copy (gnutls);
 
@@ -219,13 +216,6 @@ g_tls_server_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
 }
 
 static void
-g_tls_server_connection_gnutls_update_credentials (GTlsConnectionGnutls             *gnutls,
-                                                   gnutls_certificate_credentials_t  credentials)
-{
-  gnutls_certificate_set_retrieve_function2 (credentials, g_tls_server_connection_gnutls_handshake_thread_retrieve_function);
-}
-
-static void
 g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -238,7 +228,7 @@ g_tls_server_connection_gnutls_class_init (GTlsServerConnectionGnutlsClass *klas
 
   base_class->prepare_handshake  = g_tls_server_connection_gnutls_prepare_handshake;
 
-  gnutls_class->update_credentials = g_tls_server_connection_gnutls_update_credentials;
+  gnutls_class->handshake_thread_retrieve_function = g_tls_server_connection_gnutls_handshake_thread_retrieve_function;
 
   g_object_class_override_property (gobject_class, PROP_AUTHENTICATION_MODE, "authentication-mode");
 }

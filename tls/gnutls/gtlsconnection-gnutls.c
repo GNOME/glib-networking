@@ -74,7 +74,7 @@ static gnutls_priority_t priority;
 
 typedef struct
 {
-  gnutls_certificate_credentials_t creds;
+  GGnutlsCertificateCredentials *credentials;
   gnutls_session_t session;
   gchar *interaction_id;
   GCancellable *cancellable;
@@ -119,6 +119,23 @@ g_tls_connection_gnutls_set_handshake_priority (GTlsConnectionGnutls *gnutls)
     g_warning ("Failed to set GnuTLS session priority: %s", gnutls_strerror (ret));
 }
 
+static int
+handshake_thread_retrieve_function (gnutls_session_t              session,
+                                    const gnutls_datum_t         *req_ca_rdn,
+                                    int                           nreqs,
+                                    const gnutls_pk_algorithm_t  *pk_algos,
+                                    int                           pk_algos_length,
+                                    gnutls_pcert_st             **pcert,
+                                    unsigned int                 *pcert_length,
+                                    gnutls_privkey_t             *pkey)
+{
+  GTlsConnectionGnutls *gnutls = gnutls_transport_get_ptr (session);
+  GTlsConnectionGnutlsClass *connection_class = G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls);
+
+  g_assert (connection_class->handshake_thread_retrieve_function);
+  return connection_class->handshake_thread_retrieve_function (gnutls, session, req_ca_rdn, nreqs, pk_algos, pk_algos_length, pcert, pcert_length, pkey);
+}
+
 static void
 update_credentials_cb (GObject    *gobject,
                        GParamSpec *pspec,
@@ -126,8 +143,7 @@ update_credentials_cb (GObject    *gobject,
 {
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (gobject);
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-  GTlsConnectionGnutlsClass *connection_class = G_TLS_CONNECTION_GNUTLS_GET_CLASS (gnutls);
-  gnutls_certificate_credentials_t credentials;
+  GGnutlsCertificateCredentials *credentials;
   GTlsDatabase *database;
   GError *error = NULL;
   int ret;
@@ -136,36 +152,29 @@ update_credentials_cb (GObject    *gobject,
   if (database && G_IS_TLS_DATABASE_GNUTLS (database))
     {
       credentials = g_tls_database_gnutls_get_credentials (G_TLS_DATABASE_GNUTLS (database), &error);
-      if (!credentials)
-        {
-          g_warning ("Failed to update credentials: %s", error->message);
-          g_error_free (error);
-          return;
-        }
+      if (credentials)
+        g_gnutls_certificate_credentials_ref (credentials);
     }
   else
-    {
-      ret = gnutls_certificate_allocate_credentials (&credentials);
-      if (ret != 0)
-        {
-          g_warning ("Failed to update credentials: %s", gnutls_strerror (ret));
-          return;
-        }
-    }
+    credentials = g_gnutls_certificate_credentials_new (&error);
 
-  ret = gnutls_credentials_set (priv->session, GNUTLS_CRD_CERTIFICATE, credentials);
-  if (ret != 0)
+  if (!credentials)
     {
-      g_warning ("Failed to update credentials: %s", gnutls_strerror (ret));
-      gnutls_certificate_free_credentials (credentials);
+      g_warning ("Failed to update credentials: %s", error->message);
+      g_error_free (error);
       return;
     }
 
-  gnutls_certificate_free_credentials (priv->creds);
-  priv->creds = credentials;
+  ret = gnutls_credentials_set (priv->session, GNUTLS_CRD_CERTIFICATE, credentials->credentials);
+  if (ret != 0)
+    {
+      g_warning ("Failed to update credentials: %s", gnutls_strerror (ret));
+      return;
+    }
 
-  g_assert (connection_class->update_credentials);
-  connection_class->update_credentials (gnutls, credentials);
+  g_gnutls_certificate_credentials_unref (priv->credentials);
+  priv->credentials = g_steal_pointer (&credentials);
+  gnutls_certificate_set_retrieve_function2 (priv->credentials->credentials, handshake_thread_retrieve_function);
 }
 
 static gboolean
@@ -198,24 +207,24 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
   database = g_tls_connection_get_database (G_TLS_CONNECTION (gnutls));
   if (database && G_IS_TLS_DATABASE_GNUTLS (database))
     {
-      priv->creds = g_tls_database_gnutls_get_credentials (G_TLS_DATABASE_GNUTLS (database), &my_error);
-      if (!priv->creds)
+      priv->credentials = g_tls_database_gnutls_get_credentials (G_TLS_DATABASE_GNUTLS (database), &my_error);
+      if (!priv->credentials)
+        {
+          g_propagate_prefixed_error (error, my_error, _("Could not create TLS connection:"));
+          goto out;
+        }
+      g_gnutls_certificate_credentials_ref (priv->credentials);
+    }
+  else
+    {
+      priv->credentials = g_gnutls_certificate_credentials_new (&my_error);
+      if (!priv->credentials)
         {
           g_propagate_prefixed_error (error, my_error, _("Could not create TLS connection:"));
           goto out;
         }
     }
-  else
-    {
-      ret = gnutls_certificate_allocate_credentials (&priv->creds);
-      if (ret != 0)
-        {
-          g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
-                       _("Could not create TLS connection: %s"),
-                       gnutls_strerror (ret));
-          goto out;
-        }
-    }
+  gnutls_certificate_set_retrieve_function2 (priv->credentials->credentials, handshake_thread_retrieve_function);
 
   g_signal_connect (gnutls, "notify::database", G_CALLBACK (update_credentials_cb), NULL);
   g_signal_connect (gnutls, "notify::use-system-certdb", G_CALLBACK (update_credentials_cb), NULL);
@@ -227,7 +236,7 @@ g_tls_connection_gnutls_initable_init (GInitable     *initable,
 
   ret = gnutls_credentials_set (priv->session,
                                 GNUTLS_CRD_CERTIFICATE,
-                                priv->creds);
+                                priv->credentials->credentials);
   if (ret != 0)
     {
       g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_MISC,
@@ -270,10 +279,8 @@ g_tls_connection_gnutls_finalize (GObject *object)
   GTlsConnectionGnutls *gnutls = G_TLS_CONNECTION_GNUTLS (object);
   GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
 
-  if (priv->session)
-    gnutls_deinit (priv->session);
-  if (priv->creds)
-    gnutls_certificate_free_credentials (priv->creds);
+  g_clear_pointer (&priv->session, gnutls_deinit);
+  g_clear_pointer (&priv->credentials, g_gnutls_certificate_credentials_unref);
 
   if (priv->cancellable)
     {
@@ -284,14 +291,6 @@ g_tls_connection_gnutls_finalize (GObject *object)
   g_free (priv->interaction_id);
 
   G_OBJECT_CLASS (g_tls_connection_gnutls_parent_class)->finalize (object);
-}
-
-gnutls_certificate_credentials_t
-g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *gnutls)
-{
-  GTlsConnectionGnutlsPrivate *priv = g_tls_connection_gnutls_get_instance_private (gnutls);
-
-  return priv->creds;
 }
 
 gnutls_session_t

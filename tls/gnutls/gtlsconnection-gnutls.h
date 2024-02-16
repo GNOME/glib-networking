@@ -40,11 +40,16 @@ struct _GTlsConnectionGnutlsClass
 {
   GTlsConnectionBaseClass parent_class;
 
-  void (*update_credentials) (GTlsConnectionGnutls             *gnutls,
-                              gnutls_certificate_credentials_t  credentials);
+  int (*handshake_thread_retrieve_function) (GTlsConnectionGnutls         *gnutls,
+                                             gnutls_session_t              session,
+                                             const gnutls_datum_t         *req_ca_rdn,
+                                             int                           nreqs,
+                                             const gnutls_pk_algorithm_t  *pk_algos,
+                                             int                           pk_algos_length,
+                                             gnutls_pcert_st             **pcert,
+                                             unsigned int                 *pcert_length,
+                                             gnutls_privkey_t             *pkey);
 };
-
-gnutls_certificate_credentials_t g_tls_connection_gnutls_get_credentials (GTlsConnectionGnutls *connection);
 
 gnutls_session_t                 g_tls_connection_gnutls_get_session     (GTlsConnectionGnutls *connection);
 
