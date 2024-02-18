@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-12-20 17:04+0000\n"
-"PO-Revision-Date: 2024-02-12 23:20+0200\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-18 12:32+0200\n"
 "Last-Translator: Aurimas Černius <aurisc4@gmail.com>\n"
 "Language-Team: Lietuvių <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
@@ -259,6 +259,16 @@ msgid ""
 msgstr ""
 "Tarp sistemos pasitikėjimų yra jokio pasitikėjimo liudijimų; patikrinkite savo "
 "GnuTLS konfigūraciją"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Nepavyko inicijuoti pasitikėjimo sąrašo: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Nepavyko išskirti įgaliojimų: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
