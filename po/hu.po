@@ -1,22 +1,22 @@
 # Hungarian translation for glib-networking.
-# Copyright (C) 2011, 2012, 2017, 2018, 2019, 2020, 2021, 2022, 2023. Free Software Foundation, Inc.
+# Copyright (C) 2011, 2012, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024. Free Software Foundation, Inc.
 # This file is distributed under the same license as the glib-networking package.
 #
 # Gabor Kelemen <kelemeng at gnome dot hu>, 2011, 2012.
-# Balázs Úr <ur.balazs at fsf dot hu>, 2012, 2017, 2018, 2019, 2020, 2021, 2022, 2023.
+# Balázs Úr <ur.balazs at fsf dot hu>, 2012, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-08-30 13:34+0000\n"
-"PO-Revision-Date: 2023-09-05 19:09+0200\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-19 20:48+0100\n"
 "Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <openscope at fsf dot hu>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 23.04.3\n"
+"X-Generator: Lokalize 23.08.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
@@ -250,6 +250,27 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Nem sikerült betölteni a rendszer megbízhatósági tárát: %s"
 
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"A rendszer megbízhatósága nulla megbízható tanúsítványt tartalmaz, vizsgálja"
+" meg a GnuTLS beállításait"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+#| msgid "Failed to populate trust list from %s: %s"
+msgid "Failed to initialize trust list: %s"
+msgstr "Nem sikerült előkészíteni a megbízhatósági listát: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to allocate credentials: %s"
+msgstr "Nem sikerült kiosztani a hitelesítési adatokat: %s"
+
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
 #, c-format
@@ -345,12 +366,10 @@ msgid "Error performing TLS close"
 msgstr "Hiba a TLS lezárás végrehajtásakor"
 
 #: tls/openssl/gtlsdatabase-openssl.c:174
-#| msgid "Could not get root certificate store"
 msgid "Could not get trust settings for certificate"
 msgstr "Nem sikerült lekérni a tanúsítvány megbízhatósági beállításait"
 
 #: tls/openssl/gtlsdatabase-openssl.c:261
-#| msgid "Could not get root certificate store"
 msgid "Could not retrieve certificates"
 msgstr "Nem sikerült lekérni a tanúsítványokat"
 
