@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-08-30 13:34+0000\n"
-"PO-Revision-Date: 2023-09-17 10:31+0600\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-24 22:51+0600\n"
 "Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
 "Language-Team: Kazakh <kk_KZ@googlegroups.com>\n"
 "Language: kk\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -245,6 +245,25 @@ msgstr ""
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Жүйелік сенімді сақтау қоймасын жүктеу сәтсіз аяқталды: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Жүйелік сенімді қорында нөлдік сенімді сертификаттар бар; GnuTLS "
+"баптауыңызды тексеріңіз"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Сенімділер тізімін іске қосу сәтсіз аяқталды: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Тіркелу мәліметтерін бөлу сәтсіз аяқталды: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
