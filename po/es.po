@@ -2,14 +2,14 @@
 # Copyright (C) 2011 glib-networking's COPYRIGHT HOLDER
 # This file is distributed under the same license as the glib-networking package.
 # Jorge González <jorgegonz@svn.gnome.org>, 2011.
-# Daniel Mustieles <daniel.mustieles@gmail.com>, 2022-2023.
+# Daniel Mustieles <daniel.mustieles@gmail.com>, 2022-2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-08-30 13:34+0000\n"
-"PO-Revision-Date: 2023-09-11 10:14+0200\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-26 14:42+0100\n"
 "Last-Translator: Daniel Mustieles <daniel.mustieles@gmail.com>\n"
 "Language-Team: Spanish - Spain <gnome-es-list@gnome.org>\n"
 "Language: es_ES\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"X-Generator: Gtranslator 45.alpha0\n"
+"X-Generator: Gtranslator 45.3\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -257,6 +257,25 @@ msgstr ""
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Falló al cargar el almacén de confianza del sistema: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"El sistema de confianza no contiene ningún certificado confiable; investigue "
+"su configuración de GnuTLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Falló al cargar la lista de confianza: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Falló al asignar las credenciales: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
