@@ -3,22 +3,22 @@
 # This file is distributed under the same licence as the glib-networking package.
 # Bruce Cowan <bruce@bcowan.me.uk>, 2011-2023.
 # Zander Brown <zbrown@gnome.org>, 2019-2021.
+# Andi Chandler <andi@gowling.com>, 2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
-"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
-"issues\n"
-"POT-Creation-Date: 2023-05-05 12:32+0000\n"
-"PO-Revision-Date: 2023-06-30 20:09+0100\n"
-"Last-Translator: Bruce Cowan <bruce@bcowan.me.uk>\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2024-01-20 23:17+0000\n"
+"PO-Revision-Date: 2024-02-26 13:32+0000\n"
+"Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English - United Kingdom <en_GB@li.org>\n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.3.1\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -79,7 +79,6 @@ msgstr "Send flags are not supported"
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
-#| msgid "Could not import PKCS #11 certificate URI: %s"
 msgid "Failed to import PKCS #12: %s"
 msgstr "Failed to import PKCS #12: %s"
 
@@ -184,7 +183,6 @@ msgstr "Error performing TLS handshake"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1157
 #, c-format
-#| msgid "Channel binding type is not implemented in the TLS library"
 msgid ""
 "Empty channel binding data indicates a bug in the TLS library implementation"
 msgstr ""
@@ -247,7 +245,7 @@ msgstr ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
+#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Failed to load system trust store: %s"
@@ -345,21 +343,23 @@ msgstr "Unexpected error while exporting keying data"
 msgid "Error performing TLS close"
 msgstr "Error performing TLS close"
 
-#: tls/openssl/gtlsdatabase-openssl.c:173
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Could not get trusted anchors from Keychain"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Could not get trust settings for certificate"
 
-#: tls/openssl/gtlsdatabase-openssl.c:238
-#| msgid "Could not parse DER certificate: %s"
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "Could not retrieve certificates"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Could not get root certificate store"
 
-#: tls/openssl/gtlsdatabase-openssl.c:245
-#| msgid "Could not parse DER certificate: %s"
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Could not get CA certificate store"
 
-#: tls/openssl/gtlsdatabase-openssl.c:310
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Could not create CA store"
 
@@ -372,6 +372,9 @@ msgstr "There is a problem with the certificate: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "There is a problem with the certificate private key: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Could not get trusted anchors from Keychain"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
