@@ -24,12 +24,16 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
+#include "visibility.h"
+
 G_BEGIN_DECLS
 
 #define G_TYPE_ENVIRONMENT_PROXY_RESOLVER         (g_environment_proxy_resolver_get_type ())
 
+GLIB_NETWORKING_EXPORT
 G_DECLARE_FINAL_TYPE (GEnvironmentProxyResolver, g_environment_proxy_resolver, G, ENVIRONMENT_PROXY_RESOLVER, GObject)
 
+GLIB_NETWORKING_EXPORT
 void g_environment_proxy_resolver_register (GIOModule *module);
 
 G_END_DECLS
