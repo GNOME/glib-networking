@@ -1,16 +1,16 @@
 # glib-networking Italian translation
-# Copyright (C) 2011, 2012, 2013, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023 Free Software Foundation, Inc
+# Copyright (C) 2011, 2012, 2013, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024 Free Software Foundation, Inc
 # This file is distributed under the same license as the glib-networking package.
 # Luca Ferretti <lferrett@gnome.org>, 2011, 2012.
-# Milo Casagrande <milo@ubuntu.com>, 2013, 2017, 2018, 2019, 2020, 2021, 2022, 2023.
+# Milo Casagrande <milo@ubuntu.com>, 2013, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024.
 # Gianvito Cavasoli <gianvito@gmx.it>, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-08-30 13:34+0000\n"
-"PO-Revision-Date: 2023-09-13 09:26+0200\n"
+"POT-Creation-Date: 2024-02-15 20:54+0000\n"
+"PO-Revision-Date: 2024-02-26 18:14+0100\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italiano <gnome-it-list@gnome.org>\n"
 "Language: it\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.4.1\n"
 
 #: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
@@ -255,6 +255,25 @@ msgstr ""
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Caricamento dell'archivio di attendibilità di sistema non riuscito: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:567
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Il sistema di attendibilità di sistema non contiene alcun certificato "
+"affidabile: verificare la configurazione di GnuTLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:583
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Inizializzazione dell'elenco di attendibilità non riuscito: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:608
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Creazione delle credenziali non riuscito: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
