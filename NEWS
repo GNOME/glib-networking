@@ -1,3 +1,9 @@
+2.80.0 - March 14, 2024
+=======================
+
+- Mark plugin functions as exports on Windows (!250, Amyspark)
+- Updated translations
+
 2.80.rc - February 29, 2024
 ===========================
 
