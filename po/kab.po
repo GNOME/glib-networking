@@ -1,0 +1,395 @@
+# Kabyle translation for glib-networking.
+# Copyright (C) 2024 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
+# Rachida SACI <rgebbid@gmail.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/"
+"issues\n"
+"POT-Creation-Date: 2024-03-15 17:42+0000\n"
+"PO-Revision-Date: 2024-03-29 13:43+0100\n"
+"Last-Translator: sa\n"
+"Language-Team: Kabyle <kab@li.org>\n"
+"Language: kab\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: proxy/libproxy/glibproxyresolver.c:165
+msgid "Proxy resolver internal error."
+msgstr "Tuccḍa tagensant n umafray n upṛuksi."
+
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
+msgid "Connection is closed"
+msgstr "Tuqqna temdel"
+
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr ""
+"D awezɣi ad tettwaselkem temhelt n usewḥel ɣef teɣzi n usenker n tuqqna TLS"
+
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:373
+msgid "Socket I/O timed out"
+msgstr "Tanzagt Anekcum/Tuffɣa tfukk"
+
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "Aqeddac yesra aselkin TLS"
+
+#: tls/base/gtlsconnection-base.c:1519
+#, c-format
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "Asenker n tuqqna mazal ifukk, ulac talɣut n tuqqna n yibuda"
+
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "Ayugan ur yessefrak ara allus n testagt tammestant"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:850
+#, c-format
+msgid "Unacceptable TLS certificate"
+msgstr "Azrar TLS ur yettwaqbal ara"
+
+#: tls/base/gtlsconnection-base.c:2218
+#, c-format
+msgid "Receive flags are not supported"
+msgstr "Rmes annayen ur ttusefraken ara"
+
+#: tls/base/gtlsconnection-base.c:2365
+#, c-format
+msgid "Send flags are not supported"
+msgstr "Azen annayen ur yettusefraken ara"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "Yecceḍ uktar n PKCS #12: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "D awezɣi ad yettwasleḍ uselkin DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "D awezɣi ad yettwasleḍ uselkin PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "D awezɣi ad tettwasleḍ tsarut tusligt DER: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "D awezɣi ad tettwasleḍ tsarut tusligt PEM: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "D awezɣi ad yettwakter URI n uselkin PKCS#3: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "Ulac isefka n uselkin i yettwamudden"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr ""
+"Ur yezmir ara ad issenqed timagit n uyugan n wanaw ur yettuṛaǧu ara %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:213
+#: tls/gnutls/gtlsconnection-gnutls.c:223
+msgid "Could not create TLS connection:"
+msgstr "Ur yezmir ara ad yernu tuqqna TLS:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:243
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "Ur yezmir ara ad yernu tuqqna TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+#: tls/gnutls/gtlsconnection-gnutls.c:459
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "Ayugan yecceḍ deg uɣser n handshake TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:467
+#: tls/openssl/gtlsconnection-openssl.c:246
+msgid "TLS connection closed unexpectedly"
+msgstr "Tuqqna TLS temdel s ubrid ur nettwarǧa ara"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:482
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "Ayugan n tuqqna TLS ur yezmir ara ad yazen aselkin"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:498
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "Ayugan yuzen alɣu TLS d tamihit: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Protocol version downgrade attack detected"
+msgstr "Yettwaf uzḍam n lqem n uneggaf ddaw"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:517
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "Izen meqqer aṭas i tuqqna DLTS; afellay d %u yibit"
+msgstr[1] "Izen meqqer aṭas i tuqqna DLTS; afellay d %u yibiten"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:526
+msgid "The operation timed out"
+msgstr "Iεedda wakud n temhelt"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:878
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "Tuccḍa deg usɣer n handshake TLS: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:981
+#: tls/openssl/gtlsconnection-openssl.c:629
+msgid "Error performing TLS handshake"
+msgstr "Tuccḍa deg usɣer n handshake TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr ""
+"Isefka n tuqqna n ubadu ilmawen mmalen-d abug deg usbeddi n temkarḍit TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1174
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "Anaw n tuqqna n ubadu mazal ur yebdid ara deg temkarḍit TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1178
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "Isefka n tuqqna n ubadu mazal ulac-iten"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
+#: tls/openssl/gtlsconnection-openssl.c:825
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "Anaw n tuqqna n ubadu yettwasran ur yebdid ara"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1251
+#: tls/gnutls/gtlsconnection-gnutls.c:1311
+#: tls/openssl/gtlsconnection-openssl.c:843
+#: tls/openssl/gtlsconnection-openssl.c:939
+msgid "Error reading data from TLS socket"
+msgstr "Tuccḍa lawan n tɣuri n yisefka seg uḥraz TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1396
+#: tls/openssl/gtlsconnection-openssl.c:1018
+msgid "Error writing data to TLS socket"
+msgstr "Tuccḍa lawan n tura n yisefka deg uḥraz TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1366
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "Izen n teɣzi %lu yibit hrawet aṭas i tuqqna DTLS"
+msgstr[1] "Izen n teɣzi %lu yibiten hrawet aṭas i tuqqna DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1368
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(afellay d %u yibit)"
+msgstr[1] "(afellay d %u yibiten)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1415
+#, c-format
+msgid "Error performing TLS close: %s"
+msgstr "Tuccḍa deg usɣer n umdal TLS: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:92
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "Yecceḍ usideg n yinekcam: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:594
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr ""
+"Yecceḍ usali n tḥanut n teflest n unagraw: Gnu TLS yettuswel akked teflest "
+"n unagraw"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:599 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "Yecceḍ usali n tḥanut n teflest n unagraw: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Taflest n unagraw ulac deg-s ula d yiwen uselkin yettwamanen; ttxil-k "
+"sesten tawila-k n Gnu TLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Yecceḍ uwennez n tebdart n teflest: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "Tecceḍ taččart n tebdart n teflest seg %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:120
+#: tls/openssl/gtlsserverconnection-openssl.c:172
+msgid "Certificate has no private key"
+msgstr "Aselkin ur yesεi ara tasarut tusligt"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "Ur yezmir ara ad yesbadu tabdart tawgelhant TLS: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "Ur yezmir ara ad yebdu aneggaf MAX i %d: %s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "Ur yezmir ara ad yernu asatal TLS: %s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+#, c-format
+msgid "Unacceptable TLS certificate authority"
+msgstr "Adabu n uselkin TLS ur yettwaqbal ara"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "Asesfer uzwir meqqer aṭas i tsarut RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "Allus n testagt taɣellsant tensa"
+
+#: tls/openssl/gtlsconnection-openssl.c:268
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: tuqqna terreẓ"
+
+#: tls/openssl/gtlsconnection-openssl.c:675
+#, c-format
+msgid "The request is invalid."
+msgstr "Assuter d arameɣtu."
+
+#: tls/openssl/gtlsconnection-openssl.c:698
+#, c-format
+msgid "Channel binding data tls-unique is not available"
+msgstr "Isefka n tuqqna n ubadu tls-unique ulac-iten"
+
+#: tls/openssl/gtlsconnection-openssl.c:721
+#, c-format
+msgid "X.509 Certificate is not available on the connection"
+msgstr "Aselkin X.509 ulac-it deg tuqqna"
+
+#: tls/openssl/gtlsconnection-openssl.c:729
+#, c-format
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "D awezɣi ad d-yawi alguritm n uzmul n uselkin"
+
+#: tls/openssl/gtlsconnection-openssl.c:749
+#, c-format
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"Aselkin-a X.509 yesseqdac alguritm n uzmul arussin neɣ ur yettusefrak ara"
+
+#: tls/openssl/gtlsconnection-openssl.c:767
+#, c-format
+msgid "Failed to generate X.509 certificate digest"
+msgstr "YEcceḍ usirew n usesfer uzwir n uselkin X.509"
+
+#: tls/openssl/gtlsconnection-openssl.c:798
+#, c-format
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "Tuqqna n TLS ur tessefrak ara tamahilt TLS-Exporter"
+
+#: tls/openssl/gtlsconnection-openssl.c:801
+#, c-format
+msgid "Unexpected error while exporting keying data"
+msgstr "Tuccḍa ur yettwarǧan ara lawan n usifeḍ n yisefka n tira"
+
+#: tls/openssl/gtlsconnection-openssl.c:1079
+msgid "Error performing TLS close"
+msgstr "Tuccḍa deg usɣer n umdal n TLS"
+
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "Ur yezmir ara ad d-yawi iɣewwaren yettwamanen i uselkin"
+
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "D awezɣi ad d-yerr iselkinen"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "Yegguma ad d-yawi aḥraz n uselkin n uẓar"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "Yegguma ad d-yawi aḥraz n uselkin CA"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "Ur yezmir ara ad yernu aḥraz CA"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "Yella wugur akked uselkin: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "Yella wugur akked tsarut tusligt n uselkin: %s"
