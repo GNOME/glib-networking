@@ -585,7 +585,8 @@ g_tls_connection_openssl_complete_handshake (GTlsConnectionBase   *tls,
       *negotiated_protocol = g_strndup ((gchar *)data, len);
     }
 
-  *protocol_version = glib_protocol_version_from_openssl (SSL_SESSION_get_protocol_version (session));
+  *protocol_version = session ? glib_protocol_version_from_openssl (SSL_SESSION_get_protocol_version (session))
+                              : G_TLS_PROTOCOL_VERSION_UNKNOWN;
   *ciphersuite_name = g_strdup (SSL_get_cipher_name (ssl));
 }
 
