@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2024-03-04 20:31+0000\n"
-"PO-Revision-Date: 2024-03-08 08:54-0300\n"
+"POT-Creation-Date: 2024-03-11 17:00+0000\n"
+"PO-Revision-Date: 2024-04-04 18:30-0300\n"
 "Last-Translator: Leônidas Araújo <leorusvellt@hotmail.com>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "Language: pt_BR\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.3.1\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Project-Style: gnome\n"
 "X-DL-Team: pt_BR\n"
 "X-DL-Module: glib-networking\n"
@@ -268,6 +268,20 @@ msgstr ""
 #, c-format
 msgid "Failed to load system trust store: %s"
 msgstr "Falha ao carregar o armazenamento de confiança do sistema: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"A confiança do sistema contém zero certificados confiáveis; investigue sua "
+"configuração do GnuTLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Falha ao inicializar a lista confiável: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
