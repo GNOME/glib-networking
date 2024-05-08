@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2024-03-02 16:55+0000\n"
-"PO-Revision-Date: 2024-03-10 23:56+0100\n"
+"POT-Creation-Date: 2024-03-10 22:57+0000\n"
+"PO-Revision-Date: 2024-05-08 23:32+0200\n"
 "Last-Translator: Christian Kirbach <christian.kirbach@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "Language: de\n"
@@ -70,7 +70,7 @@ msgstr "Die Gegenstelle unterstützt keine sichere Neuverhandlung"
 #: tls/openssl/gtlsconnection-openssl.c:850
 #, c-format
 msgid "Unacceptable TLS certificate"
-msgstr "Nicht akzeptables TLS-Zertifikat"
+msgstr "Inakzeptables TLS-Zertifikat"
 
 #: tls/base/gtlsconnection-base.c:2218
 #, c-format
@@ -300,7 +300,7 @@ msgstr "TLS-Kontext konnte nicht erstellt werden: %s"
 #: tls/openssl/gtlsconnection-openssl.c:217
 #, c-format
 msgid "Unacceptable TLS certificate authority"
-msgstr "Nicht akzeptable TLS-Zertifizierungsstelle"
+msgstr "Inakzeptable TLS-Zertifizierungsstelle"
 
 #: tls/openssl/gtlsconnection-openssl.c:225
 msgid "Digest too big for RSA key"
