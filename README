@@ -10,4 +10,4 @@ and a GNOME GProxyResolver that uses the proxy information from the GSettings
 schemas in gsettings-desktop-schemas.
 
 File bugs against
-https://gitlab.gnome.org/GNOME/glib-networking/issues/new
+https://gitlab.gnome.org/GNOME/glib-networking/-/issues/
