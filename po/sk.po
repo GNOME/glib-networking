@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2023-05-05 12:32+0000\n"
-"PO-Revision-Date: 2023-06-14 09:55-0400\n"
+"POT-Creation-Date: 2024-03-02 16:54+0000\n"
+"PO-Revision-Date: 2024-06-09 11:28+0200\n"
 "Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
 "Language: sk\n"
@@ -42,7 +42,7 @@ msgstr ""
 "Nedá sa vykonať blokovanie operácie počas vzájomného spoznania s použitím TLS"
 
 #: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
-#: tls/openssl/gtlsconnection-openssl.c:358
+#: tls/openssl/gtlsconnection-openssl.c:373
 msgid "Socket I/O timed out"
 msgstr "Čas vstupno/výstupného soketu vypršal"
 
@@ -61,9 +61,9 @@ msgstr ""
 msgid "Peer does not support safe renegotiation"
 msgstr "Partner nepodporuje bezpečné opätovné vyjednávanie"
 
-#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:835
+#: tls/openssl/gtlsconnection-openssl.c:850
 #, c-format
 msgid "Unacceptable TLS certificate"
 msgstr "Neprijateľný certifikát pre TLS"
@@ -81,7 +81,6 @@ msgstr "Odosielanie značiek nie je podporované"
 #: tls/gnutls/gtlscertificate-gnutls.c:297
 #: tls/openssl/gtlscertificate-openssl.c:309
 #, c-format
-#| msgid "Could not import PKCS #11 certificate URI: %s"
 msgid "Failed to import PKCS #12: %s"
 msgstr "Zlyhal import certifikátu PKCS #12: %s"
 
@@ -120,50 +119,51 @@ msgid "No certificate data provided"
 msgstr "Nie sú dostupné údaje certifikátu"
 
 #: tls/gnutls/gtlscertificate-gnutls.c:981
-#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
 #, c-format
 msgid "Cannot verify peer identity of unexpected type %s"
 msgstr "Nedá sa overiť identita partnera neočakávaného typu %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:204
+#: tls/gnutls/gtlsconnection-gnutls.c:213
+#: tls/gnutls/gtlsconnection-gnutls.c:223
 msgid "Could not create TLS connection:"
 msgstr "Nepodarilo sa vytvoriť pripojenie s použitím TLS:"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:214
-#: tls/gnutls/gtlsconnection-gnutls.c:234
+#: tls/gnutls/gtlsconnection-gnutls.c:243
 #: tls/openssl/gtlsclientconnection-openssl.c:560
 #: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "Nepodarilo sa vytvoriť pripojenie s použitím TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:435
-#: tls/gnutls/gtlsconnection-gnutls.c:446
-#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+#: tls/gnutls/gtlsconnection-gnutls.c:459
 #: tls/openssl/gtlsconnection-openssl.c:176
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "Partner zlyhal pri vzájomnom spoznaní pomocou TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:468
+#: tls/gnutls/gtlsconnection-gnutls.c:467
+#: tls/openssl/gtlsconnection-openssl.c:246
 msgid "TLS connection closed unexpectedly"
 msgstr "Pripojenie pomocou TLS bolo nečakane ukončené"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/gnutls/gtlsconnection-gnutls.c:482
 #: tls/openssl/gtlsconnection-openssl.c:201
 msgid "TLS connection peer did not send a certificate"
 msgstr "Partner neposlal certifikát pre pripojenie TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:499
+#: tls/gnutls/gtlsconnection-gnutls.c:498
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
 msgstr "Partner odoslal závažnú výstrahu TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:509
+#: tls/gnutls/gtlsconnection-gnutls.c:508
 msgid "Protocol version downgrade attack detected"
 msgstr "Zistil sa útok pri prechode na staršiu verziu protokolu"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:518
+#: tls/gnutls/gtlsconnection-gnutls.c:517
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
@@ -174,21 +174,21 @@ msgstr[1] ""
 msgstr[2] ""
 "Správa je príliš veľká pre pripojenie s použitím DTLS. Maximum sú %u bajty"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:527
+#: tls/gnutls/gtlsconnection-gnutls.c:526
 msgid "The operation timed out"
 msgstr "Čas operácie vypršal"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:879
+#: tls/gnutls/gtlsconnection-gnutls.c:878
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "Chyba vzájomného spoznania s použitím TLS: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:982
-#: tls/openssl/gtlsconnection-openssl.c:614
+#: tls/gnutls/gtlsconnection-gnutls.c:981
+#: tls/openssl/gtlsconnection-openssl.c:629
 msgid "Error performing TLS handshake"
 msgstr "Chyba vzájomného spoznania s použitím TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1157
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
 #, c-format
 msgid ""
 "Empty channel binding data indicates a bug in the TLS library implementation"
@@ -196,37 +196,37 @@ msgstr ""
 "Prázdne údaje o previazaní kanálov naznačujú chybu v implementácii knižnice "
 "TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1175
+#: tls/gnutls/gtlsconnection-gnutls.c:1174
 #, c-format
 msgid "Channel binding type is not implemented in the TLS library"
 msgstr "Typ previazania kanálov nie je implementovaný v knižnici TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1179
+#: tls/gnutls/gtlsconnection-gnutls.c:1178
 #, c-format
 msgid "Channel binding data is not yet available"
 msgstr "Údaje o previazaní kanálov zatiaľ nie sú dostupné"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1231
-#: tls/openssl/gtlsconnection-openssl.c:810
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
+#: tls/openssl/gtlsconnection-openssl.c:825
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Požadovaný typ previazania kanálov nie je implementovaný"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1252
-#: tls/gnutls/gtlsconnection-gnutls.c:1312
-#: tls/openssl/gtlsconnection-openssl.c:828
-#: tls/openssl/gtlsconnection-openssl.c:924
+#: tls/gnutls/gtlsconnection-gnutls.c:1251
+#: tls/gnutls/gtlsconnection-gnutls.c:1311
+#: tls/openssl/gtlsconnection-openssl.c:843
+#: tls/openssl/gtlsconnection-openssl.c:939
 msgid "Error reading data from TLS socket"
 msgstr "Chyba pri čítaní údajov zo soketu s použitím TLS"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1334
-#: tls/gnutls/gtlsconnection-gnutls.c:1397
-#: tls/openssl/gtlsconnection-openssl.c:1003
+#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1396
+#: tls/openssl/gtlsconnection-openssl.c:1018
 msgid "Error writing data to TLS socket"
 msgstr "Chyba pri zapisovaní údajov do soketu s použitím TLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1367
+#: tls/gnutls/gtlsconnection-gnutls.c:1366
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
@@ -237,7 +237,7 @@ msgstr[1] ""
 msgstr[2] ""
 "Správa o veľkosti %lu bajty je príliš veľká pre pripojenie s použitím DTLS"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1369
+#: tls/gnutls/gtlsconnection-gnutls.c:1368
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
@@ -245,23 +245,43 @@ msgstr[0] "(maximum je %u bajtov)"
 msgstr[1] "(maximum je %u bajt)"
 msgstr[2] "(maximum sú %u bajty)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1416
+#: tls/gnutls/gtlsconnection-gnutls.c:1415
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "Chyba pri uzatváraní spojenia s použitím TLS: %s"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:556
+#: tls/gnutls/gtlsdatabase-gnutls.c:92
+#, c-format
+#| msgid "Failed to load system trust store: %s"
+msgid "Failed to allocate credentials: %s"
+msgstr "Nepodarilo sa prideliť poverenia: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:594
 msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
 msgstr ""
-"Zlyhalo načítanie systémového dôveryhodného úložiska: GnuTLS nebolo "
+"Zlyhalo načítanie úložiska systému dôveru: GnuTLS nebolo "
 "nakonfigurované so systémovou dôveryhodnosťou"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:261
+#: tls/gnutls/gtlsdatabase-gnutls.c:599 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
-msgstr "Zlyhalo načítanie systémového dôveryhodného úložiska: %s"
+msgstr "Zlyhalo načítanie úložiska systému dôvery: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Systém úložiska dôvery obsahuje zero-trusted certifikáty; prosím skontrolujte vašu konfiguráciu GnuTLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+#| msgid "Failed to populate trust list from %s: %s"
+msgid "Failed to initialize trust list: %s"
+msgstr "Nepodarilo sa inicializovať zoznam dôveryhodných položiek: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
@@ -269,7 +289,7 @@ msgstr "Zlyhalo načítanie systémového dôveryhodného úložiska: %s"
 msgid "Failed to populate trust list from %s: %s"
 msgstr "Zlyhalo naplnenie dôveryhodného zoznamu z %s: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:124
+#: tls/gnutls/gtlsserverconnection-gnutls.c:120
 #: tls/openssl/gtlsserverconnection-openssl.c:172
 msgid "Certificate has no private key"
 msgstr "Certifikát nemá súkromný kľúč"
@@ -305,32 +325,32 @@ msgstr "Obsah je príliš veľký pre kľúč RSA"
 msgid "Secure renegotiation is disabled"
 msgstr "Zabezpečené opätovné vyjednávanie je zakázané"
 
-#: tls/openssl/gtlsconnection-openssl.c:253
+#: tls/openssl/gtlsconnection-openssl.c:268
 #, c-format
 msgid "%s: The connection is broken"
 msgstr "%s: Pripojenie je poškodené"
 
-#: tls/openssl/gtlsconnection-openssl.c:660
+#: tls/openssl/gtlsconnection-openssl.c:675
 #, c-format
 msgid "The request is invalid."
 msgstr "Požiadavka nie je platná."
 
-#: tls/openssl/gtlsconnection-openssl.c:683
+#: tls/openssl/gtlsconnection-openssl.c:698
 #, c-format
 msgid "Channel binding data tls-unique is not available"
 msgstr "Údaje o previazaní kanálov tls-unique nie sú dostupné"
 
-#: tls/openssl/gtlsconnection-openssl.c:706
+#: tls/openssl/gtlsconnection-openssl.c:721
 #, c-format
 msgid "X.509 Certificate is not available on the connection"
 msgstr "Certifikát X.509 nie je dostupný v pripojení"
 
-#: tls/openssl/gtlsconnection-openssl.c:714
+#: tls/openssl/gtlsconnection-openssl.c:729
 #, c-format
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Nie je možné prijať podpisový algoritmus certifikátu"
 
-#: tls/openssl/gtlsconnection-openssl.c:734
+#: tls/openssl/gtlsconnection-openssl.c:749
 #, c-format
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
@@ -338,38 +358,44 @@ msgstr ""
 "Aktuálny certifikát X.509 používa neznámy alebo nepodporovaný podpisový "
 "algoritmus"
 
-#: tls/openssl/gtlsconnection-openssl.c:752
+#: tls/openssl/gtlsconnection-openssl.c:767
 #, c-format
 msgid "Failed to generate X.509 certificate digest"
 msgstr "Zlyhalo generovanie obsahu certifikátu X.509"
 
-#: tls/openssl/gtlsconnection-openssl.c:783
+#: tls/openssl/gtlsconnection-openssl.c:798
 #, c-format
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "Pripojenie TLS nepodporuje funkciu TLS-Exporter"
 
-#: tls/openssl/gtlsconnection-openssl.c:786
+#: tls/openssl/gtlsconnection-openssl.c:801
 #, c-format
 msgid "Unexpected error while exporting keying data"
 msgstr "Neočakávaná chyba počas exportu údajov kľúčenky"
 
-#: tls/openssl/gtlsconnection-openssl.c:1064
+#: tls/openssl/gtlsconnection-openssl.c:1079
 msgid "Error performing TLS close"
 msgstr "Chyba pri uzatváraní spojenia s použitím TLS"
 
-#: tls/openssl/gtlsdatabase-openssl.c:173
-msgid "Could not get trusted anchors from Keychain"
-msgstr "Nepodarilo sa získať dôveryhodné ukotvenia z kľúčenky"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+#| msgid "Could not get root certificate store"
+msgid "Could not get trust settings for certificate"
+msgstr "Nepodarilo sa získať nastavenia dôvery certifikátu"
 
-#: tls/openssl/gtlsdatabase-openssl.c:238
+#: tls/openssl/gtlsdatabase-openssl.c:261
+#| msgid "Could not get root certificate store"
+msgid "Could not retrieve certificates"
+msgstr "Nepodarilo sa načítať certifikáty"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
 msgid "Could not get root certificate store"
 msgstr "Nepodarilo sa získať úložisko koreňového certifikátu"
 
-#: tls/openssl/gtlsdatabase-openssl.c:245
+#: tls/openssl/gtlsdatabase-openssl.c:365
 msgid "Could not get CA certificate store"
 msgstr "Nepodarilo sa získať úložisko certifikátu CA"
 
-#: tls/openssl/gtlsdatabase-openssl.c:310
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "Nepodarilo sa vytvoriť úložisko CA"
 
@@ -382,6 +408,9 @@ msgstr "Vyskytol sa problém s certifikátom: %s"
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "Vyskytol sa problém so súkromným kľúčom certifikátu: %s"
+
+#~ msgid "Could not get trusted anchors from Keychain"
+#~ msgstr "Nepodarilo sa získať dôveryhodné ukotvenia z kľúčenky"
 
 #, c-format
 #~ msgid "X.509 certificate is not available on the connection"
