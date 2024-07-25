@@ -725,7 +725,8 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
 
   if (!OBJ_find_sigid_algs (X509_get_signature_nid (crt), &algo_nid, NULL))
     {
-      X509_free (crt);
+      if (is_client)
+        X509_free (crt);
       g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
                    _("Unable to obtain certificate signature algorithm"));
       return FALSE;
