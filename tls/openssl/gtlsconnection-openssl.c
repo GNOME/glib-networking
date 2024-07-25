@@ -205,16 +205,16 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
   if (reason == SSL_R_CERTIFICATE_VERIFY_FAILED)
     {
       g_clear_error (&my_error);
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                   _("Unacceptable TLS certificate"));
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Unacceptable TLS certificate"));
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
   if (reason == SSL_R_TLSV1_ALERT_UNKNOWN_CA)
     {
       g_clear_error (&my_error);
-      g_set_error (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
-                   _("Unacceptable TLS certificate authority"));
+      g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE,
+                           _("Unacceptable TLS certificate authority"));
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
@@ -672,8 +672,8 @@ openssl_get_binding_tls_unique (GTlsConnectionOpenssl  *tls,
 #if OPENSSL_VERSION_NUMBER >= 0x10101000L
   if (SSL_version (ssl) >= TLS1_3_VERSION)
     {
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
-                   _("The request is invalid."));
+      g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                           _("The request is invalid."));
       return FALSE;
     }
 #endif
@@ -695,8 +695,8 @@ openssl_get_binding_tls_unique (GTlsConnectionOpenssl  *tls,
       g_byte_array_set_size (data, len);
       return TRUE;
     }
-  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
-               _("Channel binding data tls-unique is not available"));
+  g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+                       _("Channel binding data tls-unique is not available"));
   return FALSE;
 }
 
@@ -718,8 +718,8 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
 
   if (!crt)
     {
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
-                   _("X.509 Certificate is not available on the connection"));
+      g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_AVAILABLE,
+                           _("X.509 Certificate is not available on the connection"));
       return FALSE;
     }
 
@@ -727,8 +727,8 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
     {
       if (is_client)
         X509_free (crt);
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
-                   _("Unable to obtain certificate signature algorithm"));
+      g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                           _("Unable to obtain certificate signature algorithm"));
       return FALSE;
     }
 
@@ -747,8 +747,8 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
       algo_nid = NID_sha256;
       break;
     case NID_md5_sha1:
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
-                   _("Current X.509 certificate uses unknown or unsupported signature algorithm"));
+      g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+                           _("Current X.509 certificate uses unknown or unsupported signature algorithm"));
       if (is_client)
         X509_free (crt);
       return FALSE;
@@ -765,8 +765,8 @@ openssl_get_binding_tls_server_end_point (GTlsConnectionOpenssl  *tls,
 
   if (is_client)
     X509_free (crt);
-  g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
-               _("Failed to generate X.509 certificate digest"));
+  g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                       _("Failed to generate X.509 certificate digest"));
   return FALSE;
 }
 
@@ -796,11 +796,11 @@ openssl_get_binding_tls_exporter (GTlsConnectionOpenssl  *tls,
     return TRUE;
 
   if (ret < 0)
-    g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
-                 _("TLS Connection does not support TLS-Exporter feature"));
+    g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_SUPPORTED,
+                         _("TLS Connection does not support TLS-Exporter feature"));
   else
-    g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
-                 _("Unexpected error while exporting keying data"));
+    g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
+                         _("Unexpected error while exporting keying data"));
 
   return FALSE;
 }
@@ -823,8 +823,8 @@ g_tls_connection_openssl_get_channel_binding_data (GTlsConnectionBase      *tls,
       return openssl_get_binding_tls_exporter (openssl, data, error);
     default:
       /* Anyone to implement tls-unique-for-telnet? */
-      g_set_error (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
-                   _("Requested channel binding type is not implemented"));
+      g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_NOT_IMPLEMENTED,
+                           _("Requested channel binding type is not implemented"));
     }
   return FALSE;
 }
