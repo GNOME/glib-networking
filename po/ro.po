@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2024-03-02 16:55+0000\n"
-"PO-Revision-Date: 2024-07-26 15:42+0200\n"
+"POT-Creation-Date: 2024-07-26 13:44+0000\n"
+"PO-Revision-Date: 2024-08-04 12:41+0300\n"
 "Last-Translator: Florentina Mușat <florentina [dot] musat [dot] 28 [at] "
 "gmail [dot] com>\n"
 "Language-Team: Romanian Gnome Team <gnomero-list@lists.sourceforge.net>\n"
@@ -63,8 +63,7 @@ msgstr "Partenerul nu suportă renegociere în siguranță"
 
 #: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:850
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:852
 msgid "Unacceptable TLS certificate"
 msgstr "Certificat TLS inacceptabil"
 
@@ -185,7 +184,7 @@ msgid "Error performing TLS handshake: %s"
 msgstr "Eroare la executarea handshake-ului TLS: %s"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:981
-#: tls/openssl/gtlsconnection-openssl.c:629
+#: tls/openssl/gtlsconnection-openssl.c:630
 msgid "Error performing TLS handshake"
 msgstr "Eroare la executarea handshake-ului TLS"
 
@@ -208,22 +207,22 @@ msgid "Channel binding data is not yet available"
 msgstr "Datele de legare a canalului nu sunt disponibile încă"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1230
-#: tls/openssl/gtlsconnection-openssl.c:825
+#: tls/openssl/gtlsconnection-openssl.c:827
 #, c-format
 msgid "Requested channel binding type is not implemented"
 msgstr "Tipul de legătură de canal cerut nu este implementat"
 
 #: tls/gnutls/gtlsconnection-gnutls.c:1251
 #: tls/gnutls/gtlsconnection-gnutls.c:1311
-#: tls/openssl/gtlsconnection-openssl.c:843
-#: tls/openssl/gtlsconnection-openssl.c:939
+#: tls/openssl/gtlsconnection-openssl.c:845
+#: tls/openssl/gtlsconnection-openssl.c:941
 msgid "Error reading data from TLS socket"
 msgstr "Eroare la citirea datelor de la soclul TLS"
 
 #. flags
 #: tls/gnutls/gtlsconnection-gnutls.c:1333
 #: tls/gnutls/gtlsconnection-gnutls.c:1396
-#: tls/openssl/gtlsconnection-openssl.c:1018
+#: tls/openssl/gtlsconnection-openssl.c:1020
 msgid "Error writing data to TLS socket"
 msgstr "Eroare la scrierea datelor la soclul TLS"
 
@@ -269,6 +268,20 @@ msgstr ""
 msgid "Failed to load system trust store: %s"
 msgstr "Nu s-a putut încărca stocarea de încredere a sistemului: %s"
 
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr ""
+"Lista de încredere de sistem nu conține niciun certificat de încredere; "
+"investigați configurația GnuTLS"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "Nu s-a putut inițializa lista de încredere: %s"
+
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
 #, c-format
@@ -299,7 +312,6 @@ msgid "Could not create TLS context: %s"
 msgstr "Nu s-a putut crea contextul TLS: %s"
 
 #: tls/openssl/gtlsconnection-openssl.c:217
-#, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "Autoritate de certificat TLS inacceptabilă"
 
@@ -316,50 +328,42 @@ msgstr "Renegocierea sigură este dezactivată"
 msgid "%s: The connection is broken"
 msgstr "%s: Conexiunea este deteriorată"
 
-#: tls/openssl/gtlsconnection-openssl.c:675
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:676
 msgid "The request is invalid."
 msgstr "Cererea nu este validă."
 
-#: tls/openssl/gtlsconnection-openssl.c:698
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:699
 msgid "Channel binding data tls-unique is not available"
 msgstr "Datele de legătură de canal tls-unique nu sunt disponibile"
 
-#: tls/openssl/gtlsconnection-openssl.c:721
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:722
 msgid "X.509 Certificate is not available on the connection"
 msgstr "Certificatul X.509 nu este disponibil pe conexiune"
 
-#: tls/openssl/gtlsconnection-openssl.c:729
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:731
 msgid "Unable to obtain certificate signature algorithm"
 msgstr "Nu s-a putut obține algoritmul de semnătură de certificat"
 
-#: tls/openssl/gtlsconnection-openssl.c:749
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:751
 msgid ""
 "Current X.509 certificate uses unknown or unsupported signature algorithm"
 msgstr ""
 "Certificatul X.509 curent utilizează un algoritm de semnătură necunoscut sau "
 "nesuportat"
 
-#: tls/openssl/gtlsconnection-openssl.c:767
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:769
 msgid "Failed to generate X.509 certificate digest"
 msgstr "Nu s-a putut genera rezumatul certificatului X.509"
 
-#: tls/openssl/gtlsconnection-openssl.c:798
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:800
 msgid "TLS Connection does not support TLS-Exporter feature"
 msgstr "Conexiunea TLS nu suportă funcționalitatea TLS-Exporter"
 
-#: tls/openssl/gtlsconnection-openssl.c:801
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:803
 msgid "Unexpected error while exporting keying data"
 msgstr "Eroare neașteptată în timpul exportării datelor de tastare"
 
-#: tls/openssl/gtlsconnection-openssl.c:1079
+#: tls/openssl/gtlsconnection-openssl.c:1081
 msgid "Error performing TLS close"
 msgstr "Eroare la executarea închiderii TLS"
 
