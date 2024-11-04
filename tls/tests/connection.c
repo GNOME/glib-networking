@@ -374,6 +374,16 @@ on_incoming_connection (GSocketService     *service,
                                                  test->server_protocols);
     }
 
+#ifdef BACKEND_IS_OPENSSL
+  // Note that we need to wait until it is handshaked to test the tls version
+  if (test->rehandshake &&
+      g_tls_connection_get_protocol_version (G_TLS_CONNECTION (test->server_connection)) == G_TLS_PROTOCOL_VERSION_TLS_1_3)
+    {
+      g_test_skip ("tls-rehandshake not supported on this tls version");
+      test->rehandshake = FALSE;
+    }
+#endif
+
   stream = g_io_stream_get_output_stream (test->server_connection);
 
   if (test->connection_received_strategy == WRITE_THEN_CLOSE ||
@@ -460,6 +470,16 @@ run_echo_server (GThreadedSocketService *service,
   tlsconn = G_TLS_CONNECTION (test->server_connection);
   g_tls_connection_handshake (tlsconn, NULL, &error);
   g_assert_no_error (error);
+
+#ifdef BACKEND_IS_OPENSSL
+  // Note that we need to wait until it is handshaked to test the tls version
+  if (test->rehandshake &&
+      g_tls_connection_get_protocol_version (G_TLS_CONNECTION (test->server_connection)) == G_TLS_PROTOCOL_VERSION_TLS_1_3)
+    {
+      g_test_skip ("tls-rehandshake not supported on this tls version");
+      test->rehandshake = FALSE;
+    }
+#endif
 
   istream = g_io_stream_get_input_stream (test->server_connection);
   ostream = g_io_stream_get_output_stream (test->server_connection);
