@@ -1,5 +1,5 @@
 include:
- - remote: 'https://gitlab.freedesktop.org/freedesktop/ci-templates/-/raw/c5626190ec14b475271288dda7a7dae8dbe0cd76/templates/fedora.yml'
+ - remote: 'https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/c5626190ec14b475271288dda7a7dae8dbe0cd76/templates/fedora.yml'
 
 variables:
   FDO_UPSTREAM_REPO: GNOME/glib-networking
