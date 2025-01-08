@@ -1,5 +1,14 @@
 include:
  - remote: 'https://gitlab.gnome.org/Infrastructure/freedesktop-ci-templates/-/raw/c5626190ec14b475271288dda7a7dae8dbe0cd76/templates/fedora.yml'
+ - project: "GNOME/citemplates"
+   file: "templates/default-rules.yml"
+ - component: gitlab.gnome.org/GNOME/citemplates/gnomeos-basic-ci@master
+   inputs:
+     run-tests: ""
+ - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
+   inputs:
+     dist-job-name: "build-gnomeos"
+     tarball-artifact-path: "_builddir/meson-dist/$CI_PROJECT_NAME-$CI_COMMIT_TAG.tar.xz"
 
 variables:
   FDO_UPSTREAM_REPO: GNOME/glib-networking
@@ -7,6 +16,7 @@ variables:
 stages:
   - prepare
   - build
+  - deploy
 
 .fedora.container.common:
   variables:
