@@ -1,3 +1,11 @@
+2.80.1 - January 8, 2025
+========================
+
+ - OpenSSL: fix crash in complete_handshake (!251, Dario Saccavino)
+ - OpenSSL: fix invalid free in openssl_get_binding_tls_server_end_point() (!255)
+ - TLS test should handle G_IO_ERROR_WOULD_BLOCK (!253, Richard Purdie and Alexander Kanavin)
+ - Updated translations
+
 2.80.0 - March 14, 2024
 =======================
 
