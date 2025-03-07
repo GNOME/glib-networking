@@ -4,16 +4,14 @@ include:
    ref: 'c5626190ec14b475271288dda7a7dae8dbe0cd76'
  - project: "GNOME/citemplates"
    file: "templates/default-rules.yml"
- - component: gitlab.gnome.org/GNOME/citemplates/gnomeos-basic-ci@master
-   inputs:
-     run-tests: ""
  - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
    inputs:
-     dist-job-name: "build-gnomeos"
-     tarball-artifact-path: "_builddir/meson-dist/$CI_PROJECT_NAME-$CI_COMMIT_TAG.tar.xz"
+     dist-job-name: "fedora-x86_64-dist"
+     tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"
 
 variables:
   FDO_UPSTREAM_REPO: GNOME/glib-networking
+  TARBALL_ARTIFACT_PATH: "_build/meson-dist/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.tar.xz"
 
 stages:
   - prepare
@@ -137,6 +135,22 @@ fedora-x86_64-scan-build:
     paths:
       - _build/meson-logs/scanbuild
     when: on_failure
+
+fedora-x86_64-dist:
+  extends:
+    - '.fdo.distribution-image@fedora'
+    - '.fedora.container.common'
+  stage: build
+  script:
+    - meson setup _build/
+    - meson dist --no-tests -C _build/
+  artifacts:
+    name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    when: "always"
+    paths:
+      - "${TARBALL_ARTIFACT_PATH}"
+  rules:
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED
 
 vs2017-x64:
   stage: build
