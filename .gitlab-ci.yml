@@ -5,7 +5,7 @@ include:
  - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
    inputs:
      dist-job-name: "fedora-x86_64-dist"
-     tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"
+     tarball-artifact-path: "_build/meson-dist/"
 
 variables:
   FDO_UPSTREAM_REPO: GNOME/glib-networking
