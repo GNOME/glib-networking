@@ -2,8 +2,6 @@ include:
  - project: 'Infrastructure/freedesktop-ci-templates'
    file: 'templates/fedora.yml'
    ref: 'c5626190ec14b475271288dda7a7dae8dbe0cd76'
- - project: "GNOME/citemplates"
-   file: "templates/default-rules.yml"
  - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
    inputs:
      dist-job-name: "fedora-x86_64-dist"
