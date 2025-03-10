@@ -2,10 +2,10 @@ include:
  - project: 'Infrastructure/freedesktop-ci-templates'
    file: 'templates/fedora.yml'
    ref: 'c5626190ec14b475271288dda7a7dae8dbe0cd76'
- - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
+ - component: gitlab.gnome.org/GNOME/citemplates/release-service@release-service-sandbox
    inputs:
      dist-job-name: "fedora-x86_64-dist"
-     tarball-artifact-path: "_build/meson-dist/"
+     tarball-artifact-path: "${TARBALL_ARTIFACT_PATH}"
 
 variables:
   FDO_UPSTREAM_REPO: GNOME/glib-networking
