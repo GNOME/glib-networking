@@ -1,31 +1,32 @@
 # Japanese translation of glib-networking message catalog.
-# Copyright (C) 2011-2012, 2015, 2020, 2022 Free Software Foundation, Inc.
+# Copyright (C) 2011-2012, 2015, 2020, 2022, 2025 Free Software Foundation, Inc.
 # This file is distributed under the same license as glib-networking package.
-# Takayuki KUSANO <AE5T-KSN@asahi-net.or.jp>, 2011-2012.
+# Kusano Takayuki <https://bsky.app/profile/tkusano.jp>, 2011-2012, 2025.
 # Hideki Yamane <henrich@debian.org>, 2011-2012.
 # Yoji TOYODA <bsyamato@sea.plala.or.jp>, 2012.
 # Jiro Matsuzawa <jmatsuzawa@gnome.org>, 2015.
 # sicklylife <translation@sicklylife.jp>, 2020, 2022.
+# Seiji Iizuka <seiji@iizuka.dev>, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glib-networking master\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
-"POT-Creation-Date: 2021-12-18 17:10+0000\n"
-"PO-Revision-Date: 2022-01-30 21:00+0900\n"
-"Last-Translator: sicklylife <translation@sicklylife.jp>\n"
-"Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
+"POT-Creation-Date: 2025-05-10 14:04+0000\n"
+"PO-Revision-Date: 2025-06-15 21:16+0900\n"
+"Last-Translator: Kusano Takayuki <https://bsky.app/profile/tkusano.jp>\n"
+"Language-Team: Japanese <https://l10n.gnome.org/teams/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: proxy/libproxy/glibproxyresolver.c:164
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
 msgstr "プロキシリゾルバーでの内部エラーです。"
 
-#: tls/base/gtlsconnection-base.c:562 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
 #: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
 #: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
@@ -38,321 +39,356 @@ msgstr "コネクションが切断されています"
 #. * the handshake (forever, if there's no timeout). Even a close
 #. * op would deadlock here.
 #.
-#: tls/base/gtlsconnection-base.c:636
+#: tls/base/gtlsconnection-base.c:690
 msgid "Cannot perform blocking operation during TLS handshake"
-msgstr ""
+msgstr "TLS ハンドシェイク中にブロッキング操作を実行できません"
 
-#: tls/base/gtlsconnection-base.c:701 tls/base/gtlsconnection-base.c:1249
-#: tls/openssl/gtlsconnection-openssl.c:358
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:373
 msgid "Socket I/O timed out"
 msgstr "ソケット I/O がタイムアウトしました"
 
-#: tls/base/gtlsconnection-base.c:875
+#: tls/base/gtlsconnection-base.c:929
 msgid "Server required TLS certificate"
 msgstr "サーバーが TLS 証明書を要求しました"
 
-#: tls/base/gtlsconnection-base.c:1454
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
 msgid "Handshake is not finished, no channel binding information yet"
 msgstr ""
+"ハンドシェイクが完了していないため、チャンネルバインディング情報はまだありま"
+"せん"
 
-#: tls/base/gtlsconnection-base.c:1533
+#: tls/base/gtlsconnection-base.c:1598
 msgid "Peer does not support safe renegotiation"
-msgstr ""
+msgstr "ピアが安全な再ネゴシエーションをサポートしていません"
 
-#: tls/base/gtlsconnection-base.c:1681 tls/gnutls/gtlsconnection-gnutls.c:491
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
 #: tls/openssl/gtlsconnection-openssl.c:209
-#: tls/openssl/gtlsconnection-openssl.c:830
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:852
 msgid "Unacceptable TLS certificate"
 msgstr "受け付けられない TLS 証明書です"
 
-#: tls/base/gtlsconnection-base.c:2153
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
 msgid "Receive flags are not supported"
-msgstr ""
+msgstr "受信フラグはサポートされていません"
 
-#: tls/base/gtlsconnection-base.c:2300
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
 msgid "Send flags are not supported"
-msgstr ""
+msgstr "送信フラグはサポートされていません"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:361
-#: tls/openssl/gtlscertificate-openssl.c:361
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "PKCS #12 をインポートできませんでした: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
 #, c-format
 msgid "Could not parse DER certificate: %s"
 msgstr "DER 形式の証明書を解析できませんでした: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:382
-#: tls/openssl/gtlscertificate-openssl.c:381
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
 #, c-format
 msgid "Could not parse PEM certificate: %s"
 msgstr "PEM 形式の証明書を解析できませんでした: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:405
-#: tls/openssl/gtlscertificate-openssl.c:400
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
 #, c-format
 msgid "Could not parse DER private key: %s"
 msgstr "DER 形式の秘密鍵を解析できませんでした: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:428
-#: tls/openssl/gtlscertificate-openssl.c:419
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
 #, c-format
 msgid "Could not parse PEM private key: %s"
 msgstr "PEM 形式の秘密鍵を解析できませんでした: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:455
+#: tls/gnutls/gtlscertificate-gnutls.c:613
 #, c-format
 msgid "Could not import PKCS #11 certificate URI: %s"
 msgstr "PKCS #11 証明書の URI をインポートできませんでした: %s"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:497
-#: tls/openssl/gtlscertificate-openssl.c:454
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
 msgid "No certificate data provided"
 msgstr "証明書のデータが与えられていません"
 
-#: tls/gnutls/gtlscertificate-gnutls.c:807
-#: tls/gnutls/gtlsconnection-gnutls.c:1058
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
 #, c-format
 msgid "Cannot verify peer identity of unexpected type %s"
-msgstr ""
+msgstr "予期しないタイプ %s のピアのアイデンティティを検証できません"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:204
+#: tls/gnutls/gtlsconnection-gnutls.c:213
+#: tls/gnutls/gtlsconnection-gnutls.c:223
 msgid "Could not create TLS connection:"
 msgstr "TLS コネクションを確立できませんでした:"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:214
-#: tls/gnutls/gtlsconnection-gnutls.c:234
-#: tls/openssl/gtlsclientconnection-openssl.c:516
-#: tls/openssl/gtlsserverconnection-openssl.c:440
+#: tls/gnutls/gtlsconnection-gnutls.c:243
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
 #, c-format
 msgid "Could not create TLS connection: %s"
 msgstr "TLS コネクションを確立できませんでした: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:435
-#: tls/gnutls/gtlsconnection-gnutls.c:446
-#: tls/gnutls/gtlsconnection-gnutls.c:460
+#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+#: tls/gnutls/gtlsconnection-gnutls.c:459
 #: tls/openssl/gtlsconnection-openssl.c:176
 #, c-format
 msgid "Peer failed to perform TLS handshake: %s"
 msgstr "通信相手が TLS ハンドシェイクの実行に失敗しました: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:468
+#: tls/gnutls/gtlsconnection-gnutls.c:467
+#: tls/openssl/gtlsconnection-openssl.c:246
 msgid "TLS connection closed unexpectedly"
 msgstr "TLS コネクションが突然閉じられました"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:483
+#: tls/gnutls/gtlsconnection-gnutls.c:482
 #: tls/openssl/gtlsconnection-openssl.c:201
 msgid "TLS connection peer did not send a certificate"
 msgstr "TLS の通信相手が証明書を送信しませんでした"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:499
+#: tls/gnutls/gtlsconnection-gnutls.c:498
 #, c-format
 msgid "Peer sent fatal TLS alert: %s"
-msgstr ""
+msgstr "ピアが致命的な TLS アラートを送信しました: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:509
+#: tls/gnutls/gtlsconnection-gnutls.c:508
 msgid "Protocol version downgrade attack detected"
 msgstr "プロトコルバージョンのダウングレード攻撃を検出しました"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:518
+#: tls/gnutls/gtlsconnection-gnutls.c:517
 #, c-format
 msgid "Message is too large for DTLS connection; maximum is %u byte"
 msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
 msgstr[0] ""
+"メッセージが DTLS コネクションに対して大きすぎます; 最大値は %u バイトです"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:527
+#: tls/gnutls/gtlsconnection-gnutls.c:526
 msgid "The operation timed out"
 msgstr "操作がタイムアウトしました"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:879
+#: tls/gnutls/gtlsconnection-gnutls.c:878
 #, c-format
 msgid "Error performing TLS handshake: %s"
 msgstr "TLS ハンドシェイク実行中にエラーが発生しました: %s"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:982
-#: tls/openssl/gtlsconnection-openssl.c:614
+#: tls/gnutls/gtlsconnection-gnutls.c:981
+#: tls/openssl/gtlsconnection-openssl.c:630
 msgid "Error performing TLS handshake"
 msgstr "TLS ハンドシェイク実行中にエラーが発生しました"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1177
-#, c-format
-msgid "Channel binding type is not implemented in the TLS library"
-msgstr ""
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1181
-#, c-format
-msgid "Channel binding data is not yet available"
-msgstr ""
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1219
-#: tls/gnutls/gtlsconnection-gnutls.c:1231
-#, c-format
-msgid "X.509 certificate is not available on the connection"
-msgstr ""
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1244
-#, c-format
-msgid "X.509 certificate is not available or is of unknown format: %s"
-msgstr ""
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1255
-#: tls/openssl/gtlsconnection-openssl.c:705
-#, c-format
-msgid "Unable to obtain certificate signature algorithm"
-msgstr ""
-
-#: tls/gnutls/gtlsconnection-gnutls.c:1271
-#: tls/openssl/gtlsconnection-openssl.c:725
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
 #, c-format
 msgid ""
-"Current X.509 certificate uses unknown or unsupported signature algorithm"
+"Empty channel binding data indicates a bug in the TLS library implementation"
 msgstr ""
+"空のチャンネルバインディングデータは、TLS ライブラリの実装にバグがあることを"
+"示しています"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1365
-#: tls/openssl/gtlsconnection-openssl.c:805
+#: tls/gnutls/gtlsconnection-gnutls.c:1174
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "チャンネルバインディングタイプは TLS ライブラリで実装されていません"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1178
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "チャンネルバインディングデータはまだ利用できません"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
+#: tls/openssl/gtlsconnection-openssl.c:827
 #, c-format
 msgid "Requested channel binding type is not implemented"
-msgstr ""
+msgstr "要求されたチャンネルバインディングタイプは実装されていません"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1386
-#: tls/gnutls/gtlsconnection-gnutls.c:1446
-#: tls/openssl/gtlsconnection-openssl.c:823
-#: tls/openssl/gtlsconnection-openssl.c:919
+#: tls/gnutls/gtlsconnection-gnutls.c:1251
+#: tls/gnutls/gtlsconnection-gnutls.c:1311
+#: tls/openssl/gtlsconnection-openssl.c:845
+#: tls/openssl/gtlsconnection-openssl.c:941
 msgid "Error reading data from TLS socket"
 msgstr "TLS ソケットからのデータ読み込み中にエラーが発生しました"
 
 #. flags
-#: tls/gnutls/gtlsconnection-gnutls.c:1468
-#: tls/gnutls/gtlsconnection-gnutls.c:1531
-#: tls/openssl/gtlsconnection-openssl.c:998
+#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1396
+#: tls/openssl/gtlsconnection-openssl.c:1020
 msgid "Error writing data to TLS socket"
 msgstr "TLS ソケットへのデータ書き込み中にエラーが発生しました"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1501
+#: tls/gnutls/gtlsconnection-gnutls.c:1366
 #, c-format
 msgid "Message of size %lu byte is too large for DTLS connection"
 msgid_plural "Message of size %lu bytes is too large for DTLS connection"
-msgstr[0] ""
+msgstr[0] "%lu バイトのメッセージは DTLS コネクションに対して大きすぎます"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1503
+#: tls/gnutls/gtlsconnection-gnutls.c:1368
 #, c-format
 msgid "(maximum is %u byte)"
 msgid_plural "(maximum is %u bytes)"
 msgstr[0] "(%u バイトが最大値)"
 
-#: tls/gnutls/gtlsconnection-gnutls.c:1550
+#: tls/gnutls/gtlsconnection-gnutls.c:1415
 #, c-format
 msgid "Error performing TLS close: %s"
 msgstr "TLS クローズ実行中にエラーが発生しました: %s"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:556
+#: tls/gnutls/gtlsdatabase-gnutls.c:92
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "資格情報の割り当てに失敗しました: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:594
 msgid ""
 "Failed to load system trust store: GnuTLS was not configured with a system "
 "trust"
 msgstr ""
+"システムトラストストアの読み込みに失敗しました: GnuTLS がシステムトラストで構"
+"成されていません"
 
-#: tls/gnutls/gtlsdatabase-gnutls.c:561 tls/openssl/gtlsdatabase-openssl.c:196
+#: tls/gnutls/gtlsdatabase-gnutls.c:599 tls/openssl/gtlsdatabase-openssl.c:381
 #, c-format
 msgid "Failed to load system trust store: %s"
+msgstr "システムトラストストアの読み込みに失敗しました: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
 msgstr ""
+"システムトラストに信頼できる証明書が存在しません。GnuTLS の設定を調べてくださ"
+"い"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "トラストリストの初期化に失敗しました: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
-#: tls/openssl/gtlsfiledatabase-openssl.c:454
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
 #, c-format
 msgid "Failed to populate trust list from %s: %s"
-msgstr ""
+msgstr "%s からトラストリストを設定できませんでした: %s"
 
-#: tls/gnutls/gtlsserverconnection-gnutls.c:124
-#: tls/openssl/gtlsserverconnection-openssl.c:171
+#: tls/gnutls/gtlsserverconnection-gnutls.c:120
+#: tls/openssl/gtlsserverconnection-openssl.c:172
 msgid "Certificate has no private key"
 msgstr "証明書に秘密鍵がありません"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:377
-#: tls/openssl/gtlsserverconnection-openssl.c:288
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
 #, c-format
 msgid "Could not set TLS cipher list: %s"
-msgstr ""
+msgstr "TLS 暗号リストを設定できませんでした: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:403
-#: tls/openssl/gtlsserverconnection-openssl.c:314
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
 #, c-format
 msgid "Could not set MAX protocol to %d: %s"
 msgstr "MAX プロトコルを %d に設定できませんでした: %s"
 
-#: tls/openssl/gtlsclientconnection-openssl.c:464
-#: tls/openssl/gtlsserverconnection-openssl.c:375
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
 #, c-format
 msgid "Could not create TLS context: %s"
 msgstr "TLS コンテキストを作成できませんでした: %s"
 
 #: tls/openssl/gtlsconnection-openssl.c:217
-#, c-format
 msgid "Unacceptable TLS certificate authority"
 msgstr "受け付けられない TLS 認証局です"
 
 #: tls/openssl/gtlsconnection-openssl.c:225
 msgid "Digest too big for RSA key"
-msgstr ""
+msgstr "ダイジェストが RSA 鍵に対して大きすぎます"
 
 #: tls/openssl/gtlsconnection-openssl.c:234
 msgid "Secure renegotiation is disabled"
-msgstr ""
+msgstr "安全な再ネゴシエーションが無効です"
 
-#: tls/openssl/gtlsconnection-openssl.c:253
+#: tls/openssl/gtlsconnection-openssl.c:268
 #, c-format
 msgid "%s: The connection is broken"
 msgstr "%s: コネクションが切断されています"
 
-#: tls/openssl/gtlsconnection-openssl.c:674
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:676
+msgid "The request is invalid."
+msgstr "リクエストが無効です。"
+
+#: tls/openssl/gtlsconnection-openssl.c:699
 msgid "Channel binding data tls-unique is not available"
-msgstr ""
+msgstr "チャンネルバインディングデータ tls-unique が利用できません"
 
-#: tls/openssl/gtlsconnection-openssl.c:697
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:722
 msgid "X.509 Certificate is not available on the connection"
-msgstr ""
+msgstr "X.509 証明書がコネクション上で利用できません"
 
-#: tls/openssl/gtlsconnection-openssl.c:743
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:731
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "証明書の署名アルゴリズムを取得できません"
+
+#: tls/openssl/gtlsconnection-openssl.c:751
+msgid ""
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr ""
+"現在の X.509 証明書は未知またはサポートされていない署名アルゴリズムを使用して"
+"います"
+
+#: tls/openssl/gtlsconnection-openssl.c:769
 msgid "Failed to generate X.509 certificate digest"
-msgstr ""
+msgstr "X.509 証明書のダイジェストを生成できませんでした"
 
-#: tls/openssl/gtlsconnection-openssl.c:774
-#, c-format
+#: tls/openssl/gtlsconnection-openssl.c:800
 msgid "TLS Connection does not support TLS-Exporter feature"
-msgstr ""
+msgstr "TLS コネクションは TLS-Exporter 機能をサポートしていません"
 
-#: tls/openssl/gtlsconnection-openssl.c:777
-#, c-format
+# 日本語訳メモ:
+# OpenSSL の SSL_export_keying_material() の返り値が 0 の場合に表示するエラーメッセージ。msgid では keying data とあるが、keying material と同義であろう。
+# NIST Special Publication 800-57 Part 1 Revision 5 の IPA 訳 https://www.ipa.go.jp/security/crypto/gmcbt80000005u4j-att/SP800-57part1rev5.pdf にて「keying material」が「鍵材料」と訳されている
+#: tls/openssl/gtlsconnection-openssl.c:803
 msgid "Unexpected error while exporting keying data"
-msgstr ""
+msgstr "鍵材料のエクスポート中に予期しないエラーが発生しました"
 
-#: tls/openssl/gtlsconnection-openssl.c:1059
+#: tls/openssl/gtlsconnection-openssl.c:1081
 msgid "Error performing TLS close"
 msgstr "TLS クローズ実行中にエラーが発生しました"
 
-#: tls/openssl/gtlsdatabase-openssl.c:164
-msgid "Could not get trusted anchors from Keychain"
-msgstr ""
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "証明書のトラスト設定を取得できませんでした"
 
-#: tls/openssl/gtlsdatabase-openssl.c:236
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "証明書を取得できませんでした"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "ルート証明書ストアを取得できませんでした"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "CA 証明書ストアを取得できませんでした"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
 msgid "Could not create CA store"
 msgstr "CA ストアを作成できませんでした"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:182
+#: tls/openssl/gtlsserverconnection-openssl.c:184
 #, c-format
 msgid "There is a problem with the certificate: %s"
 msgstr "証明書に問題があります: %s"
 
-#: tls/openssl/gtlsserverconnection-openssl.c:190
+#: tls/openssl/gtlsserverconnection-openssl.c:193
 #, c-format
 msgid "There is a problem with the certificate private key: %s"
 msgstr "証明書の秘密鍵に問題があります: %s"
-
-#~ msgid "Failed to load file path: %s"
-#~ msgstr "ファイルパスの読み込みに失敗しました: %s"
 
 #~ msgid "Operation would block"
 #~ msgstr "操作がブロックされます"
