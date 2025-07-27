@@ -10,4 +10,6 @@ if get_option('environment_proxy').enabled()
   subdir('environment')
 endif
 
-subdir('tests')
+if get_option('tests')
+  subdir('tests')
+endif
