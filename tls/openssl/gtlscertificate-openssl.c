@@ -362,15 +362,12 @@ g_tls_certificate_openssl_get_property (GObject    *object,
     case PROP_CERTIFICATE_PEM:
       bio = BIO_new (BIO_s_mem ());
 
-      if (!PEM_write_bio_X509 (bio, openssl->cert) || !BIO_write (bio, "\0", 1))
-        certificate_pem = NULL;
-      else
+      if (PEM_write_bio_X509 (bio, openssl->cert) == 1 && BIO_write (bio, "\0", 1) == 1)
         {
           BIO_get_mem_data (bio, &certificate_pem);
           g_value_set_string (value, certificate_pem);
-
-          BIO_free_all (bio);
         }
+      BIO_free_all (bio);
       break;
 
     case PROP_PRIVATE_KEY:
@@ -411,8 +408,12 @@ g_tls_certificate_openssl_get_property (GObject    *object,
     case PROP_SUBJECT_NAME:
       bio = BIO_new (BIO_s_mem ());
       name = X509_get_subject_name (openssl->cert);
-      X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS);
-      BIO_write (bio, "\0", 1);
+      if (X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS) < 0 ||
+          BIO_write (bio, "\0", 1) != 1)
+        {
+          BIO_free_all (bio);
+          break;
+        }
       BIO_get_mem_data (bio, (char **)&name_string);
       g_value_set_string (value, name_string);
       BIO_free_all (bio);
@@ -421,9 +422,13 @@ g_tls_certificate_openssl_get_property (GObject    *object,
     case PROP_ISSUER_NAME:
       bio = BIO_new (BIO_s_mem ());
       name = X509_get_issuer_name (openssl->cert);
-      X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS);
-      BIO_write (bio, "\0", 1);
-      BIO_get_mem_data (bio, &name_string);
+      if (X509_NAME_print_ex (bio, name, 0, XN_FLAG_SEP_COMMA_PLUS) < 0 ||
+          BIO_write (bio, "\0", 1) != 1)
+        {
+          BIO_free_all (bio);
+          break;
+        }
+      BIO_get_mem_data (bio, (char **)&name_string);
       g_value_set_string (value, name_string);
       BIO_free_all (bio);
       break;
