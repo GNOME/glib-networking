@@ -370,7 +370,8 @@ g_tls_bio_new_from_iostream (GIOStream *io_stream)
   GTlsBio *gbio;
 
   ret = g_tls_bio_alloc (&gbio);
-  gbio->io_stream = g_object_ref (io_stream);
+  if (ret)
+    gbio->io_stream = g_object_ref (io_stream);
 
   return ret;
 }
@@ -382,7 +383,8 @@ g_tls_bio_new_from_datagram_based (GDatagramBased *socket)
   GTlsBio *gbio;
 
   ret = g_tls_bio_alloc (&gbio);
-  gbio->socket = g_object_ref (socket);
+  if (ret)
+    gbio->socket = g_object_ref (socket);
 
   return ret;
 }
