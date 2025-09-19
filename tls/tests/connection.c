@@ -2366,6 +2366,122 @@ test_unclean_close_by_server (TestConnection *test,
   g_object_unref (client);
 }
 
+static void
+test_write_after_close_notify (TestConnection *test,
+                                   gconstpointer   data)
+{
+  GSocketClient *client;
+  GTlsCertificateFlags flags;
+  GPollableOutputStream *pout;
+  GInputStream *in;
+  guint8 byte = 0x42;
+  guint8 buf;
+  gssize nread, written;
+  GError *error = NULL;
+  const int MAX_RETRIES = 10;
+  gboolean got_terminal_error = FALSE;
+
+  /* Server: handshake only */
+  start_async_server_service (test,
+                              G_TLS_AUTHENTICATION_NONE,
+                              HANDSHAKE_ONLY);
+
+  client = g_socket_client_new ();
+  g_socket_client_set_tls (client, TRUE);
+
+  flags = G_TLS_CERTIFICATE_VALIDATE_ALL;
+  flags &= ~G_TLS_CERTIFICATE_UNKNOWN_CA;
+  flags &= ~G_TLS_CERTIFICATE_BAD_IDENTITY;
+  g_socket_client_set_tls_validation_flags (client, flags);
+
+  g_socket_client_connect_async (client,
+                                 G_SOCKET_CONNECTABLE (test->address),
+                                 NULL,
+                                 socket_client_connected,
+                                 test);
+  g_main_loop_run (test->loop);
+
+  while (!test->server_ever_handshaked)
+    g_main_context_iteration (test->context, TRUE);
+
+  /* Server sends close_notify (clean TLS shutdown) */
+  g_io_stream_close (G_IO_STREAM (test->server_connection), NULL, &error);
+  g_assert_no_error (error);
+
+  /* Client reads to process close_notify */
+  in = g_io_stream_get_input_stream (test->client_connection);
+  nread = g_input_stream_read (in, &buf, 1, NULL, &error);
+  if (error)
+    g_clear_error (&error);
+  g_assert_cmpint (nread, <=, 0);
+
+  
+  pout = G_POLLABLE_OUTPUT_STREAM (
+           g_io_stream_get_output_stream (test->client_connection));
+
+  /* First write will succeed */
+  written = g_pollable_output_stream_write_nonblocking (pout,
+                                                         &byte,
+                                                         1,
+                                                         NULL,
+                                                         &error);
+  if (error)
+    {
+      g_assert_error (error,
+                      G_IO_ERROR,
+                      G_IO_ERROR_CONNECTION_CLOSED);
+      got_terminal_error = TRUE;
+      goto out;
+    }
+
+  /*
+   * Subsequent writes:
+   * Must eventually fail with CONNECTION_CLOSED.
+   */
+  for (int i = 0; i < MAX_RETRIES; i++)
+    {
+      written = g_pollable_output_stream_write_nonblocking (pout,
+                                                             &byte,
+                                                             1,
+                                                             NULL,
+                                                            &error);
+      /* Verify that after receiving close_notify, writes eventually fail with
+      * G_IO_ERROR_CONNECTION_CLOSED instead of returning 0 indefinitely. */
+      if (error)
+        {
+          g_assert_error (error,
+                          G_IO_ERROR,
+                          G_IO_ERROR_CONNECTION_CLOSED);
+          got_terminal_error = TRUE;
+          break;
+        }
+
+      /* In TLS, receiving close_notify shuts down the read side only.
+      * A subsequent SSL_write() may initially succeed, but once OpenSSL
+      * transitions into shutdown state it returns SSL_ERROR_ZERO_RETURN.
+      * glib-networking incorrectly maps this to a retryable write (0),
+      * causing callers to spin forever. Retrying here reproduces that bug.
+      */
+      if (written == 0)
+        {
+          g_main_context_iteration (test->context, FALSE);
+          continue;
+        }
+    }
+
+  out:
+   g_assert_true (got_terminal_error);
+
+  if (test->server_running)
+  {
+    g_socket_service_stop (test->service);
+    test->server_running = FALSE;
+ }
+
+  g_clear_error (&error);
+  g_object_unref (client);
+}
+
 static gboolean
 async_implicit_handshake_dispatch (GPollableInputStream *stream,
                                    gpointer user_data)
@@ -3324,6 +3440,8 @@ main (int   argc,
               setup_connection, test_close_immediately, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/unclean-close-by-server", TestConnection, NULL,
               setup_connection, test_unclean_close_by_server, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/write-after-close-notify", TestConnection, NULL,
+              setup_connection, test_write_after_close_notify, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/async-implicit-handshake", TestConnection, NULL,
               setup_connection, test_async_implicit_handshake, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/output-stream-close", TestConnection, NULL,
