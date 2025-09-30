@@ -80,9 +80,6 @@ struct _GTlsConnectionBaseClass
                                                              GTlsDatabaseVerifyFlags   flags,
                                                              GCancellable             *cancellable,
                                                              GError                  **error);
-  GTlsCertificateFlags        (*verify_peer_certificate)    (GTlsConnectionBase   *tls,
-                                                             GTlsCertificate      *certificate,
-                                                             GTlsCertificateFlags  flags);
   void                        (*complete_handshake)         (GTlsConnectionBase   *tls,
                                                              gboolean              handshake_succeeded,
                                                              gchar               **negotiated_protocol,

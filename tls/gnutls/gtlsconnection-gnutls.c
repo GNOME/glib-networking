@@ -1033,10 +1033,8 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
    * gnutls_certificate_verify_peers3() or one of the related functions. This
    * adds additional smarts that are not possible when using GTlsDatabase
    * directly. For example, it checks name constraints, key usage, and basic
-   * constraints. It also checks for stapled OCSP responses. Verification will
-   * fail if the OCSP response indicates the certificate has been revoked.
-   * Verification will also fail if the Must-Staple flag is set but the OCSP
-   * response is missing. Nice! This uses the gnutls_certificate_credentials_t
+   * constraints. (It also checks for stapled OCSP responses, although nowadays
+   * OCSP is obsolete.) This uses the gnutls_certificate_credentials_t
    * set on the gnutls_session_t by gnutls_credentials_set().
    */
 

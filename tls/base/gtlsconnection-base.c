@@ -1368,9 +1368,6 @@ verify_peer_certificate (GTlsConnectionBase *tls,
         }
     }
 
-  if (tls_class->verify_peer_certificate)
-    errors |= tls_class->verify_peer_certificate (tls, peer_certificate, errors);
-
   return errors;
 }
 
