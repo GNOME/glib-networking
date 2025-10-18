@@ -243,10 +243,9 @@ msgid "Error performing TLS close: %s"
 msgstr "Σφάλμα κατά το κλείσιμο TLS: %s"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:92
-#, fuzzy, c-format
-#| msgid "Failed to load system trust store: %s"
+#, c-format
 msgid "Failed to allocate credentials: %s"
-msgstr "Αποτυχία φόρτωσης χώρου αποθήκευσης εμπιστοσύνης του συστήματος: %s"
+msgstr "Αποτυχία κατανομής διαπιστευτηρίων: %s"
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:594
 msgid ""
@@ -269,10 +268,9 @@ msgid ""
 msgstr ""
 
 #: tls/gnutls/gtlsdatabase-gnutls.c:621
-#, fuzzy, c-format
-#| msgid "Failed to populate trust list from %s: %s"
+#, c-format
 msgid "Failed to initialize trust list: %s"
-msgstr "Αποτυχία συμπλήρωσης λίστας εμπιστοσύνης από το %s: %s"
+msgstr "Αποτυχία αρχικοποίησης λίστας εμπιστοσύνης: %s"
 
 #: tls/gnutls/gtlsfiledatabase-gnutls.c:153
 #: tls/openssl/gtlsfiledatabase-openssl.c:456
