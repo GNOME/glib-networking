@@ -1,153 +1,432 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# Arabic translation for glib-networking
+# Copyright (C) 2011-2012, 2025 glib-networking's COPYRIGHT HOLDER
+# This file is distributed under the same license as the glib-networking package.
 # IBRAHIM <mradonadiego@hotmail.fr>, 2011
 # Mohammad Alhargan <malham1@gmail.com>, 2012.
 # Khaled Hosny <khaledhosny@eglug.org>, 2012.
+# Amar <al_janabi7@yahoo.com>, 2025.
+# Ahmed Najmawi <iramosu@protonmail.com>, 2025.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-20 07:26+0200\n"
-"PO-Revision-Date: 2012-09-20 07:26+0200\n"
-"Last-Translator: Khaled Hosny <khaledhosny@eglug.org>\n"
-"Language-Team: Arabic <doc@arabeyes.org>\n"
+"Project-Id-Version: glib-networking master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/glib-networking/issues\n"
+"POT-Creation-Date: 2024-09-03 21:05+0000\n"
+"PO-Revision-Date: 2025-07-11 08:49+0300\n"
+"Last-Translator: Ahmed Najmawi <iramosu@protonmail.com>\n"
+"Language-Team: Arabic\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
-"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Virtaal 0.7.0\n"
+"Plural-Forms: nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"X-Generator: Gtranslator 48.0\n"
 "X-Project-Style: gnome\n"
 
-#: ../proxy/libproxy/glibproxyresolver.c:150
+#: proxy/libproxy/glibproxyresolver.c:165
 msgid "Proxy resolver internal error."
-msgstr "خطأ داخلي تحليل الوكيل."
+msgstr "خطأ داخلي في محلِّل الوسيط."
 
-#: ../tls/gnutls/gtlscertificate-gnutls.c:173
-#, c-format
-msgid "Could not parse DER certificate: %s"
-msgstr "تعذر تحليل شهادة DER: %s"
-
-#: ../tls/gnutls/gtlscertificate-gnutls.c:194
-#, c-format
-msgid "Could not parse PEM certificate: %s"
-msgstr "تعذر تحليل شهادة PEM: %s"
-
-#: ../tls/gnutls/gtlscertificate-gnutls.c:225
-#, c-format
-msgid "Could not parse DER private key: %s"
-msgstr "تعذر تحليل المفتاح الخاص DER: %s"
-
-#: ../tls/gnutls/gtlscertificate-gnutls.c:256
-#, c-format
-msgid "Could not parse PEM private key: %s"
-msgstr "تعذر تحليل المفتاح الخاص PEM: %s"
-
-#: ../tls/gnutls/gtlscertificate-gnutls.c:296
-msgid "No certificate data provided"
-msgstr "لم يتم تقديم بيانات الشهادة"
-
-#: ../tls/gnutls/gtlsclientconnection-gnutls.c:309
-msgid "Server required TLS certificate"
-msgstr "يتطلب الخادوم شهادة TLS"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:254
-#, c-format
-msgid "Could not create TLS connection: %s"
-msgstr "لا يمكن إنشاء اتصال TLS: %s"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:514
+#: tls/base/gtlsconnection-base.c:616 tls/base/gtlsinputstream.c:78
+#: tls/base/gtlsinputstream.c:141 tls/base/gtlsoutputstream.c:78
+#: tls/base/gtlsoutputstream.c:143
 msgid "Connection is closed"
 msgstr "الاتصال مغلق"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:574
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1377
-msgid "Operation would block"
-msgstr "العملية قد تغلق"
+#. Cannot perform a blocking operation during a handshake on the
+#. * same thread that triggered the handshake. The only way this can
+#. * occur is if the application is doing something weird in its
+#. * accept-certificate callback. Allowing a blocking op would stall
+#. * the handshake (forever, if there's no timeout). Even a close
+#. * op would deadlock here.
+#.
+#: tls/base/gtlsconnection-base.c:690
+msgid "Cannot perform blocking operation during TLS handshake"
+msgstr "لا يمكن تنفيذ أي عملية حاجبة أثناء إقامة اتصال TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:701
-msgid "Peer failed to perform TLS handshake"
-msgstr "فشل إجراء تعارف نظير TLS"
+#: tls/base/gtlsconnection-base.c:755 tls/base/gtlsconnection-base.c:1303
+#: tls/openssl/gtlsconnection-openssl.c:373
+msgid "Socket I/O timed out"
+msgstr "انتهت مهلة الدخل\\الخرج للمقبس"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:718
-msgid "Peer requested illegal TLS rehandshake"
-msgstr "طلب النظير تعارف TLS غير شرعي"
+#: tls/base/gtlsconnection-base.c:929
+msgid "Server required TLS certificate"
+msgstr "يتطلب الخادوم شهادة TLS"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:744
-msgid "TLS connection closed unexpectedly"
-msgstr "تم إغلاق اتصال TLS بشكل غير متوقع"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1055
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1074
+#: tls/base/gtlsconnection-base.c:1519
 #, c-format
-msgid "Error performing TLS handshake: %s"
-msgstr "خطأ في تعارف TLS: %s"
+msgid "Handshake is not finished, no channel binding information yet"
+msgstr "لم تكتمل إقامة الاتصال بعد، ولا تتوفَّر معلومات ربط القناة حتى الآن"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1210
+#: tls/base/gtlsconnection-base.c:1598
+msgid "Peer does not support safe renegotiation"
+msgstr "لا يدعم الندّ إعادة التفاوض الآمن"
+
+#: tls/base/gtlsconnection-base.c:1746 tls/gnutls/gtlsconnection-gnutls.c:490
+#: tls/openssl/gtlsconnection-openssl.c:209
+#: tls/openssl/gtlsconnection-openssl.c:852
 msgid "Unacceptable TLS certificate"
 msgstr "شهادة TLS غير مقبولة"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1221
-msgid "Server did not return a valid TLS certificate"
-msgstr "لم يُرجع الخادوم شهادة TLS سليمة"
-
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1400
+#: tls/base/gtlsconnection-base.c:2218
 #, c-format
-msgid "Error reading data from TLS socket: %s"
-msgstr "حدث خطأ أثناء قراءة البيانات من مأخذ توصيل TLS: %s"
+msgid "Receive flags are not supported"
+msgstr "رايات الاستقبال غير مدعومة"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1429
+#: tls/base/gtlsconnection-base.c:2365
 #, c-format
-msgid "Error writing data to TLS socket: %s"
-msgstr "حدث خطأ أثناء كتابة البيانات من مأخذ توصيل TLS: %s"
+msgid "Send flags are not supported"
+msgstr "رايات الإرسال غير مدعومة"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1473
-msgid "Connection is already closed"
-msgstr "الاتصال مغلق من قبل"
+#: tls/gnutls/gtlscertificate-gnutls.c:297
+#: tls/openssl/gtlscertificate-openssl.c:309
+#, c-format
+msgid "Failed to import PKCS #12: %s"
+msgstr "تعذَّر استيراد PKCS #12: %s"
 
-#: ../tls/gnutls/gtlsconnection-gnutls.c:1483
+#: tls/gnutls/gtlscertificate-gnutls.c:520
+#: tls/openssl/gtlscertificate-openssl.c:519
+#, c-format
+msgid "Could not parse DER certificate: %s"
+msgstr "تعذَّر تحليل شهادة DER: ‏%s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:541
+#: tls/openssl/gtlscertificate-openssl.c:540
+#, c-format
+msgid "Could not parse PEM certificate: %s"
+msgstr "تعذَّر تحليل شهادة PEM: ‏%s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:564
+#: tls/openssl/gtlscertificate-openssl.c:561
+#, c-format
+msgid "Could not parse DER private key: %s"
+msgstr "تعذَّر تحليل مفتاح DER الخاص: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:587
+#: tls/openssl/gtlscertificate-openssl.c:582
+#, c-format
+msgid "Could not parse PEM private key: %s"
+msgstr "تعذَّر تحليل مفتاح PEM الخاص: %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:613
+#, c-format
+msgid "Could not import PKCS #11 certificate URI: %s"
+msgstr "تعذَّر استيراد معرِّف الموارد الموحد لشهادة PKCS #11:‏ %s"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:657
+#: tls/openssl/gtlscertificate-openssl.c:620
+msgid "No certificate data provided"
+msgstr "لم تقدَّم بيانات الشهادة"
+
+#: tls/gnutls/gtlscertificate-gnutls.c:981
+#: tls/gnutls/gtlsconnection-gnutls.c:1057
+#, c-format
+msgid "Cannot verify peer identity of unexpected type %s"
+msgstr "تعذَّر التحقُّق من هويَّة الندّ من نوع غير متوقَّع %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:213
+#: tls/gnutls/gtlsconnection-gnutls.c:223
+msgid "Could not create TLS connection:"
+msgstr "تعذَّر إنشاء اتصال TLS:"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:243
+#: tls/openssl/gtlsclientconnection-openssl.c:560
+#: tls/openssl/gtlsserverconnection-openssl.c:455
+#, c-format
+msgid "Could not create TLS connection: %s"
+msgstr "تعذَّر إنشاء اتصال TLS: ‏%s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:434
+#: tls/gnutls/gtlsconnection-gnutls.c:445
+#: tls/gnutls/gtlsconnection-gnutls.c:459
+#: tls/openssl/gtlsconnection-openssl.c:176
+#, c-format
+msgid "Peer failed to perform TLS handshake: %s"
+msgstr "أخفق الندّ في إجراء إتصال TLS: ‏%s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:467
+#: tls/openssl/gtlsconnection-openssl.c:246
+msgid "TLS connection closed unexpectedly"
+msgstr "أُغلق اتصال TLS على نحو غير متوقَّع"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:482
+#: tls/openssl/gtlsconnection-openssl.c:201
+msgid "TLS connection peer did not send a certificate"
+msgstr "لم يرسل ندّ اتصال TLS أي شهادة"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:498
+#, c-format
+msgid "Peer sent fatal TLS alert: %s"
+msgstr "أرسَل الندّ تنبيه TLS قاتلًا: %s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:508
+msgid "Protocol version downgrade attack detected"
+msgstr "اكتُشِف هجوم تخفيض إصدار البروتوكول"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:517
+#, c-format
+msgid "Message is too large for DTLS connection; maximum is %u byte"
+msgid_plural "Message is too large for DTLS connection; maximum is %u bytes"
+msgstr[0] "الرسالة كبيرة جدًا لاتصال DTLS؛ الحد الأقصى هو %u بايت"
+msgstr[1] "الرسالة كبيرة جدًا لاتصال DTLS؛ الحد الأقصى هو بايت"
+msgstr[2] "الرسالة كبيرة جدًا لاتصال DTLS؛ الحد الأقصى هو بايتان"
+msgstr[3] "الرسالة كبيرة جدًا لاتصال DTLS؛ الحد الأقصى هو %u بايت"
+msgstr[4] "الرسالة كبيرة جدًا لاتصال DTLS؛ الحد الأقصى هو %u بايت"
+msgstr[5] "الرسالة كبيرة جدًا لاتصال DTLS؛ الحد الأقصى هو %u بايت"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:526
+msgid "The operation timed out"
+msgstr "انتهت مهلة العملية"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:878
+#, c-format
+msgid "Error performing TLS handshake: %s"
+msgstr "خطأ أثناء إقامة اتصال TLS: ‏%s"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:981
+#: tls/openssl/gtlsconnection-openssl.c:630
+msgid "Error performing TLS handshake"
+msgstr "خطأ أثناء إقامة اتصال TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1156
+#, c-format
+msgid ""
+"Empty channel binding data indicates a bug in the TLS library implementation"
+msgstr "تشير بيانات ربط القناة فارغة إلى وجود علَّة في تنفيذ مكتبة TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1174
+#, c-format
+msgid "Channel binding type is not implemented in the TLS library"
+msgstr "نوع ربط القناة غير مُنفَّذ في مكتبة TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1178
+#, c-format
+msgid "Channel binding data is not yet available"
+msgstr "بيانات ربط القناة ليست متاحة بعد"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1230
+#: tls/openssl/gtlsconnection-openssl.c:827
+#, c-format
+msgid "Requested channel binding type is not implemented"
+msgstr "نوع ربط القناة المطلوب غير مُنفَّذ"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1251
+#: tls/gnutls/gtlsconnection-gnutls.c:1311
+#: tls/openssl/gtlsconnection-openssl.c:845
+#: tls/openssl/gtlsconnection-openssl.c:941
+msgid "Error reading data from TLS socket"
+msgstr "خطأ في قراءة البيانات من مقبس TLS"
+
+#. flags
+#: tls/gnutls/gtlsconnection-gnutls.c:1333
+#: tls/gnutls/gtlsconnection-gnutls.c:1396
+#: tls/openssl/gtlsconnection-openssl.c:1020
+msgid "Error writing data to TLS socket"
+msgstr "خطأ في كتابة البيانات إلى مقبس TLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1366
+#, c-format
+msgid "Message of size %lu byte is too large for DTLS connection"
+msgid_plural "Message of size %lu bytes is too large for DTLS connection"
+msgstr[0] "الرسالة ذات حجم %lu بايت كبيرة جدًا على اتصال DTLS"
+msgstr[1] "الرسالة ذات حجم بايت كبيرة جدًا على اتصال DTLS"
+msgstr[2] "الرسالة ذات حجم بايتين كبيرة جدًا على اتصال DTLS"
+msgstr[3] "الرسالة ذات حجم %lu بايت كبيرة جدًا على اتصال DTLS"
+msgstr[4] "الرسالة ذات حجم %lu بايت كبيرة جدًا على اتصال DTLS"
+msgstr[5] "الرسالة ذات حجم %lu بايت كبيرة جدًا على اتصال DTLS"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1368
+#, c-format
+msgid "(maximum is %u byte)"
+msgid_plural "(maximum is %u bytes)"
+msgstr[0] "(الحد الأقصى %u بايت)"
+msgstr[1] "(الحد الأقصى بايت)"
+msgstr[2] "(الحد الأقصى بايتان)"
+msgstr[3] "(الحد الأقصى %u بايت)"
+msgstr[4] "(الحد الأقصى %u بايت)"
+msgstr[5] "(الحد الأقصى %u بايت)"
+
+#: tls/gnutls/gtlsconnection-gnutls.c:1415
 #, c-format
 msgid "Error performing TLS close: %s"
-msgstr "خطأ في إغلاق TLS: %s"
+msgstr "خطأ أثناء إغلاق اتصال TLS: ‏%s"
 
-#: ../tls/gnutls/gtlsserverconnection-gnutls.c:103
+#: tls/gnutls/gtlsdatabase-gnutls.c:92
+#, c-format
+msgid "Failed to allocate credentials: %s"
+msgstr "تعذَّر تخصيص الاعتمادات: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:594
+msgid ""
+"Failed to load system trust store: GnuTLS was not configured with a system "
+"trust"
+msgstr "تعذَّر تحميل مخزن الثقة للنظام: لم تضبط GnuTLS بثقة النظام"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:599 tls/openssl/gtlsdatabase-openssl.c:381
+#, c-format
+msgid "Failed to load system trust store: %s"
+msgstr "تعذَّر تحميل مخزن الثقة للنظام: %s"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:605
+#, c-format
+msgid ""
+"System trust contains zero trusted certificates; please investigate your "
+"GnuTLS configuration"
+msgstr "لا تضمن ثقة النظام أي شهادات موثوقة؛ لذا عليك فحص ضبط GnuTLS لديك"
+
+#: tls/gnutls/gtlsdatabase-gnutls.c:621
+#, c-format
+msgid "Failed to initialize trust list: %s"
+msgstr "تعذَّرت تهيئة قائمة الثقة: %s"
+
+#: tls/gnutls/gtlsfiledatabase-gnutls.c:153
+#: tls/openssl/gtlsfiledatabase-openssl.c:456
+#, c-format
+msgid "Failed to populate trust list from %s: %s"
+msgstr "تعذَّر ملء قائمة الثقة من %s: %s"
+
+#: tls/gnutls/gtlsserverconnection-gnutls.c:120
+#: tls/openssl/gtlsserverconnection-openssl.c:172
 msgid "Certificate has no private key"
-msgstr "لا يوجد مفتاح خاص للشهادة"
+msgstr "لا تملك الشهادة مفتاحًا خاصًا"
 
-#: ../tls/pkcs11/gpkcs11pin.c:108
+#: tls/openssl/gtlsclientconnection-openssl.c:388
+#: tls/openssl/gtlsserverconnection-openssl.c:299
+#, c-format
+msgid "Could not set TLS cipher list: %s"
+msgstr "تعذَّر تعيين قائمة تشفير TLS: ‏%s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:416
+#: tls/openssl/gtlsserverconnection-openssl.c:327
+#, c-format
+msgid "Could not set MAX protocol to %d: %s"
+msgstr "تعذَّر تعيين البروتوكول الأقصى إلى %d: ‏%s"
+
+#: tls/openssl/gtlsclientconnection-openssl.c:505
+#: tls/openssl/gtlsserverconnection-openssl.c:390
+#, c-format
+msgid "Could not create TLS context: %s"
+msgstr "تعذَّر إنشاء سياق TLS: ‏%s"
+
+#: tls/openssl/gtlsconnection-openssl.c:217
+msgid "Unacceptable TLS certificate authority"
+msgstr "سلطة إصدار شهادات TLS غير مقبولة"
+
+#: tls/openssl/gtlsconnection-openssl.c:225
+msgid "Digest too big for RSA key"
+msgstr "الخلاصة كبيرة جدًا بالنسبة لمفتاح RSA"
+
+#: tls/openssl/gtlsconnection-openssl.c:234
+msgid "Secure renegotiation is disabled"
+msgstr "إعادة التفاوض الآمن مُعطَّلة"
+
+#: tls/openssl/gtlsconnection-openssl.c:268
+#, c-format
+msgid "%s: The connection is broken"
+msgstr "%s: الاتصال معطوب"
+
+#: tls/openssl/gtlsconnection-openssl.c:676
+msgid "The request is invalid."
+msgstr "الطلب غير صالح."
+
+#: tls/openssl/gtlsconnection-openssl.c:699
+msgid "Channel binding data tls-unique is not available"
+msgstr "بيانات ربط القناة «tls-unique» غير متاحة"
+
+#: tls/openssl/gtlsconnection-openssl.c:722
+msgid "X.509 Certificate is not available on the connection"
+msgstr "شهادة X.509 غير متاحة في هذا الاتصال"
+
+#: tls/openssl/gtlsconnection-openssl.c:731
+msgid "Unable to obtain certificate signature algorithm"
+msgstr "تعذَّر الحصول على خوارزمية توقيع الشهادة"
+
+#: tls/openssl/gtlsconnection-openssl.c:751
 msgid ""
-"This is the last chance to enter the PIN correctly before the token is "
-"locked."
-msgstr ""
-"هذه هي الفرصة الأخيرة لإدخال رقم التعريف الشخصي بشكل صحيح قبل تأمين الرمز "
-"المميز."
+"Current X.509 certificate uses unknown or unsupported signature algorithm"
+msgstr "تستخدم شهادة X.509 الحالية خوارزمية توقيع مجهولة أو غير مدعومة"
 
-#: ../tls/pkcs11/gpkcs11pin.c:110
-msgid ""
-"Several PIN attempts have been incorrect, and the token will be locked after "
-"further failures."
-msgstr ""
-"عدة محاولات إدخال رقم التعريف الشخصي غير صحيحة، سيتم تأمين الرمز المميز بعد "
-"المزيد من الفشل."
+#: tls/openssl/gtlsconnection-openssl.c:769
+msgid "Failed to generate X.509 certificate digest"
+msgstr "تعذَّر توليد خلاصة شهادة X.509"
 
-#: ../tls/pkcs11/gpkcs11pin.c:112
-msgid "The PIN entered is incorrect."
-msgstr "رقم التعريف الشخصي الذي أدخلته غير صحيح."
+#: tls/openssl/gtlsconnection-openssl.c:800
+msgid "TLS Connection does not support TLS-Exporter feature"
+msgstr "لا يدعم اتصال TLS ميزة «TLS-Exporter» (مُصدِّر TLS)"
 
-#: ../tls/pkcs11/gpkcs11slot.c:446
-msgid "Module"
-msgstr "وحدة نمطية"
+#: tls/openssl/gtlsconnection-openssl.c:803
+msgid "Unexpected error while exporting keying data"
+msgstr "حدث خطأ غير متوقَّع أثناء تصدير بيانات المفاتيح"
 
-#: ../tls/pkcs11/gpkcs11slot.c:447
-msgid "PKCS#11 Module Pointer"
-msgstr "مؤشر الوحدة النمطية PKCS#11"
+#: tls/openssl/gtlsconnection-openssl.c:1081
+msgid "Error performing TLS close"
+msgstr "خطأ أثناء إغلاق اتصال TLS"
 
-#: ../tls/pkcs11/gpkcs11slot.c:454
-msgid "Slot ID"
-msgstr "معرف المدخل"
+#: tls/openssl/gtlsdatabase-openssl.c:174
+msgid "Could not get trust settings for certificate"
+msgstr "تعذَّر الحصول على إعدادات الثقة للشهادة"
 
-#: ../tls/pkcs11/gpkcs11slot.c:455
-msgid "PKCS#11 Slot Identifier"
-msgstr "معرف مدخل PKCS#11"
+#: tls/openssl/gtlsdatabase-openssl.c:261
+msgid "Could not retrieve certificates"
+msgstr "تعذَّر استرداد الشهادات"
+
+#: tls/openssl/gtlsdatabase-openssl.c:358
+msgid "Could not get root certificate store"
+msgstr "تعذَّر الحصول على مخزن شهادات الجذر"
+
+#: tls/openssl/gtlsdatabase-openssl.c:365
+msgid "Could not get CA certificate store"
+msgstr "تعذَّر الحصول على مخزن شهادات سلطة الشهادات"
+
+#: tls/openssl/gtlsdatabase-openssl.c:430
+msgid "Could not create CA store"
+msgstr "تعذَّر إنشاء مخزن سلطة الشهادات"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:184
+#, c-format
+msgid "There is a problem with the certificate: %s"
+msgstr "توجد مشكلة في الشهادة: %s"
+
+#: tls/openssl/gtlsserverconnection-openssl.c:193
+#, c-format
+msgid "There is a problem with the certificate private key: %s"
+msgstr "توجد مشكلة في المفتاح الخاص بالشهادة: %s"
+
+#~ msgid "Operation would block"
+#~ msgstr "العملية قد تغلق"
+
+#~ msgid "Peer requested illegal TLS rehandshake"
+#~ msgstr "طلب النظير تعارف TLS غير شرعي"
+
+#~ msgid "Connection is already closed"
+#~ msgstr "الاتصال مغلق من قبل"
+
+#~ msgid ""
+#~ "This is the last chance to enter the PIN correctly before the token is "
+#~ "locked."
+#~ msgstr ""
+#~ "هذه هي الفرصة الأخيرة لإدخال رقم التعريف الشخصي بشكل صحيح قبل تأمين الرمز "
+#~ "المميز."
+
+#~ msgid ""
+#~ "Several PIN attempts have been incorrect, and the token will be locked "
+#~ "after further failures."
+#~ msgstr ""
+#~ "عدة محاولات إدخال رقم التعريف الشخصي غير صحيحة، سيتم تأمين الرمز المميز "
+#~ "بعد المزيد من الفشل."
+
+#~ msgid "The PIN entered is incorrect."
+#~ msgstr "رقم التعريف الشخصي الذي أدخلته غير صحيح."
+
+#~ msgid "Module"
+#~ msgstr "وحدة نمطية"
+
+#~ msgid "PKCS#11 Module Pointer"
+#~ msgstr "مؤشر الوحدة النمطية PKCS#11"
+
+#~ msgid "Slot ID"
+#~ msgstr "معرف المدخل"
+
+#~ msgid "PKCS#11 Slot Identifier"
+#~ msgstr "معرف مدخل PKCS#11"
