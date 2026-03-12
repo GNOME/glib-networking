@@ -141,9 +141,11 @@ g_tls_client_connection_openssl_get_property (GObject    *object,
               if (size > 0)
                 {
                   unsigned char *ca;
+                  unsigned char *tmp;
 
                   ca = g_malloc (size);
-                  size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), &ca);
+                  tmp = ca;
+                  size = i2d_X509_NAME (sk_X509_NAME_value (openssl->ca_list, i), &tmp);
                   if (size > 0)
                     accepted_cas = g_list_prepend (accepted_cas, g_byte_array_new_take (
                                                    ca, size));
