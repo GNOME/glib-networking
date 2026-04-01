@@ -346,7 +346,7 @@ g_tls_bio_alloc (GTlsBio **out_gbio)
   BIO *ret;
   GTlsBio *gbio;
 
-  ret = BIO_new(BIO_s_gtls ());
+  ret = BIO_new (BIO_s_gtls ());
   if (!ret)
     return NULL;
 
