@@ -1304,17 +1304,6 @@ g_tls_connection_base_condition_wait (GDatagramBased  *datagram_based,
   return !g_cancellable_set_error_if_cancelled (cancellable, error);
 }
 
-static const gchar *
-get_server_identity (GSocketConnectable *server_identity)
-{
-  if (G_IS_NETWORK_ADDRESS (server_identity))
-    return g_network_address_get_hostname (G_NETWORK_ADDRESS (server_identity));
-  else if (G_IS_NETWORK_SERVICE (server_identity))
-    return g_network_service_get_domain (G_NETWORK_SERVICE (server_identity));
-  else
-    return NULL;
-}
-
 static GTlsCertificateFlags
 verify_peer_certificate (GTlsConnectionBase *tls,
                          GTlsCertificate    *peer_certificate)
@@ -2800,6 +2789,19 @@ g_tls_connection_base_get_session_id (GTlsConnectionBase *tls)
   return priv->session_id;
 }
 
+static char *
+get_server_identity (GSocketConnectable *server_identity)
+{
+  if (G_IS_NETWORK_ADDRESS (server_identity))
+    {
+      GNetworkAddress *address = G_NETWORK_ADDRESS (server_identity);
+      return g_strdup_printf ("%s:%u", g_network_address_get_hostname (address), g_network_address_get_port (address));
+    }
+  if (G_IS_NETWORK_SERVICE (server_identity))
+    return g_strdup (g_network_service_get_domain (G_NETWORK_SERVICE (server_identity)));
+  return NULL;
+}
+
 static void
 g_tls_connection_base_constructed (GObject *object)
 {
@@ -2828,9 +2830,9 @@ g_tls_connection_base_constructed (GObject *object)
               gchar *cert_hash = NULL;
               GTlsCertificate *cert = NULL;
               GTlsConnectionBasePrivate *priv = NULL;
-              const gchar *server_hostname = get_server_identity (!g_tls_connection_base_is_dtls (tls) ?
-                                                                  g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls)) :
-                                                                  g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls)));
+              char *server_identity = get_server_identity (!g_tls_connection_base_is_dtls (tls) ?
+                                                            g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls)) :
+                                                            g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls)));
               priv = g_tls_connection_base_get_instance_private (tls);
 
               /* If we have a certificate, make its hash part of the session ID, so
@@ -2850,10 +2852,11 @@ g_tls_connection_base_constructed (GObject *object)
                   g_object_unref (cert);
                 }
 
-              if (server_hostname)
+              if (server_identity)
                 {
-                  priv->session_id = g_strdup_printf ("%s/%s", server_hostname,
+                  priv->session_id = g_strdup_printf ("%s/%s", server_identity,
                                                       cert_hash ? cert_hash : "");
+                  g_free (server_identity);
                 }
               else
                 {
