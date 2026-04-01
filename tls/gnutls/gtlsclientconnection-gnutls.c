@@ -118,7 +118,7 @@ g_tls_client_connection_gnutls_init (GTlsClientConnectionGnutls *gnutls)
 }
 
 static const gchar *
-get_server_identity (GTlsClientConnectionGnutls *gnutls)
+get_server_hostname (GTlsClientConnectionGnutls *gnutls)
 {
   if (G_IS_NETWORK_ADDRESS (gnutls->server_identity))
     return g_network_address_get_hostname (G_NETWORK_ADDRESS (gnutls->server_identity));
@@ -138,7 +138,7 @@ set_server_name_if_available (GTlsClientConnectionGnutls *gnutls)
   if (!session)
     return;
 
-  hostname = get_server_identity (gnutls);
+  hostname = get_server_hostname (gnutls);
   if (hostname && !g_hostname_is_ip_address (hostname))
     {
       gchar *normalized_hostname = g_strdup (hostname);

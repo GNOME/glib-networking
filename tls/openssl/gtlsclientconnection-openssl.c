@@ -94,7 +94,7 @@ g_tls_client_connection_openssl_finalize (GObject *object)
 }
 
 static const gchar *
-get_server_identity (GTlsClientConnectionOpenssl *openssl)
+get_server_hostname (GTlsClientConnectionOpenssl *openssl)
 {
   if (G_IS_NETWORK_ADDRESS (openssl->server_identity))
     return g_network_address_get_hostname (G_NETWORK_ADDRESS (openssl->server_identity));
@@ -477,7 +477,7 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   SSL_CTX_clear_options (client->ssl_ctx, SSL_OP_LEGACY_SERVER_CONNECT);
 
-  hostname = get_server_identity (client);
+  hostname = get_server_hostname (client);
 
   if (hostname)
     {
