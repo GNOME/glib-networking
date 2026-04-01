@@ -1578,8 +1578,8 @@ handshake_thread (GTask        *task,
   if (!claim_op (tls, G_TLS_CONNECTION_BASE_OP_HANDSHAKE,
                  timeout, cancellable, &error))
     {
-      g_task_return_error (task, error);
       g_tls_log_debug (tls, "TLS handshake thread failed: claiming op failed");
+      g_task_return_error (task, error);
       return;
     }
 
@@ -1599,14 +1599,14 @@ handshake_thread (GTask        *task,
 
   if (error)
     {
-      g_task_return_error (task, error);
       g_tls_log_debug (tls, "TLS handshake thread failed: %s", error->message);
+      g_task_return_error (task, error);
     }
   else
     {
+      g_tls_log_debug (tls, "TLS handshake thread succeeded");
       priv->successfully_handshaked = TRUE;
       g_task_return_boolean (task, TRUE);
-      g_tls_log_debug (tls, "TLS handshake thread succeeded");
     }
 }
 
