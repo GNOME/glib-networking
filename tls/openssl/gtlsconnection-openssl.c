@@ -1019,6 +1019,8 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
                              N_("Error performing TLS close"));
 }
 
+static int data_index = -1;
+
 static void
 g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
 {
@@ -1040,9 +1042,9 @@ g_tls_connection_openssl_class_init (GTlsConnectionOpensslClass *klass)
   base_class->write_fn                                   = g_tls_connection_openssl_write;
   base_class->write_message_fn                           = g_tls_connection_openssl_write_message;
   base_class->close_fn                                   = g_tls_connection_openssl_close;
-}
 
-static int data_index = -1;
+  data_index = SSL_get_ex_new_index (0, (void *)"gtlsconnection", NULL, NULL, NULL);
+}
 
 static gboolean
 g_tls_connection_openssl_initable_init (GInitable     *initable,
@@ -1069,9 +1071,6 @@ g_tls_connection_openssl_initable_init (GInitable     *initable,
   ssl = g_tls_connection_openssl_get_ssl (openssl);
   g_assert (ssl);
 
-  if (data_index == -1) {
-      data_index = SSL_get_ex_new_index (0, (void *)"gtlsconnection", NULL, NULL, NULL);
-  }
   SSL_set_ex_data (ssl, data_index, openssl);
 
   if (base_io_stream)

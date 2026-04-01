@@ -275,8 +275,6 @@ g_tls_client_connection_openssl_client_connection_interface_init (GTlsClientConn
   iface->copy_session_state = g_tls_client_connection_openssl_copy_session_state;
 }
 
-static int data_index = -1;
-
 static int
 handshake_thread_retrieve_certificate (SSL       *ssl,
                                        X509     **x509,
@@ -286,7 +284,7 @@ handshake_thread_retrieve_certificate (SSL       *ssl,
   GTlsConnectionBase *tls;
   GTlsCertificate *cert;
 
-  client = SSL_get_ex_data (ssl, data_index);
+  client = G_TLS_CLIENT_CONNECTION_OPENSSL (g_tls_connection_openssl_get_connection_from_ssl (ssl));
   tls = G_TLS_CONNECTION_BASE (client);
 
   client->ca_list = SSL_get_client_CA_list (client->ssl);
@@ -517,11 +515,6 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
     }
 
   SSL_set_session (client->ssl, client->session);
-
-  if (data_index == -1) {
-      data_index = SSL_get_ex_new_index (0, (void *)"gtlsclientconnection", NULL, NULL, NULL);
-  }
-  SSL_set_ex_data (client->ssl, data_index, client);
 
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
   if (hostname && !g_hostname_is_ip_address (hostname))
