@@ -351,7 +351,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
     case PROP_CERTIFICATE:
       /* NOTE: we do the two calls to avoid openssl allocating the buffer for us */
       size = i2d_X509 (openssl->cert, NULL);
-      if (size < 0)
+      if (size <= 0)
         certificate = NULL;
       else
         {
@@ -359,7 +359,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
           certificate->len = size;
           data = certificate->data;
           size = i2d_X509 (openssl->cert, &data);
-          if (size < 0)
+          if (size <= 0)
             {
               g_byte_array_free (certificate, TRUE);
               certificate = NULL;
