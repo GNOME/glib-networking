@@ -34,7 +34,6 @@
 #include <gnutls/x509.h>
 
 #include "gtlscertificate-gnutls.h"
-#include "gtlshttp.h"
 #include "gtlsgnutls-version.h"
 
 typedef struct
