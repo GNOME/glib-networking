@@ -297,31 +297,29 @@ gtls_bio_gets(BIO  *bio,
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-static BIO_METHOD methods_gtls = {
-  BIO_TYPE_SOURCE_SINK,
-  "gtls",
-  gtls_bio_write,
-  gtls_bio_read,
-  gtls_bio_puts,
-  gtls_bio_gets,
-  gtls_bio_ctrl,
-  gtls_bio_create,
-  gtls_bio_destroy
-};
-#else
-static BIO_METHOD *methods_gtls = NULL;
-#endif
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
 static BIO_METHOD *
 BIO_s_gtls (void)
 {
+  static BIO_METHOD methods_gtls = {
+    BIO_TYPE_SOURCE_SINK,
+    "gtls",
+    gtls_bio_write,
+    gtls_bio_read,
+    gtls_bio_puts,
+    gtls_bio_gets,
+    gtls_bio_ctrl,
+    gtls_bio_create,
+    gtls_bio_destroy
+  };
+
   return &methods_gtls;
 }
 #else
 static const BIO_METHOD *
 BIO_s_gtls (void)
 {
+  static BIO_METHOD *methods_gtls = NULL;
+
   if (!methods_gtls)
     {
       methods_gtls = BIO_meth_new (BIO_TYPE_SOURCE_SINK | BIO_get_new_index (), "gtls");
