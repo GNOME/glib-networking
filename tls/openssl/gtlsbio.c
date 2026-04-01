@@ -331,7 +331,7 @@ BIO_s_gtls (void)
           !BIO_meth_set_ctrl (methods_gtls, gtls_bio_ctrl) ||
           !BIO_meth_set_create (methods_gtls, gtls_bio_create) ||
           !BIO_meth_set_destroy (methods_gtls, gtls_bio_destroy))
-        return NULL;
+        g_clear_pointer (&methods_gtls, BIO_meth_free);
     }
   return methods_gtls;
 }
