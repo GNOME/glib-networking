@@ -93,8 +93,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
                 int                     ret,
                 gboolean                blocking,
                 GError                **error,
-                const char             *err_prefix,
-                const char             *err_str)
+                const char             *err_prefix)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (openssl);
   GTlsConnectionOpensslPrivate *priv;
@@ -246,7 +245,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
         *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_EOF, _("%s: The connection is broken"), gettext (err_prefix));
     }
   else if (error && !*error)
-    *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", gettext (err_prefix), err_str);
+    *error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", gettext (err_prefix), ERR_reason_error_string (err));
 
   return G_TLS_CONNECTION_BASE_ERROR;
 }
@@ -281,7 +280,6 @@ perform_openssl_io (GTlsConnectionOpenssl  *openssl,
   while (TRUE)
     {
       GIOCondition io_needed;
-      char error_str[256];
       struct timeval tv;
       gint64 io_timeout;
 
@@ -290,6 +288,11 @@ perform_openssl_io (GTlsConnectionOpenssl  *openssl,
       if (g_tls_connection_base_is_dtls (tls))
         DTLSv1_handle_timeout (ssl);
 
+      /* Fragile: the perform_func must call no more than one OpenSSL function,
+       * or the OpenSSL error queue could be modified more than once before
+       * end_openssl_io(), breaking SSL_get_error().
+       */
+      ERR_clear_error ();
       ret = perform_func (ssl, perform_data);
 
       switch (SSL_get_error (ssl, ret))
@@ -305,10 +308,7 @@ perform_openssl_io (GTlsConnectionOpenssl  *openssl,
             break;
         }
 
-      ERR_error_string_n (SSL_get_error (ssl, ret), error_str,
-                          sizeof (error_str));
-      status = end_openssl_io (openssl, direction, ret, TRUE, error, err_prefix,
-                               error_str);
+      status = end_openssl_io (openssl, direction, ret, TRUE, error, err_prefix);
 
       if (status != G_TLS_CONNECTION_BASE_TRY_AGAIN)
         break;
