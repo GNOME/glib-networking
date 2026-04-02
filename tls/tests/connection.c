@@ -440,7 +440,10 @@ run_echo_server (GThreadedSocketService *service,
       nread = g_input_stream_read (istream, buf, sizeof (buf), NULL, &error);
 
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-        continue;
+        {
+          g_clear_error (&error);
+          continue;
+        }
 
       g_assert_no_error (error);
       g_assert_cmpint (nread, >=, 0);
@@ -453,7 +456,10 @@ run_echo_server (GThreadedSocketService *service,
           nwrote = g_output_stream_write (ostream, buf + total, nread - total, NULL, &error);
 
           if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-            continue;
+            {
+              g_clear_error (&error);
+              continue;
+            }
 
           g_assert_no_error (error);
         }
@@ -2168,7 +2174,10 @@ simul_read_thread (gpointer user_data)
                                    NULL, &error);
 
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-        continue;
+        {
+          g_clear_error (&error);
+          continue;
+        }
 
       g_assert_no_error (error);
 
@@ -2194,7 +2203,10 @@ simul_write_thread (gpointer user_data)
                                       NULL, &error);
 
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-        continue;
+        {
+          g_clear_error (&error);
+          continue;
+        }
 
       g_assert_no_error (error);
 
