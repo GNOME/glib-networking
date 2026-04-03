@@ -18,7 +18,7 @@ stages:
 
 .fedora.container.common:
   variables:
-    FDO_DISTRIBUTION_TAG: '2026-02-23.0'
+    FDO_DISTRIBUTION_TAG: '2026-04-03.1'
     FDO_DISTRIBUTION_VERSION: 'latest'
 
 build.container.fedora@x86_64:
@@ -41,15 +41,24 @@ build.container.fedora@x86_64:
       'pkgconfig(gnutls)'
       'pkgconfig(gsettings-desktop-schemas)'
       'pkgconfig(libproxy-1.0)'
+      'pkgconfig(libunwind)'
+      'pkgconfig(libunwind-ptrace)'
       'pkgconfig(openssl)'
       'pkgconfig(p11-kit-1)'
-    FDO_DISTRIBUTION_EXEC: >-
-      git clone --depth=1 https://gitlab.gnome.org/GNOME/glib.git &&
-      pushd glib &&
-      meson _build --prefix=/usr &&
-      meson install -C _build &&
-      popd &&
+    FDO_DISTRIBUTION_EXEC: |
+      git clone --depth=1 https://gitlab.gnome.org/GNOME/glib.git
+      pushd glib
+      meson _build --prefix=/usr
+      meson install -C _build
+      popd
       rm -rf glib
+
+      git clone --depth=1 https://gitlab.gnome.org/jadahl/catch.git
+      pushd catch
+      meson _build --prefix=/usr
+      meson install -C _build
+      popd
+      rm -rf catch
 
 fedora-x86_64:
   extends:
@@ -73,7 +82,7 @@ fedora-x86_64:
         -Dwerror=true
         _build/
     - meson compile -C _build/
-    - meson test -v -C _build/ --repeat=10
+    - meson test -v -C _build/ --repeat=10 --wrapper=catch
     - meson install -C _build/
     - ninja -C _build/ coverage-html
   artifacts:
