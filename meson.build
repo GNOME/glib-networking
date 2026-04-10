@@ -98,7 +98,7 @@ else
   openssl_modules = cc.get_argument_syntax() == 'msvc' ? \
                     [ 'OpenSSL::SSL' ] : []
   openssl_dep = dependency('openssl',
-                           version: '>= 1.0.2',
+                           version: '>= 1.1.1',
                            modules: openssl_modules,
                            required: openssl_option)
   if openssl_dep.found()
