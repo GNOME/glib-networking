@@ -305,11 +305,7 @@ handshake_thread_retrieve_certificate (SSL       *ssl,
       if (key != NULL)
         {
           /* increase ref count */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-          CRYPTO_add (&key->references, 1, CRYPTO_LOCK_EVP_PKEY);
-#else
           EVP_PKEY_up_ref (key);
-#endif
           *pkey = key;
 
           *x509 = X509_dup (g_tls_certificate_openssl_get_cert (G_TLS_CERTIFICATE_OPENSSL (cert)));
@@ -350,7 +346,6 @@ static gboolean
 set_max_protocol (GTlsClientConnectionOpenssl  *client,
                   GError                      **error)
 {
-#ifdef SSL_CTX_set_max_proto_version
   const gchar *proto;
 
   proto = g_getenv ("G_TLS_OPENSSL_MAX_PROTO");
@@ -371,12 +366,10 @@ set_max_protocol (GTlsClientConnectionOpenssl  *client,
             }
         }
     }
-#endif
 
   return TRUE;
 }
 
-#ifdef SSL_CTX_set1_sigalgs_list
 static void
 set_signature_algorithm_list (GTlsClientConnectionOpenssl *client)
 {
@@ -388,9 +381,7 @@ set_signature_algorithm_list (GTlsClientConnectionOpenssl *client)
 
   SSL_CTX_set1_sigalgs_list (client->ssl_ctx, signature_algorithm_list);
 }
-#endif
 
-#ifdef SSL_CTX_set1_curves_list
 static void
 set_curve_list (GTlsClientConnectionOpenssl *client)
 {
@@ -402,7 +393,6 @@ set_curve_list (GTlsClientConnectionOpenssl *client)
 
   SSL_CTX_set1_curves_list (client->ssl_ctx, curve_list);
 }
-#endif
 
 static int g_tls_client_connection_openssl_new_session (SSL *s, SSL_SESSION *sess)
 {
@@ -443,13 +433,8 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
     }
 
   client->ssl_ctx = SSL_CTX_new (g_tls_connection_base_is_dtls (G_TLS_CONNECTION_BASE (client))
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
                                  ? DTLS_client_method ()
                                  : TLS_client_method ());
-#else
-                                 ? DTLSv1_client_method ()
-                                 : SSLv23_client_method ());
-#endif
   if (!client->ssl_ctx)
     {
       ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
@@ -467,12 +452,10 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   /* Only TLS 1.2 or higher */
   options = SSL_OP_NO_COMPRESSION |
-#ifdef SSL_OP_NO_TLSv1_1
-            SSL_OP_NO_TLSv1_1 |
-#endif
             SSL_OP_NO_SSLv2 |
             SSL_OP_NO_SSLv3 |
-            SSL_OP_NO_TLSv1;
+            SSL_OP_NO_TLSv1 |
+            SSL_OP_NO_TLSv1_1;
   SSL_CTX_set_options (client->ssl_ctx, options);
 
   SSL_CTX_clear_options (client->ssl_ctx, SSL_OP_LEGACY_SERVER_CONNECT);
@@ -496,13 +479,8 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   SSL_CTX_sess_set_new_cb (client->ssl_ctx, g_tls_client_connection_openssl_new_session);
 
-#ifdef SSL_CTX_set1_sigalgs_list
   set_signature_algorithm_list (client);
-#endif
-
-#ifdef SSL_CTX_set1_curves_list
   set_curve_list (client);
-#endif
 
   client->ssl = SSL_new (client->ssl_ctx);
   if (!client->ssl)
@@ -516,10 +494,8 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   SSL_set_session (client->ssl, client->session);
 
-#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
   if (hostname && !g_hostname_is_ip_address (hostname))
     SSL_set_tlsext_host_name (client->ssl, hostname);
-#endif
 
   SSL_set_connect_state (client->ssl);
 

@@ -166,7 +166,6 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
         }
     }
 
-#ifdef SSL_R_SHUTDOWN_WHILE_IN_INIT
   /* XXX: this error happens on ubuntu when shutting down the connection, it
    * seems to be a bug in a specific version of openssl, so let's handle it
    * gracefully
@@ -176,13 +175,8 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       g_clear_error (&my_error);
       return G_TLS_CONNECTION_BASE_OK;
     }
-#endif
 
-  if (reason == SSL_R_PEER_DID_NOT_RETURN_A_CERTIFICATE
-#ifdef SSL_R_TLSV13_ALERT_CERTIFICATE_REQUIRED
-      || reason == SSL_R_TLSV13_ALERT_CERTIFICATE_REQUIRED
-#endif
-     )
+  if (reason == SSL_R_PEER_DID_NOT_RETURN_A_CERTIFICATE || reason == SSL_R_TLSV13_ALERT_CERTIFICATE_REQUIRED)
     {
       g_clear_error (&my_error);
       g_set_error_literal (error, G_TLS_ERROR, G_TLS_ERROR_CERTIFICATE_REQUIRED,
@@ -214,7 +208,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
       return G_TLS_CONNECTION_BASE_ERROR;
     }
 
-#ifdef SSL_R_UNEXPECTED_EOF_WHILE_READING
+#if OPENSSL_VERSION_MAJOR >= 3
   if (reason == SSL_R_UNEXPECTED_EOF_WHILE_READING)
     {
       if (g_tls_connection_get_require_close_notify (G_TLS_CONNECTION (openssl)))
@@ -607,14 +601,12 @@ openssl_get_binding_tls_unique (GTlsConnectionOpenssl  *tls,
   gboolean resumed = SSL_session_reused (ssl);
   size_t len = 64;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10101000L
   if (SSL_version (ssl) >= TLS1_3_VERSION)
     {
       g_set_error_literal (error, G_TLS_CHANNEL_BINDING_ERROR, G_TLS_CHANNEL_BINDING_ERROR_GENERAL_ERROR,
                            _("The request is invalid."));
       return FALSE;
     }
-#endif
 
   /* This is a drill */
   if (!data)

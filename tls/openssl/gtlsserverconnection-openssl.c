@@ -268,20 +268,6 @@ g_tls_server_connection_openssl_server_connection_interface_init (GTlsServerConn
 {
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-static void
-ssl_info_callback (const SSL *ssl,
-                   int        type,
-                   int        val)
-{
-  if ((type & SSL_CB_HANDSHAKE_DONE) != 0)
-    {
-      /* Disable renegotiation (CVE-2009-3555) */
-      ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
-    }
-}
-#endif
-
 static gboolean
 set_cipher_list (GTlsServerConnectionOpenssl  *server,
                  GError                      **error)
@@ -309,7 +295,6 @@ static gboolean
 set_max_protocol (GTlsServerConnectionOpenssl  *server,
                   GError                      **error)
 {
-#ifdef SSL_CTX_set_max_proto_version
   const gchar *proto;
 
   proto = g_getenv ("G_TLS_OPENSSL_MAX_PROTO");
@@ -330,12 +315,10 @@ set_max_protocol (GTlsServerConnectionOpenssl  *server,
             }
         }
     }
-#endif
 
   return TRUE;
 }
 
-#ifdef SSL_CTX_set1_sigalgs_list
 static void
 set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
 {
@@ -347,9 +330,7 @@ set_signature_algorithm_list (GTlsServerConnectionOpenssl *server)
 
   SSL_CTX_set1_sigalgs_list (server->ssl_ctx, signature_algorithm_list);
 }
-#endif
 
-#ifdef SSL_CTX_set1_curves_list
 static void
 set_curve_list (GTlsServerConnectionOpenssl *server)
 {
@@ -361,7 +342,6 @@ set_curve_list (GTlsServerConnectionOpenssl *server)
 
   SSL_CTX_set1_curves_list (server->ssl_ctx, curve_list);
 }
-#endif
 
 static gboolean
 g_tls_server_connection_openssl_initable_init (GInitable       *initable,
@@ -376,13 +356,8 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   server->session = SSL_SESSION_new ();
 
   server->ssl_ctx = SSL_CTX_new (g_tls_connection_base_is_dtls (G_TLS_CONNECTION_BASE (server))
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
                                  ? DTLS_server_method ()
                                  : TLS_server_method ());
-#else
-                                 ? DTLSv1_server_method ()
-                                 : SSLv23_server_method ());
-#endif
   if (!server->ssl_ctx)
     {
       ERR_error_string_n (ERR_get_error (), error_buffer, sizeof (error_buffer));
@@ -401,49 +376,18 @@ g_tls_server_connection_openssl_initable_init (GInitable       *initable,
   /* Only TLS 1.2 or higher */
   options = SSL_OP_NO_COMPRESSION |
             SSL_OP_CIPHER_SERVER_PREFERENCE |
-            SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
+            SSL_OP_NO_RENEGOTIATION |
             SSL_OP_SINGLE_ECDH_USE |
-#ifdef SSL_OP_NO_TLSv1_1
-            SSL_OP_NO_TLSv1_1 |
-#endif
             SSL_OP_NO_SSLv2 |
             SSL_OP_NO_SSLv3 |
-            SSL_OP_NO_TLSv1;
-
-#ifdef SSL_OP_NO_RENEGOTIATION
-  options |= SSL_OP_NO_RENEGOTIATION;
-#endif
-
+            SSL_OP_NO_TLSv1 |
+            SSL_OP_NO_TLSv1_1;
   SSL_CTX_set_options (server->ssl_ctx, options);
 
   SSL_CTX_add_session (server->ssl_ctx, server->session);
 
-#ifdef SSL_CTX_set1_sigalgs_list
   set_signature_algorithm_list (server);
-#endif
-
-#ifdef SSL_CTX_set1_curves_list
   set_curve_list (server);
-#endif
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-# ifdef SSL_CTX_set_ecdh_auto
-  SSL_CTX_set_ecdh_auto (server->ssl_ctx, 1);
-# else
-  {
-    EC_KEY *ecdh;
-
-    ecdh = EC_KEY_new_by_curve_name (NID_X9_62_prime256v1);
-    if (ecdh)
-      {
-        SSL_CTX_set_tmp_ecdh (server->ssl_ctx, ecdh);
-        EC_KEY_free (ecdh);
-      }
-  }
-# endif
-
-  SSL_CTX_set_info_callback (server->ssl_ctx, ssl_info_callback);
-#endif
 
   cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (initable));
 

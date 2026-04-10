@@ -57,16 +57,9 @@ free_gbio (gpointer user_data)
 static int
 gtls_bio_create (BIO *bio)
 {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  bio->init = 0;
-  bio->num = 0;
-  bio->ptr = NULL;
-  bio->flags = 0;
-#else
   BIO_set_init (bio, 0);
   BIO_set_data (bio, NULL);
   BIO_clear_flags (bio, ~0);
-#endif
   return 1;
 }
 
@@ -76,18 +69,6 @@ gtls_bio_destroy (BIO *bio)
   if (!bio)
     return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  if (bio->shutdown)
-    {
-      if (bio->ptr)
-        {
-          free_gbio (bio->ptr);
-          bio->ptr = NULL;
-        }
-      bio->init = 0;
-      bio->flags = 0;
-    }
-#else
   if (BIO_get_shutdown (bio))
     {
       if (BIO_get_data (bio))
@@ -98,7 +79,6 @@ gtls_bio_destroy (BIO *bio)
       BIO_clear_flags (bio, ~0);
       BIO_set_init (bio, 0);
     }
-#endif
 
     return 1;
 }
@@ -109,30 +89,16 @@ gtls_bio_ctrl (BIO  *b,
                long  num,
                void *ptr)
 {
-  GTlsBio *gbio;
+  GTlsBio *gbio = BIO_get_data (b);
   long ret = 1;
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)b->ptr;
-#else
-  gbio = BIO_get_data (b);
-#endif
 
   switch (cmd)
     {
     case BIO_CTRL_GET_CLOSE:
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-      ret = b->shutdown;
-#else
       ret = BIO_get_shutdown (b);
-#endif
       break;
     case BIO_CTRL_SET_CLOSE:
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-      b->shutdown = (int)num;
-#else
       BIO_set_shutdown (b, (int)num);
-#endif
       break;
     case BIO_CTRL_DUP:
     case BIO_CTRL_FLUSH:
@@ -145,11 +111,9 @@ gtls_bio_ctrl (BIO  *b,
     case BIO_CTRL_DGRAM_QUERY_MTU:
       ret = 1400; /* Same as the GnuTLS backend */
       break;
-#ifdef BIO_CTRL_EOF
     case BIO_CTRL_EOF:
       ret = gbio->reached_eof ? 1 : 0;
       break;
-#endif
     default:
       g_debug ("Got unsupported command: %d", cmd);
       ret = 0;
@@ -168,20 +132,10 @@ gtls_bio_write (BIO        *bio,
   gssize written;
   GError *error = NULL;
 
-  if (
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-      !bio->init ||
-#else
-      !BIO_get_init (bio) ||
-#endif
-      !in || inl == 0)
+  if (!BIO_get_init (bio) || !in || inl == 0)
     return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
   gbio = BIO_get_data (bio);
-#endif
 
   BIO_clear_retry_flags (bio);
   if (gbio->io_stream)
@@ -228,20 +182,10 @@ gtls_bio_read (BIO  *bio,
   gssize read;
   GError *error = NULL;
 
-  if (
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-      !bio->init ||
-#else
-      !BIO_get_init (bio) ||
-#endif
-      !out || outl == 0)
+  if (!BIO_get_init (bio) || !out || outl == 0)
     return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
   gbio = BIO_get_data (bio);
-#endif
 
   BIO_clear_retry_flags (bio);
   if (gbio->io_stream)
@@ -296,25 +240,6 @@ gtls_bio_gets(BIO  *bio,
   return -1;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-static BIO_METHOD *
-BIO_s_gtls (void)
-{
-  static BIO_METHOD methods_gtls = {
-    BIO_TYPE_SOURCE_SINK,
-    "gtls",
-    gtls_bio_write,
-    gtls_bio_read,
-    gtls_bio_puts,
-    gtls_bio_gets,
-    gtls_bio_ctrl,
-    gtls_bio_create,
-    gtls_bio_destroy
-  };
-
-  return &methods_gtls;
-}
-#else
 static const BIO_METHOD *
 BIO_s_gtls (void)
 {
@@ -338,7 +263,6 @@ BIO_s_gtls (void)
     }
   return methods_gtls;
 }
-#endif
 
 static BIO *
 g_tls_bio_alloc (GTlsBio **out_gbio)
@@ -352,13 +276,8 @@ g_tls_bio_alloc (GTlsBio **out_gbio)
 
   gbio = g_new0 (GTlsBio, 1);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  ret->ptr = gbio;
-  ret->init = 1;
-#else
   BIO_set_data (ret, gbio);
   BIO_set_init (ret, 1);
-#endif
 
   *out_gbio = gbio;
   return ret;
@@ -398,11 +317,7 @@ g_tls_bio_set_read_cancellable (BIO          *bio,
 
   g_return_if_fail (bio);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
   gbio = BIO_get_data (bio);
-#endif
   gbio->read_cancellable = cancellable;
 }
 
@@ -414,11 +329,7 @@ g_tls_bio_set_read_error (BIO     *bio,
 
   g_return_if_fail (bio);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
   gbio = BIO_get_data (bio);
-#endif
   gbio->read_error = error;
 }
 
@@ -430,11 +341,7 @@ g_tls_bio_set_write_cancellable (BIO          *bio,
 
   g_return_if_fail (bio);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
   gbio = BIO_get_data (bio);
-#endif
   gbio->write_cancellable = cancellable;
 }
 
@@ -446,11 +353,7 @@ g_tls_bio_set_write_error (BIO     *bio,
 
   g_return_if_fail (bio);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
   gbio = BIO_get_data (bio);
-#endif
   gbio->write_error = error;
 }
 
@@ -501,11 +404,7 @@ g_tls_bio_wait_available (BIO          *bio,
 
   g_return_val_if_fail (bio, FALSE);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined (LIBRESSL_VERSION_NUMBER)
-  gbio = (GTlsBio *)bio->ptr;
-#else
   gbio = BIO_get_data (bio);
-#endif
 
   wait_data.done = FALSE;
   wait_data.timed_out = FALSE;
