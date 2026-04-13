@@ -13,6 +13,7 @@ variables:
 
 stages:
   - prepare
+  - lint
   - build
   - deploy
 
@@ -179,3 +180,15 @@ vs2017-x64:
     paths:
       - builddir\test-results
     when: on_failure
+
+goblint:
+  stage: lint
+  needs: []
+  image:
+    name: ghcr.io/bilelmoussaoui/goblint:latest
+    entrypoint: ['']
+  script:
+    - goblint --format sarif > goblint.sarif
+  artifacts:
+    reports:
+      sast: goblint.sarif
