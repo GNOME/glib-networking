@@ -32,6 +32,8 @@
 #include "gtlscertificate-openssl.h"
 #include <glib/gi18n-lib.h>
 
+#include "gtlsutils.h"
+
 struct _GTlsCertificateOpenssl
 {
   GTlsCertificate parent_instance;
@@ -1022,7 +1024,7 @@ g_tls_certificate_openssl_build_chain (X509            *x,
             }
         }
 
-      if (issuer)
+      if (issuer && !g_tls_issuer_would_create_cycle (glib_certs->pdata[i], G_TLS_CERTIFICATE (issuer)))
         g_tls_certificate_openssl_set_issuer (glib_certs->pdata[i], issuer);
     }
 

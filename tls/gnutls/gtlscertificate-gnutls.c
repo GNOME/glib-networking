@@ -32,6 +32,8 @@
 #include "gtlscertificate-gnutls.h"
 #include <glib/gi18n-lib.h>
 
+#include "gtlsutils.h"
+
 enum
 {
   PROP_0,
@@ -1105,7 +1107,7 @@ g_tls_certificate_gnutls_build_chain (const gnutls_datum_t  *certs,
             }
         }
 
-      if (issuer)
+      if (issuer && !g_tls_issuer_would_create_cycle (glib_certs->pdata[i], G_TLS_CERTIFICATE (issuer)))
         g_tls_certificate_gnutls_set_issuer (glib_certs->pdata[i], issuer);
     }
 

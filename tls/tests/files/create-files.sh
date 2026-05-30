@@ -180,6 +180,26 @@ cat intermediate-ca.pem >> chain.pem
 cat ca.pem >> chain.pem
 
 #######################################################################
+### Cyclic Chain
+#######################################################################
+
+msg "Creating two CA key pairs"
+openssl genrsa -out cyclic-a-key.pem 2048
+openssl genrsa -out cyclic-b-key.pem 2048
+
+msg "Creating CSRs with distinct subjects"
+openssl req -new -key cyclic-a-key.pem -out cyclic-a-csr.pem -subj '/O=Alpha-Org/CN=Alpha-CA'
+openssl req -new -key cyclic-b-key.pem -out cyclic-b-csr.pem -subj '/O=Beta-Org/CN=Beta-CA'
+
+msg "Creating self-signed certificates"
+openssl x509 -req -in cyclic-a-csr.pem -signkey cyclic-a-key.pem -out cyclic-a-selfsigned.pem -days 365
+openssl x509 -req -in cyclic-b-csr.pem -signkey cyclic-b-key.pem -out cyclic-b-selfsigned.pem -days 365
+
+msg "Cross-signing the certificates"
+openssl x509 -req -in cyclic-a-csr.pem -CA cyclic-b-selfsigned.pem -CAkey cyclic-b-key.pem -out cyclic-a.pem -days 365 -set_serial 1
+openssl x509 -req -in cyclic-b-csr.pem -CA cyclic-a-selfsigned.pem -CAkey cyclic-a-key.pem -out cyclic-b.pem -days 365 -set_serial 2
+
+#######################################################################
 ### Updating CA Root files
 #######################################################################
 

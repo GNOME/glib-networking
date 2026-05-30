@@ -1231,6 +1231,100 @@ test_invalid_chain_with_alternative_ca_cert (TestConnection *test,
 #endif
 }
 
+static gboolean
+on_accept_certificate_for_cyclic_chain (GTlsConnection       *conn,
+                                        GTlsCertificate      *cert,
+                                        GTlsCertificateFlags  errors,
+                                        gpointer              user_data)
+{
+  GError *error = NULL;
+
+  /* This test is a little subtle. We want to ensure that, when building a chain
+   * of GTlsCertificates in g_tls_certificate_[gnutls,openssl]_build_chain(), we
+   * do not accidentally form an issuer cycle which would later cause
+   * g_tls_database_verify_chain() to loop forever. We have to use an actual
+   * GTlsConnection because that is the only way to get to the build_chain()
+   * code. But GTlsConnectionGnutls -- unlike GTlsConnectionOpenssl -- doesn't
+   * actually use the provided chain for verification: it's only built so it can
+   * be passed to the application via GTlsConnection::accept-certificate. So
+   * that's why this test performs the verification manually despite using an
+   * actual GTlsConnection.
+   *
+   * The test succeeds if this does not time out.
+   */
+  g_tls_database_verify_chain (g_tls_connection_get_database (conn),
+                               cert,
+                               G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER,
+                               NULL, NULL,
+                               G_TLS_DATABASE_VERIFY_NONE,
+                               NULL, &error);
+  g_assert_no_error (error);
+
+  return TRUE;
+}
+
+static void
+test_cyclic_chain (TestConnection *test,
+                   gconstpointer   data)
+{
+  GTlsCertificate *intermediate_cert;
+  GTlsCertificate *server_cert;
+  GIOStream *connection;
+  GTlsBackend *backend;
+  char *cert_data;
+  char *key_data;
+  GError *error = NULL;
+
+  backend = g_tls_backend_get_default ();
+
+  /* Prepare the "intermediate" cert. */
+  intermediate_cert = g_tls_certificate_new_from_file (tls_test_file_path ("cyclic-a.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (intermediate_cert);
+
+  /* Prepare the server cert. */
+  g_file_get_contents (tls_test_file_path ("cyclic-b.pem"), &cert_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (cert_data);
+
+  g_file_get_contents (tls_test_file_path ("cyclic-b-key.pem"),&key_data, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (key_data);
+
+  server_cert = g_initable_new (g_tls_backend_get_certificate_type (backend),
+                                NULL, &error,
+                                "issuer", intermediate_cert,
+                                "certificate-pem", cert_data,
+                                "private-key-pem", key_data,
+                                NULL);
+  g_assert_no_error (error);
+  g_assert_nonnull (server_cert);
+
+  g_object_unref (intermediate_cert);
+  g_free (cert_data);
+  g_free (key_data);
+
+  test->server_certificate = server_cert;
+
+  connection = start_async_server_and_connect_to_it (test, G_TLS_AUTHENTICATION_NONE);
+  test->client_connection = g_tls_client_connection_new (connection, test->identity, &error);
+  g_assert_no_error (error);
+  g_object_unref (connection);
+
+  g_tls_client_connection_set_validation_flags (G_TLS_CLIENT_CONNECTION (test->client_connection),
+                                                G_TLS_CERTIFICATE_VALIDATE_ALL ^ G_TLS_CERTIFICATE_UNKNOWN_CA);
+
+  g_signal_connect (test->client_connection, "accept-certificate",
+                    G_CALLBACK (on_accept_certificate_for_cyclic_chain), test);
+
+  read_test_data_async (test);
+  g_main_loop_run (test->loop);
+  wait_until_server_finished (test);
+
+  g_assert_no_error (test->read_error);
+  g_assert_no_error (test->server_error);
+}
+
 static void
 on_notify_accepted_cas (GObject *obj,
                         GParamSpec *spec,
@@ -2879,7 +2973,7 @@ test_connection_binding_match_tls_unique (TestConnection *test,
  * please make sure the string below matches the output of
  * openssl x509 -outform der -in files/server.pem | openssl sha256 -binary | base64
  **/
-#define SERVER_CERT_DIGEST_B64 "sdRMUK4PwcHXUPAMwglrSy4Fi8Ybfim61hfucliJ19s="
+#define SERVER_CERT_DIGEST_B64 "kG3pcjyoH61s5hcYxGBABV2CMei4MQ3SmYSNSywAKSs="
 static void
 test_connection_binding_match_tls_server_end_point (TestConnection *test,
                                                     gconstpointer   data)
@@ -3300,6 +3394,8 @@ main (int   argc,
               setup_connection, test_verified_chain_with_alternative_ca_cert, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/invalid-chain-with-alternative-ca-cert", TestConnection, NULL,
               setup_connection, test_invalid_chain_with_alternative_ca_cert, teardown_connection);
+  g_test_add ("/tls/" BACKEND "/connection/cyclic-chain", TestConnection, NULL,
+              setup_connection, test_cyclic_chain, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth", TestConnection, NULL,
               setup_connection, test_client_auth_connection, teardown_connection);
   g_test_add ("/tls/" BACKEND "/connection/client-auth-failure", TestConnection, NULL,
