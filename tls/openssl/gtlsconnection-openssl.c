@@ -92,6 +92,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
                 GIOCondition            direction,
                 int                     ret,
                 int                     err_code,
+                int                     saved_errno,
                 gboolean                blocking,
                 GError                **error,
                 const char             *err_prefix)
@@ -239,6 +240,21 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
           if (error && !my_error)
             my_error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_EOF, _("%s: The connection is broken"), gettext (err_prefix));
         }
+
+#ifdef G_OS_UNIX
+       /* If we receive SSL_ERROR_SYSCALL then error details might be in errno
+        * rather than in the error queue. "The OpenSSL error queue may contain
+        * more information on the error. For socket I/O on Unix systems, consult
+        * errno for details." (Sadly, we cannot know for sure that
+        * GTlsConnection is wrapping a socket. Theoretically, the underlying
+        * transport could be anything.) Check this last.
+        */
+      if (error && !my_error && saved_errno)
+        my_error = g_error_new (G_TLS_ERROR, G_TLS_ERROR_MISC, "%s: %s", gettext (err_prefix), g_strerror (saved_errno));
+#else
+      /* Placate -Wunused-parameter */
+      (void) saved_errno;
+#endif
     }
 
   if (my_error)
@@ -269,6 +285,7 @@ perform_openssl_io (GTlsConnectionOpenssl  *openssl,
   SSL *ssl;
   gint64 deadline;
   int ret, err_code;
+  int saved_errno = 0;
 
   tls = G_TLS_CONNECTION_BASE (openssl);
   priv = g_tls_connection_openssl_get_instance_private (openssl);
@@ -297,7 +314,13 @@ perform_openssl_io (GTlsConnectionOpenssl  *openssl,
        * SSL_get_error() will not work reliably."
        */
       ERR_clear_error ();
+#ifdef G_OS_UNIX
+      errno = 0;
+#endif
       ret = perform_func (ssl, perform_data);
+#ifdef G_OS_UNIX
+      saved_errno = errno;
+#endif
       err_code = SSL_get_error (ssl, ret);
 
       switch (err_code)
@@ -313,7 +336,7 @@ perform_openssl_io (GTlsConnectionOpenssl  *openssl,
             break;
         }
 
-      status = end_openssl_io (openssl, direction, ret, err_code, TRUE, error, err_prefix);
+      status = end_openssl_io (openssl, direction, ret, err_code, saved_errno, TRUE, error, err_prefix);
 
       if (status != G_TLS_CONNECTION_BASE_TRY_AGAIN)
         break;
