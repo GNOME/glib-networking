@@ -68,7 +68,6 @@ struct _GTlsClientConnectionGnutls
   gboolean session_data_override;
 
   GPtrArray *accepted_cas;
-  gboolean accepted_cas_changed;
 
   gnutls_pcert_st *pcert;
   unsigned int pcert_length;
@@ -331,15 +330,12 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (GTlsConnectio
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (conn);
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (conn);
   GPtrArray *accepted_cas;
-  gboolean had_accepted_cas;
   GByteArray *dn;
   int i;
 
   /* FIXME: Here we are supposed to ensure that the certificate supports one of
    * the algorithms given in pk_algos.
    */
-
-  had_accepted_cas = gnutls->accepted_cas != NULL;
 
   accepted_cas = g_ptr_array_new_with_free_func ((GDestroyNotify)g_byte_array_unref);
   for (i = 0; i < nreqs; i++)
@@ -352,8 +348,6 @@ g_tls_client_connection_gnutls_handshake_thread_retrieve_function (GTlsConnectio
   if (gnutls->accepted_cas)
     g_ptr_array_unref (gnutls->accepted_cas);
   gnutls->accepted_cas = accepted_cas;
-
-  gnutls->accepted_cas_changed = gnutls->accepted_cas || had_accepted_cas;
 
   clear_gnutls_certificate_copy (&gnutls->pcert, &gnutls->pcert_length, &gnutls->pkey);
   g_tls_connection_gnutls_handshake_thread_get_certificate (conn, pcert, pcert_length, pkey);
@@ -455,8 +449,7 @@ g_tls_client_connection_gnutls_complete_handshake (GTlsConnectionBase   *tls,
   /* It may have changed during the handshake, but we have to wait until here
    * because we can't emit notifies on the handshake thread.
    */
-  if (gnutls->accepted_cas_changed)
-    g_object_notify (G_OBJECT (gnutls), "accepted-cas");
+  g_object_notify (G_OBJECT (gnutls), "accepted-cas");
 
   if (handshake_succeeded)
     {
