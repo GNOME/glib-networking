@@ -40,8 +40,6 @@ endif
 
 proxy_test_programs += [['gnome', 'gnome', deps]]
 
-if meson.version().version_compare('>=0.58')
-  env = environment()
-  env.prepend('GIO_EXTRA_MODULES', meson.current_build_dir())
-  meson.add_devenv(env)
-endif
+env = environment()
+env.prepend('GIO_EXTRA_MODULES', meson.current_build_dir())
+meson.add_devenv(env)
