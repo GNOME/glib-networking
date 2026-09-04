@@ -343,7 +343,7 @@ g_tls_certificate_openssl_get_property (GObject    *object,
   struct tm time_tm;
   GDateTime *time;
   GTimeZone *tz;
-  X509_NAME *name;
+  const X509_NAME *name;
   const char *name_string;
 
   switch (prop_id)
