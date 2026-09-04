@@ -18,8 +18,8 @@ stages:
 
 .fedora.container.common:
   variables:
-    FDO_DISTRIBUTION_TAG: '2026-04-03.1'
-    FDO_DISTRIBUTION_VERSION: 'latest'
+    FDO_DISTRIBUTION_TAG: '2026-09-04.2'
+    FDO_DISTRIBUTION_VERSION: '45'
 
 build.container.fedora@x86_64:
   extends:
