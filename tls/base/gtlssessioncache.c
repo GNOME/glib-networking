@@ -45,6 +45,7 @@ static GHashTable *client_session_cache; /* (owned) GString -> (owned) GTlsCache
 
 #define SESSION_CACHE_MAX_SIZE 50
 #define SESSION_CACHE_MAX_AGE (10ll * 60ll * G_USEC_PER_SEC) /* ten minutes */
+#define SESSION_CACHE_MAX_TLS13_TICKETS 32
 
 typedef struct {
   gpointer       tls1_2_session_ticket;
@@ -155,6 +156,18 @@ g_tls_store_session_data (gchar              *session_id,
        protocol_version < G_TLS_PROTOCOL_VERSION_DTLS_1_0) ||
       protocol_version > G_TLS_PROTOCOL_VERSION_DTLS_1_2)
     {
+      while (g_queue_get_length (cache_data->tls1_3_session_tickets) >=
+             SESSION_CACHE_MAX_TLS13_TICKETS)
+        {
+          gpointer evicted_session_data;
+
+          evicted_session_data =
+            g_queue_pop_head (cache_data->tls1_3_session_tickets);
+
+          if (evicted_session_data && cache_data->dec_ref)
+            cache_data->dec_ref (evicted_session_data);
+        }
+
       g_queue_push_tail (cache_data->tls1_3_session_tickets, session_data_tmp);
     }
   else

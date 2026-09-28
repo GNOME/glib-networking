@@ -45,6 +45,24 @@ test_programs = [
 #  ['dtls-connection', ['mock-interaction.c', 'lossy-socket.c'], deps, [], [mock_pkcs11_module]],
 ]
 
+session_cache_test = executable(
+  'session-cache',
+  'session-cache.c',
+  include_directories: incs,
+  dependencies: [
+    gio_dep,
+    glib_dep,
+    gobject_dep,
+    tlsbase_dep,
+  ]
+)
+
+test(
+  'session-cache',
+  session_cache_test,
+  env: envs
+)
+
 foreach backend: backends
   foreach program: test_programs
     program_name = program[0] + '-' + backend
