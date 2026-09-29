@@ -166,6 +166,8 @@ is_certificate_trusted (SecCertificateRef       *cert,
   CFArrayRef cert_trust_settings;
   OSStatus ret;
   CFIndex i;
+  gboolean has_any_trust_entry = FALSE;
+  gboolean saw_ssl_or_global_entry = FALSE;
 
   ret = SecTrustSettingsCopyTrustSettings (*cert, domain, &cert_trust_settings);
   if (ret != errSecSuccess)
@@ -177,6 +179,8 @@ is_certificate_trusted (SecCertificateRef       *cert,
 
   for (i = 0; i < CFArrayGetCount (cert_trust_settings); i++)
     {
+      has_any_trust_entry = TRUE;
+
       CFDictionaryRef trust_settings;
       CFNumberRef trust_setting_number;
       CFStringRef policy_name;
@@ -190,6 +194,8 @@ is_certificate_trusted (SecCertificateRef       *cert,
           continue;
         }
 
+      saw_ssl_or_global_entry = TRUE;
+
       if (CFDictionaryGetValueIfPresent (trust_settings, kSecTrustSettingsResult, 
                                          (const void **)&trust_setting_number))
         {
@@ -202,12 +208,12 @@ is_certificate_trusted (SecCertificateRef       *cert,
             }
 
           CFNumberGetValue (trust_setting_number, kCFNumberIntType, &trustSettingResult);
-          /* kSecTrustSettingsResultUnspecified means neither trusted nor distrusted.  
+          /* kSecTrustSettingsResultUnspecified means neither trusted nor distrusted.
            * kSecTrustSettingsResultInvalid should not be a possible value for trustSettingResult.
-           * 
+           *
            * Only for kSecTrustSettingsResultDeny should the certificate not be trusted.
            */
-          if (trustSettingResult != kSecTrustSettingsResultUnspecified && 
+          if (trustSettingResult != kSecTrustSettingsResultUnspecified &&
               trustSettingResult != kSecTrustSettingsResultInvalid)
             {
               CFRelease (cert_trust_settings);
@@ -218,16 +224,13 @@ is_certificate_trusted (SecCertificateRef       *cert,
 
   CFRelease (cert_trust_settings);
 
-  /* We only reach here if the trust settings array is empty or trust setting parameter for 
-   * a certificate is NULL. The documentation state that we should trust these certificates
-   * as kSecTrustSettingsResultTrustRoot as only root certificates can have have that value.
-   * 
+  /* An empty trust settings array means the certificate is trusted for all
+   * policies. Otherwise, trust it only if an entry applies globally or to
+   * SSL server authentication.
+   *
    * https://developer.apple.com/documentation/security/1400261-sectrustsettingscopytrustsetting?language=objc
-   * 
-   * If it is not a root certificate then we trust it as root because they are retrieved
-   * from the trust domains.
    */
-  return TRUE;
+  return !has_any_trust_entry || saw_ssl_or_global_entry;
 }
 
 static gboolean
