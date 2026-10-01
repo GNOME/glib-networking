@@ -49,6 +49,7 @@ struct _GTlsClientConnectionOpenssl
 
   STACK_OF (X509_NAME) *ca_list;
 
+  gchar *session_id;
   SSL_SESSION *session;
   SSL *ssl;
   SSL_CTX *ssl_ctx;
@@ -85,6 +86,7 @@ g_tls_client_connection_openssl_finalize (GObject *object)
   GTlsClientConnectionOpenssl *openssl = G_TLS_CLIENT_CONNECTION_OPENSSL (object);
 
   g_clear_object (&openssl->server_identity);
+  g_clear_pointer (&openssl->session_id, g_free);
 
   SSL_free (openssl->ssl);
   SSL_CTX_free (openssl->ssl_ctx);
@@ -206,6 +208,42 @@ g_tls_client_connection_openssl_set_property (GObject      *object,
 }
 
 static void
+g_tls_client_connection_openssl_session_id_changed (GTlsConnectionBase *tls)
+{
+  GTlsClientConnectionOpenssl *client = G_TLS_CLIENT_CONNECTION_OPENSSL (tls);
+  SSL_SESSION *session;
+  gchar *session_id;
+
+  /*
+   * During construction the SSL object has not been created yet.
+   * If the certificate changes during a handshake, do not modify
+   * OpenSSL's session state underneath SSL_do_handshake().
+   */
+  if (!client->ssl ||
+      g_tls_connection_base_is_handshaking (tls) ||
+      SSL_is_init_finished (client->ssl))
+    return;
+
+  session_id = g_strdup (g_tls_connection_base_get_session_id (tls));
+  session = (SSL_SESSION *) g_tls_lookup_session_data (session_id);
+
+  if (!SSL_set_session (client->ssl, session))
+    {
+      SSL_SESSION_free (session);
+      g_free (session_id);
+      client->session_reused = FALSE;
+      return;
+    }
+
+  g_clear_pointer (&client->session_id, g_free);
+  client->session_id = session_id;
+
+  g_clear_pointer (&client->session, SSL_SESSION_free);
+  client->session = session;
+  client->session_reused = session != NULL;
+}
+
+static void
 g_tls_client_connection_openssl_complete_handshake (GTlsConnectionBase   *tls,
                                                     gboolean              handshake_succeeded,
                                                     gchar               **negotiated_protocol,
@@ -246,6 +284,7 @@ g_tls_client_connection_openssl_class_init (GTlsClientConnectionOpensslClass *kl
   gobject_class->get_property         = g_tls_client_connection_openssl_get_property;
   gobject_class->set_property         = g_tls_client_connection_openssl_set_property;
 
+  base_class->session_id_changed      = g_tls_client_connection_openssl_session_id_changed;
   base_class->complete_handshake      = g_tls_client_connection_openssl_complete_handshake;
 
   openssl_class->get_ssl              = g_tls_client_connection_openssl_get_ssl;
@@ -404,7 +443,7 @@ static int g_tls_client_connection_openssl_new_session (SSL *s, SSL_SESSION *ses
   tls = G_TLS_CONNECTION_BASE (client);
 
   if (g_tls_connection_base_get_session_resumption (tls))
-    g_tls_store_session_data (g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (client)),
+    g_tls_store_session_data (client->session_id,
                               (gpointer)sess,
                               (SessionDup)SSL_SESSION_dup,
                               (SessionAcquire)SSL_SESSION_up_ref,
@@ -426,7 +465,10 @@ g_tls_client_connection_openssl_initable_init (GInitable       *initable,
 
   ERR_clear_error ();
 
-  client->session = (SSL_SESSION *)g_tls_lookup_session_data (g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (client)));
+  client->session_id = g_strdup (g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (client)));
+
+  client->session = (SSL_SESSION *) g_tls_lookup_session_data (client->session_id);
+
   if (!client->session)
     {
       client->session = SSL_SESSION_new ();

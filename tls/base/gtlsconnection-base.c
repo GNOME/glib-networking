@@ -420,6 +420,122 @@ g_tls_connection_base_get_property (GObject    *object,
     }
 }
 
+static char *
+get_server_identity (GSocketConnectable *server_identity)
+{
+  if (G_IS_NETWORK_ADDRESS (server_identity))
+    {
+      GNetworkAddress *address = G_NETWORK_ADDRESS (server_identity);
+      return g_strdup_printf ("%s:%u", g_network_address_get_hostname (address), g_network_address_get_port (address));
+    }
+  if (G_IS_NETWORK_SERVICE (server_identity))
+    return g_strdup (g_network_service_get_domain (G_NETWORK_SERVICE (server_identity)));
+  return NULL;
+}
+
+static void
+g_tls_connection_base_rebuild_session_id (GTlsConnectionBase *tls)
+{
+  GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
+  GTlsConnectionBaseClass *klass = G_TLS_CONNECTION_BASE_GET_CLASS (tls);
+  GSocketConnection *base_conn = NULL;
+  GSocketAddress *remote_addr = NULL;
+  GTlsCertificate *cert = NULL;
+  gchar *cert_hash = NULL;
+  gchar *server_identity = NULL;
+  gchar *old_session_id;
+
+  old_session_id = g_steal_pointer (&priv->session_id);
+
+  if (!G_IS_TLS_CLIENT_CONNECTION (tls))
+    goto out;
+
+  /* Create a TLS "session ID." We base it on the IP address since
+   * different hosts serving the same hostname/service will probably
+   * not share the same session cache. We base it on the
+   * server-identity because at least some servers will fail (rather
+   * than just failing to resume the session) if we don't.
+   * (https://bugs.launchpad.net/bugs/823325)
+   *
+   * Note that our session IDs have no relation to TLS protocol
+   * session IDs.
+   */
+
+  g_object_get (G_OBJECT (tls), "base-io-stream", &base_conn, NULL);
+
+  if (!G_IS_SOCKET_CONNECTION (base_conn))
+    goto out;
+
+  remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
+
+  if (!G_IS_INET_SOCKET_ADDRESS (remote_addr))
+    goto out;
+
+  server_identity = get_server_identity (
+    !g_tls_connection_base_is_dtls (tls) ?
+      g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls)) :
+      g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls)));
+
+  /* If we have a certificate, make its hash part of the session ID, so
+   * that different connections to the same server can use different
+   * certificates.
+   */
+  g_object_get (G_OBJECT (tls), "certificate", &cert, NULL);
+
+  if (cert)
+    {
+      GByteArray *der = NULL;
+
+      g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
+
+      if (der)
+        {
+          cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256,
+                                                   der->data,
+                                                   der->len);
+          g_byte_array_unref (der);
+        }
+    }
+
+  if (server_identity)
+    {
+      priv->session_id = g_strdup_printf ("%s/%s",
+                                          server_identity,
+                                          cert_hash ? cert_hash : "");
+    }
+  else
+    {
+      GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
+      GInetAddress *iaddr;
+      gchar *addrstr;
+      guint port;
+
+      port = g_inet_socket_address_get_port (isaddr);
+      iaddr = g_inet_socket_address_get_address (isaddr);
+      addrstr = g_inet_address_to_string (iaddr);
+
+      priv->session_id = g_strdup_printf ("%s/%d/%s",
+                                          addrstr,
+                                          port,
+                                          cert_hash ? cert_hash : "");
+
+      g_free (addrstr);
+    }
+
+out:
+  if (g_strcmp0 (old_session_id, priv->session_id) != 0 &&
+      klass->session_id_changed)
+    klass->session_id_changed (tls);
+
+  g_free (old_session_id);
+
+  g_clear_pointer (&server_identity, g_free);
+  g_clear_pointer (&cert_hash, g_free);
+  g_clear_object (&cert);
+  g_clear_object (&remote_addr);
+  g_clear_object (&base_conn);
+}
+
 static void
 g_tls_connection_base_set_property (GObject      *object,
                                     guint         prop_id,
@@ -506,6 +622,7 @@ g_tls_connection_base_set_property (GObject      *object,
       if (priv->certificate)
         g_object_unref (priv->certificate);
       priv->certificate = g_value_dup_object (value);
+      g_tls_connection_base_rebuild_session_id (tls);
       break;
 
     case PROP_INTERACTION:
@@ -2799,97 +2916,12 @@ g_tls_connection_base_get_session_id (GTlsConnectionBase *tls)
   return priv->session_id;
 }
 
-static char *
-get_server_identity (GSocketConnectable *server_identity)
-{
-  if (G_IS_NETWORK_ADDRESS (server_identity))
-    {
-      GNetworkAddress *address = G_NETWORK_ADDRESS (server_identity);
-      return g_strdup_printf ("%s:%u", g_network_address_get_hostname (address), g_network_address_get_port (address));
-    }
-  if (G_IS_NETWORK_SERVICE (server_identity))
-    return g_strdup (g_network_service_get_domain (G_NETWORK_SERVICE (server_identity)));
-  return NULL;
-}
-
 static void
 g_tls_connection_base_constructed (GObject *object)
 {
   GTlsConnectionBase *tls = G_TLS_CONNECTION_BASE (object);
-  if (G_IS_TLS_CLIENT_CONNECTION (tls))
-    {
-      GSocketConnection *base_conn;
 
-      /* Create a TLS "session ID." We base it on the IP address since
-       * different hosts serving the same hostname/service will probably
-       * not share the same session cache. We base it on the
-       * server-identity because at least some servers will fail (rather
-       * than just failing to resume the session) if we don't.
-       * (https://bugs.launchpad.net/bugs/823325)
-       *
-       * Note that our session IDs have no relation to TLS protocol
-       * session IDs.
-       */
-      g_object_get (G_OBJECT (tls), "base-io-stream", &base_conn, NULL);
-      if (G_IS_SOCKET_CONNECTION (base_conn))
-        {
-          GSocketAddress *remote_addr;
-          remote_addr = g_socket_connection_get_remote_address (base_conn, NULL);
-          if (G_IS_INET_SOCKET_ADDRESS (remote_addr))
-            {
-              gchar *cert_hash = NULL;
-              GTlsCertificate *cert = NULL;
-              GTlsConnectionBasePrivate *priv = NULL;
-              char *server_identity = get_server_identity (!g_tls_connection_base_is_dtls (tls) ?
-                                                            g_tls_client_connection_get_server_identity (G_TLS_CLIENT_CONNECTION (tls)) :
-                                                            g_dtls_client_connection_get_server_identity (G_DTLS_CLIENT_CONNECTION (tls)));
-              priv = g_tls_connection_base_get_instance_private (tls);
-
-              /* If we have a certificate, make its hash part of the session ID, so
-               * that different connections to the same server can use different
-               * certificates.
-               */
-              g_object_get (G_OBJECT (tls), "certificate", &cert, NULL);
-              if (cert)
-                {
-                  GByteArray *der = NULL;
-                  g_object_get (G_OBJECT (cert), "certificate", &der, NULL);
-                  if (der)
-                    {
-                      cert_hash = g_compute_checksum_for_data (G_CHECKSUM_SHA256, der->data, der->len);
-                      g_byte_array_unref (der);
-                    }
-                  g_object_unref (cert);
-                }
-
-              if (server_identity)
-                {
-                  priv->session_id = g_strdup_printf ("%s/%s", server_identity,
-                                                      cert_hash ? cert_hash : "");
-                  g_free (server_identity);
-                }
-              else
-                {
-                  guint port;
-                  GInetAddress *iaddr;
-                  gchar *addrstr = NULL;
-                  GInetSocketAddress *isaddr = G_INET_SOCKET_ADDRESS (remote_addr);
-
-                  port = g_inet_socket_address_get_port (isaddr);
-                  iaddr = g_inet_socket_address_get_address (isaddr);
-                  addrstr = g_inet_address_to_string (iaddr);
-
-                  priv->session_id = g_strdup_printf ("%s/%d/%s", addrstr,
-                                                      port,
-                                                      cert_hash ? cert_hash : "");
-                  g_free (addrstr);
-                }
-              g_free (cert_hash);
-            }
-          g_clear_object (&remote_addr);
-        }
-      g_object_unref (base_conn);
-    }
+  g_tls_connection_base_rebuild_session_id (tls);
 
   if (G_OBJECT_CLASS (g_tls_connection_base_parent_class)->constructed)
     G_OBJECT_CLASS (g_tls_connection_base_parent_class)->constructed (object);

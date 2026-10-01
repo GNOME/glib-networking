@@ -199,6 +199,7 @@ g_tls_client_connection_gnutls_finalize (GObject *object)
 
   g_clear_object (&gnutls->server_identity);
   g_clear_pointer (&gnutls->accepted_cas, g_ptr_array_unref);
+  g_clear_pointer (&gnutls->session_id, g_free);
   g_clear_pointer (&gnutls->session_data, g_bytes_unref);
 
   clear_gnutls_certificate_copy (&gnutls->pcert, &gnutls->pcert_length, &gnutls->pkey);
@@ -398,7 +399,9 @@ g_tls_client_connection_gnutls_prepare_handshake (GTlsConnectionBase  *tls,
 {
   GTlsClientConnectionGnutls *gnutls = G_TLS_CLIENT_CONNECTION_GNUTLS (tls);
 
-  gnutls->session_id = g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (gnutls));
+  g_clear_pointer (&gnutls->session_id, g_free);
+  gnutls->session_id =
+    g_strdup (g_tls_connection_base_get_session_id (G_TLS_CONNECTION_BASE (gnutls)));
 
   if (gnutls->session_data_override)
     {
