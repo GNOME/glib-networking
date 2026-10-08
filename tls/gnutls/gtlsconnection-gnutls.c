@@ -960,7 +960,9 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
   const char *hostname = NULL;
   char *free_hostname = NULL;
   GTlsDatabase *database;
+  gnutls_typed_vdata_st data[2];
   guint gnutls_result;
+  guint data_length = 0;
   int ret;
 
   /* There are several different ways to perform certificate verification with
@@ -980,7 +982,7 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
     {
       return g_tls_database_verify_chain (database,
                                           chain,
-                                          G_IS_TLS_CLIENT_CONNECTION (tls) ? G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER : G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
+                                          purpose,
                                           identity,
                                           g_tls_connection_get_interaction (G_TLS_CONNECTION (tls)),
                                           G_TLS_DATABASE_VERIFY_NONE,
@@ -991,7 +993,7 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
   /* Now for (b). The recommended way is gnutls_session_set_verify_cert(), but
    * we can't use that because that would leave no way to implement the
    * GTlsConnection::accept-certificate signal. The other way is to use
-   * gnutls_certificate_verify_peers3() or one of the related functions. This
+   * gnutls_certificate_verify_peers() or one of the related functions. This
    * adds additional smarts that are not possible when using GTlsDatabase
    * directly. For example, it checks name constraints, key usage, and basic
    * constraints. (It also checks for stapled OCSP responses, although nowadays
@@ -1017,7 +1019,20 @@ g_tls_connection_gnutls_verify_chain (GTlsConnectionBase       *tls,
       errors |= G_TLS_CERTIFICATE_BAD_IDENTITY;
     }
 
-  ret = gnutls_certificate_verify_peers3 (priv->session, hostname, &gnutls_result);
+  if (hostname)
+    {
+      data[data_length].type = GNUTLS_DT_DNS_HOSTNAME;
+      data[data_length].data = (unsigned char *)hostname;
+      data[data_length].size = strlen (hostname);
+      data_length++;
+    }
+
+  data[data_length].type = GNUTLS_DT_KEY_PURPOSE_OID;
+  data[data_length].data = (unsigned char *)purpose;
+  data[data_length].size = strlen (purpose);
+  data_length++;
+
+  ret = gnutls_certificate_verify_peers (priv->session, data, data_length, &gnutls_result);
   if (ret != 0)
     errors |= G_TLS_CERTIFICATE_GENERIC_ERROR;
   else

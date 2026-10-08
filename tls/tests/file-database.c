@@ -240,6 +240,33 @@ test_verify_database_bad_combo (TestVerify      *test,
   g_object_unref (identity);
 }
 
+static void
+test_verify_database_purpose (TestVerify      *test,
+                              gconstpointer    data)
+{
+  GTlsCertificateFlags errors;
+  GTlsCertificate *cert;
+  GError *error = NULL;
+
+  cert = g_tls_certificate_new_from_file (tls_test_file_path ("server-with-invalid-purpose.pem"), &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CERTIFICATE (cert));
+
+  errors = g_tls_database_verify_chain (test->database, cert,
+                                        G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER,
+                                        test->identity, NULL, 0, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpuint (errors, ==, G_TLS_CERTIFICATE_GENERIC_ERROR);
+
+  errors = g_tls_database_verify_chain (test->database, cert,
+                                        G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
+                                        NULL, NULL, 0, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpuint (errors, ==, 0);
+
+  g_object_unref (cert);
+}
+
 /* -----------------------------------------------------------------------------
  * FILE DATABASE
  */
@@ -445,6 +472,8 @@ main (int   argc,
               setup_verify, test_verify_database_bad_expired, teardown_verify);
   g_test_add ("/tls/" BACKEND "/database/verify-bad-combo", TestVerify, NULL,
               setup_verify, test_verify_database_bad_combo, teardown_verify);
+  g_test_add ("/tls/" BACKEND "/database/verify-purpose", TestVerify, NULL,
+              setup_verify, test_verify_database_purpose, teardown_verify);
 
   g_test_add_func ("/tls/" BACKEND "/file-database/anchors-property",
                    test_anchors_property);

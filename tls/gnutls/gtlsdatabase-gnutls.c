@@ -524,6 +524,7 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
   GTlsCertificateFlags result;
   guint gnutls_result;
   CertificateChain *gnutls_chain;
+  gnutls_typed_vdata_st data;
   int gerr;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE_GNUTLS (chain),
@@ -533,11 +534,15 @@ g_tls_database_gnutls_verify_chain (GTlsDatabase             *database,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return G_TLS_CERTIFICATE_GENERIC_ERROR;
 
+  data.type = GNUTLS_DT_KEY_PURPOSE_OID;
+  data.data = (unsigned char *)purpose;
+  data.size = strlen (purpose);
+
   g_mutex_lock (&priv->mutex);
   gnutls_chain = convert_certificate_chain_to_gnutls (G_TLS_CERTIFICATE_GNUTLS (chain));
-  gerr = gnutls_x509_trust_list_verify_crt (priv->trust_list,
-                                            gnutls_chain->chain, gnutls_chain->length,
-                                            0, &gnutls_result, NULL);
+  gerr = gnutls_x509_trust_list_verify_crt2 (priv->trust_list,
+                                             gnutls_chain->chain, gnutls_chain->length,
+                                             &data, 1, 0, &gnutls_result, NULL);
   g_mutex_unlock (&priv->mutex);
 
   if (gerr != 0 || g_cancellable_set_error_if_cancelled (cancellable, error))

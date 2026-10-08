@@ -145,6 +145,7 @@ if enable_installed_tests
     'files/intermediate-ca.pem',
     'files/non-ca.pem',
     'files/server-and-key.pem',
+    'files/server-with-invalid-purpose.pem',
     'files/server.der',
     'files/server-intermediate-key.pem',
     'files/server-intermediate.pem',

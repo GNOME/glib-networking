@@ -62,6 +62,9 @@ openssl req -config ssl/server.conf -key server-key.pem -new -out server-csr.pem
 msg "Creating server certificate"
 openssl x509 -req -in server-csr.pem -days 9125 -CA ca.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/server.conf -extensions v3_req_ext -out server.pem
 
+msg "Creating server certificate restricted to client authentication"
+openssl x509 -req -in server-csr.pem -days 9125 -CA ca.pem -CAkey ca-key.pem -CAserial serial -extfile ssl/server-with-invalid-purpose.conf -extensions v3_req_ext -out server-with-invalid-purpose.pem
+
 msg "Concatenating server certificate and private key into a single file"
 cat server.pem > server-and-key.pem
 cat server-key.pem >> server-and-key.pem

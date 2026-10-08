@@ -141,7 +141,18 @@ g_tls_database_openssl_verify_chain (GTlsDatabase             *database,
       return G_TLS_CERTIFICATE_GENERIC_ERROR;
     }
 
-  if (X509_verify_cert (csc) <= 0)
+  if (g_strcmp0 (purpose, G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER) == 0)
+    {
+      if (!X509_STORE_CTX_set_purpose (csc, X509_PURPOSE_SSL_SERVER))
+        result = G_TLS_CERTIFICATE_GENERIC_ERROR;
+    }
+  else if (g_strcmp0 (purpose, G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT) == 0)
+    {
+      if (!X509_STORE_CTX_set_purpose (csc, X509_PURPOSE_SSL_CLIENT))
+        result = G_TLS_CERTIFICATE_GENERIC_ERROR;
+    }
+
+  if (result == 0 && X509_verify_cert (csc) <= 0)
     result = g_tls_certificate_openssl_convert_error (X509_STORE_CTX_get_error (csc));
 
   X509_STORE_CTX_free (csc);

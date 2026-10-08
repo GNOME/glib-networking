@@ -515,14 +515,13 @@ g_tls_connection_openssl_verify_chain (GTlsConnectionBase       *tls,
 {
   GTlsDatabase *database;
   GTlsCertificateFlags errors = 0;
-  gboolean is_client = G_IS_TLS_CLIENT_CONNECTION (tls);
 
   database = g_tls_connection_get_database (G_TLS_CONNECTION (tls));
   if (database)
     {
       errors |= g_tls_database_verify_chain (database,
                                              chain,
-                                             is_client ? G_TLS_DATABASE_PURPOSE_AUTHENTICATE_SERVER : G_TLS_DATABASE_PURPOSE_AUTHENTICATE_CLIENT,
+                                             purpose,
                                              identity,
                                              g_tls_connection_get_interaction (G_TLS_CONNECTION (tls)),
                                              G_TLS_DATABASE_VERIFY_NONE,
