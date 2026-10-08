@@ -35,6 +35,8 @@
 #include <glib/gi18n-lib.h>
 #include <glib/gprintf.h>
 
+#define MAX_HANDSHAKE_APPLICATION_DATA (1024 * 1024)
+
 /*
  * GTlsConnectionBase is the base abstract implementation of TLS and DTLS
  * support, for both the client and server side of a connection. The choice
@@ -2769,17 +2771,25 @@ g_tls_connection_base_handshake_thread_ask_password (GTlsConnectionBase *tls,
   return res != G_TLS_INTERACTION_FAILED;
 }
 
-void
+gboolean
 g_tls_connection_base_handshake_thread_buffer_application_data (GTlsConnectionBase *tls,
                                                                 guint8             *data,
                                                                 gsize               length)
 {
   GTlsConnectionBasePrivate *priv = g_tls_connection_base_get_instance_private (tls);
 
+  if (length > MAX_HANDSHAKE_APPLICATION_DATA ||
+      (priv->app_data_buf &&
+       (priv->app_data_buf->len > MAX_HANDSHAKE_APPLICATION_DATA ||
+        length > MAX_HANDSHAKE_APPLICATION_DATA - priv->app_data_buf->len)))
+    return FALSE;
+
   if (!priv->app_data_buf)
     priv->app_data_buf = g_byte_array_new ();
 
   g_byte_array_append (priv->app_data_buf, data, length);
+
+  return TRUE;
 }
 
 gchar *

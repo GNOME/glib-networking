@@ -198,7 +198,7 @@ gboolean                  g_tls_connection_base_handshake_thread_ask_password
                                                                         (GTlsConnectionBase *tls,
                                                                          GTlsPassword       *password);
 
-void                      g_tls_connection_base_handshake_thread_buffer_application_data
+gboolean                  g_tls_connection_base_handshake_thread_buffer_application_data
                                                                         (GTlsConnectionBase *tls,
                                                                          guint8             *data,
                                                                          gsize               length);

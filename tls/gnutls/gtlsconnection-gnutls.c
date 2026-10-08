@@ -932,8 +932,10 @@ g_tls_connection_gnutls_handshake_thread_handshake (GTlsConnectionBase  *tls,
       ret = gnutls_record_recv (priv->session, buf, sizeof (buf));
       if (ret > -1)
         {
-          g_tls_connection_base_handshake_thread_buffer_application_data (tls, buf, ret);
-          ret = GNUTLS_E_AGAIN;
+          if (g_tls_connection_base_handshake_thread_buffer_application_data (tls, buf, ret))
+            ret = GNUTLS_E_AGAIN;
+          else
+            ret = GNUTLS_E_MEMORY_ERROR;
         }
     }
   END_GNUTLS_IO (gnutls, G_IO_IN | G_IO_OUT, ret, status,
