@@ -10,8 +10,8 @@
     rebuilt after certificate property change, allowing stale session resumption
     (Nieves Montero Fernandez)
   - #238 (CVE-2026-113622) glib-networking: Missing TLS purpose validation in
-    glib-networking OpenSSL backend allows Extended Key Usage bypass (Nieves
-    Montero Fernandez)
+    glib-networking allows Extended Key Usage bypass (Nieves Montero
+    Fernandez)
   - #239 (CVE-2026-113623) glib-networking: Unbounded memory growth in glib-
     networking GnuTLS backend application data buffer during TLS handshake
     allows remote denial of service (Nieves Montero Fernandez)
