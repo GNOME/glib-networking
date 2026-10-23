@@ -1,3 +1,29 @@
+2.90.1 - October 23, 2026
+=========================
+
+* Bugs fixed:
+  - #234 (CVE-2026-103963) Unbounded TLS 1.3 session ticket queue growth in
+    glib-networking allows remote denial of service (Nieves Montero Fernandez)
+  - #235 (CVE-2026-112963) glib-networking macOS OpenSSL backend incorrectly
+    trusts non-SSL policy certificates as TLS anchors (Nieves Montero Fernandez)
+  - #236 (CVE-2026-113624) glib-networking TLS client session cache key not
+    rebuilt after certificate property change, allowing stale session resumption
+    (Nieves Montero Fernandez)
+  - #238 (CVE-2026-113622) glib-networking: Missing TLS purpose validation in
+    glib-networking OpenSSL backend allows Extended Key Usage bypass (Nieves
+    Montero Fernandez)
+  - #239 (CVE-2026-113623) glib-networking: Unbounded memory growth in glib-
+    networking GnuTLS backend application data buffer during TLS handshake
+    allows remote denial of service (Nieves Montero Fernandez)
+  - !282 openssl: consult errno on syscall failure (Michael Catanzaro)
+
+* Translation updates:
+  - German (Jürgen Benvenuti)
+  - Greek, Modern (1453-) (Efstathios Iosifidis)
+  - Norwegian Bokmål (Kjartan Maraas)
+  - Norwegian Nynorsk (Roy-Magne Mo)
+  - Portuguese (Hugo Carvalho)
+
 2.90.0 - September 10, 2026
 ===========================
 
