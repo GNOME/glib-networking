@@ -163,7 +163,8 @@ gtls_bio_write (BIO        *bio,
 
   if (written == -1)
     {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK) ||
+          g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
         BIO_set_retry_write (bio);
 
       g_clear_error (gbio->write_error);
@@ -213,7 +214,8 @@ gtls_bio_read (BIO  *bio,
 
   if (read == -1)
     {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK) ||
+          g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
         BIO_set_retry_read (bio);
 
       g_clear_error (gbio->read_error);

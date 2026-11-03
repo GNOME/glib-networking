@@ -109,6 +109,7 @@ end_openssl_io (GTlsConnectionOpenssl  *openssl,
 
   if ((err_code == SSL_ERROR_WANT_READ ||
        err_code == SSL_ERROR_WANT_WRITE) &&
+      status != G_TLS_CONNECTION_BASE_TIMED_OUT &&
       blocking)
     {
       status = G_TLS_CONNECTION_BASE_TRY_AGAIN;
@@ -1036,6 +1037,12 @@ g_tls_connection_openssl_close (GTlsConnectionBase  *tls,
   priv = g_tls_connection_openssl_get_instance_private (openssl);
 
   priv->shutting_down = TRUE;
+
+  /* SSL_shutdown() must not be called on a connection whose handshake never
+   * completed or failed.
+   */
+  if (SSL_in_init (g_tls_connection_openssl_get_ssl (openssl)))
+    return G_TLS_CONNECTION_BASE_OK;
 
   return perform_openssl_io (G_TLS_CONNECTION_OPENSSL (tls),
                              G_IO_IN | G_IO_OUT,
