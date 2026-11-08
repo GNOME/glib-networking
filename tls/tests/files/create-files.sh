@@ -88,7 +88,7 @@ openssl pkcs8 -topk8 -in server-key.pem -outform DER -nocrypt -out server-key-pk
 #######################################################################
 
 msg "Creating server self-signed certificate"
-openssl x509 -req -days 9125 -in server-csr.pem -signkey server-key.pem -out server-self.pem
+openssl x509 -req -days 9125 -in server-csr.pem -signkey server-key.pem -extfile ssl/server.conf -extensions v3_req_ext -out server-self.pem
 
 #######################################################################
 ### Client
